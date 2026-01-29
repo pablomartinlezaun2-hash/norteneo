@@ -24,7 +24,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Elevaciones laterales en polea",
         series: 3,
         reps: "12-15",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       },
@@ -32,7 +32,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Press inclinado en máquina",
         series: 3,
         reps: "2x8-10 / 1x10-12",
-        approachSets: "3-4",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -40,7 +40,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Press plano con mancuernas a 30 grados",
         series: 3,
         reps: "1x6-8 / 2x10-12",
-        approachSets: "3",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -48,7 +48,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Cruces en polea o máquina",
         series: 2,
         reps: "10-15",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -56,7 +56,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Extensión tríceps con barra",
         series: 2,
         reps: "12-15",
-        approachSets: "1",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -64,7 +64,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Extensión tríceps katana en polea",
         series: 2,
         reps: "10-12",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       }
@@ -79,7 +79,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "AB crunch / Dragons",
         series: 3,
         reps: "12-15",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       },
@@ -87,7 +87,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Abductor en máquina",
         series: 3,
         reps: "2x10-12 / 1x8-10",
-        approachSets: "3-4",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -95,7 +95,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Isquios en máquina",
         series: 3,
         reps: "2x10-15 / 1x8-10",
-        approachSets: "3",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -103,7 +103,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Extensión cuádriceps",
         series: 3,
         reps: "2x10-15 / 1x8-10",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -111,7 +111,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Prensa",
         series: 2,
         reps: "1x8-10 / 1x10-12",
-        approachSets: "1",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -119,7 +119,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Sentadilla búlgara",
         series: 3,
         reps: "2x6-8 / 1x8-10",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       }
@@ -134,7 +134,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Elevaciones laterales con mancuernas",
         series: 3,
         reps: "12-15",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       },
@@ -142,7 +142,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Tracción vertical unilateral",
         series: 3,
         reps: "1x6-8 / 2x8-10",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -150,7 +150,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Remo agarre mag",
         series: 3,
         reps: "1x6-8 / 2x8-10",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -158,7 +158,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Remo unilateral máquina o polea",
         series: 3,
         reps: "1x7-9 / 2x9-12",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -166,7 +166,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Remo low row",
         series: 2,
         reps: "1x8-10 / 1x10-12",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -174,7 +174,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Curl bíceps en máquina",
         series: 3,
         reps: "10-15",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       }
@@ -189,7 +189,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "ABS / Dragons",
         series: 3,
         reps: "8-12",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       },
@@ -197,7 +197,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Abductor en máquina",
         series: 3,
         reps: "3x10-12",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -205,7 +205,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Glúteo medio en polea",
         series: 2,
         reps: "2x8-10",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -213,7 +213,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Peso muerto rumano barra / mancuernas",
         series: 2,
         reps: "1x6-8 / 1x8-10",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -221,7 +221,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Extensión cuádriceps",
         series: 2,
         reps: "10-15",
-        approachSets: "1",
+        approachSets: "0-2",
         rest: "3 minutos",
         technique: "Serie recta"
       },
@@ -229,7 +229,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Prensa",
         series: 2,
         reps: "1x8-10 / 1x6-8",
-        approachSets: "1-2",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       },
@@ -237,7 +237,7 @@ export const workoutSessions: WorkoutSession[] = [
         name: "Hip Thrust",
         series: 3,
         reps: "1x6-8 / 1x8-10",
-        approachSets: "0-1",
+        approachSets: "0-2",
         rest: "2 minutos",
         technique: "Serie recta"
       }
