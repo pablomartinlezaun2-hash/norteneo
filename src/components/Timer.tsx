@@ -22,7 +22,7 @@ export const Timer = ({ defaultRestTime = 120, className }: TimerProps) => {
     reset 
   } = useTimer(defaultRestTime);
 
-  const presetTimes = [60, 90, 120, 180];
+  const presetTimes = [60, 120, 150, 180]; // 1, 2, 2.5, 3 minutos
 
   if (!isExpanded) {
     return (

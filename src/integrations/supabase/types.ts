@@ -43,6 +43,154 @@ export type Database = {
           },
         ]
       }
+      educational_articles: {
+        Row: {
+          category_id: string
+          content: string
+          created_at: string
+          id: string
+          is_default: boolean | null
+          order_index: number
+          slug: string
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          category_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          order_index?: number
+          slug: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          category_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          order_index?: number
+          slug?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educational_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "educational_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      educational_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          order_index: number
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          order_index?: number
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          slug?: string
+        }
+        Relationships: []
+      }
+      exercise_catalog: {
+        Row: {
+          created_at: string
+          description: string | null
+          difficulty: string | null
+          equipment: string[] | null
+          execution: string | null
+          id: string
+          image_url: string | null
+          is_compound: boolean | null
+          name: string
+          primary_muscle_id: string | null
+          resistance_profile: string | null
+          secondary_muscles: string[] | null
+          slug: string
+          strength_curve: string | null
+          tips: string[] | null
+          variants: string[] | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          equipment?: string[] | null
+          execution?: string | null
+          id?: string
+          image_url?: string | null
+          is_compound?: boolean | null
+          name: string
+          primary_muscle_id?: string | null
+          resistance_profile?: string | null
+          secondary_muscles?: string[] | null
+          slug: string
+          strength_curve?: string | null
+          tips?: string[] | null
+          variants?: string[] | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          equipment?: string[] | null
+          execution?: string | null
+          id?: string
+          image_url?: string | null
+          is_compound?: boolean | null
+          name?: string
+          primary_muscle_id?: string | null
+          resistance_profile?: string | null
+          secondary_muscles?: string[] | null
+          slug?: string
+          strength_curve?: string | null
+          tips?: string[] | null
+          variants?: string[] | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_catalog_primary_muscle_id_fkey"
+            columns: ["primary_muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscle_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_notes: {
         Row: {
           created_at: string
@@ -130,6 +278,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      muscle_groups: {
+        Row: {
+          category: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
