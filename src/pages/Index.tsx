@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTrainingProgram, ProgramWithSessions } from '@/hooks/useTrainingProgram';
+import { useTrainingProgram } from '@/hooks/useTrainingProgram';
 import { useCompletedSessions } from '@/hooks/useCompletedSessions';
 import { ExerciseCardNew } from '@/components/ExerciseCardNew';
 import { CycleProgressChart } from '@/components/CycleProgressChart';
 import { NutritionSection } from '@/components/NutritionSection';
+import { EducationalSection } from '@/components/EducationalSection';
+import { ExerciseCatalog } from '@/components/ExerciseCatalog';
 import { Timer } from '@/components/Timer';
 import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Flame, Dumbbell, TrendingUp, Apple, LogOut, 
-  CheckCircle2, Loader2
+  CheckCircle2, Loader2, BookOpen, Library
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +31,8 @@ const Index = () => {
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
   const [showNutrition, setShowNutrition] = useState(false);
+  const [showTheory, setShowTheory] = useState(false);
+  const [showExercises, setShowExercises] = useState(false);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -64,21 +68,34 @@ const Index = () => {
     }
   };
 
-  const handleTabChange = (index: number | 'progress' | 'nutrition') => {
+  const handleTabChange = (index: number | 'progress' | 'nutrition' | 'theory' | 'exercises') => {
+    setShowProgress(false);
+    setShowNutrition(false);
+    setShowTheory(false);
+    setShowExercises(false);
+    
     if (index === 'progress') {
       setShowProgress(true);
-      setShowNutrition(false);
     } else if (index === 'nutrition') {
-      setShowProgress(false);
       setShowNutrition(true);
+    } else if (index === 'theory') {
+      setShowTheory(true);
+    } else if (index === 'exercises') {
+      setShowExercises(true);
     } else {
-      setShowProgress(false);
-      setShowNutrition(false);
       setActiveSessionIndex(index);
     }
   };
 
   const renderContent = () => {
+    if (showTheory) {
+      return <EducationalSection />;
+    }
+
+    if (showExercises) {
+      return <ExerciseCatalog />;
+    }
+
     if (showProgress) {
       return (
         <CycleProgressChart 
@@ -207,7 +224,7 @@ const Index = () => {
           <div className="flex min-w-max px-2 py-2 gap-1">
             {sessionTabs.map((tab) => {
               const Icon = tab.icon;
-              const isActive = !showProgress && !showNutrition && activeSessionIndex === tab.index;
+              const isActive = !showProgress && !showNutrition && !showTheory && !showExercises && activeSessionIndex === tab.index;
               
               return (
                 <button
@@ -252,6 +269,34 @@ const Index = () => {
             >
               <Apple className="w-3.5 h-3.5" />
               Nutrición
+            </button>
+
+            {/* Theory Tab */}
+            <button
+              onClick={() => handleTabChange('theory')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                showTheory 
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Teoría
+            </button>
+
+            {/* Exercises Catalog Tab */}
+            <button
+              onClick={() => handleTabChange('exercises')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                showExercises 
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <Library className="w-3.5 h-3.5" />
+              Ejercicios
             </button>
           </div>
         </div>
