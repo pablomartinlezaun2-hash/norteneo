@@ -201,13 +201,13 @@ export const ExerciseCatalog = () => {
             className="pl-9"
           />
         </div>
-        <Select value={selectedMuscle || ''} onValueChange={(v) => setSelectedMuscle(v || null)}>
+        <Select value={selectedMuscle || 'all'} onValueChange={(v) => setSelectedMuscle(v === 'all' ? null : v)}>
           <SelectTrigger className="w-[180px]">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="Músculo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             {Object.entries(groupedMuscles).map(([category, muscles]) => (
               <div key={category}>
                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
