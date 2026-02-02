@@ -1,94 +1,126 @@
-import { nutritionInfo, supplements, foods } from '@/data/workouts';
-import { Apple, Pill, Footprints, Flame } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { UtensilsCrossed, Target, Pill, ChefHat } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useNutritionData } from '@/hooks/useNutritionData';
+import { FoodLogSection } from './nutrition/FoodLogSection';
+import { NutritionGoalsSection } from './nutrition/NutritionGoalsSection';
+import { SupplementsSection } from './nutrition/SupplementsSection';
+import { RecipesSection } from './nutrition/RecipesSection';
+
+type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes';
 
 export const NutritionSection = () => {
+  const [activeTab, setActiveTab] = useState<NutritionTab>('log');
+  
+  const {
+    loading,
+    foodCatalog,
+    foodLogs,
+    goals,
+    supplements,
+    supplementLogs,
+    recipes,
+    dailyTotals,
+    selectedDate,
+    setSelectedDate,
+    addFoodLog,
+    deleteFoodLog,
+    updateGoals,
+    addSupplement,
+    deleteSupplement,
+    toggleSupplementTaken
+  } = useNutritionData();
+
+  const tabs = [
+    { id: 'log' as const, label: 'Registro', icon: UtensilsCrossed },
+    { id: 'goals' as const, label: 'Objetivos', icon: Target },
+    { id: 'supplements' as const, label: 'Suplem.', icon: Pill },
+    { id: 'recipes' as const, label: 'Recetas', icon: ChefHat }
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Explanation */}
-      <div className="gradient-card rounded-lg p-4 border border-border">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {nutritionInfo.explanation}
-        </p>
-      </div>
-
-      {/* Nutrition Cards */}
-      <div className="grid grid-cols-1 gap-4">
-        <div className="gradient-card rounded-lg p-4 border border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="gradient-primary rounded-lg p-2">
-              <Flame className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <h3 className="font-semibold text-foreground">Días de Gym</h3>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Footprints className="w-4 h-4 text-primary" />
-            <span>{nutritionInfo.gymDays.steps} pasos diarios</span>
-          </div>
-        </div>
-
-        <div className="gradient-card rounded-lg p-4 border border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="gradient-primary rounded-lg p-2">
-              <Apple className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <h3 className="font-semibold text-foreground">Días de Descanso</h3>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-primary font-bold">Kcal:</span>
-              <span>{nutritionInfo.restDays.kcal}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Footprints className="w-4 h-4 text-primary" />
-              <span>{nutritionInfo.restDays.steps} pasos diarios</span>
-            </div>
-          </div>
+    <div className="space-y-4">
+      {/* Tab navigation */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4">
+        <div className="flex gap-1 p-1 bg-muted rounded-xl">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all duration-200",
+                  isActive 
+                    ? "gradient-primary text-primary-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Supplements */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Pill className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold text-foreground">Suplementación</h3>
-        </div>
-        <div className="space-y-3">
-          {supplements.map((supplement, index) => (
-            <div 
-              key={index}
-              className="gradient-card rounded-lg p-4 border border-border card-hover animate-slide-up"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <h4 className="font-semibold text-foreground mb-2">{supplement.name}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {supplement.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Tab content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === 'log' && (
+            <FoodLogSection
+              foodLogs={foodLogs}
+              foodCatalog={foodCatalog}
+              goals={goals}
+              dailyTotals={dailyTotals}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+              onAddFood={addFoodLog}
+              onDeleteLog={deleteFoodLog}
+            />
+          )}
 
-      {/* Foods */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Apple className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold text-foreground">Alimentos Recomendados</h3>
-        </div>
-        <div className="space-y-3">
-          {foods.map((food, index) => (
-            <div 
-              key={index}
-              className="gradient-card rounded-lg p-4 border border-border card-hover animate-slide-up"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <h4 className="font-semibold text-foreground mb-2">{food.name}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {food.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+          {activeTab === 'goals' && (
+            <NutritionGoalsSection
+              goals={goals}
+              onUpdateGoals={updateGoals}
+            />
+          )}
+
+          {activeTab === 'supplements' && (
+            <SupplementsSection
+              supplements={supplements}
+              supplementLogs={supplementLogs}
+              onAddSupplement={addSupplement}
+              onDeleteSupplement={deleteSupplement}
+              onToggleTaken={toggleSupplementTaken}
+            />
+          )}
+
+          {activeTab === 'recipes' && (
+            <RecipesSection
+              recipes={recipes}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

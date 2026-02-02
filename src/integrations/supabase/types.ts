@@ -306,6 +306,113 @@ export type Database = {
           },
         ]
       }
+      food_catalog: {
+        Row: {
+          brand: string | null
+          calories_per_100g: number
+          carbs_per_100g: number
+          category: string | null
+          created_at: string
+          fat_per_100g: number
+          fiber_per_100g: number | null
+          id: string
+          is_default: boolean | null
+          name: string
+          protein_per_100g: number
+          serving_size: number | null
+          serving_unit: string | null
+          user_id: string | null
+        }
+        Insert: {
+          brand?: string | null
+          calories_per_100g?: number
+          carbs_per_100g?: number
+          category?: string | null
+          created_at?: string
+          fat_per_100g?: number
+          fiber_per_100g?: number | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          protein_per_100g?: number
+          serving_size?: number | null
+          serving_unit?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          brand?: string | null
+          calories_per_100g?: number
+          carbs_per_100g?: number
+          category?: string | null
+          created_at?: string
+          fat_per_100g?: number
+          fiber_per_100g?: number | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          protein_per_100g?: number
+          serving_size?: number | null
+          serving_unit?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      food_logs: {
+        Row: {
+          calories: number
+          carbs: number
+          created_at: string
+          fat: number
+          food_id: string | null
+          food_name: string
+          id: string
+          logged_date: string
+          meal_type: string
+          protein: number
+          quantity: number
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          fat?: number
+          food_id?: string | null
+          food_name: string
+          id?: string
+          logged_date?: string
+          meal_type: string
+          protein?: number
+          quantity?: number
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          fat?: number
+          food_id?: string | null
+          food_name?: string
+          id?: string
+          logged_date?: string
+          meal_type?: string
+          protein?: number
+          quantity?: number
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_logs_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "food_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       muscle_groups: {
         Row: {
           category: string
@@ -327,6 +434,39 @@ export type Database = {
           icon?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      nutrition_goals: {
+        Row: {
+          created_at: string
+          daily_calories: number
+          daily_carbs: number
+          daily_fat: number
+          daily_protein: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_calories?: number
+          daily_carbs?: number
+          daily_fat?: number
+          daily_protein?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_calories?: number
+          daily_carbs?: number
+          daily_fat?: number
+          daily_protein?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -354,6 +494,66 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          calories: number
+          carbs: number
+          created_at: string
+          description: string | null
+          fat: number
+          id: string
+          image_url: string | null
+          ingredients: Json | null
+          instructions: string[] | null
+          is_default: boolean | null
+          meal_type: string[] | null
+          name: string
+          prep_time_minutes: number | null
+          protein: number
+          servings: number | null
+          tags: string[] | null
+          user_id: string | null
+        }
+        Insert: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          description?: string | null
+          fat?: number
+          id?: string
+          image_url?: string | null
+          ingredients?: Json | null
+          instructions?: string[] | null
+          is_default?: boolean | null
+          meal_type?: string[] | null
+          name: string
+          prep_time_minutes?: number | null
+          protein?: number
+          servings?: number | null
+          tags?: string[] | null
+          user_id?: string | null
+        }
+        Update: {
+          calories?: number
+          carbs?: number
+          created_at?: string
+          description?: string | null
+          fat?: number
+          id?: string
+          image_url?: string | null
+          ingredients?: Json | null
+          instructions?: string[] | null
+          is_default?: boolean | null
+          meal_type?: string[] | null
+          name?: string
+          prep_time_minutes?: number | null
+          protein?: number
+          servings?: number | null
+          tags?: string[] | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -407,6 +607,38 @@ export type Database = {
           },
         ]
       }
+      supplement_logs: {
+        Row: {
+          id: string
+          logged_date: string
+          supplement_id: string | null
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          logged_date?: string
+          supplement_id?: string | null
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          logged_date?: string
+          supplement_id?: string | null
+          taken_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_logs_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "user_supplements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_programs: {
         Row: {
           created_at: string
@@ -432,6 +664,42 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_supplements: {
+        Row: {
+          created_at: string
+          dosage: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          timing: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          timing?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          timing?: string | null
           updated_at?: string
           user_id?: string
         }
