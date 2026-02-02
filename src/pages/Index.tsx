@@ -12,10 +12,11 @@ import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
-  Flame, Dumbbell, TrendingUp, Apple, LogOut, 
+  Dumbbell, TrendingUp, Apple, LogOut, 
   CheckCircle2, Loader2, BookOpen, Library
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Index = () => {
   const { signOut } = useAuth();
@@ -36,12 +37,39 @@ const Index = () => {
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [contentKey, setContentKey] = useState(0);
+
+  // Page transition variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 }
+  };
 
   // Loading state
   if (programLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </motion.div>
       </div>
     );
   }
@@ -73,6 +101,7 @@ const Index = () => {
     setShowNutrition(false);
     setShowTheory(false);
     setShowExercises(false);
+    setContentKey(prev => prev + 1); // Trigger animation on tab change
     
     if (index === 'progress') {
       setShowProgress(true);
@@ -89,59 +118,125 @@ const Index = () => {
 
   const renderContent = () => {
     if (showTheory) {
-      return <EducationalSection />;
+      return (
+        <motion.div
+          key="theory"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <EducationalSection />
+        </motion.div>
+      );
     }
 
     if (showExercises) {
-      return <ExerciseCatalog />;
+      return (
+        <motion.div
+          key="exercises"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <ExerciseCatalog />
+        </motion.div>
+      );
     }
 
     if (showProgress) {
       return (
-        <CycleProgressChart 
-          completedSessions={completedSessions}
-          totalCompleted={getTotalCompleted()}
-          cyclesCompleted={getCyclesCompleted()}
-          progressInCycle={getProgressInCurrentCycle()}
-        />
+        <motion.div
+          key="progress"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <CycleProgressChart 
+            completedSessions={completedSessions}
+            totalCompleted={getTotalCompleted()}
+            cyclesCompleted={getCyclesCompleted()}
+            progressInCycle={getProgressInCurrentCycle()}
+          />
+        </motion.div>
       );
     }
 
     if (showNutrition) {
-      return <NutritionSection />;
+      return (
+        <motion.div
+          key="nutrition"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <NutritionSection />
+        </motion.div>
+      );
     }
 
     if (!currentSession) {
       return (
-        <div className="text-center py-12">
+        <motion.div 
+          className="text-center py-12"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+        >
           <p className="text-muted-foreground">No hay sesiones en este programa</p>
-        </div>
+        </motion.div>
       );
     }
 
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between mb-6">
+      <motion.div 
+        key={`session-${activeSessionIndex}`}
+        className="space-y-4"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div 
+          className="flex items-center justify-between mb-6"
+          variants={itemVariants}
+          transition={{ duration: 0.4 }}
+        >
           <div>
             <h2 className="text-xl font-bold text-foreground">{currentSession.name}</h2>
             <p className="text-sm text-muted-foreground">
               {currentSession.exercises?.length || 0} ejercicios
             </p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="space-y-3">
+        <motion.div className="space-y-3">
           {currentSession.exercises?.map((exercise, index) => (
-            <ExerciseCardNew 
-              key={exercise.id} 
-              exercise={exercise} 
-              index={index} 
-            />
+            <motion.div
+              key={exercise.id}
+              variants={itemVariants}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+            >
+              <ExerciseCardNew 
+                exercise={exercise} 
+                index={index} 
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Complete Session */}
-        <div className="mt-6 pt-4 border-t border-border">
+        <motion.div 
+          className="mt-6 pt-4 border-t border-border"
+          variants={itemVariants}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
           <div className="gradient-card rounded-xl p-4 border border-border">
             <div className="flex items-center gap-3 mb-4">
               <Checkbox 
@@ -171,16 +266,24 @@ const Index = () => {
               Registrar entreno
             </Button>
 
-            {showConfirmation && (
-              <div className="mt-3 p-3 bg-success/20 border border-success/30 rounded-lg text-center animate-slide-up">
-                <p className="text-sm text-success font-medium">
-                  ¡Entreno registrado! 💪
-                </p>
-              </div>
-            )}
+            <AnimatePresence>
+              {showConfirmation && (
+                <motion.div 
+                  className="mt-3 p-3 bg-success/20 border border-success/30 rounded-lg text-center"
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <p className="text-sm text-success font-medium">
+                    ¡Entreno registrado! 💪
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   };
 
@@ -194,14 +297,22 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
+      <motion.header 
+        className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="gradient-primary rounded-xl p-2.5 glow-primary">
-              <Flame className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <motion.div 
+              className="bg-foreground rounded-xl px-3 py-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="text-lg font-bold tracking-tight text-background">NEO</span>
+            </motion.div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Mi Entreno</h1>
               <p className="text-[10px] text-muted-foreground">
                 {getTotalCompleted()} entrenos • {getCyclesCompleted()} ciclos
               </p>
@@ -216,18 +327,23 @@ const Index = () => {
             <LogOut className="w-5 h-5" />
           </Button>
         </div>
-      </header>
+      </motion.header>
 
       {/* Navigation */}
-      <nav className="sticky top-[65px] z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <motion.nav 
+        className="sticky top-[65px] z-40 bg-background/95 backdrop-blur-sm border-b border-border"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-2 py-2 gap-1">
-            {sessionTabs.map((tab) => {
+            {sessionTabs.map((tab, i) => {
               const Icon = tab.icon;
               const isActive = !showProgress && !showNutrition && !showTheory && !showExercises && activeSessionIndex === tab.index;
               
               return (
-                <button
+                <motion.button
                   key={tab.index}
                   onClick={() => handleTabChange(tab.index)}
                   className={cn(
@@ -236,15 +352,20 @@ const Index = () => {
                       ? "gradient-primary text-primary-foreground glow-primary" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   {tab.label}
-                </button>
+                </motion.button>
               );
             })}
             
             {/* Progress Tab */}
-            <button
+            <motion.button
               onClick={() => handleTabChange('progress')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
@@ -252,13 +373,18 @@ const Index = () => {
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               <TrendingUp className="w-3.5 h-3.5" />
               Progreso
-            </button>
+            </motion.button>
             
             {/* Nutrition Tab */}
-            <button
+            <motion.button
               onClick={() => handleTabChange('nutrition')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
@@ -266,13 +392,18 @@ const Index = () => {
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.35 }}
             >
               <Apple className="w-3.5 h-3.5" />
               Nutrición
-            </button>
+            </motion.button>
 
             {/* Theory Tab */}
-            <button
+            <motion.button
               onClick={() => handleTabChange('theory')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
@@ -280,13 +411,18 @@ const Index = () => {
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
             >
               <BookOpen className="w-3.5 h-3.5" />
               Teoría
-            </button>
+            </motion.button>
 
             {/* Exercises Catalog Tab */}
-            <button
+            <motion.button
               onClick={() => handleTabChange('exercises')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
@@ -294,17 +430,26 @@ const Index = () => {
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.45 }}
             >
               <Library className="w-3.5 h-3.5" />
               Ejercicios
-            </button>
+            </motion.button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Content */}
       <main className="px-4 py-6 pb-32">
-        {renderContent()}
+        <AnimatePresence mode="wait">
+          <motion.div key={contentKey}>
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Timer FAB */}
