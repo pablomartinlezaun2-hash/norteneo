@@ -11,7 +11,7 @@ import { SwimmingSection } from '@/components/SwimmingSection';
 import { RunningSection } from '@/components/RunningSection';
 import { WorkoutSubNav } from '@/components/WorkoutSubNav';
 import { WorkoutDesigner } from '@/components/WorkoutDesigner';
-import { MyWorkoutsSection } from '@/components/MyWorkoutsSection';
+import { UnifiedWorkoutsSection } from '@/components/UnifiedWorkoutsSection';
 import { Timer } from '@/components/Timer';
 import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
@@ -35,9 +35,9 @@ const Index = () => {
     getProgressInCurrentCycle 
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design' | 'my-workouts';
+  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
   
-  const [mainTab, setMainTab] = useState<MainTab>('workouts');
+  const [mainTab, setMainTab] = useState<MainTab>('workouts'); // 'workouts' ahora es la pestaña unificada "Entrenamientos"
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -113,17 +113,17 @@ const Index = () => {
 
   const renderContent = () => {
     switch (mainTab) {
-      case 'my-workouts':
+      case 'workouts':
         return (
           <motion.div
-            key="my-workouts"
+            key="workouts"
             variants={pageVariants}
             initial="initial"
             animate="animate"
             exit="exit"
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <MyWorkoutsSection />
+            <UnifiedWorkoutsSection />
           </motion.div>
         );
 
@@ -230,118 +230,17 @@ const Index = () => {
           </motion.div>
         );
 
-      case 'workouts':
       default:
-        if (!currentSession) {
-          return (
-            <motion.div 
-              className="text-center py-12"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-            >
-              <p className="text-muted-foreground">No hay sesiones en este programa</p>
-            </motion.div>
-          );
-        }
-
         return (
-          <motion.div 
-            key={`session-${activeSessionIndex}`}
-            className="space-y-4"
+          <motion.div
+            key="workouts"
             variants={pageVariants}
             initial="initial"
             animate="animate"
             exit="exit"
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            {/* Sub-navigation for workout sessions */}
-            <WorkoutSubNav 
-              sessions={sessions}
-              activeIndex={activeSessionIndex}
-              onSelect={handleSessionSelect}
-            />
-
-            <motion.div 
-              className="flex items-center justify-between mb-6"
-              variants={itemVariants}
-              transition={{ duration: 0.4 }}
-            >
-              <div>
-                <h2 className="text-xl font-bold text-foreground">{currentSession.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {currentSession.exercises?.length || 0} ejercicios
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div className="space-y-3">
-              {currentSession.exercises?.map((exercise, index) => (
-                <motion.div
-                  key={exercise.id}
-                  variants={itemVariants}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                >
-                  <ExerciseCardNew 
-                    exercise={exercise} 
-                    index={index} 
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Complete Session */}
-            <motion.div 
-              className="mt-6 pt-4 border-t border-border"
-              variants={itemVariants}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <div className="gradient-card rounded-xl p-4 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <Checkbox 
-                    id="session-complete"
-                    checked={isSessionCompleted}
-                    onCheckedChange={(checked) => setIsSessionCompleted(checked === true)}
-                    className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <label 
-                    htmlFor="session-complete" 
-                    className="text-sm font-medium text-foreground cursor-pointer"
-                  >
-                    He completado la sesión completa
-                  </label>
-                </div>
-                
-                <Button 
-                  onClick={handleCompleteSession}
-                  disabled={!isSessionCompleted || completing}
-                  className="w-full gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {completing ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                  )}
-                  Registrar entreno
-                </Button>
-
-                <AnimatePresence>
-                  {showConfirmation && (
-                    <motion.div 
-                      className="mt-3 p-3 bg-success/20 border border-success/30 rounded-lg text-center"
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <p className="text-sm text-success font-medium">
-                        ¡Entreno registrado! 💪
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
+            <UnifiedWorkoutsSection />
           </motion.div>
         );
     }
@@ -392,26 +291,7 @@ const Index = () => {
       >
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-2 py-2 gap-1">
-            {/* My Workouts Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('my-workouts')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'my-workouts'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.05 }}
-            >
-              <FolderOpen className="w-3.5 h-3.5" />
-              Entrenamientos
-            </motion.button>
-
-            {/* Workouts Tab (current program) */}
+            {/* Entrenamientos Tab (unified) */}
             <motion.button
               onClick={() => handleMainTabChange('workouts')}
               className={cn(
@@ -424,10 +304,10 @@ const Index = () => {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
+              transition={{ duration: 0.3, delay: 0.05 }}
             >
               <Dumbbell className="w-3.5 h-3.5" />
-              Programa activo
+              Entrenamientos
             </motion.button>
 
             {/* Swimming Tab */}
