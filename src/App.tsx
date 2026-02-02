@@ -17,8 +17,19 @@ const queryClient = new QueryClient();
 const AuthRoute = () => {
   const { user, loading } = useAuth();
   
-  if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  // Show nothing while loading to prevent flash
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  
+  // If user is authenticated, redirect to home
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
   
   return <Auth />;
 };
