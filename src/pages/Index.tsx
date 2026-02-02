@@ -7,13 +7,17 @@ import { CycleProgressChart } from '@/components/CycleProgressChart';
 import { NutritionSection } from '@/components/NutritionSection';
 import { EducationalSection } from '@/components/EducationalSection';
 import { ExerciseCatalog } from '@/components/ExerciseCatalog';
+import { SwimmingSection } from '@/components/SwimmingSection';
+import { RunningSection } from '@/components/RunningSection';
+import { WorkoutSubNav } from '@/components/WorkoutSubNav';
 import { Timer } from '@/components/Timer';
 import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Dumbbell, TrendingUp, Apple, LogOut, 
-  CheckCircle2, Loader2, BookOpen, Library
+  CheckCircle2, Loader2, BookOpen, Library,
+  Waves, Footprints
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,11 +33,10 @@ const Index = () => {
     getProgressInCurrentCycle 
   } = useCompletedSessions();
 
+  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises';
+  
+  const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
-  const [showProgress, setShowProgress] = useState(false);
-  const [showNutrition, setShowNutrition] = useState(false);
-  const [showTheory, setShowTheory] = useState(false);
-  const [showExercises, setShowExercises] = useState(false);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -96,203 +99,224 @@ const Index = () => {
     }
   };
 
-  const handleTabChange = (index: number | 'progress' | 'nutrition' | 'theory' | 'exercises') => {
-    setShowProgress(false);
-    setShowNutrition(false);
-    setShowTheory(false);
-    setShowExercises(false);
-    setContentKey(prev => prev + 1); // Trigger animation on tab change
-    
-    if (index === 'progress') {
-      setShowProgress(true);
-    } else if (index === 'nutrition') {
-      setShowNutrition(true);
-    } else if (index === 'theory') {
-      setShowTheory(true);
-    } else if (index === 'exercises') {
-      setShowExercises(true);
-    } else {
-      setActiveSessionIndex(index);
-    }
+  const handleMainTabChange = (tab: MainTab) => {
+    setMainTab(tab);
+    setContentKey(prev => prev + 1);
+  };
+
+  const handleSessionSelect = (index: number) => {
+    setActiveSessionIndex(index);
+    setContentKey(prev => prev + 1);
   };
 
   const renderContent = () => {
-    if (showTheory) {
-      return (
-        <motion.div
-          key="theory"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <EducationalSection />
-        </motion.div>
-      );
-    }
+    switch (mainTab) {
+      case 'theory':
+        return (
+          <motion.div
+            key="theory"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <EducationalSection />
+          </motion.div>
+        );
 
-    if (showExercises) {
-      return (
-        <motion.div
-          key="exercises"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <ExerciseCatalog />
-        </motion.div>
-      );
-    }
+      case 'exercises':
+        return (
+          <motion.div
+            key="exercises"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <ExerciseCatalog />
+          </motion.div>
+        );
 
-    if (showProgress) {
-      return (
-        <motion.div
-          key="progress"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <CycleProgressChart 
-            completedSessions={completedSessions}
-            totalCompleted={getTotalCompleted()}
-            cyclesCompleted={getCyclesCompleted()}
-            progressInCycle={getProgressInCurrentCycle()}
-          />
-        </motion.div>
-      );
-    }
+      case 'progress':
+        return (
+          <motion.div
+            key="progress"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <CycleProgressChart 
+              completedSessions={completedSessions}
+              totalCompleted={getTotalCompleted()}
+              cyclesCompleted={getCyclesCompleted()}
+              progressInCycle={getProgressInCurrentCycle()}
+            />
+          </motion.div>
+        );
 
-    if (showNutrition) {
-      return (
-        <motion.div
-          key="nutrition"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <NutritionSection />
-        </motion.div>
-      );
-    }
+      case 'nutrition':
+        return (
+          <motion.div
+            key="nutrition"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <NutritionSection />
+          </motion.div>
+        );
 
-    if (!currentSession) {
-      return (
-        <motion.div 
-          className="text-center py-12"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-        >
-          <p className="text-muted-foreground">No hay sesiones en este programa</p>
-        </motion.div>
-      );
-    }
+      case 'swimming':
+        return (
+          <motion.div
+            key="swimming"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <SwimmingSection />
+          </motion.div>
+        );
 
-    return (
-      <motion.div 
-        key={`session-${activeSessionIndex}`}
-        className="space-y-4"
-        variants={staggerContainer}
-        initial="initial"
-        animate="animate"
-      >
-        <motion.div 
-          className="flex items-center justify-between mb-6"
-          variants={itemVariants}
-          transition={{ duration: 0.4 }}
-        >
-          <div>
-            <h2 className="text-xl font-bold text-foreground">{currentSession.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              {currentSession.exercises?.length || 0} ejercicios
-            </p>
-          </div>
-        </motion.div>
+      case 'running':
+        return (
+          <motion.div
+            key="running"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <RunningSection />
+          </motion.div>
+        );
 
-        <motion.div className="space-y-3">
-          {currentSession.exercises?.map((exercise, index) => (
-            <motion.div
-              key={exercise.id}
-              variants={itemVariants}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
+      case 'workouts':
+      default:
+        if (!currentSession) {
+          return (
+            <motion.div 
+              className="text-center py-12"
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
             >
-              <ExerciseCardNew 
-                exercise={exercise} 
-                index={index} 
-              />
+              <p className="text-muted-foreground">No hay sesiones en este programa</p>
             </motion.div>
-          ))}
-        </motion.div>
+          );
+        }
 
-        {/* Complete Session */}
-        <motion.div 
-          className="mt-6 pt-4 border-t border-border"
-          variants={itemVariants}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
-          <div className="gradient-card rounded-xl p-4 border border-border">
-            <div className="flex items-center gap-3 mb-4">
-              <Checkbox 
-                id="session-complete"
-                checked={isSessionCompleted}
-                onCheckedChange={(checked) => setIsSessionCompleted(checked === true)}
-                className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-              />
-              <label 
-                htmlFor="session-complete" 
-                className="text-sm font-medium text-foreground cursor-pointer"
-              >
-                He completado la sesión completa
-              </label>
-            </div>
-            
-            <Button 
-              onClick={handleCompleteSession}
-              disabled={!isSessionCompleted || completing}
-              className="w-full gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+        return (
+          <motion.div 
+            key={`session-${activeSessionIndex}`}
+            className="space-y-4"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            {/* Sub-navigation for workout sessions */}
+            <WorkoutSubNav 
+              sessions={sessions}
+              activeIndex={activeSessionIndex}
+              onSelect={handleSessionSelect}
+            />
+
+            <motion.div 
+              className="flex items-center justify-between mb-6"
+              variants={itemVariants}
+              transition={{ duration: 0.4 }}
             >
-              {completing ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-              )}
-              Registrar entreno
-            </Button>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">{currentSession.name}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {currentSession.exercises?.length || 0} ejercicios
+                </p>
+              </div>
+            </motion.div>
 
-            <AnimatePresence>
-              {showConfirmation && (
-                <motion.div 
-                  className="mt-3 p-3 bg-success/20 border border-success/30 rounded-lg text-center"
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                  transition={{ duration: 0.3 }}
+            <motion.div className="space-y-3">
+              {currentSession.exercises?.map((exercise, index) => (
+                <motion.div
+                  key={exercise.id}
+                  variants={itemVariants}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
                 >
-                  <p className="text-sm text-success font-medium">
-                    ¡Entreno registrado! 💪
-                  </p>
+                  <ExerciseCardNew 
+                    exercise={exercise} 
+                    index={index} 
+                  />
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      </motion.div>
-    );
+              ))}
+            </motion.div>
+
+            {/* Complete Session */}
+            <motion.div 
+              className="mt-6 pt-4 border-t border-border"
+              variants={itemVariants}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <div className="gradient-card rounded-xl p-4 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <Checkbox 
+                    id="session-complete"
+                    checked={isSessionCompleted}
+                    onCheckedChange={(checked) => setIsSessionCompleted(checked === true)}
+                    className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <label 
+                    htmlFor="session-complete" 
+                    className="text-sm font-medium text-foreground cursor-pointer"
+                  >
+                    He completado la sesión completa
+                  </label>
+                </div>
+                
+                <Button 
+                  onClick={handleCompleteSession}
+                  disabled={!isSessionCompleted || completing}
+                  className="w-full gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {completing ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                  )}
+                  Registrar entreno
+                </Button>
+
+                <AnimatePresence>
+                  {showConfirmation && (
+                    <motion.div 
+                      className="mt-3 p-3 bg-success/20 border border-success/30 rounded-lg text-center"
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p className="text-sm text-success font-medium">
+                        ¡Entreno registrado! 💪
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </motion.div>
+        );
+    }
   };
 
-  // Build tabs from sessions
-  const sessionTabs = sessions.map((session, index) => ({
-    index,
-    label: session.short_name,
-    icon: Dumbbell
-  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -338,38 +362,88 @@ const Index = () => {
       >
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-2 py-2 gap-1">
-            {sessionTabs.map((tab, i) => {
-              const Icon = tab.icon;
-              const isActive = !showProgress && !showNutrition && !showTheory && !showExercises && activeSessionIndex === tab.index;
-              
-              return (
-                <motion.button
-                  key={tab.index}
-                  onClick={() => handleTabChange(tab.index)}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                    isActive 
-                      ? "gradient-primary text-primary-foreground glow-primary" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {tab.label}
-                </motion.button>
-              );
-            })}
+            {/* Workouts Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('workouts')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'workouts'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Dumbbell className="w-3.5 h-3.5" />
+              Entrenamientos
+            </motion.button>
+
+            {/* Swimming Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('swimming')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'swimming'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.15 }}
+            >
+              <Waves className="w-3.5 h-3.5" />
+              Natación
+            </motion.button>
+
+            {/* Running Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('running')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'running'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <Footprints className="w-3.5 h-3.5" />
+              Running
+            </motion.button>
             
             {/* Progress Tab */}
             <motion.button
-              onClick={() => handleTabChange('progress')}
+              onClick={() => handleMainTabChange('progress')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                showProgress 
+                mainTab === 'progress'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.25 }}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              Progreso
+            </motion.button>
+            
+            {/* Nutrition Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('nutrition')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'nutrition'
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
@@ -379,16 +453,16 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <TrendingUp className="w-3.5 h-3.5" />
-              Progreso
+              <Apple className="w-3.5 h-3.5" />
+              Nutrición
             </motion.button>
-            
-            {/* Nutrition Tab */}
+
+            {/* Theory Tab */}
             <motion.button
-              onClick={() => handleTabChange('nutrition')}
+              onClick={() => handleMainTabChange('theory')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                showNutrition 
+                mainTab === 'theory'
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
@@ -398,16 +472,16 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.35 }}
             >
-              <Apple className="w-3.5 h-3.5" />
-              Nutrición
+              <BookOpen className="w-3.5 h-3.5" />
+              Teoría
             </motion.button>
 
-            {/* Theory Tab */}
+            {/* Exercises Catalog Tab */}
             <motion.button
-              onClick={() => handleTabChange('theory')}
+              onClick={() => handleMainTabChange('exercises')}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                showTheory 
+                mainTab === 'exercises'
                   ? "gradient-primary text-primary-foreground glow-primary" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
@@ -416,25 +490,6 @@ const Index = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.4 }}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              Teoría
-            </motion.button>
-
-            {/* Exercises Catalog Tab */}
-            <motion.button
-              onClick={() => handleTabChange('exercises')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                showExercises 
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.45 }}
             >
               <Library className="w-3.5 h-3.5" />
               Ejercicios
