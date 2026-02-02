@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Footprints, Clock, Flame, Route, Zap, CheckCircle2, Loader2 } from 'lucide-react';
+import { Footprints, Clock, Flame, Route, Zap, CheckCircle2, Loader2, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useActivityCompletions } from '@/hooks/useActivityCompletions';
+import { ActivityProgressChart } from './ActivityProgressChart';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -14,6 +15,7 @@ export const RunningSection = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   const workouts = [
     {
@@ -121,8 +123,8 @@ export const RunningSection = () => {
       <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-primary/10">
-              <Footprints className="w-6 h-6 text-primary" />
+            <div className="p-3 rounded-xl bg-green-500/10">
+              <Footprints className="w-6 h-6 text-green-500" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground">Running</h2>
@@ -131,8 +133,35 @@ export const RunningSection = () => {
               </p>
             </div>
           </div>
+          <Button
+            variant={showStats ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowStats(!showStats)}
+            className={showStats ? "bg-green-500 hover:bg-green-600" : ""}
+          >
+            <BarChart3 className="w-4 h-4 mr-1.5" />
+            {showStats ? "Ocultar" : "Estadísticas"}
+          </Button>
         </div>
       </motion.div>
+
+      {/* Statistics Chart */}
+      <AnimatePresence>
+        {showStats && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ActivityProgressChart
+              completions={completions}
+              activityType="running"
+              workoutNames={workouts.map(w => w.id)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {workouts.map((workout, index) => {
         const completionCount = getCompletionCount(workout.id);
