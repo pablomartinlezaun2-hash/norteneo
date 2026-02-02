@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { CompletedSession } from '@/types/database';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 import { format, startOfMonth, eachDayOfInterval, subDays } from 'date-fns';
@@ -56,16 +57,25 @@ export const CycleProgressChart = ({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-foreground/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-          <p className="text-primary-foreground font-semibold text-sm">
-            {format(data.date, 'dd MMMM yyyy', { locale: es })}
+        <div className="bg-foreground/95 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/10">
+          <p className="text-primary-foreground font-bold text-sm mb-2">
+            {format(data.date, 'EEEE, dd MMMM', { locale: es })}
           </p>
-          <p className="text-primary-foreground/80 text-sm mt-1">
-            {data.sessions > 0 ? `${data.sessions} entreno(s) este día` : 'Sin entrenos'}
-          </p>
-          <p className="text-primary-foreground/70 text-xs mt-0.5">
-            Total acumulado: {data.cumulative}
-          </p>
+          <div className="space-y-1.5">
+            {data.sessions > 0 ? (
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-primary-foreground font-semibold">{data.sessions}</span>
+                <span className="text-primary-foreground/60 text-xs">entreno{data.sessions > 1 ? 's' : ''}</span>
+              </div>
+            ) : (
+              <p className="text-primary-foreground/50 text-xs italic">Día de descanso</p>
+            )}
+            <div className="flex items-center gap-1.5 pt-1 border-t border-white/10">
+              <span className="text-primary-foreground/50 text-[10px] uppercase tracking-wider">Total</span>
+              <span className="text-primary font-bold">{data.cumulative}</span>
+            </div>
+          </div>
         </div>
       );
     }
@@ -76,67 +86,119 @@ export const CycleProgressChart = ({
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="gradient-card rounded-xl p-4 border border-border text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 mb-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="gradient-card rounded-2xl p-4 border border-border text-center apple-shadow"
+        >
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-3">
+            <TrendingUp className="w-6 h-6 text-primary" />
           </div>
-          <p className="text-2xl font-bold text-foreground">{totalCompleted}</p>
-          <p className="text-xs text-muted-foreground">Entrenos totales</p>
-        </div>
+          <p className="text-3xl font-bold text-foreground">{totalCompleted}</p>
+          <p className="text-xs text-muted-foreground mt-1">Entrenos</p>
+        </motion.div>
         
-        <div className="gradient-card rounded-xl p-4 border border-border text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 mb-2">
-            <Award className="w-5 h-5 text-primary" />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="gradient-card rounded-2xl p-4 border border-border text-center apple-shadow"
+        >
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-3">
+            <Award className="w-6 h-6 text-primary" />
           </div>
-          <p className="text-2xl font-bold text-foreground">{cyclesCompleted}</p>
-          <p className="text-xs text-muted-foreground">Ciclos completos</p>
-        </div>
+          <p className="text-3xl font-bold text-foreground">{cyclesCompleted}</p>
+          <p className="text-xs text-muted-foreground mt-1">Ciclos</p>
+        </motion.div>
         
-        <div className="gradient-card rounded-xl p-4 border border-border text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 mb-2">
-            <Target className="w-5 h-5 text-primary" />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="gradient-card rounded-2xl p-4 border border-border text-center apple-shadow"
+        >
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-3">
+            <Target className="w-6 h-6 text-primary" />
           </div>
-          <p className="text-2xl font-bold text-foreground">{progressInCycle}/4</p>
-          <p className="text-xs text-muted-foreground">Ciclo actual</p>
-        </div>
+          <p className="text-3xl font-bold text-foreground">{progressInCycle}<span className="text-muted-foreground text-lg">/4</span></p>
+          <p className="text-xs text-muted-foreground mt-1">Actual</p>
+        </motion.div>
       </div>
 
       {/* Progress bar for current cycle */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Progreso del ciclo</span>
-          <span>{progressInCycle} de 4 sesiones</span>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="gradient-card rounded-2xl p-5 border border-border apple-shadow"
+      >
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-sm font-semibold text-foreground">Progreso del ciclo actual</span>
+          <span className="text-primary font-bold">{progressInCycle}/4</span>
         </div>
-        <div className="h-3 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full gradient-primary rounded-full transition-all duration-500"
-            style={{ width: `${(progressInCycle / 4) * 100}%` }}
-          />
+        <div className="flex gap-2">
+          {[0, 1, 2, 3].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.5 + i * 0.1 }}
+              className={`flex-1 h-4 rounded-full transition-all duration-500 origin-left ${
+                i < progressInCycle 
+                  ? 'gradient-primary glow-primary' 
+                  : 'bg-muted'
+              }`}
+            />
+          ))}
         </div>
-      </div>
+        <p className="text-xs text-muted-foreground mt-3 text-center">
+          {progressInCycle === 4 
+            ? '🎉 ¡Ciclo completado!' 
+            : `${4 - progressInCycle} entreno${4 - progressInCycle > 1 ? 's' : ''} para completar`
+          }
+        </p>
+      </motion.div>
 
       {/* Chart */}
-      <div className="gradient-card rounded-xl p-4 border border-border">
-        <h3 className="text-sm font-medium text-foreground mb-4">
-          Progreso últimos 30 días
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="gradient-card rounded-2xl p-5 border border-border apple-shadow"
+      >
+        <h3 className="text-sm font-semibold text-foreground mb-4">
+          Evolución últimos 30 días
         </h3>
         
         {chartData.length > 0 ? (
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="cumulativeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke="hsl(var(--border))" 
+                  opacity={0.3} 
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="formattedDate"
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 500 }}
                   tickLine={false}
                   axisLine={{ stroke: 'hsl(var(--border))' }}
                   interval={6}
+                  dy={8}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 500 }}
                   tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
+                  axisLine={false}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 {/* Reference lines for cycles */}
@@ -145,27 +207,43 @@ export const CycleProgressChart = ({
                     key={cycle}
                     y={cycle}
                     stroke="hsl(var(--primary))"
-                    strokeDasharray="3 3"
-                    strokeOpacity={0.3}
+                    strokeDasharray="5 5"
+                    strokeOpacity={0.2}
+                    label={{ 
+                      value: `${cycle / 4}c`, 
+                      position: 'right',
+                      style: { fontSize: 9, fill: 'hsl(var(--muted-foreground))' }
+                    }}
                   />
                 ))}
                 <Line
                   type="monotone"
                   dataKey="cumulative"
                   stroke="hsl(var(--primary))"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   dot={false}
-                  activeDot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'white', r: 5 }}
+                  activeDot={{ 
+                    fill: 'hsl(var(--primary))', 
+                    strokeWidth: 3, 
+                    stroke: 'white', 
+                    r: 7,
+                    className: 'drop-shadow-lg'
+                  }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-56 flex items-center justify-center text-muted-foreground text-sm">
-            Completa tu primer entreno para ver el progreso
+          <div className="h-56 flex items-center justify-center">
+            <div className="text-center">
+              <Target className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">
+                Completa tu primer entreno para ver el progreso
+              </p>
+            </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
