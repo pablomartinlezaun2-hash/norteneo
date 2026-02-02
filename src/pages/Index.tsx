@@ -10,6 +10,7 @@ import { ExerciseCatalog } from '@/components/ExerciseCatalog';
 import { SwimmingSection } from '@/components/SwimmingSection';
 import { RunningSection } from '@/components/RunningSection';
 import { WorkoutSubNav } from '@/components/WorkoutSubNav';
+import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { Timer } from '@/components/Timer';
 import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Dumbbell, TrendingUp, Apple, LogOut, 
   CheckCircle2, Loader2, BookOpen, Library,
-  Waves, Footprints
+  Waves, Footprints, Pencil
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,7 +34,7 @@ const Index = () => {
     getProgressInCurrentCycle 
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises';
+  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
   
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
@@ -111,6 +112,20 @@ const Index = () => {
 
   const renderContent = () => {
     switch (mainTab) {
+      case 'design':
+        return (
+          <motion.div
+            key="design"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <WorkoutDesigner />
+          </motion.div>
+        );
+
       case 'theory':
         return (
           <motion.div
@@ -493,6 +508,25 @@ const Index = () => {
             >
               <Library className="w-3.5 h-3.5" />
               Ejercicios
+            </motion.button>
+
+            {/* Design Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('design')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'design'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.45 }}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Diseñar
             </motion.button>
           </div>
         </div>
