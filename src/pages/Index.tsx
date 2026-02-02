@@ -41,6 +41,7 @@ const Index = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [contentKey, setContentKey] = useState(0);
+  const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
 
   // Page transition variants
   const pageVariants = {
@@ -135,7 +136,10 @@ const Index = () => {
             exit="exit"
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <GymSection />
+            <GymSection 
+              initialExpandedSession={pendingSessionId} 
+              onSessionExpanded={() => setPendingSessionId(null)}
+            />
           </motion.div>
         );
 
@@ -197,8 +201,10 @@ const Index = () => {
               cyclesCompleted={getCyclesCompleted()}
               progressInCycle={getProgressInCurrentCycle()}
               onNavigateToSession={(sessionId) => {
-                // Navigate to workouts and expand the session
-                setMainTab('workouts');
+                // Navigate to gym tab and set session to expand
+                setPendingSessionId(sessionId);
+                setMainTab('gym');
+                setContentKey(prev => prev + 1);
               }}
             />
           </motion.div>
