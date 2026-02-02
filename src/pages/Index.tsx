@@ -66,7 +66,7 @@ const Index = () => {
   // Loading state
   if (programLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -74,12 +74,14 @@ const Index = () => {
         >
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </motion.div>
+        <p className="text-sm text-muted-foreground">Cargando tu programa...</p>
       </div>
     );
   }
 
   // No program - show selector
   if (!program) {
+    console.log('No program found, showing selector');
     return <ProgramSelector onProgramImported={refetchProgram} />;
   }
 
