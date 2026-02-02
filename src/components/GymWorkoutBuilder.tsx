@@ -408,7 +408,7 @@ export const GymWorkoutBuilder = () => {
         {/* Save Button */}
         <Button
           onClick={saveWorkout}
-          disabled={!workoutName.trim() || exercises.length === 0 || saving}
+          disabled={saving}
           className="w-full gradient-primary"
         >
           {saving ? (

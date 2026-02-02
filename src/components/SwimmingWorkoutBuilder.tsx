@@ -77,10 +77,49 @@ export const SwimmingWorkoutBuilder = () => {
 
     setSaving(true);
     try {
-      // Save as activity completion with workout details
-      // Note: For swimming, we store the workout structure in a different way
-      // For now, we'll just show a success message
-      toast.success('¡Rutina de natación guardada!');
+      const { data: program, error: programError } = await supabase
+        .from('training_programs')
+        .insert({
+          user_id: user.id,
+          name: workoutName,
+          description: `Sesión de natación personalizada con ${exercises.length} bloques`,
+          is_active: false,
+        })
+        .select()
+        .single();
+
+      if (programError) throw programError;
+
+      const { data: session, error: sessionError } = await supabase
+        .from('workout_sessions')
+        .insert({
+          program_id: program.id,
+          name: workoutName,
+          short_name: workoutName.substring(0, 10),
+          order_index: 0,
+        })
+        .select()
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      const exercisesToInsert = exercises.map((ex, index) => ({
+        session_id: session.id,
+        name: ex.name,
+        series: 1,
+        reps: ex.distance,
+        rest: ex.rest,
+        technique: ex.style,
+        order_index: index,
+      }));
+
+      const { error: exercisesError } = await supabase
+        .from('exercises')
+        .insert(exercisesToInsert);
+
+      if (exercisesError) throw exercisesError;
+
+      toast.success('¡Sesión de natación guardada!');
       setWorkoutName('');
       setExercises([]);
       setShowAIAssistant(null);
@@ -307,7 +346,7 @@ export const SwimmingWorkoutBuilder = () => {
         {/* Save */}
         <Button
           onClick={saveWorkout}
-          disabled={!workoutName.trim() || exercises.length === 0 || saving}
+          disabled={saving}
           className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:opacity-90"
         >
           {saving ? (
