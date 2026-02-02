@@ -1,26 +1,44 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, User, Loader2, X, Sparkles } from 'lucide-react';
+import { Bot, Send, User, Loader2, X, Sparkles, Save, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import { toast } from 'sonner';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  workout?: ParsedWorkout | null;
+}
+
+interface ParsedExercise {
+  name: string;
+  series: number;
+  reps: string;
+  rest: string;
+}
+
+interface ParsedWorkout {
+  name: string;
+  exercises: ParsedExercise[];
 }
 
 interface AIWorkoutAssistantProps {
   workoutType: 'gym' | 'swimming' | 'running';
   onSuggestion?: (suggestion: string) => void;
   onClose: () => void;
+  onWorkoutSaved?: () => void;
 }
 
-export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose }: AIWorkoutAssistantProps) => {
+export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose, onWorkoutSaved }: AIWorkoutAssistantProps) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [savingWorkoutId, setSavingWorkoutId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -36,14 +54,118 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose }: AIWor
     const typeLabel = workoutType === 'gym' ? 'gimnasio' : workoutType === 'swimming' ? 'natación' : 'running';
     setMessages([{
       role: 'assistant',
-      content: `¡Hola! Soy tu asistente de entrenamiento NEO. 🏋️\n\nEstoy aquí para ayudarte a diseñar tu rutina de **${typeLabel}** perfecta. Cuéntame:\n\n- ¿Cuáles son tus objetivos? (fuerza, hipertrofia, resistencia...)\n- ¿Cuántos días a la semana puedes entrenar?\n- ¿Tienes alguna lesión o limitación?\n\n¡Empecemos a crear algo increíble!`
+      content: `¡Hola! Soy tu asistente de entrenamiento NEO. 🏋️\n\nEstoy aquí para ayudarte a diseñar tu rutina de **${typeLabel}** perfecta. Cuéntame:\n\n- ¿Cuáles son tus objetivos? (fuerza, hipertrofia, resistencia...)\n- ¿Cuántos días a la semana puedes entrenar?\n- ¿Tienes alguna lesión o limitación?\n\n¡Empecemos a crear algo increíble!`,
+      workout: null
     }]);
   }, [workoutType]);
+
+  // Parse workout from AI response
+  const parseWorkoutFromResponse = (content: string): ParsedWorkout | null => {
+    try {
+      // Look for JSON workout block in the response
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        if (parsed.name && Array.isArray(parsed.exercises)) {
+          return parsed as ParsedWorkout;
+        }
+      }
+      
+      // Alternative: look for structured workout format
+      const workoutNameMatch = content.match(/(?:Rutina|Workout|Programa):\s*(.+)/i);
+      if (workoutNameMatch) {
+        const exercises: ParsedExercise[] = [];
+        const exerciseRegex = /(?:\d+\.\s*)?([^-\n]+)\s*[-–]\s*(\d+)\s*(?:series|x)\s*(?:de\s*)?(\d+[-–]?\d*)\s*(?:reps?|repeticiones)?(?:\s*[-–]\s*(\d+\s*(?:seg|s|segundos?)?)?)?/gi;
+        let match;
+        while ((match = exerciseRegex.exec(content)) !== null) {
+          exercises.push({
+            name: match[1].trim(),
+            series: parseInt(match[2]) || 3,
+            reps: match[3] || '8-12',
+            rest: match[4] || '90s'
+          });
+        }
+        if (exercises.length > 0) {
+          return {
+            name: workoutNameMatch[1].trim(),
+            exercises
+          };
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      console.error('Error parsing workout:', e);
+      return null;
+    }
+  };
+
+  const saveWorkout = async (workout: ParsedWorkout, messageIndex: number) => {
+    if (!user) {
+      toast.error('Debes iniciar sesión para guardar');
+      return;
+    }
+
+    setSavingWorkoutId(messageIndex);
+    try {
+      // Create training program
+      const { data: program, error: programError } = await supabase
+        .from('training_programs')
+        .insert({
+          user_id: user.id,
+          name: workout.name,
+          description: `Rutina generada por IA con ${workout.exercises.length} ejercicios`,
+          is_active: false
+        })
+        .select()
+        .single();
+
+      if (programError) throw programError;
+
+      // Create workout session
+      const { data: session, error: sessionError } = await supabase
+        .from('workout_sessions')
+        .insert({
+          program_id: program.id,
+          name: workout.name,
+          short_name: workout.name.substring(0, 10),
+          order_index: 0
+        })
+        .select()
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Add exercises
+      const exercisesToInsert = workout.exercises.map((ex, index) => ({
+        session_id: session.id,
+        name: ex.name,
+        series: ex.series,
+        reps: ex.reps,
+        rest: ex.rest,
+        order_index: index
+      }));
+
+      const { error: exercisesError } = await supabase
+        .from('exercises')
+        .insert(exercisesToInsert);
+
+      if (exercisesError) throw exercisesError;
+
+      toast.success('¡Rutina guardada con éxito!');
+      onWorkoutSaved?.();
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      toast.error('Error al guardar la rutina');
+    } finally {
+      setSavingWorkoutId(null);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: input, workout: null };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
@@ -51,14 +173,22 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose }: AIWor
     try {
       const { data, error } = await supabase.functions.invoke('workout-ai-assistant', {
         body: {
-          messages: [...messages, userMessage],
-          workoutType
+          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
+          workoutType,
+          requestWorkoutStructure: true
         }
       });
 
       if (error) throw error;
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      const content = data.response;
+      const workout = data.workout || parseWorkoutFromResponse(content);
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content,
+        workout
+      }]);
 
       // Check if the response contains exercise suggestions
       if (data.exercises && onSuggestion) {
@@ -68,7 +198,8 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose }: AIWor
       console.error('Error calling AI assistant:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.'
+        content: 'Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        workout: null
       }]);
     } finally {
       setIsLoading(false);
@@ -126,19 +257,49 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose }: AIWor
                   <Bot className="w-4 h-4 text-primary" />
                 </div>
               )}
-              <div
-                className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border'
-                }`}
-              >
-                {message.role === 'assistant' ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                  </div>
-                ) : (
-                  message.content
+              <div className="max-w-[80%] space-y-2">
+                <div
+                  className={`rounded-xl px-3 py-2 text-sm ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card border border-border'
+                  }`}
+                >
+                  {message.role === 'assistant' ? (
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    message.content
+                  )}
+                </div>
+                
+                {/* Save Workout Button */}
+                {message.role === 'assistant' && message.workout && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <Button
+                      size="sm"
+                      onClick={() => saveWorkout(message.workout!, index)}
+                      disabled={savingWorkoutId === index}
+                      className="bg-gradient-to-r from-primary to-primary/80 text-white text-xs"
+                    >
+                      {savingWorkoutId === index ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3 h-3 mr-1.5" />
+                          ¿Guardar esta rutina?
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
                 )}
               </div>
               {message.role === 'user' && (
