@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, workoutType } = await req.json();
+    const { messages, workoutType, requestWorkoutStructure } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -32,6 +32,18 @@ Cuando des recomendaciones de ejercicios, sé específico con:
 - Descanso entre series
 - Consejos de ejecución
 
+IMPORTANTE: Cuando propongas una rutina completa, SIEMPRE incluye al final del mensaje un bloque JSON con la estructura de la rutina para que el usuario pueda guardarla. El formato debe ser:
+
+\`\`\`json
+{
+  "name": "Nombre de la rutina",
+  "exercises": [
+    {"name": "Press banca", "series": 4, "reps": "8-10", "rest": "90s"},
+    {"name": "Sentadilla", "series": 4, "reps": "8-10", "rest": "120s"}
+  ]
+}
+\`\`\`
+
 Usa un tono motivador pero profesional. Responde siempre en español.`,
 
       swimming: `Eres un entrenador de natación experto. Tu nombre es NEO Assistant.
@@ -47,6 +59,18 @@ Cuando des recomendaciones, incluye:
 - Tiempos de descanso
 - Vuelta a la calma
 
+IMPORTANTE: Cuando propongas una sesión completa, SIEMPRE incluye al final del mensaje un bloque JSON con la estructura:
+
+\`\`\`json
+{
+  "name": "Nombre de la sesión",
+  "exercises": [
+    {"name": "Calentamiento 200m libre", "series": 1, "reps": "200m", "rest": "30s"},
+    {"name": "Series 4x100m crol", "series": 4, "reps": "100m", "rest": "20s"}
+  ]
+}
+\`\`\`
+
 Usa un tono motivador pero profesional. Responde siempre en español.`,
 
       running: `Eres un entrenador de running experto. Tu nombre es NEO Assistant.
@@ -61,6 +85,18 @@ Cuando des recomendaciones, incluye:
 - Distancias y ritmos apropiados
 - Días de descanso
 - Progresión semanal
+
+IMPORTANTE: Cuando propongas una sesión completa, SIEMPRE incluye al final del mensaje un bloque JSON con la estructura:
+
+\`\`\`json
+{
+  "name": "Nombre de la sesión",
+  "exercises": [
+    {"name": "Calentamiento", "series": 1, "reps": "1km", "rest": "0s"},
+    {"name": "Intervalos 8x400m", "series": 8, "reps": "400m", "rest": "60s"}
+  ]
+}
+\`\`\`
 
 Usa un tono motivador pero profesional. Responde siempre en español.`
     };
@@ -83,7 +119,7 @@ Usa un tono motivador pero profesional. Responde siempre en español.`
           })),
         ],
         stream: false,
-        max_tokens: 1024,
+        max_tokens: 1500,
       }),
     });
 
@@ -111,8 +147,22 @@ Usa un tono motivador pero profesional. Responde siempre en español.`
     const data = await response.json();
     const assistantMessage = data.choices?.[0]?.message?.content || "Lo siento, no pude generar una respuesta.";
 
+    // Try to extract workout structure from response
+    let workout = null;
+    try {
+      const jsonMatch = assistantMessage.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        if (parsed.name && Array.isArray(parsed.exercises)) {
+          workout = parsed;
+        }
+      }
+    } catch (e) {
+      console.log("No workout JSON found in response");
+    }
+
     return new Response(
-      JSON.stringify({ response: assistantMessage }),
+      JSON.stringify({ response: assistantMessage, workout }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
