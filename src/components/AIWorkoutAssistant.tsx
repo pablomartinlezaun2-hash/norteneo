@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, User, Loader2, X, Sparkles, Save, Check } from 'lucide-react';
+import { Send, User, Loader2, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
+import { NeoLogo } from './NeoLogo';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -54,7 +55,7 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose, onWorko
     const typeLabel = workoutType === 'gym' ? 'gimnasio' : workoutType === 'swimming' ? 'natación' : 'running';
     setMessages([{
       role: 'assistant',
-      content: `¡Hola! Soy tu asistente de entrenamiento NEO. 🏋️\n\nEstoy aquí para ayudarte a diseñar tu rutina de **${typeLabel}** perfecta. Cuéntame:\n\n- ¿Cuáles son tus objetivos? (fuerza, hipertrofia, resistencia...)\n- ¿Cuántos días a la semana puedes entrenar?\n- ¿Tienes alguna lesión o limitación?\n\n¡Empecemos a crear algo increíble!`,
+      content: `¡Hola! Soy **Pablo**, CEO y asistente de NEO 💪\n\nEstoy aquí para ayudarte a diseñar tu rutina de **${typeLabel}** perfecta. Cuéntame:\n\n- ¿Cuáles son tus objetivos? (fuerza, hipertrofia, resistencia...)\n- ¿Cuántos días a la semana puedes entrenar?\n- ¿Tienes alguna lesión o limitación?\n\n¡Empecemos a crear algo increíble!`,
       workout: null
     }]);
   }, [workoutType]);
@@ -221,14 +222,12 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose, onWorko
       className="bg-card border border-border rounded-xl overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary to-primary/80 text-white">
+      <div className="flex items-center justify-between px-4 py-3 bg-black text-white">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-white/20 rounded-lg">
-            <Sparkles className="w-4 h-4" />
-          </div>
+          <NeoLogo size="sm" className="bg-white text-black" />
           <div>
-            <h3 className="font-semibold text-sm">Asistente NEO</h3>
-            <p className="text-[10px] text-white/80">Equipo de profesionales</p>
+            <h3 className="font-semibold text-sm">Pablo</h3>
+            <p className="text-[10px] text-white/70">CEO & Asistente NEO</p>
           </div>
         </div>
         <Button
@@ -253,9 +252,7 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose, onWorko
               className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {message.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-primary" />
-                </div>
+                <NeoLogo size="sm" className="flex-shrink-0" />
               )}
               <div className="max-w-[80%] space-y-2">
                 <div
@@ -315,12 +312,10 @@ export const AIWorkoutAssistant = ({ workoutType, onSuggestion, onClose, onWorko
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex gap-2"
+            className="flex gap-2 items-start"
           >
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-              <Bot className="w-4 h-4 text-primary" />
-            </div>
-            <div className="bg-card border border-border rounded-xl px-3 py-2">
+            <NeoLogo size="sm" />
+            <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-primary" />
             </div>
           </motion.div>
