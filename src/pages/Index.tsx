@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
 import { useCompletedSessions } from '@/hooks/useCompletedSessions';
 import { ExerciseCardNew } from '@/components/ExerciseCardNew';
-import { CycleProgressChart } from '@/components/CycleProgressChart';
+import { UnifiedProgressChart } from '@/components/UnifiedProgressChart';
 import { NutritionSection } from '@/components/NutritionSection';
 import { EducationalSection } from '@/components/EducationalSection';
 import { ExerciseCatalog } from '@/components/ExerciseCatalog';
@@ -179,11 +179,15 @@ const Index = () => {
             exit="exit"
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <CycleProgressChart 
+            <UnifiedProgressChart 
               completedSessions={completedSessions}
               totalCompleted={getTotalCompleted()}
               cyclesCompleted={getCyclesCompleted()}
               progressInCycle={getProgressInCurrentCycle()}
+              onNavigateToSession={(sessionId) => {
+                // Navigate to workouts and expand the session
+                setMainTab('workouts');
+              }}
             />
           </motion.div>
         );

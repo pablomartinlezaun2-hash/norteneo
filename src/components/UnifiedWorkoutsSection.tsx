@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Dumbbell, Waves, Footprints, ChevronDown, ChevronRight,
-  Loader2, Check, FolderOpen, CheckCircle2, Play, Clock
+  Loader2, Check, FolderOpen, CheckCircle2, Play, Clock, BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { GymStatsSection } from './GymStatsSection';
 
 interface SavedProgram {
   id: string;
@@ -43,7 +44,7 @@ type WorkoutCategory = 'gym' | 'swimming' | 'running';
 
 export const UnifiedWorkoutsSection = () => {
   const { user } = useAuth();
-  const { markSessionComplete, completedSessions } = useCompletedSessions();
+  const { markSessionComplete, completedSessions, getTotalCompleted, getCyclesCompleted, getProgressInCurrentCycle } = useCompletedSessions();
   const [allWorkouts, setAllWorkouts] = useState<SavedProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedActive, setExpandedActive] = useState<WorkoutCategory | null>('gym');
@@ -53,6 +54,7 @@ export const UnifiedWorkoutsSection = () => {
   const [sessionCompleteCheck, setSessionCompleteCheck] = useState<{[key: string]: boolean}>({});
   const [completing, setCompleting] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showGymStats, setShowGymStats] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -422,7 +424,7 @@ export const UnifiedWorkoutsSection = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -437,6 +439,45 @@ export const UnifiedWorkoutsSection = () => {
           Gestiona tus rutinas activas y guardadas
         </p>
       </div>
+
+      {/* Stats Toggle Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex justify-center"
+      >
+        <Button
+          variant={showGymStats ? "default" : "outline"}
+          onClick={() => setShowGymStats(!showGymStats)}
+          className={cn(
+            "gap-2 rounded-full",
+            showGymStats && "gradient-primary text-primary-foreground"
+          )}
+        >
+          <BarChart3 className="w-4 h-4" />
+          {showGymStats ? 'Ocultar estadísticas' : 'Ver estadísticas'}
+        </Button>
+      </motion.div>
+
+      {/* Gym Stats Section */}
+      <AnimatePresence>
+        {showGymStats && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <GymStatsSection
+              completedSessions={completedSessions}
+              totalCompleted={getTotalCompleted()}
+              cyclesCompleted={getCyclesCompleted()}
+              progressInCycle={getProgressInCurrentCycle()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Active Workouts by Category */}
       <div className="space-y-4">
