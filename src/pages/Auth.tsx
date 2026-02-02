@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { motion } from 'framer-motion';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -70,21 +71,52 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 overflow-hidden">
+      <motion.div 
+        className="w-full max-w-sm"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-foreground rounded-2xl px-6 py-4 mb-4">
+        <motion.div 
+          className="flex flex-col items-center mb-8"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <motion.div 
+            className="bg-foreground rounded-2xl px-6 py-4 mb-4"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          >
             <span className="text-3xl font-bold tracking-tight text-background">NEO</span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          </motion.div>
+          <motion.p 
+            className="text-sm text-muted-foreground mt-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
             {isLogin ? 'Inicia sesión para continuar' : 'Crea tu cuenta'}
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <motion.form 
+          onSubmit={handleSubmit} 
+          className="space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <motion.div 
+            className="space-y-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
             <Label htmlFor="email" className="text-sm font-medium">
               Email
             </Label>
@@ -100,9 +132,14 @@ const Auth = () => {
                 disabled={loading}
               />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="space-y-2">
+          <motion.div 
+            className="space-y-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
             <Label htmlFor="password" className="text-sm font-medium">
               Contraseña
             </Label>
@@ -118,34 +155,55 @@ const Auth = () => {
                 disabled={loading}
               />
             </div>
-          </div>
+          </motion.div>
 
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <motion.div 
+              className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <p className="text-sm text-destructive">{error}</p>
-            </div>
+            </motion.div>
           )}
 
           {successMessage && (
-            <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
+            <motion.div 
+              className="p-3 bg-success/10 border border-success/20 rounded-lg"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <p className="text-sm text-success">{successMessage}</p>
-            </div>
+            </motion.div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full gradient-primary text-primary-foreground font-semibold"
-            disabled={loading}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
           >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : null}
-            {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full gradient-primary text-primary-foreground font-semibold"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
+            </Button>
+          </motion.div>
+        </motion.form>
 
         {/* Toggle */}
-        <div className="mt-6 text-center">
+        <motion.div 
+          className="mt-6 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+        >
           <button
             type="button"
             onClick={() => {
@@ -153,14 +211,14 @@ const Auth = () => {
               setError(null);
               setSuccessMessage(null);
             }}
-            className="text-sm text-primary hover:underline"
+            className="text-sm text-primary hover:underline transition-all"
           >
             {isLogin
               ? '¿No tienes cuenta? Regístrate'
               : '¿Ya tienes cuenta? Inicia sesión'}
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
