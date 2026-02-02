@@ -170,18 +170,20 @@ export const UnifiedProgressChart = ({
     }
   };
 
+  const handleChartClick = (data: any) => {
+    if (data && data.activePayload && data.activePayload[0]) {
+      const payload = data.activePayload[0].payload;
+      if (payload.workouts && payload.workouts.length > 0) {
+        setSelectedWorkout(payload.workouts[0]);
+      }
+    }
+  };
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div 
-          className="bg-foreground/95 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/10 cursor-pointer"
-          onClick={() => {
-            if (data.workouts && data.workouts.length > 0) {
-              setSelectedWorkout(data.workouts[0]);
-            }
-          }}
-        >
+        <div className="bg-foreground/95 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/10">
           <p className="text-primary-foreground font-bold text-sm mb-2">
             {format(data.date, 'EEEE, dd MMMM', { locale: es })}
           </p>
@@ -209,9 +211,12 @@ export const UnifiedProgressChart = ({
                     <span className="text-primary-foreground/60 text-xs">running</span>
                   </div>
                 )}
-                <p className="text-primary-foreground/40 text-[10px] mt-2 italic">
-                  Toca para ver detalles
-                </p>
+                <div className="mt-2 pt-2 border-t border-white/10">
+                  <p className="text-primary-foreground/60 text-[10px] italic flex items-center gap-1">
+                    <ChevronRight className="w-3 h-3" />
+                    Toca el punto para ver detalles
+                  </p>
+                </div>
               </>
             ) : (
               <p className="text-primary-foreground/50 text-xs italic">Día de descanso</p>
@@ -457,7 +462,7 @@ export const UnifiedProgressChart = ({
         {dailyData.length > 0 ? (
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
+              <LineChart data={dailyData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }} onClick={handleChartClick}>
                 <defs>
                   <linearGradient id="cumulativeGradientUnified" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />

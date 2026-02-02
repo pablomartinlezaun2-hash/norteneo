@@ -38,7 +38,12 @@ interface ActiveProgram {
   }[];
 }
 
-export const GymSection = () => {
+interface GymSectionProps {
+  initialExpandedSession?: string | null;
+  onSessionExpanded?: () => void;
+}
+
+export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSectionProps) => {
   const { user } = useAuth();
   const { 
     markSessionComplete, 
@@ -60,6 +65,14 @@ export const GymSection = () => {
       fetchActivePrograms();
     }
   }, [user]);
+
+  // Handle initial expanded session from navigation
+  useEffect(() => {
+    if (initialExpandedSession && !loading) {
+      setActiveSession(initialExpandedSession);
+      onSessionExpanded?.();
+    }
+  }, [initialExpandedSession, loading, onSessionExpanded]);
 
   const fetchActivePrograms = async () => {
     if (!user) return;
