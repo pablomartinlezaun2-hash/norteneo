@@ -11,6 +11,7 @@ import { SwimmingSection } from '@/components/SwimmingSection';
 import { RunningSection } from '@/components/RunningSection';
 import { WorkoutSubNav } from '@/components/WorkoutSubNav';
 import { WorkoutDesigner } from '@/components/WorkoutDesigner';
+import { MyWorkoutsSection } from '@/components/MyWorkoutsSection';
 import { Timer } from '@/components/Timer';
 import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Dumbbell, TrendingUp, Apple, LogOut, 
   CheckCircle2, Loader2, BookOpen, Library,
-  Waves, Footprints, Pencil
+  Waves, Footprints, Pencil, FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,7 +35,7 @@ const Index = () => {
     getProgressInCurrentCycle 
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
+  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design' | 'my-workouts';
   
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
@@ -112,6 +113,20 @@ const Index = () => {
 
   const renderContent = () => {
     switch (mainTab) {
+      case 'my-workouts':
+        return (
+          <motion.div
+            key="my-workouts"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <MyWorkoutsSection />
+          </motion.div>
+        );
+
       case 'design':
         return (
           <motion.div
@@ -377,7 +392,26 @@ const Index = () => {
       >
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-2 py-2 gap-1">
-            {/* Workouts Tab */}
+            {/* My Workouts Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('my-workouts')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'my-workouts'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.05 }}
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              Entrenamientos
+            </motion.button>
+
+            {/* Workouts Tab (current program) */}
             <motion.button
               onClick={() => handleMainTabChange('workouts')}
               className={cn(
@@ -393,7 +427,7 @@ const Index = () => {
               transition={{ duration: 0.3, delay: 0.1 }}
             >
               <Dumbbell className="w-3.5 h-3.5" />
-              Entrenamientos
+              Programa activo
             </motion.button>
 
             {/* Swimming Tab */}
