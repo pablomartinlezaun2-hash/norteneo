@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Flame, Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -74,10 +74,9 @@ const Auth = () => {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="gradient-primary rounded-2xl p-4 glow-primary mb-4">
-            <Flame className="w-10 h-10 text-primary-foreground" />
+          <div className="bg-foreground rounded-2xl px-6 py-4 mb-4">
+            <span className="text-3xl font-bold tracking-tight text-background">NEO</span>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Mi Entreno</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {isLogin ? 'Inicia sesión para continuar' : 'Crea tu cuenta'}
           </p>
