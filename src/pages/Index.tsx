@@ -2,23 +2,21 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
 import { useCompletedSessions } from '@/hooks/useCompletedSessions';
-import { ExerciseCardNew } from '@/components/ExerciseCardNew';
 import { UnifiedProgressChart } from '@/components/UnifiedProgressChart';
 import { NutritionSection } from '@/components/NutritionSection';
 import { EducationalSection } from '@/components/EducationalSection';
 import { ExerciseCatalog } from '@/components/ExerciseCatalog';
 import { SwimmingSection } from '@/components/SwimmingSection';
 import { RunningSection } from '@/components/RunningSection';
-import { WorkoutSubNav } from '@/components/WorkoutSubNav';
 import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { UnifiedWorkoutsSection } from '@/components/UnifiedWorkoutsSection';
+import { GymSection } from '@/components/GymSection';
 import { Timer } from '@/components/Timer';
 import { ProgramSelector } from '@/components/ProgramSelector';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Dumbbell, TrendingUp, Apple, LogOut, 
-  CheckCircle2, Loader2, BookOpen, Library,
+  Loader2, BookOpen, Library,
   Waves, Footprints, Pencil, FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,9 +33,9 @@ const Index = () => {
     getProgressInCurrentCycle 
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
+  type MainTab = 'workouts' | 'gym' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
   
-  const [mainTab, setMainTab] = useState<MainTab>('workouts'); // 'workouts' ahora es la pestaña unificada "Entrenamientos"
+  const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -124,6 +122,20 @@ const Index = () => {
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
             <UnifiedWorkoutsSection />
+          </motion.div>
+        );
+
+      case 'gym':
+        return (
+          <motion.div
+            key="gym"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <GymSection />
           </motion.div>
         );
 
@@ -310,8 +322,27 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <Dumbbell className="w-3.5 h-3.5" />
+              <FolderOpen className="w-3.5 h-3.5" />
               Entrenamientos
+            </motion.button>
+
+            {/* Gym Tab */}
+            <motion.button
+              onClick={() => handleMainTabChange('gym')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                mainTab === 'gym'
+                  ? "gradient-primary text-primary-foreground glow-primary" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Dumbbell className="w-3.5 h-3.5" />
+              Gym
             </motion.button>
 
             {/* Swimming Tab */}
