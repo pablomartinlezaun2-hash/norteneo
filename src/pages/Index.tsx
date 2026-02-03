@@ -117,7 +117,8 @@ const Index = () => {
     );
   }
 
-  const sessions = program.sessions || [];
+  // Handle case where user dismissed welcome but has no program yet
+  const sessions = program?.sessions || [];
   const currentSession = sessions[activeSessionIndex];
 
   const handleCompleteSession = async () => {
