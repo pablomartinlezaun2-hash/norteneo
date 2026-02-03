@@ -6,18 +6,15 @@ import { UnifiedProgressChart } from '@/components/UnifiedProgressChart';
 import { NutritionSection } from '@/components/NutritionSection';
 import { EducationalSection } from '@/components/EducationalSection';
 import { ExerciseCatalog } from '@/components/ExerciseCatalog';
-import { SwimmingSection } from '@/components/SwimmingSection';
-import { RunningSection } from '@/components/RunningSection';
 import { WorkoutDesigner } from '@/components/WorkoutDesigner';
-import { UnifiedWorkoutsSection } from '@/components/UnifiedWorkoutsSection';
-import { GymSection } from '@/components/GymSection';
+import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { Timer } from '@/components/Timer';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { Button } from '@/components/ui/button';
 import { 
-  Dumbbell, TrendingUp, Apple, LogOut, 
+  TrendingUp, Apple, LogOut, 
   Loader2, BookOpen, Library,
-  Waves, Footprints, Pencil, FolderOpen
+  Pencil, FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,7 +30,7 @@ const Index = () => {
     getProgressInCurrentCycle 
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'gym' | 'swimming' | 'running' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
+  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
   
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
@@ -41,7 +38,6 @@ const Index = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [contentKey, setContentKey] = useState(0);
-  const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
 
@@ -157,24 +153,7 @@ const Index = () => {
             exit="exit"
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <UnifiedWorkoutsSection />
-          </motion.div>
-        );
-
-      case 'gym':
-        return (
-          <motion.div
-            key="gym"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <GymSection 
-              initialExpandedSession={pendingSessionId} 
-              onSessionExpanded={() => setPendingSessionId(null)}
-            />
+            <WorkoutsHub />
           </motion.div>
         );
 
@@ -235,12 +214,6 @@ const Index = () => {
               totalCompleted={getTotalCompleted()}
               cyclesCompleted={getCyclesCompleted()}
               progressInCycle={getProgressInCurrentCycle()}
-              onNavigateToSession={(sessionId) => {
-                // Navigate to gym tab and set session to expand
-                setPendingSessionId(sessionId);
-                setMainTab('gym');
-                setContentKey(prev => prev + 1);
-              }}
             />
           </motion.div>
         );
@@ -259,34 +232,6 @@ const Index = () => {
           </motion.div>
         );
 
-      case 'swimming':
-        return (
-          <motion.div
-            key="swimming"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <SwimmingSection />
-          </motion.div>
-        );
-
-      case 'running':
-        return (
-          <motion.div
-            key="running"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <RunningSection />
-          </motion.div>
-        );
-
       default:
         return (
           <motion.div
@@ -297,7 +242,7 @@ const Index = () => {
             exit="exit"
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <UnifiedWorkoutsSection />
+            <WorkoutsHub />
           </motion.div>
         );
     }
@@ -367,63 +312,7 @@ const Index = () => {
               Entrenamientos
             </motion.button>
 
-            {/* Gym Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('gym')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'gym'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <Dumbbell className="w-3.5 h-3.5" />
-              Gym
-            </motion.button>
 
-            {/* Swimming Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('swimming')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'swimming'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-            >
-              <Waves className="w-3.5 h-3.5" />
-              Natación
-            </motion.button>
-
-            {/* Running Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('running')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'running'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <Footprints className="w-3.5 h-3.5" />
-              Running
-            </motion.button>
-            
             {/* Progress Tab */}
             <motion.button
               onClick={() => handleMainTabChange('progress')}
@@ -437,7 +326,7 @@ const Index = () => {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
             >
               <TrendingUp className="w-3.5 h-3.5" />
               Progreso
@@ -456,7 +345,7 @@ const Index = () => {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
+              transition={{ duration: 0.3, delay: 0.15 }}
             >
               <Apple className="w-3.5 h-3.5" />
               Nutrición
@@ -475,7 +364,7 @@ const Index = () => {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.35 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
             >
               <BookOpen className="w-3.5 h-3.5" />
               Teoría
@@ -494,7 +383,7 @@ const Index = () => {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
+              transition={{ duration: 0.3, delay: 0.25 }}
             >
               <Library className="w-3.5 h-3.5" />
               Ejercicios
@@ -513,7 +402,7 @@ const Index = () => {
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.45 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               <Pencil className="w-3.5 h-3.5" />
               Diseñar
