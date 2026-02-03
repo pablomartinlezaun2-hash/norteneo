@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Dumbbell, Waves, Footprints, ChevronDown, 
-  Bookmark, Pencil, Loader2, Play, Trash2
+  Bookmark, Pencil, Loader2, Play, Trash2, Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useProgramImport } from '@/hooks/useProgramImport';
+import { ALL_PROGRAMS, ProgramTemplate } from '@/data/programTemplates';
 
 interface SavedProgram {
   id: string;
@@ -35,11 +37,32 @@ type SubCategory = 'saved' | 'designed';
 
 export const MyWorkoutsSection = () => {
   const { user } = useAuth();
+  const { importProgram, importing } = useProgramImport();
   const [expandedCategory, setExpandedCategory] = useState<WorkoutCategory | null>(null);
   const [expandedSubCategory, setExpandedSubCategory] = useState<{ category: WorkoutCategory; sub: SubCategory } | null>(null);
   const [designedWorkouts, setDesignedWorkouts] = useState<SavedProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null);
+  const [importingKey, setImportingKey] = useState<string | null>(null);
+
+  const predefinedPrograms = Object.entries(ALL_PROGRAMS).map(([key, program]) => ({
+    key,
+    program,
+    totalExercises: program.sessions.reduce((acc, s) => acc + s.exercises.length, 0)
+  }));
+
+  const handleImportProgram = async (key: string, program: ProgramTemplate) => {
+    setImportingKey(key);
+    const result = await importProgram(program);
+    setImportingKey(null);
+    
+    if (!result.error) {
+      toast.success(`"${program.name}" cargado correctamente`);
+      fetchDesignedWorkouts();
+    } else {
+      toast.error(result.error);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -291,11 +314,52 @@ export const MyWorkoutsSection = () => {
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
-                              className="pl-6 py-2"
+                              className="pl-4 py-2 space-y-2"
                             >
-                              <p className="text-xs text-muted-foreground italic">
-                                Próximamente: entrenamientos predefinidos por NEO
-                              </p>
+                              {category.id === 'gym' ? (
+                                predefinedPrograms.map(({ key, program, totalExercises }) => (
+                                  <motion.div
+                                    key={key}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="bg-card border border-border rounded-lg p-3"
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm font-medium text-foreground truncate">
+                                          {program.name}
+                                        </h4>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                          {program.description}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground/70 mt-1">
+                                          {program.sessions.length} sesiones · {totalExercises} ejercicios
+                                        </p>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleImportProgram(key, program)}
+                                        disabled={importing || importingKey === key}
+                                        className="shrink-0 text-xs"
+                                      >
+                                        {importingKey === key ? (
+                                          <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                          <>
+                                            <Download className="w-3 h-3 mr-1" />
+                                            Cargar
+                                          </>
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </motion.div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-muted-foreground italic">
+                                  Próximamente: entrenamientos de {category.label.toLowerCase()}
+                                </p>
+                              )}
                             </motion.div>
                           )}
                         </AnimatePresence>
