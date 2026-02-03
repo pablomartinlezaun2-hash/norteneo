@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
 import { useCompletedSessions } from '@/hooks/useCompletedSessions';
@@ -12,7 +12,7 @@ import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { UnifiedWorkoutsSection } from '@/components/UnifiedWorkoutsSection';
 import { GymSection } from '@/components/GymSection';
 import { Timer } from '@/components/Timer';
-import { ProgramSelector } from '@/components/ProgramSelector';
+import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { Button } from '@/components/ui/button';
 import { 
   Dumbbell, TrendingUp, Apple, LogOut, 
@@ -42,6 +42,34 @@ const Index = () => {
   const [completing, setCompleting] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+
+  // Check if user is new (no program) and hasn't seen welcome
+  useEffect(() => {
+    if (!programLoading && !program && !hasSeenWelcome) {
+      const seen = localStorage.getItem('neo-welcome-seen');
+      if (!seen) {
+        setShowWelcome(true);
+      } else {
+        setHasSeenWelcome(true);
+      }
+    }
+  }, [programLoading, program, hasSeenWelcome]);
+
+  const handleStartWithAssistant = () => {
+    localStorage.setItem('neo-welcome-seen', 'true');
+    setShowWelcome(false);
+    setHasSeenWelcome(true);
+    // Navigate to design tab to use AI assistant
+    setMainTab('design');
+  };
+
+  const handleStartAlone = () => {
+    localStorage.setItem('neo-welcome-seen', 'true');
+    setShowWelcome(false);
+    setHasSeenWelcome(true);
+  };
 
   // Page transition variants
   const pageVariants = {
@@ -79,10 +107,14 @@ const Index = () => {
     );
   }
 
-  // No program - show selector
-  if (!program) {
-    console.log('No program found, showing selector');
-    return <ProgramSelector onProgramImported={refetchProgram} />;
+  // No program - show welcome screen for new users
+  if (!program && showWelcome) {
+    return (
+      <WelcomeScreen
+        onStartWithAssistant={handleStartWithAssistant}
+        onStartAlone={handleStartAlone}
+      />
+    );
   }
 
   const sessions = program.sessions || [];

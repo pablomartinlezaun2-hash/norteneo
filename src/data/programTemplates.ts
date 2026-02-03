@@ -26,7 +26,7 @@ export interface ProgramTemplate {
 
 // Program extracted from Copia_de_Lau-2.pdf (Push/Pull/Legs)
 export const LAU_PROGRAM: ProgramTemplate = {
-  name: "Programa Lau - PPL",
+  name: "Push-Legs-Pull-Legs 2",
   description: "Rutina Push/Pull/Legs con 4 sesiones semanales",
   sessions: [
     {
@@ -83,7 +83,7 @@ export const LAU_PROGRAM: ProgramTemplate = {
 
 // Program extracted from Nico.pdf
 export const NICO_PROGRAM: ProgramTemplate = {
-  name: "Programa Nico",
+  name: "Rutina Torso-Pierna",
   description: "Rutina Push/Pull/Legs/Upper/Arms",
   sessions: [
     {
