@@ -4,10 +4,16 @@ import { CompletedSession } from '@/types/database';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, BarChart, Bar } from 'recharts';
 import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X } from 'lucide-react';
+import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useActivityCompletions } from '@/hooks/useActivityCompletions';
+import { useAllSetLogs } from '@/hooks/useAllSetLogs';
+import { useTrainingProgram } from '@/hooks/useTrainingProgram';
+import { MuscleRadarChart } from './performance/MuscleRadarChart';
+import { MuscleLoadChart } from './performance/MuscleLoadChart';
+import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
+import { KeyExercisesSection } from './performance/KeyExercisesSection';
 
 interface ActivityCompletion {
   id: string;
@@ -32,6 +38,8 @@ interface UnifiedWorkout {
   session_id?: string;
 }
 
+type ProgressTab = 'overview' | 'radar' | 'load' | 'exercises' | 'monthly';
+
 export const UnifiedProgressChart = ({ 
   completedSessions,
   totalCompleted, 
@@ -41,7 +49,22 @@ export const UnifiedProgressChart = ({
 }: UnifiedProgressChartProps) => {
   const { completions: swimmingCompletions } = useActivityCompletions('swimming');
   const { completions: runningCompletions } = useActivityCompletions('running');
+  const { logs: allSetLogs } = useAllSetLogs();
+  const { program } = useTrainingProgram();
   const [selectedWorkout, setSelectedWorkout] = useState<UnifiedWorkout | null>(null);
+  const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
+
+  // Get all exercises from the program
+  const allExercises = useMemo(() => {
+    if (!program?.sessions) return [];
+    return program.sessions.flatMap(session => 
+      session.exercises?.map(ex => ({
+        id: ex.id,
+        name: ex.name,
+        sessionName: session.name,
+      })) || []
+    );
+  }, [program]);
 
   // Combine all workouts into unified list
   const allWorkouts = useMemo((): UnifiedWorkout[] => {
@@ -273,6 +296,14 @@ export const UnifiedProgressChart = ({
     return null;
   };
 
+  const PROGRESS_TABS = [
+    { id: 'overview' as ProgressTab, label: 'Resumen', icon: TrendingUp },
+    { id: 'radar' as ProgressTab, label: 'Mapa', icon: Target },
+    { id: 'load' as ProgressTab, label: 'Carga', icon: Dumbbell },
+    { id: 'exercises' as ProgressTab, label: 'Ejercicios', icon: Activity },
+    { id: 'monthly' as ProgressTab, label: 'Mensual', icon: Calendar },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -295,6 +326,54 @@ export const UnifiedProgressChart = ({
           Todos tus entrenamientos en un solo lugar
         </p>
       </div>
+
+      {/* Tab Navigation */}
+      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+        <div className="flex gap-2 min-w-max">
+          {PROGRESS_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
+                  isActive
+                    ? "gradient-primary text-primary-foreground glow-primary"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                )}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'radar' && (
+        <MuscleRadarChart setLogs={allSetLogs} exercises={allExercises} />
+      )}
+
+      {activeTab === 'load' && (
+        <MuscleLoadChart setLogs={allSetLogs} exercises={allExercises} />
+      )}
+
+      {activeTab === 'exercises' && (
+        <KeyExercisesSection setLogs={allSetLogs} exercises={allExercises} />
+      )}
+
+      {activeTab === 'monthly' && (
+        <MonthlyResumeChart setLogs={allSetLogs} completedSessions={completedSessions} />
+      )}
+
+      {activeTab === 'overview' && (
+        <>
+          {/* Stats Cards - All activities */}
 
       {/* Stats Cards - All activities */}
       <div className="grid grid-cols-4 gap-2">
@@ -595,6 +674,8 @@ export const UnifiedProgressChart = ({
           )}
         </div>
       </motion.div>
+        </>
+      )}
 
       {/* Selected workout detail modal */}
       <AnimatePresence>
