@@ -11,27 +11,26 @@ import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { Timer } from '@/components/Timer';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { Button } from '@/components/ui/button';
-import { 
-  TrendingUp, Apple, LogOut, 
-  Loader2, BookOpen, Library,
-  Pencil, FolderOpen
-} from 'lucide-react';
+import { TrendingUp, Apple, LogOut, Loader2, BookOpen, Library, Pencil, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-
 const Index = () => {
-  const { signOut } = useAuth();
-  const { program, loading: programLoading, refetch: refetchProgram } = useTrainingProgram();
-  const { 
-    completedSessions, 
-    markSessionComplete, 
-    getTotalCompleted, 
-    getCyclesCompleted, 
-    getProgressInCurrentCycle 
+  const {
+    signOut
+  } = useAuth();
+  const {
+    program,
+    loading: programLoading,
+    refetch: refetchProgram
+  } = useTrainingProgram();
+  const {
+    completedSessions,
+    markSessionComplete,
+    getTotalCompleted,
+    getCyclesCompleted,
+    getProgressInCurrentCycle
   } = useCompletedSessions();
-
   type MainTab = 'workouts' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
-  
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
@@ -52,7 +51,6 @@ const Index = () => {
       }
     }
   }, [programLoading, program, hasSeenWelcome]);
-
   const handleStartWithAssistant = () => {
     localStorage.setItem('neo-welcome-seen', 'true');
     setShowWelcome(false);
@@ -60,7 +58,6 @@ const Index = () => {
     // Navigate to design tab to use AI assistant
     setMainTab('design');
   };
-
   const handleStartAlone = () => {
     localStorage.setItem('neo-welcome-seen', 'true');
     setShowWelcome(false);
@@ -69,11 +66,19 @@ const Index = () => {
 
   // Page transition variants
   const pageVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 }
+    initial: {
+      opacity: 0,
+      y: 20
+    },
+    animate: {
+      opacity: 1,
+      y: 0
+    },
+    exit: {
+      opacity: 0,
+      y: -20
+    }
   };
-
   const staggerContainer = {
     animate: {
       transition: {
@@ -81,48 +86,47 @@ const Index = () => {
       }
     }
   };
-
   const itemVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 }
+    initial: {
+      opacity: 0,
+      y: 20
+    },
+    animate: {
+      opacity: 1,
+      y: 0
+    }
   };
 
   // Loading state
   if (programLoading) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+    return <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <motion.div initial={{
+        opacity: 0,
+        scale: 0.8
+      }} animate={{
+        opacity: 1,
+        scale: 1
+      }} transition={{
+        duration: 0.5
+      }}>
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </motion.div>
         <p className="text-sm text-muted-foreground">Cargando tu programa...</p>
-      </div>
-    );
+      </div>;
   }
 
   // No program - show welcome screen for new users
   if (!program && showWelcome) {
-    return (
-      <WelcomeScreen
-        onStartWithAssistant={handleStartWithAssistant}
-        onStartAlone={handleStartAlone}
-      />
-    );
+    return <WelcomeScreen onStartWithAssistant={handleStartWithAssistant} onStartAlone={handleStartAlone} />;
   }
 
   // Handle case where user dismissed welcome but has no program yet
   const sessions = program?.sessions || [];
   const currentSession = sessions[activeSessionIndex];
-
   const handleCompleteSession = async () => {
     if (!isSessionCompleted || !currentSession) return;
-
     setCompleting(true);
     const result = await markSessionComplete(currentSession.id);
-    
     setCompleting(false);
     if (!result.error) {
       setIsSessionCompleted(false);
@@ -130,142 +134,87 @@ const Index = () => {
       setTimeout(() => setShowConfirmation(false), 2000);
     }
   };
-
   const handleMainTabChange = (tab: MainTab) => {
     setMainTab(tab);
     setContentKey(prev => prev + 1);
   };
-
   const handleSessionSelect = (index: number) => {
     setActiveSessionIndex(index);
     setContentKey(prev => prev + 1);
   };
-
   const renderContent = () => {
     switch (mainTab) {
       case 'workouts':
-        return (
-          <motion.div
-            key="workouts"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
+        return <motion.div key="workouts" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
             <WorkoutsHub />
-          </motion.div>
-        );
-
+          </motion.div>;
       case 'design':
-        return (
-          <motion.div
-            key="design"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
+        return <motion.div key="design" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
             <WorkoutDesigner />
-          </motion.div>
-        );
-
+          </motion.div>;
       case 'theory':
-        return (
-          <motion.div
-            key="theory"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
+        return <motion.div key="theory" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
             <EducationalSection />
-          </motion.div>
-        );
-
+          </motion.div>;
       case 'exercises':
-        return (
-          <motion.div
-            key="exercises"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
+        return <motion.div key="exercises" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
             <ExerciseCatalog />
-          </motion.div>
-        );
-
+          </motion.div>;
       case 'progress':
-        return (
-          <motion.div
-            key="progress"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <UnifiedProgressChart 
-              completedSessions={completedSessions}
-              totalCompleted={getTotalCompleted()}
-              cyclesCompleted={getCyclesCompleted()}
-              progressInCycle={getProgressInCurrentCycle()}
-            />
-          </motion.div>
-        );
-
+        return <motion.div key="progress" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
+            <UnifiedProgressChart completedSessions={completedSessions} totalCompleted={getTotalCompleted()} cyclesCompleted={getCyclesCompleted()} progressInCycle={getProgressInCurrentCycle()} />
+          </motion.div>;
       case 'nutrition':
-        return (
-          <motion.div
-            key="nutrition"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
+        return <motion.div key="nutrition" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
             <NutritionSection />
-          </motion.div>
-        );
-
+          </motion.div>;
       default:
-        return (
-          <motion.div
-            key="workouts"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
+        return <motion.div key="workouts" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
             <WorkoutsHub />
-          </motion.div>
-        );
+          </motion.div>;
     }
   };
-
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header */}
-      <motion.header 
-        className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      >
+      <motion.header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm" initial={{
+      opacity: 0,
+      y: -20
+    }} animate={{
+      opacity: 1,
+      y: 0
+    }} transition={{
+      duration: 0.5,
+      ease: [0.25, 0.46, 0.45, 0.94]
+    }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <motion.div 
-              className="bg-foreground rounded-xl px-3 py-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="text-lg font-bold tracking-tight text-background">NEO</span>
+            <motion.div className="bg-foreground rounded-xl px-3 py-2 shadow-lg" whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }}>
+              <span className="font-bold tracking-tight text-background text-xl text-center">NEO</span>
             </motion.div>
             <div>
               <p className="text-[10px] text-muted-foreground">
@@ -273,137 +222,136 @@ const Index = () => {
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={signOut}
-            className="text-muted-foreground hover:text-foreground"
-          >
+          <Button variant="ghost" size="icon" onClick={signOut} className="text-muted-foreground hover:text-foreground">
             <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </motion.header>
 
       {/* Navigation */}
-      <motion.nav 
-        className="sticky top-[65px] z-40 bg-background/95 backdrop-blur-sm border-b border-border"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
+      <motion.nav className="sticky top-[65px] z-40 bg-background/95 backdrop-blur-sm border-b border-border" initial={{
+      opacity: 0,
+      y: -10
+    }} animate={{
+      opacity: 1,
+      y: 0
+    }} transition={{
+      duration: 0.5,
+      delay: 0.1
+    }}>
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-2 py-2 gap-1">
             {/* Entrenamientos Tab (unified) */}
-            <motion.button
-              onClick={() => handleMainTabChange('workouts')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'workouts'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.05 }}
-            >
+            <motion.button onClick={() => handleMainTabChange('workouts')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'workouts' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.05
+          }}>
               <FolderOpen className="w-3.5 h-3.5" />
               Entrenamientos
             </motion.button>
 
 
             {/* Progress Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('progress')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'progress'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
+            <motion.button onClick={() => handleMainTabChange('progress')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'progress' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.1
+          }}>
               <TrendingUp className="w-3.5 h-3.5" />
               Progreso
             </motion.button>
             
             {/* Nutrition Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('nutrition')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'nutrition'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-            >
+            <motion.button onClick={() => handleMainTabChange('nutrition')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'nutrition' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.15
+          }}>
               <Apple className="w-3.5 h-3.5" />
               Nutrición
             </motion.button>
 
             {/* Theory Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('theory')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'theory'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
+            <motion.button onClick={() => handleMainTabChange('theory')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'theory' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.2
+          }}>
               <BookOpen className="w-3.5 h-3.5" />
               Teoría
             </motion.button>
 
             {/* Exercises Catalog Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('exercises')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'exercises'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
-            >
+            <motion.button onClick={() => handleMainTabChange('exercises')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'exercises' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.25
+          }}>
               <Library className="w-3.5 h-3.5" />
               Ejercicios
             </motion.button>
 
             {/* Design Tab */}
-            <motion.button
-              onClick={() => handleMainTabChange('design')}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap",
-                mainTab === 'design'
-                  ? "gradient-primary text-primary-foreground glow-primary" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
+            <motion.button onClick={() => handleMainTabChange('design')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'design' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.3
+          }}>
               <Pencil className="w-3.5 h-3.5" />
               Diseñar
             </motion.button>
@@ -422,8 +370,6 @@ const Index = () => {
 
       {/* Timer FAB */}
       <Timer defaultRestTime={120} />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
