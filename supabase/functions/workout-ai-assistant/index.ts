@@ -15,7 +15,11 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("[workout-ai-assistant] API key not configured");
+      return new Response(
+        JSON.stringify({ error: "Servicio temporalmente no disponible." }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const systemPrompts: Record<string, string> = {
@@ -203,24 +207,30 @@ Responde siempre en español.`
     });
 
     if (!response.ok) {
+      // Log detailed error server-side only
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("[workout-ai-assistant] AI gateway error:", response.status, errorText);
       
+      // Return generic user-friendly messages
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Límite de peticiones excedido. Inténtalo de nuevo en unos segundos." }),
+          JSON.stringify({ error: "Demasiadas solicitudes. Por favor, espera un momento." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Créditos agotados. Contacta con soporte." }),
+          JSON.stringify({ error: "Servicio temporalmente no disponible." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      throw new Error(`AI gateway error: ${response.status}`);
+      // Generic error for other cases
+      return new Response(
+        JSON.stringify({ error: "Error al procesar tu solicitud. Inténtalo de nuevo." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
@@ -245,9 +255,12 @@ Responde siempre en español.`
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in workout-ai-assistant:", error);
+    // Log full details server-side only
+    console.error("[workout-ai-assistant] Internal error:", error);
+    
+    // Return generic message to client - never expose internal details
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Error desconocido" }),
+      JSON.stringify({ error: "Error procesando tu solicitud. Intenta de nuevo más tarde." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
