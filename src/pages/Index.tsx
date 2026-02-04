@@ -10,8 +10,10 @@ import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { Timer } from '@/components/Timer';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
+import { PerformanceSection } from '@/components/performance';
+import { ProfileSection } from '@/components/profile';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Apple, LogOut, Loader2, BookOpen, Library, Pencil, FolderOpen } from 'lucide-react';
+import { TrendingUp, Apple, LogOut, Loader2, BookOpen, Library, Pencil, FolderOpen, Activity, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 const Index = () => {
@@ -30,7 +32,7 @@ const Index = () => {
     getCyclesCompleted,
     getProgressInCurrentCycle
   } = useCompletedSessions();
-  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'theory' | 'exercises' | 'design';
+  type MainTab = 'workouts' | 'progress' | 'performance' | 'nutrition' | 'theory' | 'exercises' | 'design' | 'profile';
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
@@ -179,12 +181,26 @@ const Index = () => {
         }}>
             <UnifiedProgressChart completedSessions={completedSessions} totalCompleted={getTotalCompleted()} cyclesCompleted={getCyclesCompleted()} progressInCycle={getProgressInCurrentCycle()} />
           </motion.div>;
+      case 'performance':
+        return <motion.div key="performance" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
+            <PerformanceSection />
+          </motion.div>;
       case 'nutrition':
         return <motion.div key="nutrition" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
           duration: 0.4,
           ease: [0.25, 0.46, 0.45, 0.94]
         }}>
             <NutritionSection />
+          </motion.div>;
+      case 'profile':
+        return <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}>
+            <ProfileSection />
           </motion.div>;
       default:
         return <motion.div key="workouts" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
@@ -222,9 +238,14 @@ const Index = () => {
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={signOut} className="text-muted-foreground hover:text-foreground">
-            <LogOut className="w-5 h-5" />
-          </Button>
+          <motion.button 
+            onClick={() => handleMainTabChange('profile')}
+            className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <User className="w-5 h-5 text-primary" />
+          </motion.button>
         </div>
       </motion.header>
 
@@ -278,6 +299,25 @@ const Index = () => {
           }}>
               <TrendingUp className="w-3.5 h-3.5" />
               Progreso
+            </motion.button>
+
+            {/* Performance Tab */}
+            <motion.button onClick={() => handleMainTabChange('performance')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'performance' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.12
+          }}>
+              <Activity className="w-3.5 h-3.5" />
+              Rendimiento
             </motion.button>
             
             {/* Nutrition Tab */}
@@ -354,6 +394,25 @@ const Index = () => {
           }}>
               <Pencil className="w-3.5 h-3.5" />
               Diseñar
+            </motion.button>
+
+            {/* Profile Tab */}
+            <motion.button onClick={() => handleMainTabChange('profile')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'profile' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} initial={{
+            opacity: 0,
+            y: -10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.3,
+            delay: 0.35
+          }}>
+              <User className="w-3.5 h-3.5" />
+              Perfil
             </motion.button>
           </div>
         </div>
