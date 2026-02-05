@@ -12,7 +12,7 @@ import {
   CollapsibleTrigger 
 } from '@/components/ui/collapsible';
 import { useExerciseCatalog, CatalogExercise } from '@/hooks/useExerciseCatalog';
-import { AIWorkoutAssistant } from './AIWorkoutAssistant';
+import { VisualAIAssistant } from './ai-assistant';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -193,13 +193,13 @@ export const GymWorkoutBuilder = () => {
     );
   }
 
-  // When AI assistant is active, show it prominently
+  // When AI assistant is active, show the new Visual AI Assistant
   if (showAIAssistant) {
     return (
       <div className="space-y-4">
-        <AIWorkoutAssistant
+        <VisualAIAssistant
           workoutType="gym"
-          onClose={() => setShowAIAssistant(false)}
+          onClose={() => setShowAIAssistant(null)}
           onWorkoutSaved={() => {
             setShowAIAssistant(null);
           }}
