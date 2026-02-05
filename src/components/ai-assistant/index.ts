@@ -7,4 +7,6 @@ export * from './ProgressVisual';
 export * from './QuickActions';
 export * from './RoutineSummary';
 export * from './VisualAIAssistant';
+export * from './SwimmingVisualAssistant';
+export * from './RunningVisualAssistant';
 export * from './exerciseDatabase';
