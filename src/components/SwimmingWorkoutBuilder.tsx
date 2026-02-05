@@ -4,7 +4,7 @@ import { Plus, Trash2, GripVertical, Save, Bot, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AIWorkoutAssistant } from './AIWorkoutAssistant';
+import { SwimmingVisualAssistant } from './ai-assistant/SwimmingVisualAssistant';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -196,8 +196,7 @@ export const SwimmingWorkoutBuilder = () => {
       {/* AI Assistant */}
       <AnimatePresence>
         {showAIAssistant && (
-          <AIWorkoutAssistant
-            workoutType="swimming"
+          <SwimmingVisualAssistant
             onClose={() => setShowAIAssistant(false)}
           />
         )}

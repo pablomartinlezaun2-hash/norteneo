@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UtensilsCrossed, Target, Pill, ChefHat } from 'lucide-react';
+import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNutritionData } from '@/hooks/useNutritionData';
 import { FoodLogSection } from './nutrition/FoodLogSection';
 import { NutritionGoalsSection } from './nutrition/NutritionGoalsSection';
 import { SupplementsSection } from './nutrition/SupplementsSection';
 import { RecipesSection } from './nutrition/RecipesSection';
+import { NutritionDesigner } from './nutrition/NutritionDesigner';
 
-type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes';
+type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer';
 
 export const NutritionSection = () => {
   const [activeTab, setActiveTab] = useState<NutritionTab>('log');
+  const [showDesigner, setShowDesigner] = useState(false);
   
   const {
     loading,
@@ -36,7 +38,8 @@ export const NutritionSection = () => {
     { id: 'log' as const, label: 'Registro', icon: UtensilsCrossed },
     { id: 'goals' as const, label: 'Objetivos', icon: Target },
     { id: 'supplements' as const, label: 'Suplem.', icon: Pill },
-    { id: 'recipes' as const, label: 'Recetas', icon: ChefHat }
+    { id: 'recipes' as const, label: 'Recetas', icon: ChefHat },
+    { id: 'designer' as const, label: 'Diseñar', icon: Sparkles }
   ];
 
   if (loading) {
@@ -117,6 +120,22 @@ export const NutritionSection = () => {
           {activeTab === 'recipes' && (
             <RecipesSection
               recipes={recipes}
+            />
+          )}
+
+          {activeTab === 'designer' && (
+            <NutritionDesigner
+              onClose={() => setActiveTab('log')}
+              onPlanCreated={(plan) => {
+                // Update goals with the calculated values
+                updateGoals({
+                  daily_calories: plan.targetCalories,
+                  daily_protein: plan.macroDistribution.protein,
+                  daily_carbs: plan.macroDistribution.carbs,
+                  daily_fat: plan.macroDistribution.fat
+                });
+                setActiveTab('goals');
+              }}
             />
           )}
         </motion.div>
