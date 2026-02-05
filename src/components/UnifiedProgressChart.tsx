@@ -4,7 +4,7 @@ import { CompletedSession } from '@/types/database';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, BarChart, Bar } from 'recharts';
 import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar } from 'lucide-react';
+import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useActivityCompletions } from '@/hooks/useActivityCompletions';
@@ -14,6 +14,7 @@ import { MuscleRadarChart } from './performance/MuscleRadarChart';
 import { MuscleLoadChart } from './performance/MuscleLoadChart';
 import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
 import { KeyExercisesSection } from './performance/KeyExercisesSection';
+import { NeoModelSection } from './neo';
 
 interface ActivityCompletion {
   id: string;
@@ -38,7 +39,7 @@ interface UnifiedWorkout {
   session_id?: string;
 }
 
-type ProgressTab = 'overview' | 'radar' | 'load' | 'exercises' | 'monthly';
+type ProgressTab = 'overview' | 'neo' | 'radar' | 'load' | 'exercises' | 'monthly';
 
 export const UnifiedProgressChart = ({ 
   completedSessions,
@@ -298,6 +299,7 @@ export const UnifiedProgressChart = ({
 
   const PROGRESS_TABS = [
     { id: 'overview' as ProgressTab, label: 'Resumen', icon: TrendingUp },
+    { id: 'neo' as ProgressTab, label: 'Neo', icon: User },
     { id: 'radar' as ProgressTab, label: 'Mapa', icon: Target },
     { id: 'load' as ProgressTab, label: 'Carga', icon: Dumbbell },
     { id: 'exercises' as ProgressTab, label: 'Ejercicios', icon: Activity },
@@ -355,6 +357,10 @@ export const UnifiedProgressChart = ({
       </div>
 
       {/* Tab Content */}
+      {activeTab === 'neo' && (
+        <NeoModelSection setLogs={allSetLogs} exercises={allExercises} />
+      )}
+
       {activeTab === 'radar' && (
         <MuscleRadarChart setLogs={allSetLogs} exercises={allExercises} />
       )}
