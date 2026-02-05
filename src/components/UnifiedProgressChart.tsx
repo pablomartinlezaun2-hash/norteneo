@@ -14,7 +14,7 @@ import { MuscleRadarChart } from './performance/MuscleRadarChart';
 import { MuscleLoadChart } from './performance/MuscleLoadChart';
 import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
 import { KeyExercisesSection } from './performance/KeyExercisesSection';
-import { NeoModelSection } from './neo';
+import { NeoAnatomySection } from './neo';
 
 interface ActivityCompletion {
   id: string;
@@ -358,7 +358,7 @@ export const UnifiedProgressChart = ({
 
       {/* Tab Content */}
       {activeTab === 'neo' && (
-        <NeoModelSection setLogs={allSetLogs} exercises={allExercises} />
+        <NeoAnatomySection setLogs={allSetLogs} exercises={allExercises} />
       )}
 
       {activeTab === 'radar' && (
