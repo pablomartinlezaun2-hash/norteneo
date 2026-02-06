@@ -7,7 +7,7 @@ import { FoodLogSection } from './nutrition/FoodLogSection';
 import { NutritionGoalsSection } from './nutrition/NutritionGoalsSection';
 import { SupplementsSection } from './nutrition/SupplementsSection';
 import { RecipesSection } from './nutrition/RecipesSection';
-import { NutritionDesigner } from './nutrition/NutritionDesigner';
+import { NutritionAssistant } from './nutrition/NutritionAssistant';
 
 type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer';
 
@@ -124,16 +124,19 @@ export const NutritionSection = () => {
           )}
 
           {activeTab === 'designer' && (
-            <NutritionDesigner
+            <NutritionAssistant
               onClose={() => setActiveTab('log')}
               onPlanCreated={(plan) => {
-                // Update goals with the calculated values
-                updateGoals({
-                  daily_calories: plan.targetCalories,
-                  daily_protein: plan.macroDistribution.protein,
-                  daily_carbs: plan.macroDistribution.carbs,
-                  daily_fat: plan.macroDistribution.fat
-                });
+                // Update goals with the calculated values from the first day
+                const firstDay = plan.days[0];
+                if (firstDay) {
+                  updateGoals({
+                    daily_calories: firstDay.targetCalories,
+                    daily_protein: firstDay.macros.protein,
+                    daily_carbs: firstDay.macros.carbs,
+                    daily_fat: firstDay.macros.fat
+                  });
+                }
                 setActiveTab('goals');
               }}
             />
