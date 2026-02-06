@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, ArrowRight, ArrowLeft, Calculator, ChefHat, Crown, Zap,
   Target, TrendingUp, TrendingDown, Minus,
   User, Ruler, Scale, Calendar, Utensils, AlertTriangle,
-  Dumbbell, Waves, Activity, Moon, Check, RefreshCw
+  Dumbbell, Waves, Activity, Moon, Check, RefreshCw, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -13,7 +13,7 @@ import { NeoLogo } from '@/components/NeoLogo';
 import type { 
   NutritionStep, DietType, NutritionGoal, 
   UserNutritionProfile, DayActivity, ActivityType,
-  WeeklyNutritionPlan, DayNutritionPlan
+  WeeklyNutritionPlan, DayNutritionPlan, FoodItem
 } from './types';
 import { 
   calculateBMR, calculateActivityCalories, calculateStepsCalories,
@@ -21,7 +21,8 @@ import {
   getActivityColor, getActivityIcon, getActivityLabel
 } from './calculations';
 import { generateDayMeals } from './mealGenerator';
-import { DayPlanCard } from './DayPlanCard';
+import { EnhancedDayPlanCard } from './EnhancedDayPlanCard';
+import { DurationInput } from './DurationInput';
 import { MacroRing } from './MacroRing';
 import { WeeklyOverview } from './WeeklyOverview';
 
@@ -121,6 +122,61 @@ export const NutritionAssistant = ({ onClose, onPlanCreated }: NutritionAssistan
     setWeeklyPlan(plan);
     setStep('results-overview');
   };
+
+  // Handle meal food update (for substitution)
+  const handleUpdateMeal = useCallback((dayIndex: number, mealIndex: number, newFoods: FoodItem[]) => {
+    setWeeklyPlan(prev => {
+      if (!prev) return prev;
+      
+      const newDays = [...prev.days];
+      const day = { ...newDays[dayIndex] };
+      const meals = [...day.meals];
+      const meal = { ...meals[mealIndex] };
+      
+      // Update foods
+      meal.foods = newFoods;
+      
+      // Recalculate meal totals
+      const totals = newFoods.reduce((acc, f) => ({
+        calories: acc.calories + f.calories,
+        protein: acc.protein + f.protein,
+        carbs: acc.carbs + f.carbs,
+        fat: acc.fat + f.fat,
+      }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+      
+      meal.calories = totals.calories;
+      meal.protein = totals.protein;
+      meal.carbs = totals.carbs;
+      meal.fat = totals.fat;
+      
+      meals[mealIndex] = meal;
+      day.meals = meals;
+      
+      // Recalculate day totals
+      const dayTotals = meals.reduce((acc, m) => ({
+        calories: acc.calories + m.calories,
+        protein: acc.protein + m.protein,
+        carbs: acc.carbs + m.carbs,
+        fat: acc.fat + m.fat,
+      }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+      
+      day.macros = {
+        calories: dayTotals.calories,
+        protein: dayTotals.protein,
+        carbs: dayTotals.carbs,
+        fat: dayTotals.fat,
+      };
+      day.targetCalories = dayTotals.calories;
+      
+      newDays[dayIndex] = day;
+      
+      return {
+        ...prev,
+        days: newDays,
+        weeklyCalories: newDays.reduce((sum, d) => sum + d.targetCalories, 0),
+      };
+    });
+  }, []);
 
   const toggleActivity = (dayIndex: number, activity: ActivityType) => {
     setWeeklyActivities(prev => prev.map((day, idx) => {
@@ -578,21 +634,19 @@ export const NutritionAssistant = ({ onClose, onPlanCreated }: NutritionAssistan
                       ))}
                     </div>
                     
-                    {/* Duration sliders for active activities */}
-                    {day.activities.filter(a => a !== 'rest').map(activity => (
-                      <div key={activity} className="flex items-center gap-2 text-xs">
-                        <span className="w-16">{getActivityLabel(activity)}</span>
-                        <Slider
-                          value={[day.durations[activity]]}
-                          onValueChange={([v]) => updateDuration(dayIndex, activity, v)}
-                          min={15}
-                          max={120}
-                          step={15}
-                          className="flex-1"
+                    {/* Duration inputs for active activities - now with free input */}
+                    <div className="space-y-2">
+                      {day.activities.filter(a => a !== 'rest').map(activity => (
+                        <DurationInput
+                          key={activity}
+                          activity={activity}
+                          value={day.durations[activity]}
+                          onChange={(v) => updateDuration(dayIndex, activity, v)}
+                          min={5}
+                          max={180}
                         />
-                        <span className="w-12 text-right font-medium">{day.durations[activity]}min</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -753,11 +807,13 @@ export const NutritionAssistant = ({ onClose, onPlanCreated }: NutritionAssistan
               </div>
 
               {weeklyPlan.days.map((day, idx) => (
-                <DayPlanCard 
+                <EnhancedDayPlanCard 
                   key={day.day} 
                   day={day} 
                   expanded={selectedDay === idx}
                   onToggle={() => setSelectedDay(selectedDay === idx ? -1 : idx)}
+                  onUpdateMeal={(mealIndex, newFoods) => handleUpdateMeal(idx, mealIndex, newFoods)}
+                  allergies={profile.allergies}
                 />
               ))}
 
