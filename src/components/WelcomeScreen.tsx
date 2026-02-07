@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, User, ChevronDown, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { NeoAssistant } from './onboarding';
 
 interface WelcomeScreenProps {
   onStartWithAssistant: () => void;
@@ -9,11 +10,31 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen = ({ onStartWithAssistant, onStartAlone }: WelcomeScreenProps) => {
+  const [showNeoAssistant, setShowNeoAssistant] = useState(false);
   const [expandedOption, setExpandedOption] = useState<'assistant' | 'alone' | null>(null);
 
   const toggleOption = (option: 'assistant' | 'alone') => {
     setExpandedOption(expandedOption === option ? null : option);
   };
+
+  const handleStartWithAssistant = () => {
+    setShowNeoAssistant(true);
+  };
+
+  const handleNeoComplete = () => {
+    setShowNeoAssistant(false);
+    onStartWithAssistant();
+  };
+
+  const handleNeoSkip = () => {
+    setShowNeoAssistant(false);
+    onStartAlone();
+  };
+
+  // Show Neo Assistant full screen
+  if (showNeoAssistant) {
+    return <NeoAssistant onComplete={handleNeoComplete} onSkip={handleNeoSkip} />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
@@ -107,15 +128,15 @@ export const WelcomeScreen = ({ onStartWithAssistant, onStartAlone }: WelcomeScr
                 >
                   <div className="px-4 pb-4 space-y-3">
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Nuestro asistente te ayudará a conocer la app de NEO y a configurar y crear tus entrenamientos personalizados.
+                      Neo te dará la bienvenida, te guiará por todas las funciones de la app y te enseñará cómo sacarle el máximo partido.
                     </p>
                     <motion.button
-                      onClick={onStartWithAssistant}
+                      onClick={handleStartWithAssistant}
                       className="w-full py-3 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      Comenzar con asistente
+                      Comenzar con Neo
                     </motion.button>
                   </div>
                 </motion.div>

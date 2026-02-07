@@ -1,0 +1,1 @@
+export { NeoAssistant } from './NeoAssistant';
