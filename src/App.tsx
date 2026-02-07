@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SplashScreen } from "@/components/SplashScreen";
+import { SupplementNotificationToast } from "@/components/nutrition/SupplementNotificationToast";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -81,6 +82,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <SupplementNotificationToast />
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>

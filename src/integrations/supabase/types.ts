@@ -639,6 +639,95 @@ export type Database = {
           },
         ]
       }
+      supplement_notification_history: {
+        Row: {
+          action_at: string | null
+          action_taken: string | null
+          id: string
+          reminder_id: string | null
+          sent_at: string
+          supplement_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_at?: string | null
+          action_taken?: string | null
+          id?: string
+          reminder_id?: string | null
+          sent_at?: string
+          supplement_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_at?: string | null
+          action_taken?: string | null
+          id?: string
+          reminder_id?: string | null
+          sent_at?: string
+          supplement_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_notification_history_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "supplement_reminders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplement_notification_history_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "user_supplements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplement_reminders: {
+        Row: {
+          created_at: string
+          frequency: string
+          id: string
+          is_active: boolean
+          reminder_times: string[]
+          sound_enabled: boolean
+          supplement_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          reminder_times?: string[]
+          sound_enabled?: boolean
+          supplement_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          reminder_times?: string[]
+          sound_enabled?: boolean
+          supplement_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_reminders_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "user_supplements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_programs: {
         Row: {
           created_at: string
