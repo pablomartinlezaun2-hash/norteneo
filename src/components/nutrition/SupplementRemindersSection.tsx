@@ -5,206 +5,105 @@ import {
   BellOff, 
   Plus, 
   Clock, 
-  Trash2, 
   Settings2, 
-  Check,
   History,
-  Volume2,
-  VolumeX,
-  ChevronRight,
   Pill,
-  AlertCircle
+  AlertCircle,
+  Check,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useSupplementReminders } from '@/hooks/useSupplementReminders';
 import { useNutritionData, UserSupplement } from '@/hooks/useNutritionData';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-interface ReminderConfigModalProps {
-  supplement: UserSupplement;
-  existingReminder?: any;
-  onClose: () => void;
-}
-
-const ReminderConfigModal = ({ supplement, existingReminder, onClose }: ReminderConfigModalProps) => {
-  const { createReminder, updateReminder, deleteReminder } = useSupplementReminders();
-  const [times, setTimes] = useState<string[]>(existingReminder?.reminder_times || ['08:00']);
-  const [frequency, setFrequency] = useState(existingReminder?.frequency || 'daily');
-  const [soundEnabled, setSoundEnabled] = useState(existingReminder?.sound_enabled ?? true);
-  const [saving, setSaving] = useState(false);
-
-  const addTime = () => {
-    setTimes([...times, '12:00']);
-  };
-
-  const removeTime = (index: number) => {
-    setTimes(times.filter((_, i) => i !== index));
-  };
-
-  const updateTime = (index: number, value: string) => {
-    const newTimes = [...times];
-    newTimes[index] = value;
-    setTimes(newTimes);
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    if (existingReminder) {
-      await updateReminder(existingReminder.id, {
-        reminder_times: times,
-        frequency,
-        sound_enabled: soundEnabled
-      });
-    } else {
-      await createReminder(supplement.id, times, frequency, soundEnabled);
-    }
-    setSaving(false);
-    onClose();
-  };
-
-  const handleDelete = async () => {
-    if (existingReminder) {
-      await deleteReminder(existingReminder.id);
-      onClose();
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Pill className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <p className="font-medium text-foreground">{supplement.name}</p>
-          {supplement.dosage && (
-            <p className="text-sm text-muted-foreground">{supplement.dosage}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Times */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">Horas de recordatorio</Label>
-        <div className="space-y-2">
-          {times.map((time, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(e) => updateTime(index, e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              {times.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeTime(index)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-        <Button variant="outline" size="sm" onClick={addTime} className="w-full">
-          <Plus className="w-4 h-4 mr-2" />
-          Añadir hora
-        </Button>
-      </div>
-
-      {/* Frequency */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Frecuencia</Label>
-        <Select value={frequency} onValueChange={setFrequency}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Todos los días</SelectItem>
-            <SelectItem value="weekly">Semanal</SelectItem>
-            <SelectItem value="custom">Personalizado</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Sound */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
-        <div className="flex items-center gap-3">
-          {soundEnabled ? (
-            <Volume2 className="w-5 h-5 text-primary" />
-          ) : (
-            <VolumeX className="w-5 h-5 text-muted-foreground" />
-          )}
-          <span className="text-sm font-medium">Sonido de notificación</span>
-        </div>
-        <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        {existingReminder && (
-          <Button variant="destructive" onClick={handleDelete} className="flex-1">
-            <Trash2 className="w-4 h-4 mr-2" />
-            Eliminar
-          </Button>
-        )}
-        <Button onClick={handleSave} disabled={saving} className="flex-1">
-          <Check className="w-4 h-4 mr-2" />
-          {saving ? 'Guardando...' : 'Guardar'}
-        </Button>
-      </div>
-    </div>
-  );
-};
+import { SupplementCatalog } from './SupplementCatalog';
+import { ReminderConfigPanel } from './ReminderConfigPanel';
+import { toast } from 'sonner';
 
 export const SupplementRemindersSection = () => {
-  const { supplements } = useNutritionData();
+  const { supplements, addSupplement } = useNutritionData();
   const { 
     reminders, 
     history, 
     loading, 
     notificationPermission,
     requestPermission,
+    createReminder,
+    updateReminder,
+    deleteReminder,
     toggleReminder,
     getReminderForSupplement 
   } = useSupplementReminders();
   
-  const [selectedSupplement, setSelectedSupplement] = useState<UserSupplement | null>(null);
+  const [showCatalog, setShowCatalog] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [selectedSupplement, setSelectedSupplement] = useState<UserSupplement | null>(null);
+  const [requestingPermission, setRequestingPermission] = useState(false);
 
   const handleRequestPermission = async () => {
-    const granted = await requestPermission();
-    if (!granted) {
-      // Toast is shown by the hook
+    setRequestingPermission(true);
+    try {
+      const granted = await requestPermission();
+      if (granted) {
+        toast.success('¡Notificaciones activadas!', {
+          description: 'Ahora recibirás recordatorios de tus suplementos'
+        });
+      } else {
+        toast.error('Permiso denegado', {
+          description: 'Necesitas permitir notificaciones en tu navegador'
+        });
+      }
+    } catch (error) {
+      toast.error('Error al solicitar permiso');
+    }
+    setRequestingPermission(false);
+  };
+
+  const handleSelectFromCatalog = async (supplement: { name: string; dosage: string }) => {
+    // First add the supplement to user's supplements
+    const newSupplement = await addSupplement({
+      name: supplement.name,
+      dosage: supplement.dosage,
+      timing: 'morning'
+    });
+    
+    setShowCatalog(false);
+    
+    if (newSupplement) {
+      // Open config panel for the new supplement
+      setSelectedSupplement(newSupplement);
     }
   };
 
+  const handleSaveReminder = async (supplementId: string, config: {
+    times: string[];
+    frequency: string;
+    soundEnabled: boolean;
+  }) => {
+    const existingReminder = getReminderForSupplement(supplementId);
+    
+    if (existingReminder) {
+      await updateReminder(existingReminder.id, {
+        reminder_times: config.times,
+        frequency: config.frequency as 'daily' | 'weekly' | 'custom',
+        sound_enabled: config.soundEnabled
+      });
+    } else {
+      await createReminder(supplementId, config.times, config.frequency, config.soundEnabled);
+    }
+  };
+
+  const handleDeleteReminder = async (reminderId: string) => {
+    await deleteReminder(reminderId);
+  };
+
   const activeSupplements = supplements.filter(s => s.is_active);
+  const supplementsWithReminders = activeSupplements.filter(s => getReminderForSupplement(s.id));
+  const supplementsWithoutReminders = activeSupplements.filter(s => !getReminderForSupplement(s.id));
 
   return (
     <div className="space-y-6">
@@ -216,7 +115,7 @@ export const SupplementRemindersSection = () => {
           className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
         >
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <p className="font-medium text-foreground">Activa las notificaciones</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -224,29 +123,36 @@ export const SupplementRemindersSection = () => {
               </p>
               <Button 
                 onClick={handleRequestPermission} 
+                disabled={requestingPermission}
                 size="sm" 
                 className="mt-3"
               >
                 <Bell className="w-4 h-4 mr-2" />
-                Activar notificaciones
+                {requestingPermission ? 'Solicitando...' : 'Activar notificaciones'}
               </Button>
             </div>
           </div>
         </motion.div>
       )}
 
-      {/* Header */}
+      {/* Header with add button */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Recordatorios</h3>
           <p className="text-sm text-muted-foreground">
-            Configura alertas para tus suplementos
+            {supplementsWithReminders.length} recordatorios activos
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowHistory(!showHistory)}>
-          <History className="w-4 h-4 mr-2" />
-          Historial
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowHistory(!showHistory)}>
+            <History className="w-4 h-4 mr-2" />
+            Historial
+          </Button>
+          <Button size="sm" onClick={() => setShowCatalog(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Añadir
+          </Button>
+        </div>
       </div>
 
       {/* History Panel */}
@@ -306,91 +212,146 @@ export const SupplementRemindersSection = () => {
         )}
       </AnimatePresence>
 
-      {/* Supplements List */}
-      <div className="space-y-2">
+      {/* Supplements with Reminders */}
+      <div className="space-y-3">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : activeSupplements.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Pill className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>No tienes suplementos activos</p>
-            <p className="text-sm">Añade suplementos para configurar recordatorios</p>
-          </div>
         ) : (
-          activeSupplements.map((supplement) => {
-            const reminder = getReminderForSupplement(supplement.id);
-            
-            return (
-              <Dialog key={supplement.id}>
-                <DialogTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    className={cn(
-                      "flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all",
-                      reminder?.is_active 
-                        ? "bg-primary/5 border-primary/20" 
-                        : "bg-muted/30 border-border hover:border-primary/30"
-                    )}
-                    onClick={() => setSelectedSupplement(supplement)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center",
-                        reminder?.is_active ? "bg-primary/10" : "bg-muted"
-                      )}>
-                        {reminder?.is_active ? (
-                          <Bell className="w-5 h-5 text-primary" />
-                        ) : (
-                          <BellOff className="w-5 h-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{supplement.name}</p>
-                        {reminder ? (
+          <>
+            {/* Active reminders */}
+            {supplementsWithReminders.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground px-1">Con recordatorio</p>
+                {supplementsWithReminders.map((supplement) => {
+                  const reminder = getReminderForSupplement(supplement.id);
+                  if (!reminder) return null;
+                  
+                  return (
+                    <motion.div
+                      key={supplement.id}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className={cn(
+                        "flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all",
+                        reminder.is_active 
+                          ? "bg-primary/5 border-primary/20" 
+                          : "bg-muted/30 border-border"
+                      )}
+                      onClick={() => setSelectedSupplement(supplement)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center",
+                          reminder.is_active ? "bg-primary/10" : "bg-muted"
+                        )}>
+                          {reminder.is_active ? (
+                            <Bell className="w-5 h-5 text-primary" />
+                          ) : (
+                            <BellOff className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{supplement.name}</p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="w-3 h-3" />
                             {reminder.reminder_times.join(', ')}
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Sin recordatorio</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={reminder.is_active}
+                          onCheckedChange={(checked) => toggleReminder(reminder.id, checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <Settings2 className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Supplements without reminders */}
+            {supplementsWithoutReminders.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground px-1">Sin recordatorio</p>
+                {supplementsWithoutReminders.map((supplement) => (
+                  <motion.div
+                    key={supplement.id}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="flex items-center justify-between p-4 rounded-xl border border-dashed border-border cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all"
+                    onClick={() => setSelectedSupplement(supplement)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                        <Pill className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{supplement.name}</p>
+                        {supplement.dosage && (
+                          <p className="text-sm text-muted-foreground">{supplement.dosage}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {reminder && (
-                        <Switch
-                          checked={reminder.is_active}
-                          onCheckedChange={(checked) => {
-                            toggleReminder(reminder.id, checked);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      )}
-                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    <div className="flex items-center gap-2 text-primary">
+                      <Plus className="w-4 h-4" />
+                      <span className="text-sm font-medium">Añadir</span>
                     </div>
                   </motion.div>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Settings2 className="w-5 h-5" />
-                      Configurar recordatorio
-                    </DialogTitle>
-                  </DialogHeader>
-                  <ReminderConfigModal
-                    supplement={supplement}
-                    existingReminder={reminder}
-                    onClose={() => setSelectedSupplement(null)}
-                  />
-                </DialogContent>
-              </Dialog>
-            );
-          })
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {activeSupplements.length === 0 && (
+              <div className="text-center py-12">
+                <Pill className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground mb-2">No tienes suplementos</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Añade suplementos para configurar recordatorios
+                </p>
+                <Button onClick={() => setShowCatalog(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Añadir suplemento
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {/* Catalog Modal */}
+      <AnimatePresence>
+        {showCatalog && (
+          <SupplementCatalog
+            existingSupplements={supplements.map(s => s.name)}
+            onSelectSupplement={handleSelectFromCatalog}
+            onClose={() => setShowCatalog(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Config Panel */}
+      <AnimatePresence>
+        {selectedSupplement && (
+          <ReminderConfigPanel
+            supplementName={selectedSupplement.name}
+            supplementDosage={selectedSupplement.dosage || undefined}
+            existingReminder={getReminderForSupplement(selectedSupplement.id) || undefined}
+            onSave={(config) => handleSaveReminder(selectedSupplement.id, config)}
+            onDelete={
+              getReminderForSupplement(selectedSupplement.id)
+                ? () => handleDeleteReminder(getReminderForSupplement(selectedSupplement.id)!.id)
+                : undefined
+            }
+            onClose={() => setSelectedSupplement(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

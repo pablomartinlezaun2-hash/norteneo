@@ -272,20 +272,23 @@ export const useNutritionData = () => {
   };
 
   // Add supplement
-  const addSupplement = async (supplement: Omit<UserSupplement, 'id' | 'is_active'>) => {
-    if (!user) return;
+  const addSupplement = async (supplement: Omit<UserSupplement, 'id' | 'is_active'>): Promise<UserSupplement | null> => {
+    if (!user) return null;
     
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('user_supplements')
-      .insert({ ...supplement, user_id: user.id, is_active: true });
+      .insert({ ...supplement, user_id: user.id, is_active: true })
+      .select()
+      .single();
     
     if (error) {
       toast.error('Error al añadir suplemento');
-      return;
+      return null;
     }
     
     toast.success('Suplemento añadido');
-    fetchSupplements();
+    await fetchSupplements();
+    return data as UserSupplement;
   };
 
   // Delete supplement
