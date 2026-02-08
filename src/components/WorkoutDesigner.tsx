@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dumbbell, Waves, Footprints, ChevronDown, Sparkles } from 'lucide-react';
+import { Dumbbell, Waves, Footprints, ChevronDown, Sparkles, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GymWorkoutBuilder } from './GymWorkoutBuilder';
 import { SwimmingWorkoutBuilder } from './SwimmingWorkoutBuilder';
 import { RunningWorkoutBuilder } from './RunningWorkoutBuilder';
+import { EducationalSection } from './EducationalSection';
 
 type WorkoutType = 'gym' | 'swimming' | 'running' | null;
 
 export const WorkoutDesigner = () => {
   const [expandedType, setExpandedType] = useState<WorkoutType>(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [showTheory, setShowTheory] = useState(false);
 
   const handleExpand = (type: WorkoutType) => {
     if (expandedType === type) {
@@ -70,6 +72,77 @@ export const WorkoutDesigner = () => {
           Selecciona el tipo de entrenamiento que quieres crear
         </p>
       </div>
+
+      {/* Theory Collapsible */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.25 }}
+        className="rounded-xl border border-border overflow-hidden"
+      >
+        <motion.button
+          onClick={() => setShowTheory(!showTheory)}
+          className={cn(
+            "w-full p-4 flex items-center justify-between transition-all duration-300",
+            showTheory
+              ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white"
+              : "bg-card border-b border-border hover:border-primary/50"
+          )}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "p-2 rounded-lg",
+              showTheory ? "bg-white/20" : "bg-blue-500/10"
+            )}>
+              <BookOpen className={cn(
+                "w-5 h-5",
+                showTheory ? "text-white" : "text-blue-500"
+              )} />
+            </div>
+            <div className="text-left">
+              <h3 className={cn(
+                "font-semibold",
+                showTheory ? "text-white" : "text-foreground"
+              )}>
+                Teoría & Educación
+              </h3>
+              <p className={cn(
+                "text-xs",
+                showTheory ? "text-white/80" : "text-muted-foreground"
+              )}>
+                Aprende sobre técnica, nutrición y entrenamiento
+              </p>
+            </div>
+          </div>
+          <motion.div
+            animate={{ rotate: showTheory ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ChevronDown className={cn(
+              "w-5 h-5",
+              showTheory ? "text-white" : "text-muted-foreground"
+            )} />
+          </motion.div>
+        </motion.button>
+
+        <AnimatePresence>
+          {showTheory && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="overflow-hidden"
+            >
+              <div className="bg-card border-b border-border p-4">
+                <EducationalSection />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       <div className="space-y-3">
         {workoutTypes.map((type, index) => {
