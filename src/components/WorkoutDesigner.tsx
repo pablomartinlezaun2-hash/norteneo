@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dumbbell, Waves, Footprints, ChevronDown, Sparkles, BookOpen, PenTool } from 'lucide-react';
+import { Dumbbell, Waves, Footprints, ChevronDown, Sparkles, BookOpen, PenTool, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GymWorkoutBuilder } from './GymWorkoutBuilder';
 import { SwimmingWorkoutBuilder } from './SwimmingWorkoutBuilder';
 import { RunningWorkoutBuilder } from './RunningWorkoutBuilder';
 import { EducationalSection } from './EducationalSection';
+import { ExerciseCatalog } from './ExerciseCatalog';
+import { CollapsibleSection } from './CollapsibleSection';
 
 type WorkoutType = 'gym' | 'swimming' | 'running';
 
@@ -35,9 +37,10 @@ const workoutTypes = [
 
 export const WorkoutDesigner = () => {
   const [showDesigner, setShowDesigner] = useState(false);
+  const [showExercises, setShowExercises] = useState(false);
+  const [showTheory, setShowTheory] = useState(false);
   const [expandedType, setExpandedType] = useState<WorkoutType | null>(null);
   const [showBuilder, setShowBuilder] = useState(false);
-  const [showTheory, setShowTheory] = useState(false);
 
   const handleExpandType = (type: WorkoutType) => {
     if (expandedType === type) {
@@ -73,22 +76,7 @@ export const WorkoutDesigner = () => {
         </p>
       </div>
 
-      {/* Theory Collapsible */}
-      <CollapsibleSection
-        isOpen={showTheory}
-        onToggle={() => setShowTheory(!showTheory)}
-        icon={BookOpen}
-        title="Teoría & Educación"
-        subtitle="Aprende sobre técnica, nutrición y entrenamiento"
-        gradient="from-blue-500 to-cyan-400"
-        delay={0.25}
-      >
-        <div className="bg-card border-b border-border p-4">
-          <EducationalSection />
-        </div>
-      </CollapsibleSection>
-
-      {/* Design Workout Collapsible */}
+      {/* 1. Diseñar Entrenamiento */}
       <CollapsibleSection
         isOpen={showDesigner}
         onToggle={() => {
@@ -102,7 +90,7 @@ export const WorkoutDesigner = () => {
         title="Diseñar Entrenamiento"
         subtitle="Gimnasio, natación o running"
         gradient="from-primary to-primary/70"
-        delay={0.3}
+        delay={0.2}
       >
         <div className="p-4 space-y-3">
           {workoutTypes.map((type) => {
@@ -217,72 +205,36 @@ export const WorkoutDesigner = () => {
           })}
         </div>
       </CollapsibleSection>
+
+      {/* 2. Ejercicios (Catálogo) */}
+      <CollapsibleSection
+        isOpen={showExercises}
+        onToggle={() => setShowExercises(!showExercises)}
+        icon={Dumbbell}
+        title="Ejercicios"
+        subtitle="Explora ejercicios por grupo muscular"
+        gradient="from-orange-500 to-amber-400"
+        delay={0.3}
+      >
+        <div className="bg-card border-b border-border p-4">
+          <ExerciseCatalog />
+        </div>
+      </CollapsibleSection>
+
+      {/* 3. Teoría & Fundamentación */}
+      <CollapsibleSection
+        isOpen={showTheory}
+        onToggle={() => setShowTheory(!showTheory)}
+        icon={BookOpen}
+        title="Teoría & Fundamentación"
+        subtitle="Aprende sobre técnica, nutrición y entrenamiento"
+        gradient="from-blue-500 to-cyan-400"
+        delay={0.4}
+      >
+        <div className="bg-card border-b border-border p-4">
+          <EducationalSection />
+        </div>
+      </CollapsibleSection>
     </motion.div>
   );
 };
-
-// Reusable collapsible section component
-interface CollapsibleSectionProps {
-  isOpen: boolean;
-  onToggle: () => void;
-  icon: React.ElementType;
-  title: string;
-  subtitle: string;
-  gradient: string;
-  delay: number;
-  children: React.ReactNode;
-}
-
-const CollapsibleSection = ({
-  isOpen, onToggle, icon: Icon, title, subtitle, gradient, delay, children
-}: CollapsibleSectionProps) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay }}
-    className="rounded-xl border border-border overflow-hidden"
-  >
-    <motion.button
-      onClick={onToggle}
-      className={cn(
-        "w-full p-4 flex items-center justify-between transition-all duration-300",
-        isOpen
-          ? `bg-gradient-to-r ${gradient} text-white`
-          : "bg-card hover:border-primary/50"
-      )}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
-    >
-      <div className="flex items-center gap-3">
-        <div className={cn("p-2 rounded-lg", isOpen ? "bg-white/20" : "bg-primary/10")}>
-          <Icon className={cn("w-5 h-5", isOpen ? "text-white" : "text-primary")} />
-        </div>
-        <div className="text-left">
-          <h3 className={cn("font-semibold", isOpen ? "text-white" : "text-foreground")}>
-            {title}
-          </h3>
-          <p className={cn("text-xs", isOpen ? "text-white/80" : "text-muted-foreground")}>
-            {subtitle}
-          </p>
-        </div>
-      </div>
-      <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
-        <ChevronDown className={cn("w-5 h-5", isOpen ? "text-white" : "text-muted-foreground")} />
-      </motion.div>
-    </motion.button>
-
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="overflow-hidden"
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </motion.div>
-);
