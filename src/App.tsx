@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SplashScreen } from "@/components/SplashScreen";
 import { SupplementNotificationToast } from "@/components/nutrition/SupplementNotificationToast";
+import { ThemeInitializer } from "@/components/ThemeInitializer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -80,6 +81,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <ThemeInitializer />
         <Toaster />
         <Sonner />
         <SupplementNotificationToast />

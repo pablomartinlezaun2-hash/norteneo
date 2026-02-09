@@ -135,7 +135,7 @@ export const ProfileSection = () => {
 
       {/* Theme */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="gradient-card rounded-2xl p-4 border border-border">
-        <ThemeSelector currentTheme={preferences.theme} onThemeChange={(theme) => savePreferences({ theme })} />
+        <ThemeSelector />
       </motion.div>
 
       {/* Data Export */}
