@@ -186,16 +186,17 @@ export const NeoAnatomySection = ({ setLogs, exercises }: NeoAnatomySectionProps
       </div>
 
       {/* 3D Model Canvas */}
-      <div className="relative w-full h-[420px] rounded-2xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/50 border border-border">
+      <div className="relative w-full h-[500px] rounded-2xl overflow-hidden bg-gradient-to-b from-[#1a1a2e] to-[#16213e] border border-border">
         <Canvas
-          camera={{ position: [0, 0.3, 2.2], fov: 45 }}
+          camera={{ position: [0, 0.3, 2.0], fov: 45 }}
           shadows
           dpr={[1, 2]}
         >
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[5, 5, 5]} intensity={1} castShadow />
-          <directionalLight position={[-3, 3, -3]} intensity={0.4} />
-          <pointLight position={[0, 2, 2]} intensity={0.3} />
+          <ambientLight intensity={0.4} color="#ffe4d6" />
+          <directionalLight position={[3, 4, 5]} intensity={1.2} castShadow color="#ffffff" />
+          <directionalLight position={[-3, 3, -3]} intensity={0.5} color="#ffd4c4" />
+          <pointLight position={[0, 2, 2]} intensity={0.4} color="#ffe0d0" />
+          <pointLight position={[0, -1, 1]} intensity={0.15} color="#ff9999" />
           
           <RealisticHumanModel
             selectedMuscle={selectedMuscle}
@@ -207,7 +208,7 @@ export const NeoAnatomySection = ({ setLogs, exercises }: NeoAnatomySectionProps
           
           <OrbitControls
             enablePan={false}
-            minDistance={1.2}
+            minDistance={1.0}
             maxDistance={4}
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI / 1.2}
