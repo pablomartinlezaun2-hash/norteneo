@@ -198,9 +198,9 @@ const Index = () => {
           </motion.div>;
     }
   };
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
-      <motion.header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm" initial={{
+      <motion.header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm overflow-visible" initial={{
       opacity: 0,
       y: -20
     }} animate={{
@@ -258,7 +258,7 @@ const Index = () => {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.85, y: -8 }}
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute top-12 left-1/2 -translate-x-1/2 z-[60] w-64 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 z-[60] w-64 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
                   >
                     {/* Glow bar */}
                     <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
