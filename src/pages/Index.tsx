@@ -211,6 +211,7 @@ const Index = () => {
       ease: [0.25, 0.46, 0.45, 0.94]
     }}>
         <div className="flex items-center justify-between">
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <motion.div className="bg-foreground rounded-xl px-3 py-2 shadow-lg" whileHover={{
             scale: 1.05
@@ -226,113 +227,115 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Timer Dropdown */}
-          <div className="relative flex items-center gap-2">
-            <motion.button
-              onClick={() => setTimerOpen(prev => !prev)}
-              className={cn(
-                "relative w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300",
-                isRunning
-                  ? "bg-primary/20 shadow-[0_0_12px_hsl(var(--primary)/0.4)]"
-                  : "bg-muted/60 hover:bg-muted"
-              )}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <TimerIcon className={cn("w-4.5 h-4.5", isRunning ? "text-primary" : "text-muted-foreground")} />
-              {isRunning && (
-                <motion.span
-                  className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary"
-                  animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-              )}
-            </motion.button>
+          {/* Timer in center */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <div className="relative flex items-center justify-center">
+              <motion.button
+                onClick={() => setTimerOpen(prev => !prev)}
+                className={cn(
+                  "relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                  isRunning
+                    ? "bg-primary/20 shadow-[0_0_12px_hsl(var(--primary)/0.4)]"
+                    : "bg-muted/60 hover:bg-muted"
+                )}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <TimerIcon className={cn("w-5 h-5", isRunning ? "text-primary" : "text-muted-foreground")} />
+                {isRunning && (
+                  <motion.span
+                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary"
+                    animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                )}
+              </motion.button>
 
-            <AnimatePresence>
-              {timerOpen && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.85, y: -8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.85, y: -8 }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute top-12 right-0 z-[60] w-56 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
-                >
-                  {/* Glow bar */}
-                  <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
-                  
-                  <div className="p-3 space-y-3">
-                    {/* Time display */}
-                    <div className="text-center">
-                      <motion.span
-                        key={formattedTime}
-                        initial={{ opacity: 0.6, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={cn(
-                          "text-3xl font-bold tabular-nums tracking-tight",
-                          isRunning ? "text-primary" : "text-foreground"
+              <AnimatePresence>
+                {timerOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85, y: -8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, y: -8 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-12 left-1/2 -translate-x-1/2 z-[60] w-64 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
+                  >
+                    {/* Glow bar */}
+                    <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
+                    
+                    <div className="p-4 space-y-4">
+                      {/* Time display */}
+                      <div className="text-center">
+                        <motion.span
+                          key={formattedTime}
+                          initial={{ opacity: 0.6, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className={cn(
+                            "text-4xl font-bold tabular-nums tracking-tight",
+                            isRunning ? "text-primary" : "text-foreground"
+                          )}
+                        >
+                          {formattedTime}
+                        </motion.span>
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                          {mode === 'stopwatch' ? 'Cronómetro' : 'Descanso'}
+                        </p>
+                      </div>
+
+                      {/* Controls */}
+                      <div className="flex justify-center gap-2">
+                        {!isRunning ? (
+                          <>
+                            <Button size="sm" variant="outline" onClick={startStopwatch} className="h-10 text-sm flex-1 rounded-xl">
+                              <Play className="w-4 h-4 mr-2" /> Iniciar
+                            </Button>
+                            <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="h-10 w-10 rounded-xl gradient-primary text-primary-foreground p-0">
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={pause} className="h-10 text-sm flex-1 rounded-xl">
+                            <Pause className="w-4 h-4 mr-2" /> Pausar
+                          </Button>
                         )}
-                      >
-                        {formattedTime}
-                      </motion.span>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {mode === 'stopwatch' ? 'Cronómetro' : 'Descanso'}
-                      </p>
-                    </div>
-
-                    {/* Controls */}
-                    <div className="flex justify-center gap-1.5">
-                      {!isRunning ? (
-                        <>
-                          <Button size="sm" variant="outline" onClick={startStopwatch} className="h-8 text-[11px] flex-1 rounded-xl">
-                            <Play className="w-3.5 h-3.5 mr-1" /> Iniciar
-                          </Button>
-                          <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="h-8 w-8 rounded-xl gradient-primary text-primary-foreground p-0">
-                            <Play className="w-3.5 h-3.5" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button size="sm" variant="outline" onClick={pause} className="h-8 text-[11px] flex-1 rounded-xl">
-                          <Pause className="w-3.5 h-3.5 mr-1" /> Pausar
+                        <Button size="sm" variant="ghost" onClick={reset} className="h-10 w-10 rounded-xl p-0">
+                          <RotateCcw className="w-4 h-4" />
                         </Button>
-                      )}
-                      <Button size="sm" variant="ghost" onClick={reset} className="h-8 w-8 rounded-xl p-0">
-                        <RotateCcw className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
+                      </div>
 
-                    {/* Presets */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground">Descanso rápido</span>
-                      <div className="grid grid-cols-4 gap-1">
-                        {presetTimes.map(s => (
-                          <motion.button
-                            key={s}
-                            onClick={() => startCountdown(s)}
-                            className="text-[11px] py-1.5 rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground font-medium transition-colors"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {Math.floor(s / 60)}:{(s % 60).toString().padStart(2, '0')}
-                          </motion.button>
-                        ))}
+                      {/* Presets */}
+                      <div className="space-y-2">
+                        <span className="text-[11px] text-muted-foreground">Descanso rápido</span>
+                        <div className="grid grid-cols-4 gap-2">
+                          {presetTimes.map(s => (
+                            <motion.button
+                              key={s}
+                              onClick={() => startCountdown(s)}
+                              className="text-xs py-2 rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground font-medium transition-colors"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              {Math.floor(s / 60)}:{(s % 60).toString().padStart(2, '0')}
+                            </motion.button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Profile button */}
-            <motion.button 
-              onClick={() => handleMainTabChange('profile')}
-              className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <User className="w-5 h-5 text-primary" />
-            </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
+
+          {/* Profile button */}
+          <motion.button 
+            onClick={() => handleMainTabChange('profile')}
+            className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <User className="w-5 h-5 text-primary" />
+          </motion.button>
         </div>
       </motion.header>
 
