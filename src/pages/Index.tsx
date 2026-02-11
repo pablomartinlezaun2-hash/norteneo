@@ -258,7 +258,7 @@ const Index = () => {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.85, y: -8 }}
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="fixed top-16 left-4 right-4 mx-auto max-w-[260px] z-[60] rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
+                    className="fixed top-[60px] inset-x-0 mx-auto w-64 z-[60] rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
                   >
                     {/* Glow bar */}
                     <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent" />
