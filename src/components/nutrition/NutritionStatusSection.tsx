@@ -44,7 +44,7 @@ const calcAccuracy = (consumed: number, target: number): number => {
 };
 
 const getAccuracyColor = (pct: number): string => {
-  if (pct >= 100) return 'hsl(var(--success))';
+  if (pct >= 90) return 'hsl(var(--success))';
   if (pct >= 80) return 'hsl(38 92% 50%)'; // orange
   return 'hsl(var(--destructive))';
 };
