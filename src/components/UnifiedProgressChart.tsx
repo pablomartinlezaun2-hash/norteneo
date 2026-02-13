@@ -7,6 +7,7 @@ import { es } from 'date-fns/locale';
 import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { useActivityCompletions } from '@/hooks/useActivityCompletions';
 import { useAllSetLogs } from '@/hooks/useAllSetLogs';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
@@ -39,7 +40,7 @@ interface UnifiedWorkout {
   session_id?: string;
 }
 
-type ProgressTab = 'overview' | 'neo' | 'radar' | 'load' | 'exercises' | 'monthly';
+type ProgressTab = 'overview' | 'radar' | 'load' | 'exercises';
 
 export const UnifiedProgressChart = ({ 
   completedSessions,
@@ -54,6 +55,8 @@ export const UnifiedProgressChart = ({
   const { program } = useTrainingProgram();
   const [selectedWorkout, setSelectedWorkout] = useState<UnifiedWorkout | null>(null);
   const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
+  const [neoOpen, setNeoOpen] = useState(false);
+  const [monthlyOpen, setMonthlyOpen] = useState(false);
 
   // Get all exercises from the program
   const allExercises = useMemo(() => {
@@ -299,11 +302,9 @@ export const UnifiedProgressChart = ({
 
   const PROGRESS_TABS = [
     { id: 'overview' as ProgressTab, label: 'Resumen', icon: TrendingUp },
-    { id: 'neo' as ProgressTab, label: 'Neo', icon: User },
     { id: 'radar' as ProgressTab, label: 'Mapa', icon: Target },
     { id: 'load' as ProgressTab, label: 'Carga', icon: Dumbbell },
     { id: 'exercises' as ProgressTab, label: 'Ejercicios', icon: Activity },
-    { id: 'monthly' as ProgressTab, label: 'Mensual', icon: Calendar },
   ];
 
   return (
@@ -357,10 +358,6 @@ export const UnifiedProgressChart = ({
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'neo' && (
-        <NeoAnatomySection setLogs={allSetLogs} exercises={allExercises} />
-      )}
-
       {activeTab === 'radar' && (
         <MuscleRadarChart setLogs={allSetLogs} exercises={allExercises} />
       )}
@@ -373,14 +370,37 @@ export const UnifiedProgressChart = ({
         <KeyExercisesSection setLogs={allSetLogs} exercises={allExercises} />
       )}
 
-      {activeTab === 'monthly' && (
-        <MonthlyResumeChart setLogs={allSetLogs} completedSessions={completedSessions} />
-      )}
-
       {activeTab === 'overview' && (
         <>
-          {/* Neo Anatomy Model */}
-          <NeoAnatomySection setLogs={allSetLogs} exercises={allExercises} />
+          {/* Neo Collapsible */}
+          <CollapsibleSection
+            isOpen={neoOpen}
+            onToggle={() => setNeoOpen(!neoOpen)}
+            icon={User}
+            title="Neo"
+            subtitle="Modelo anatómico 3D interactivo"
+            gradient="from-indigo-600 to-purple-600"
+            delay={0.1}
+          >
+            <div className="p-4">
+              <NeoAnatomySection setLogs={allSetLogs} exercises={allExercises} />
+            </div>
+          </CollapsibleSection>
+
+          {/* Monthly Collapsible */}
+          <CollapsibleSection
+            isOpen={monthlyOpen}
+            onToggle={() => setMonthlyOpen(!monthlyOpen)}
+            icon={Calendar}
+            title="Mensual"
+            subtitle="Resumen de volumen y entrenos por mes"
+            gradient="from-emerald-600 to-teal-600"
+            delay={0.15}
+          >
+            <div className="p-4">
+              <MonthlyResumeChart setLogs={allSetLogs} completedSessions={completedSessions} />
+            </div>
+          </CollapsibleSection>
 
           {/* Stats Cards - All activities */}
       <div className="grid grid-cols-4 gap-2">
@@ -681,8 +701,6 @@ export const UnifiedProgressChart = ({
           )}
         </div>
       </motion.div>
-          {/* Monthly Resume */}
-          <MonthlyResumeChart setLogs={allSetLogs} completedSessions={completedSessions} />
         </>
       )}
 
