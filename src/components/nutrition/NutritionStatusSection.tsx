@@ -59,9 +59,10 @@ interface NutritionStatusSectionProps {
   goals: NutritionGoals | null;
   onNavigateToGoals: () => void;
   onNavigateToDay: (date: Date) => void;
+  refreshTrigger?: number;
 }
 
-export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToDay }: NutritionStatusSectionProps) => {
+export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToDay, refreshTrigger = 0 }: NutritionStatusSectionProps) => {
   const { user } = useAuth();
   const [dayLogs, setDayLogs] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +114,7 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
       setLoading(false);
     };
     fetchHistory();
-  }, [user, daysToShow]);
+  }, [user, daysToShow, refreshTrigger]);
 
   const dayStatuses: DayStatus[] = useMemo(() => {
     const result: DayStatus[] = [];

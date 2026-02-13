@@ -109,6 +109,7 @@ export const NutritionSection = () => {
                     setSelectedDate(date);
                     setStatusOpen(false);
                   }}
+                  refreshTrigger={foodLogs.length}
                 />
               </CollapsibleSection>
 
