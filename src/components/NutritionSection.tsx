@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles } from 'lucide-react';
+import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNutritionData } from '@/hooks/useNutritionData';
 import { FoodLogSection } from './nutrition/FoodLogSection';
@@ -8,12 +8,15 @@ import { NutritionGoalsSection } from './nutrition/NutritionGoalsSection';
 import { SupplementsSection } from './nutrition/SupplementsSection';
 import { RecipesSection } from './nutrition/RecipesSection';
 import { NutritionAssistantPro } from './nutrition/NutritionAssistantPro';
+import { NutritionStatusSection } from './nutrition/NutritionStatusSection';
+import { CollapsibleSection } from './CollapsibleSection';
 
 type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer';
 
 export const NutritionSection = () => {
   const [activeTab, setActiveTab] = useState<NutritionTab>('log');
   const [showDesigner, setShowDesigner] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   
   const {
     loading,
@@ -88,16 +91,38 @@ export const NutritionSection = () => {
           transition={{ duration: 0.2 }}
         >
           {activeTab === 'log' && (
-            <FoodLogSection
-              foodLogs={foodLogs}
-              foodCatalog={foodCatalog}
-              goals={goals}
-              dailyTotals={dailyTotals}
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
-              onAddFood={addFoodLog}
-              onDeleteLog={deleteFoodLog}
-            />
+            <div className="space-y-4">
+              {/* Estado nutricional collapsible */}
+              <CollapsibleSection
+                isOpen={statusOpen}
+                onToggle={() => setStatusOpen(!statusOpen)}
+                icon={BarChart3}
+                title="Estado nutricional"
+                subtitle="Resumen diario y precisión de macros / calorías"
+                gradient="from-emerald-600 to-teal-600"
+                delay={0.05}
+              >
+                <NutritionStatusSection
+                  goals={goals}
+                  onNavigateToGoals={() => setActiveTab('goals')}
+                  onNavigateToDay={(date) => {
+                    setSelectedDate(date);
+                    setStatusOpen(false);
+                  }}
+                />
+              </CollapsibleSection>
+
+              <FoodLogSection
+                foodLogs={foodLogs}
+                foodCatalog={foodCatalog}
+                goals={goals}
+                dailyTotals={dailyTotals}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+                onAddFood={addFoodLog}
+                onDeleteLog={deleteFoodLog}
+              />
+            </div>
           )}
 
           {activeTab === 'goals' && (
