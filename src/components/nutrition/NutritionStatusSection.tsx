@@ -9,7 +9,7 @@ import { NutritionGoals } from '@/hooks/useNutritionData';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { NutritionMascot3D } from './NutritionMascot3D';
+import { NutritionMascot2D } from './NutritionMascot2D';
 
 interface DayData {
   date: string;
@@ -297,7 +297,7 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
                 ))}
               </div>
             </div>
-            <NutritionMascot3D progress={pct} className="w-28" />
+            <NutritionMascot2D progress={pct} className="w-28" />
           </div>
 
           {/* Supplements tracker */}
