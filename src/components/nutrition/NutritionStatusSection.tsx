@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Settings, Flame, Trophy, Target, Zap, Star, Minus } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Settings, Flame, Trophy, Target, Zap, Star, Minus, Pill, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { NutritionGoals } from '@/hooks/useNutritionData';
@@ -16,6 +16,13 @@ interface DayData {
   protein: number;
   carbs: number;
   fat: number;
+}
+
+interface SupplementStatus {
+  id: string;
+  name: string;
+  dosage: string | null;
+  taken: boolean;
 }
 
 interface DayStatus {
@@ -92,6 +99,8 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
   const [showHistory, setShowHistory] = useState(false);
   const [historyDays, setHistoryDays] = useState(7);
   const [page, setPage] = useState(0);
+  const [showSupplements, setShowSupplements] = useState(false);
+  const [supplementStatuses, setSupplementStatuses] = useState<SupplementStatus[]>([]);
 
   const DAYS_PER_PAGE = 7;
   const defaultGoals = { daily_calories: 2000, daily_protein: 150, daily_carbs: 250, daily_fat: 70 };
@@ -127,6 +136,22 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
   }, [user, showHistory, historyDays, refreshTrigger]);
 
   const today = format(new Date(), 'yyyy-MM-dd');
+
+  // Fetch supplements and their logs for today
+  useEffect(() => {
+    if (!user) return;
+    const fetchSupplements = async () => {
+      const [{ data: supps }, { data: logs }] = await Promise.all([
+        supabase.from('user_supplements').select('id, name, dosage').eq('user_id', user.id).eq('is_active', true),
+        supabase.from('supplement_logs').select('supplement_id').eq('user_id', user.id).eq('logged_date', today)
+      ]);
+      const takenIds = new Set((logs || []).map((l: any) => l.supplement_id));
+      setSupplementStatuses((supps || []).map((s: any) => ({
+        id: s.id, name: s.name, dosage: s.dosage, taken: takenIds.has(s.id)
+      })));
+    };
+    fetchSupplements();
+  }, [user, today, refreshTrigger]);
   const todayStatus = useMemo(() => buildDayStatus(today, dayLogs, g), [dayLogs, g]);
 
   const historyStatuses = useMemo(() => {
@@ -237,6 +262,74 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
               </div>
             ))}
           </div>
+
+          {/* Supplements tracker */}
+          {supplementStatuses.length > 0 && (
+            <div className="space-y-2">
+              <button
+                onClick={() => setShowSupplements(!showSupplements)}
+                className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full"
+              >
+                <Pill className="w-3.5 h-3.5" />
+                <span>Suplementación</span>
+                <span className="ml-auto text-[11px] font-semibold text-foreground">
+                  {supplementStatuses.filter(s => s.taken).length}/{supplementStatuses.length}
+                </span>
+                <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showSupplements && "rotate-180")} />
+              </button>
+              <AnimatePresence>
+                {showSupplements && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-1.5 pt-1">
+                      {supplementStatuses.map((s, i) => (
+                        <motion.div
+                          key={s.id}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className={cn(
+                            "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all",
+                            s.taken
+                              ? "bg-success/10 border-success/30"
+                              : "bg-muted/50 border-transparent"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                            s.taken
+                              ? "bg-success border-success"
+                              : "border-muted-foreground/30"
+                          )}>
+                            {s.taken && <Check className="w-3 h-3 text-success-foreground" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-xs font-medium", s.taken ? "text-success" : "text-foreground")}>
+                              {s.name}
+                            </p>
+                            {s.dosage && (
+                              <p className="text-[10px] text-muted-foreground">{s.dosage}</p>
+                            )}
+                          </div>
+                          <span className={cn(
+                            "text-[11px] font-bold tabular-nums",
+                            s.taken ? "text-success" : "text-muted-foreground"
+                          )}>
+                            {s.taken ? '1' : '0'} / 1
+                          </span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
       )}
 
