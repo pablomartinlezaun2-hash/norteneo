@@ -379,9 +379,10 @@ export const UnifiedProgressChart = ({
 
       {activeTab === 'overview' && (
         <>
-          {/* Stats Cards - All activities */}
+          {/* Neo Anatomy Model */}
+          <NeoAnatomySection setLogs={allSetLogs} exercises={allExercises} />
 
-      {/* Stats Cards - All activities */}
+          {/* Stats Cards - All activities */}
       <div className="grid grid-cols-4 gap-2">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -680,6 +681,8 @@ export const UnifiedProgressChart = ({
           )}
         </div>
       </motion.div>
+          {/* Monthly Resume */}
+          <MonthlyResumeChart setLogs={allSetLogs} completedSessions={completedSessions} />
         </>
       )}
 
