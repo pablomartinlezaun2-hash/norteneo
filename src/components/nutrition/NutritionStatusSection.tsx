@@ -9,6 +9,7 @@ import { NutritionGoals } from '@/hooks/useNutritionData';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { NutritionMascot3D } from './NutritionMascot3D';
 
 interface DayData {
   date: string;
@@ -278,20 +279,25 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
             </div>
           </div>
 
-          {/* Macro mini-bars */}
-          <div className="grid grid-cols-4 gap-2">
-            {macros.map(m => (
-              <div key={m.label} className="text-center space-y-1">
-                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                  <motion.div className="h-full rounded-full" style={{ backgroundColor: getAccuracyColor(m.acc) }}
-                    initial={{ width: 0 }} animate={{ width: `${Math.min(m.acc, 100)}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground">{m.label}</p>
-                <p className="text-[10px] font-medium text-foreground">{m.consumed}{m.unit}</p>
+          {/* 3D Mascot + Macro mini-bars */}
+          <div className="grid grid-cols-[1fr_auto] gap-3 items-start">
+            <div className="space-y-2">
+              <div className="grid grid-cols-4 gap-2">
+                {macros.map(m => (
+                  <div key={m.label} className="text-center space-y-1">
+                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                      <motion.div className="h-full rounded-full" style={{ backgroundColor: getAccuracyColor(m.acc) }}
+                        initial={{ width: 0 }} animate={{ width: `${Math.min(m.acc, 100)}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">{m.label}</p>
+                    <p className="text-[10px] font-medium text-foreground">{m.consumed}{m.unit}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <NutritionMascot3D progress={pct} className="w-28" />
           </div>
 
           {/* Supplements tracker */}
