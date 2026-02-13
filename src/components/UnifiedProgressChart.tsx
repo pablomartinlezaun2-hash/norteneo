@@ -15,7 +15,7 @@ import { MuscleRadarChart } from './performance/MuscleRadarChart';
 import { MuscleLoadChart } from './performance/MuscleLoadChart';
 import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
 import { KeyExercisesSection } from './performance/KeyExercisesSection';
-import { NeoAnatomySection } from './neo';
+import { Neo2DAnatomyModel } from './neo';
 
 interface ActivityCompletion {
   id: string;
@@ -378,12 +378,12 @@ export const UnifiedProgressChart = ({
             onToggle={() => setNeoOpen(!neoOpen)}
             icon={User}
             title="Neo"
-            subtitle="Modelo anatómico 3D interactivo"
+            subtitle="Modelo anatómico 2D interactivo"
             gradient="from-indigo-600 to-purple-600"
             delay={0.1}
           >
             <div className="p-4">
-              <NeoAnatomySection setLogs={allSetLogs} exercises={allExercises} />
+              <Neo2DAnatomyModel setLogs={allSetLogs} exercises={allExercises} />
             </div>
           </CollapsibleSection>
 
