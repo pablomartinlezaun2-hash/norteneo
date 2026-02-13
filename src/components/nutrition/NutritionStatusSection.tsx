@@ -136,6 +136,7 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
   }, [user, showHistory, historyDays, refreshTrigger]);
 
   const today = format(new Date(), 'yyyy-MM-dd');
+  const [suppRefresh, setSuppRefresh] = useState(0);
 
   // Fetch supplements and their logs for today
   useEffect(() => {
@@ -143,15 +144,45 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
     const fetchSupplements = async () => {
       const [{ data: supps }, { data: logs }] = await Promise.all([
         supabase.from('user_supplements').select('id, name, dosage').eq('user_id', user.id).eq('is_active', true),
-        supabase.from('supplement_logs').select('supplement_id').eq('user_id', user.id).eq('logged_date', today)
+        supabase.from('supplement_logs').select('id, supplement_id').eq('user_id', user.id).eq('logged_date', today)
       ]);
-      const takenIds = new Set((logs || []).map((l: any) => l.supplement_id));
+      const logMap = new Map((logs || []).map((l: any) => [l.supplement_id, l.id]));
       setSupplementStatuses((supps || []).map((s: any) => ({
-        id: s.id, name: s.name, dosage: s.dosage, taken: takenIds.has(s.id)
+        id: s.id, name: s.name, dosage: s.dosage, taken: logMap.has(s.id)
       })));
     };
     fetchSupplements();
-  }, [user, today, refreshTrigger]);
+  }, [user, today, refreshTrigger, suppRefresh]);
+
+  const handleToggleSupplement = async (supplementId: string) => {
+    if (!user) return;
+    const current = supplementStatuses.find(s => s.id === supplementId);
+    if (!current) return;
+
+    // Optimistic update
+    setSupplementStatuses(prev => prev.map(s => s.id === supplementId ? { ...s, taken: !s.taken } : s));
+
+    if (current.taken) {
+      // Find and delete the log
+      const { data: logs } = await supabase
+        .from('supplement_logs')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('supplement_id', supplementId)
+        .eq('logged_date', today)
+        .limit(1);
+      if (logs && logs.length > 0) {
+        await supabase.from('supplement_logs').delete().eq('id', logs[0].id);
+      }
+    } else {
+      await supabase.from('supplement_logs').insert({
+        user_id: user.id,
+        supplement_id: supplementId,
+        logged_date: today
+      });
+    }
+    setSuppRefresh(r => r + 1);
+  };
   const todayStatus = useMemo(() => buildDayStatus(today, dayLogs, g), [dayLogs, g]);
 
   const historyStatuses = useMemo(() => {
@@ -288,16 +319,17 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
                   >
                     <div className="space-y-1.5 pt-1">
                       {supplementStatuses.map((s, i) => (
-                        <motion.div
+                        <motion.button
                           key={s.id}
+                          onClick={() => handleToggleSupplement(s.id)}
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.05 }}
                           className={cn(
-                            "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all",
+                            "flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all w-full text-left",
                             s.taken
                               ? "bg-success/10 border-success/30"
-                              : "bg-muted/50 border-transparent"
+                              : "bg-muted/50 border-transparent hover:border-muted-foreground/20"
                           )}
                         >
                           <div className={cn(
@@ -322,7 +354,7 @@ export const NutritionStatusSection = ({ goals, onNavigateToGoals, onNavigateToD
                           )}>
                             {s.taken ? '1' : '0'} / 1
                           </span>
-                        </motion.div>
+                        </motion.button>
                       ))}
                     </div>
                   </motion.div>
