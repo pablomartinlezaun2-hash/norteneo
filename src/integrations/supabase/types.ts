@@ -41,6 +41,92 @@ export type Database = {
         }
         Relationships: []
       }
+      cardio_session_intervals: {
+        Row: {
+          created_at: string
+          distance_m: number
+          duration_seconds: number | null
+          id: string
+          interval_order: number
+          notes: string | null
+          pace_seconds_per_unit: number | null
+          pace_unit_m: number
+          rest_seconds: number | null
+          session_log_id: string
+        }
+        Insert: {
+          created_at?: string
+          distance_m: number
+          duration_seconds?: number | null
+          id?: string
+          interval_order?: number
+          notes?: string | null
+          pace_seconds_per_unit?: number | null
+          pace_unit_m?: number
+          rest_seconds?: number | null
+          session_log_id: string
+        }
+        Update: {
+          created_at?: string
+          distance_m?: number
+          duration_seconds?: number | null
+          id?: string
+          interval_order?: number
+          notes?: string | null
+          pace_seconds_per_unit?: number | null
+          pace_unit_m?: number
+          rest_seconds?: number | null
+          session_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cardio_session_intervals_session_log_id_fkey"
+            columns: ["session_log_id"]
+            isOneToOne: false
+            referencedRelation: "cardio_session_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cardio_session_logs: {
+        Row: {
+          activity_type: string
+          avg_pace_seconds_per_unit: number | null
+          completed_at: string
+          created_at: string
+          id: string
+          notes: string | null
+          session_name: string | null
+          total_distance_m: number
+          total_duration_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          avg_pace_seconds_per_unit?: number | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          session_name?: string | null
+          total_distance_m?: number
+          total_duration_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          avg_pace_seconds_per_unit?: number | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          session_name?: string | null
+          total_distance_m?: number
+          total_duration_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       completed_sessions: {
         Row: {
           completed_at: string
