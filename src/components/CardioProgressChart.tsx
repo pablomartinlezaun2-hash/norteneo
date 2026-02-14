@@ -1,26 +1,24 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Area, AreaChart, ComposedChart } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Area, AreaChart } from 'recharts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { TrendingUp, Route, Gauge, Timer, Waves, Footprints } from 'lucide-react';
 import { CardioSessionLog } from '@/hooks/useCardioLogs';
+import { PaceUnitSelector } from './cardio/PaceUnitSelector';
+import { formatPace, convertPace, DEFAULT_PACE_UNIT, formatUnitLabel } from './cardio/paceUtils';
 
 interface CardioProgressChartProps {
   sessions: CardioSessionLog[];
   activityType: 'running' | 'swimming';
 }
 
-const formatPace = (seconds: number): string => {
-  const min = Math.floor(seconds / 60);
-  const sec = Math.round(seconds % 60);
-  return `${min}:${sec.toString().padStart(2, '0')}`;
-};
-
 export const CardioProgressChart = ({ sessions, activityType }: CardioProgressChartProps) => {
   const isRunning = activityType === 'running';
   const accentColor = isRunning ? 'hsl(142, 71%, 45%)' : 'hsl(199, 89%, 48%)';
   const Icon = isRunning ? Footprints : Waves;
+  const defaultUnit = DEFAULT_PACE_UNIT[activityType];
+  const [paceUnit, setPaceUnit] = useState(defaultUnit);
 
   const totalDistance = useMemo(() => {
     return sessions.reduce((sum, s) => sum + Number(s.total_distance_m), 0);
@@ -29,24 +27,26 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
   const avgPace = useMemo(() => {
     const withPace = sessions.filter(s => s.avg_pace_seconds_per_unit);
     if (withPace.length === 0) return null;
-    return withPace.reduce((sum, s) => sum + Number(s.avg_pace_seconds_per_unit!), 0) / withPace.length;
-  }, [sessions]);
+    const raw = withPace.reduce((sum, s) => sum + Number(s.avg_pace_seconds_per_unit!), 0) / withPace.length;
+    return convertPace(raw, defaultUnit, paceUnit);
+  }, [sessions, paceUnit, defaultUnit]);
 
   const bestPace = useMemo(() => {
     const withPace = sessions.filter(s => s.avg_pace_seconds_per_unit);
     if (withPace.length === 0) return null;
-    return Math.min(...withPace.map(s => Number(s.avg_pace_seconds_per_unit!)));
-  }, [sessions]);
+    const raw = Math.min(...withPace.map(s => Number(s.avg_pace_seconds_per_unit!)));
+    return convertPace(raw, defaultUnit, paceUnit);
+  }, [sessions, paceUnit, defaultUnit]);
 
   const chartData = useMemo(() => {
     return [...sessions].reverse().map(s => ({
       date: format(new Date(s.completed_at), 'dd/MM', { locale: es }),
       fullDate: format(new Date(s.completed_at), "d 'de' MMMM", { locale: es }),
       distance: isRunning ? Number(s.total_distance_m) / 1000 : Number(s.total_distance_m),
-      pace: s.avg_pace_seconds_per_unit ? Number(s.avg_pace_seconds_per_unit) : null,
+      pace: s.avg_pace_seconds_per_unit ? convertPace(Number(s.avg_pace_seconds_per_unit), defaultUnit, paceUnit) : null,
       name: s.session_name || '',
     }));
-  }, [sessions, isRunning]);
+  }, [sessions, isRunning, paceUnit, defaultUnit]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -65,7 +65,7 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
             <div className="flex items-center gap-2">
               <Gauge className="w-3 h-3 text-primary-foreground/60" />
               <span className="text-primary-foreground text-xs font-semibold">
-                {formatPace(d.pace)}/{isRunning ? 'km' : '100m'}
+                {formatPace(d.pace)}/{formatUnitLabel(paceUnit)}
               </span>
             </div>
           )}
@@ -94,6 +94,9 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4"
     >
+      {/* Pace unit selector */}
+      <PaceUnitSelector activityType={activityType} value={paceUnit} onChange={setPaceUnit} />
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="gradient-card rounded-2xl p-3 border border-border text-center">
@@ -108,14 +111,14 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
           <p className="text-lg font-bold text-foreground">
             {avgPace ? formatPace(avgPace) : '--'}
           </p>
-          <p className="text-[10px] text-muted-foreground">Ritmo medio</p>
+          <p className="text-[10px] text-muted-foreground">Ritmo medio/{formatUnitLabel(paceUnit)}</p>
         </div>
         <div className="gradient-card rounded-2xl p-3 border border-border text-center">
           <TrendingUp className="w-5 h-5 mx-auto mb-1" style={{ color: accentColor }} />
           <p className="text-lg font-bold text-foreground">
             {bestPace ? formatPace(bestPace) : '--'}
           </p>
-          <p className="text-[10px] text-muted-foreground">Mejor ritmo</p>
+          <p className="text-[10px] text-muted-foreground">Mejor ritmo/{formatUnitLabel(paceUnit)}</p>
         </div>
       </div>
 
@@ -149,7 +152,7 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
         <div className="gradient-card rounded-2xl p-4 border border-border">
           <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
             <Gauge className="w-3.5 h-3.5" style={{ color: accentColor }} />
-            Ritmo por sesión ({isRunning ? 'min/km' : 'min/100m'})
+            Ritmo por sesión (min/{formatUnitLabel(paceUnit)})
           </h4>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">

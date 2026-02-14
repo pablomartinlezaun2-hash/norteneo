@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Timer, Route, Gauge, Save, Loader2, X } from 'lucide-react';
+import { Plus, Trash2, Timer, Route, Gauge, Save, Loader2, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CardioInterval } from '@/hooks/useCardioLogs';
+import { calculatePace, formatPace as formatPaceUtil, formatPaceDetailed, formatUnitLabel, DEFAULT_PACE_UNIT } from './cardio/paceUtils';
 
 interface CardioLogFormProps {
   activityType: 'running' | 'swimming';
@@ -19,12 +20,6 @@ interface CardioLogFormProps {
   ) => Promise<{ error: string | null }>;
   onClose: () => void;
 }
-
-const formatPaceInput = (totalSeconds: number): string => {
-  const min = Math.floor(totalSeconds / 60);
-  const sec = totalSeconds % 60;
-  return `${min}:${sec.toString().padStart(2, '0')}`;
-};
 
 const parsePace = (pace: string): number | undefined => {
   const parts = pace.split(':');
@@ -59,6 +54,16 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
 
   const [saving, setSaving] = useState(false);
 
+  // Auto-calculated pace for continuous mode
+  const autoPaceContinuous = useMemo(() => {
+    const distM = parseFloat(distance) * (isRunning ? 1000 : 1);
+    const durSec = (parseInt(durationMin || '0') * 60) + parseInt(durationSec || '0');
+    if (distM > 0 && durSec > 0 && !pace) {
+      return calculatePace(durSec, distM, defaultPaceUnit);
+    }
+    return undefined;
+  }, [distance, durationMin, durationSec, pace, isRunning, defaultPaceUnit]);
+
   const addInterval = () => {
     setIntervals([...intervals, { distance: '', paceMin: '', paceSec: '', restSec: '', paceUnit: String(defaultPaceUnit) }]);
   };
@@ -80,13 +85,17 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
       const distM = parseFloat(distance) * (isRunning ? 1000 : 1);
       const durSec = (parseInt(durationMin || '0') * 60) + parseInt(durationSec || '0');
       const paceSeconds = parsePace(pace);
+      // Use manual pace if provided, otherwise auto-calculate
+      const finalPace = paceSeconds !== undefined
+        ? paceSeconds
+        : (distM > 0 && durSec > 0 ? calculatePace(durSec, distM, isRunning ? 1000 : 100) : undefined);
 
       const result = await onSave(
         {
           session_name: sessionName || (isRunning ? 'Carrera' : 'Natación'),
           total_distance_m: distM,
           total_duration_seconds: durSec > 0 ? durSec : undefined,
-          avg_pace_seconds_per_unit: paceSeconds,
+          avg_pace_seconds_per_unit: finalPace,
         },
         []
       );
@@ -221,8 +230,22 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
                 className="bg-background/50 w-20"
               />
               <span className="text-xs text-muted-foreground">seg</span>
-            </div>
           </div>
+          {/* Auto-calculated pace display */}
+          {autoPaceContinuous !== undefined && (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border border-border">
+              <Info className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <div className="text-[10px] text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Ritmo calculado: {formatPaceUtil(autoPaceContinuous)}/{isRunning ? 'km' : '100m'}
+                </span>
+                <span className="block">
+                  ({formatPaceDetailed(autoPaceContinuous)}) · Fórmula: (tiempo/distancia) × {formatUnitLabel(defaultPaceUnit)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
         </div>
       ) : (
         <div className="space-y-3">
