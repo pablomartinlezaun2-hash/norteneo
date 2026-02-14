@@ -80,7 +80,7 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
       const statusColor = d.status === 'improved' ? 'text-green-400' : d.status === 'worsened' ? 'text-red-400' : 'text-primary-foreground/60';
       const StatusIcon = d.status === 'improved' ? ArrowDown : d.status === 'worsened' ? ArrowUp : Minus;
       return (
-        <div className="bg-foreground/95 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 space-y-1">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 backdrop-blur-md rounded-xl p-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-slate-700/50 space-y-1">
           <p className="text-primary-foreground font-bold text-xs">{d.fullDate}</p>
           {d.name && <p className="text-primary-foreground/70 text-[10px]">{d.name}</p>}
           <div className="flex items-center gap-2">
