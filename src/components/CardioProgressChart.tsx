@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Area, AreaChart, Cell, ReferenceLine } from 'recharts';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Cell, ReferenceLine, BarChart, Bar } from 'recharts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { TrendingUp, TrendingDown, Route, Gauge, Timer, Waves, Footprints, ArrowDown, ArrowUp, Minus } from 'lucide-react';
@@ -184,87 +184,73 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
         </div>
       </div>
 
-      {/* Pace chart - reversed Y axis: lower = better */}
-      {chartData.some(d => d.pace) && (
-        <div className="gradient-card rounded-2xl p-4 border border-border">
-          <h4 className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
-            <Gauge className="w-3.5 h-3.5" style={{ color: accentColor }} />
-            Ritmo por sesión (min/{formatUnitLabel(paceUnit)})
-          </h4>
-          <p className="text-[9px] text-muted-foreground mb-3 flex items-center gap-1">
-            <ArrowDown className="w-3 h-3 text-green-500" />
-            Más abajo = más rápido = mejor rendimiento
-          </p>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id={`pace-improved-${activityType}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.5} />
-                  </linearGradient>
-                  <linearGradient id={`pace-worsened-${activityType}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.5} />
-                  </linearGradient>
-                  <linearGradient id={`pace-neutral-${activityType}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={accentColor} stopOpacity={0.9} />
-                    <stop offset="100%" stopColor={accentColor} stopOpacity={0.5} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
-                <YAxis
-                  tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
-                  tickLine={false}
-                  axisLine={false}
-                  reversed
-                  tickFormatter={(v) => formatPace(v)}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                {avgPace && (
-                  <ReferenceLine
-                    y={avgPace}
-                    stroke="hsl(var(--muted-foreground))"
-                    strokeDasharray="4 4"
-                    strokeWidth={1}
-                    label={{ value: `Media ${formatPace(avgPace)}`, fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                )}
-                <Bar dataKey="pace" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={
-                        entry.status === 'improved'
-                          ? `url(#pace-improved-${activityType})`
-                          : entry.status === 'worsened'
-                          ? `url(#pace-worsened-${activityType})`
-                          : `url(#pace-neutral-${activityType})`
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          {/* Legend */}
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-              <div className="w-2.5 h-2.5 rounded-sm bg-green-500" />
-              Mejora
-            </div>
-            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-              <div className="w-2.5 h-2.5 rounded-sm bg-red-500" />
-              Empeora
-            </div>
-            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: accentColor }} />
-              Primera / Similar
-            </div>
-          </div>
-        </div>
-      )}
+       {/* Pace chart - reversed Y axis: lower = better */}
+       {chartData.some(d => d.pace) && (
+         <div className="gradient-card rounded-2xl p-4 border border-border">
+           <h4 className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+             <Gauge className="w-3.5 h-3.5" style={{ color: accentColor }} />
+             Ritmo por sesión (min/{formatUnitLabel(paceUnit)})
+           </h4>
+           <p className="text-[9px] text-muted-foreground mb-3 flex items-center gap-1">
+              <ArrowDown className="w-3 h-3 text-green-500" />
+              Más abajo = más rápido = mejor rendimiento
+           </p>
+           <div className="h-48">
+             <ResponsiveContainer width="100%" height="100%">
+               <LineChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
+                 <defs>
+                   <linearGradient id={`pace-gradient-${activityType}`} x1="0" y1="0" x2="0" y2="1">
+                     <stop offset="0%" stopColor={accentColor} stopOpacity={0.9} />
+                     <stop offset="100%" stopColor={accentColor} stopOpacity={0.3} />
+                   </linearGradient>
+                 </defs>
+                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
+                 <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                 <YAxis
+                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                   tickLine={false}
+                   axisLine={false}
+                   reversed
+                   tickFormatter={(v) => formatPace(v)}
+                 />
+                 <Tooltip content={<CustomTooltip />} />
+                 {avgPace && (
+                   <ReferenceLine
+                     y={avgPace}
+                     stroke="hsl(var(--muted-foreground))"
+                     strokeDasharray="4 4"
+                     strokeWidth={1}
+                     label={{ value: `Media ${formatPace(avgPace)}`, fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                   />
+                 )}
+                 <Line
+                   type="monotone"
+                   dataKey="pace"
+                   stroke={accentColor}
+                   strokeWidth={2}
+                   dot={{ fill: accentColor, r: 4 }}
+                   activeDot={{ r: 6 }}
+                 />
+               </LineChart>
+             </ResponsiveContainer>
+           </div>
+           {/* Legend */}
+           <div className="flex items-center justify-center gap-4 mt-2">
+             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+               <div className="w-2.5 h-2.5 rounded-sm bg-green-500" />
+               Mejora
+             </div>
+             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+               <div className="w-2.5 h-2.5 rounded-sm bg-red-500" />
+               Empeora
+             </div>
+             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+               <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: accentColor }} />
+               Primera / Similar
+             </div>
+           </div>
+         </div>
+       )}
     </motion.div>
   );
 };
