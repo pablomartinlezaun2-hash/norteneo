@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Waves, Clock, Flame, Target, CheckCircle2, Loader2, BarChart3, Plus, Gauge } from 'lucide-react';
+import { Waves, Clock, Flame, Target, CheckCircle2, Loader2, BarChart3, Plus, Gauge, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,6 +9,8 @@ import { useCardioLogs } from '@/hooks/useCardioLogs';
 import { ActivityProgressChart } from './ActivityProgressChart';
 import { CardioLogForm } from './CardioLogForm';
 import { CardioProgressChart } from './CardioProgressChart';
+import { SessionDetailView } from './cardio/SessionDetailView';
+import { formatPace } from './cardio/paceUtils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -21,6 +23,7 @@ export const SwimmingSection = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showLogForm, setShowLogForm] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
 
   const workouts = [
     {
@@ -79,11 +82,7 @@ export const SwimmingSection = () => {
     }
   };
 
-  const formatPace = (seconds: number) => {
-    const min = Math.floor(seconds / 60);
-    const sec = Math.round(seconds % 60);
-    return `${min}:${sec.toString().padStart(2, '0')}`;
-  };
+  const formatPaceLocal = (seconds: number) => formatPace(seconds);
 
   const itemVariants = {
     initial: { opacity: 0, y: 20 },
@@ -164,27 +163,45 @@ export const SwimmingSection = () => {
         )}
       </AnimatePresence>
 
+      {/* Session Detail View */}
+      <AnimatePresence>
+        {selectedSession && sessions.find(s => s.id === selectedSession) && (
+          <SessionDetailView
+            session={sessions.find(s => s.id === selectedSession)!}
+            activityType="swimming"
+            onClose={() => setSelectedSession(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Recent cardio logs */}
-      {sessions.length > 0 && !showStats && (
+      {sessions.length > 0 && !showStats && !selectedSession && (
         <motion.div variants={itemVariants} className="space-y-2">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Gauge className="w-3.5 h-3.5 text-cyan-500" />
             Últimos registros
           </h3>
           {sessions.slice(0, 3).map(s => (
-            <div key={s.id} className="gradient-card rounded-xl p-3 border border-border flex items-center justify-between">
+            <div
+              key={s.id}
+              className="gradient-card rounded-xl p-3 border border-border flex items-center justify-between cursor-pointer hover:border-cyan-500/30 transition-colors"
+              onClick={() => setSelectedSession(s.id)}
+            >
               <div>
                 <p className="text-sm font-medium text-foreground">{s.session_name || 'Sesión'}</p>
                 <p className="text-xs text-muted-foreground">
                   {format(new Date(s.completed_at), "d MMM", { locale: es })} · {Number(s.total_distance_m).toFixed(0)} m
-                  {s.avg_pace_seconds_per_unit ? ` · ${formatPace(Number(s.avg_pace_seconds_per_unit))}/100m` : ''}
+                  {s.avg_pace_seconds_per_unit ? ` · ${formatPaceLocal(Number(s.avg_pace_seconds_per_unit))}/100m` : ''}
                 </p>
               </div>
-              {s.intervals && s.intervals.length > 0 && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-500 font-medium">
-                  {s.intervals.length} series
-                </span>
-              )}
+              <div className="flex items-center gap-1.5">
+                {s.intervals && s.intervals.length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-500 font-medium">
+                    {s.intervals.length} series
+                  </span>
+                )}
+                <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
             </div>
           ))}
         </motion.div>
