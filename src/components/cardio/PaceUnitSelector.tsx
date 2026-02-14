@@ -37,10 +37,10 @@ export const PaceUnitSelector = ({ activityType, value, onChange }: PaceUnitSele
     <div className="flex items-center gap-2">
       <span className="text-xs text-muted-foreground whitespace-nowrap">Ritmo por:</span>
       <Select value={customMode ? 'custom' : currentLabel} onValueChange={handleSelect}>
-        <SelectTrigger className="h-8 text-xs w-32 bg-background">
-          <SelectValue placeholder="Unidad" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover border border-border z-50">
+         <SelectTrigger className="h-8 text-xs w-32 bg-slate-900 text-slate-100 border-slate-700">
+           <SelectValue placeholder="Unidad" />
+         </SelectTrigger>
+         <SelectContent className="bg-slate-900 border border-slate-700 z-50 text-slate-100">
           {presets.map(p => (
             <SelectItem key={p.value} value={String(p.value)} className="text-xs">
               {p.label}
