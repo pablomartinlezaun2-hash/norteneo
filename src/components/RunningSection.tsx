@@ -16,7 +16,7 @@ import { es } from 'date-fns/locale';
 
 export const RunningSection = () => {
   const { completions, markComplete, getCompletionCount, getTotalCompletions, getLastCompletion } = useActivityCompletions('running');
-  const { sessions, saveSession } = useCardioLogs('running');
+  const { sessions, saveSession, deleteSession, updateSession } = useCardioLogs('running');
   const [selectedWorkout, setSelectedWorkout] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -199,6 +199,8 @@ export const RunningSection = () => {
             session={sessions.find(s => s.id === selectedSession)!}
             activityType="running"
             onClose={() => setSelectedSession(null)}
+            onDelete={deleteSession}
+            onUpdate={updateSession}
           />
         )}
       </AnimatePresence>

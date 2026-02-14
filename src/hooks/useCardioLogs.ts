@@ -114,6 +114,10 @@ export const useCardioLogs = (activityType: 'running' | 'swimming') => {
     if (!user) return;
     try {
       await (supabase as any)
+        .from('cardio_session_intervals')
+        .delete()
+        .eq('session_log_id', sessionId);
+      await (supabase as any)
         .from('cardio_session_logs')
         .delete()
         .eq('id', sessionId);
@@ -123,5 +127,60 @@ export const useCardioLogs = (activityType: 'running' | 'swimming') => {
     }
   };
 
-  return { sessions, loading, saveSession, deleteSession, refetch: fetchSessions };
+  const updateSession = async (
+    sessionId: string,
+    sessionData: {
+      session_name?: string;
+      total_distance_m: number;
+      total_duration_seconds?: number;
+      avg_pace_seconds_per_unit?: number;
+      notes?: string;
+    },
+    intervals: CardioInterval[]
+  ) => {
+    if (!user) return { error: 'No autenticado' };
+    try {
+      const { error: updateError } = await (supabase as any)
+        .from('cardio_session_logs')
+        .update({
+          ...sessionData,
+        })
+        .eq('id', sessionId);
+
+      if (updateError) throw updateError;
+
+      // Delete old intervals and insert new ones
+      await (supabase as any)
+        .from('cardio_session_intervals')
+        .delete()
+        .eq('session_log_id', sessionId);
+
+      if (intervals.length > 0) {
+        const intervalsToInsert = intervals.map((iv, idx) => ({
+          session_log_id: sessionId,
+          interval_order: idx,
+          distance_m: iv.distance_m,
+          duration_seconds: iv.duration_seconds || null,
+          pace_seconds_per_unit: iv.pace_seconds_per_unit || null,
+          pace_unit_m: iv.pace_unit_m,
+          rest_seconds: iv.rest_seconds || null,
+          notes: iv.notes || null,
+        }));
+
+        const { error: ivError } = await (supabase as any)
+          .from('cardio_session_intervals')
+          .insert(intervalsToInsert);
+
+        if (ivError) throw ivError;
+      }
+
+      await fetchSessions();
+      return { error: null };
+    } catch (err) {
+      console.error('Error updating cardio session:', err);
+      return { error: err instanceof Error ? err.message : 'Error al actualizar' };
+    }
+  };
+
+  return { sessions, loading, saveSession, deleteSession, updateSession, refetch: fetchSessions };
 };
