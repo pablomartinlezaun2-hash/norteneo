@@ -8,6 +8,7 @@ import {
   Play, Lightbulb, Zap, Loader2, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ExerciseGifPreview } from './ExerciseGifPreview';
 import {
   Select,
   SelectContent,
@@ -79,6 +80,9 @@ export const ExerciseCatalog = () => {
         </Button>
 
         <div className="gradient-card rounded-xl p-6 border border-border space-y-6">
+          {/* GIF Preview */}
+          <ExerciseGifPreview exerciseName={selectedExercise.name} className="w-full rounded-xl" />
+
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
@@ -250,7 +254,8 @@ export const ExerciseCatalog = () => {
               onClick={() => setSelectedExercise(exercise)}
               className="w-full gradient-card rounded-xl p-4 border border-border text-left hover:border-primary/50 transition-all duration-200"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ExerciseGifPreview exerciseName={exercise.name} compact className="flex-shrink-0 rounded-lg" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground truncate">{exercise.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
