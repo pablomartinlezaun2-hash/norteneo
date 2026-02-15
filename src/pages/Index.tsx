@@ -351,104 +351,33 @@ const Index = () => {
       delay: 0.1
     }}>
         <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex min-w-max px-2 py-2 gap-1">
-            {/* Entrenamientos Tab (unified) */}
-            <motion.button onClick={() => handleMainTabChange('workouts')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'workouts' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
-            scale: 1.05
-          }} whileTap={{
-            scale: 0.95
-          }} initial={{
-            opacity: 0,
-            y: -10
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.3,
-            delay: 0.05
-          }}>
-              <FolderOpen className="w-3.5 h-3.5" />
-              Entrenamientos
-            </motion.button>
-
-
-            {/* Progress Tab */}
-            <motion.button onClick={() => handleMainTabChange('progress')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'progress' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
-            scale: 1.05
-          }} whileTap={{
-            scale: 0.95
-          }} initial={{
-            opacity: 0,
-            y: -10
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.3,
-            delay: 0.1
-          }}>
-              <TrendingUp className="w-3.5 h-3.5" />
-              Progreso
-            </motion.button>
-
-            
-            {/* Nutrition Tab */}
-            <motion.button onClick={() => handleMainTabChange('nutrition')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'nutrition' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
-            scale: 1.05
-          }} whileTap={{
-            scale: 0.95
-          }} initial={{
-            opacity: 0,
-            y: -10
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.3,
-            delay: 0.15
-          }}>
-              <Apple className="w-3.5 h-3.5" />
-              Nutrición
-            </motion.button>
-
-
-            {/* Design Tab */}
-            <motion.button onClick={() => handleMainTabChange('design')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'design' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
-            scale: 1.05
-          }} whileTap={{
-            scale: 0.95
-          }} initial={{
-            opacity: 0,
-            y: -10
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.3,
-            delay: 0.25
-          }}>
-              <Pencil className="w-3.5 h-3.5" />
-              Diseñar
-            </motion.button>
-
-            {/* Profile Tab */}
-            <motion.button onClick={() => handleMainTabChange('profile')} className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap", mainTab === 'profile' ? "gradient-primary text-primary-foreground glow-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")} whileHover={{
-            scale: 1.05
-          }} whileTap={{
-            scale: 0.95
-          }} initial={{
-            opacity: 0,
-            y: -10
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            duration: 0.3,
-            delay: 0.3
-          }}>
-              <User className="w-3.5 h-3.5" />
-              Perfil
-            </motion.button>
+          <div className="flex min-w-max px-3 py-2.5 gap-1.5">
+            {([
+              { key: 'workouts' as const, icon: FolderOpen, label: 'Entrenos', delay: 0.05 },
+              { key: 'progress' as const, icon: TrendingUp, label: 'Progreso', delay: 0.1 },
+              { key: 'nutrition' as const, icon: Apple, label: 'Nutrición', delay: 0.15 },
+              { key: 'design' as const, icon: Pencil, label: 'Diseñar', delay: 0.2 },
+              { key: 'profile' as const, icon: User, label: 'Perfil', delay: 0.25 },
+            ] as const).map(tab => (
+              <motion.button
+                key={tab.key}
+                onClick={() => handleMainTabChange(tab.key)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap min-h-[44px]",
+                  mainTab === tab.key
+                    ? "gradient-primary text-primary-foreground glow-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: tab.delay }}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </motion.button>
+            ))}
           </div>
         </div>
       </motion.nav>
