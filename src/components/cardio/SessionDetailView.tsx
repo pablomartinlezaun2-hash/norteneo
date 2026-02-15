@@ -207,11 +207,11 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="rounded-2xl border border-border bg-card p-4 space-y-4"
+      className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900 to-slate-800 p-4 space-y-4 shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-foreground">
+        <h3 className="text-sm font-bold text-white">
           {isEditing ? 'Editar sesión' : (session.session_name || 'Detalle de sesión')}
         </h3>
         <div className="flex items-center gap-1">
@@ -227,9 +227,9 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
                   <Trash2 className="w-3.5 h-3.5 text-destructive" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-card border-border">
+              <AlertDialogContent className="bg-slate-900 border-slate-700 text-white">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-foreground">¿Eliminar sesión?</AlertDialogTitle>
+                  <AlertDialogTitle className="text-white">¿Eliminar sesión?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Esta acción eliminará la sesión y todos sus intervalos. No se puede deshacer.
                   </AlertDialogDescription>
@@ -258,12 +258,12 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
       {isEditing ? (
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Nombre</label>
-            <Input value={editName} onChange={e => setEditName(e.target.value)} className="bg-background/50" />
+            <label className="text-xs text-slate-400 mb-1 block">Nombre</label>
+            <Input value={editName} onChange={e => setEditName(e.target.value)} className="bg-slate-800 border-slate-700 text-white" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
+              <label className="text-xs text-slate-400 mb-1 block">
                 Distancia ({isRunning ? 'km' : 'm'})
               </label>
               <Input
@@ -271,26 +271,26 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
                 step="0.01"
                 value={editDistance}
                 onChange={e => setEditDistance(e.target.value)}
-                className="bg-background/50"
+                className="bg-slate-800 border-slate-700 text-white"
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Duración</label>
+              <label className="text-xs text-slate-400 mb-1 block">Duración</label>
               <div className="flex gap-1 items-center">
                 <Input
                   type="number"
                   placeholder="Min"
                   value={editDurMin}
                   onChange={e => setEditDurMin(e.target.value)}
-                  className="bg-background/50 w-16 h-9"
+                  className="bg-slate-800 border-slate-700 text-white w-16 h-9"
                 />
-                <span className="text-xs text-muted-foreground">:</span>
+                <span className="text-xs text-slate-400">:</span>
                 <Input
                   type="number"
                   placeholder="Seg"
                   value={editDurSec}
                   onChange={e => setEditDurSec(e.target.value)}
-                  className="bg-background/50 w-16 h-9"
+                  className="bg-slate-800 border-slate-700 text-white w-16 h-9"
                 />
               </div>
             </div>
@@ -308,7 +308,7 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
               Guardar cambios
             </Button>
-            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setIsEditing(false)} className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancelar</Button>
           </div>
         </div>
       ) : (
@@ -318,44 +318,44 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
 
           {/* Session summary */}
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl bg-muted/50 p-2">
-              <p className="text-xs text-muted-foreground">Distancia</p>
-              <p className="text-sm font-bold text-foreground">
+            <div className="rounded-xl bg-slate-800/80 border border-slate-700/50 p-2">
+              <p className="text-xs text-slate-400">Distancia</p>
+              <p className="text-sm font-bold text-white">
                 {isRunning
                   ? `${(Number(session.total_distance_m) / 1000).toFixed(2)} km`
                   : `${Number(session.total_distance_m).toFixed(0)} m`}
               </p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-2">
-              <p className="text-xs text-muted-foreground">Tiempo</p>
-              <p className="text-sm font-bold text-foreground">
+            <div className="rounded-xl bg-slate-800/80 border border-slate-700/50 p-2">
+              <p className="text-xs text-slate-400">Tiempo</p>
+              <p className="text-sm font-bold text-white">
                 {session.total_duration_seconds
                   ? formatDuration(Number(session.total_duration_seconds))
                   : '--'}
               </p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-2">
-              <p className="text-xs text-muted-foreground">Ritmo</p>
-              <p className="text-sm font-bold text-foreground">
+            <div className="rounded-xl bg-slate-800/80 border border-slate-700/50 p-2">
+              <p className="text-xs text-slate-400">Ritmo</p>
+              <p className="text-sm font-bold text-white">
                 {sessionPace ? `${formatPace(sessionPace)}` : '--'}
               </p>
-              <p className="text-[9px] text-muted-foreground">/{formatUnitLabel(paceUnit)}</p>
+              <p className="text-[9px] text-slate-500">/{formatUnitLabel(paceUnit)}</p>
             </div>
           </div>
 
           {/* Notes */}
           {session.notes && (
-            <p className="text-xs text-muted-foreground italic">📝 {session.notes}</p>
+            <p className="text-xs text-slate-400 italic">📝 {session.notes}</p>
           )}
 
           {/* Intervals list */}
           {hasIntervals && (
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-foreground">Series / Intervalos</h4>
+              <h4 className="text-xs font-semibold text-white">Series / Intervalos</h4>
               {intervalData.map((iv, idx) => (
-                <div key={idx} className="rounded-xl border border-border bg-background/50 p-3">
+                <div key={idx} className="rounded-xl border border-slate-700/50 bg-slate-800/60 p-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-foreground">{iv.name}</span>
+                    <span className="text-xs font-semibold text-white">{iv.name}</span>
                     <div className="flex items-center gap-1">
                       {iv.isManual && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-600">Manual</span>
@@ -370,26 +370,26 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
                       </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
+                  <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-400">
                     <div>
                       <span className="block">Distancia</span>
-                      <span className="text-xs font-medium text-foreground">{iv.distance_m} m</span>
+                      <span className="text-xs font-medium text-white">{iv.distance_m} m</span>
                     </div>
                     <div>
                       <span className="block">Tiempo</span>
-                      <span className="text-xs font-medium text-foreground">
+                      <span className="text-xs font-medium text-white">
                         {iv.duration_s ? formatDuration(iv.duration_s) : '--'}
                       </span>
                     </div>
                     <div>
                       <span className="block">Ritmo</span>
-                      <span className="text-xs font-medium text-foreground">
+                      <span className="text-xs font-medium text-white">
                         {iv.pace !== undefined ? `${formatPace(iv.pace)}/${formatUnitLabel(paceUnit)}` : '--'}
                       </span>
                     </div>
                   </div>
                   {iv.rest !== undefined && iv.rest > 0 && (
-                    <p className="text-[9px] text-muted-foreground mt-1">Descanso: {iv.rest}s</p>
+                    <p className="text-[9px] text-slate-500 mt-1">Descanso: {iv.rest}s</p>
                   )}
 
                   <AnimatePresence>
@@ -398,11 +398,11 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="mt-2 p-2 rounded-lg bg-muted/60 border border-border"
+                        className="mt-2 p-2 rounded-lg bg-slate-700/40 border border-slate-600/50"
                       >
                         <div className="flex items-center gap-1 mb-1">
                           <Info className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-[10px] font-semibold text-foreground">Cálculo del ritmo</span>
+                          <span className="text-[10px] font-semibold text-white">Cálculo del ritmo</span>
                         </div>
                         {iv.isManual ? (
                           <p className="text-[10px] text-muted-foreground">
@@ -452,7 +452,7 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
                   </Button>
                 </div>
               </div>
-              <div className="h-44 rounded-xl border border-border bg-background/50 p-2">
+              <div className="h-44 rounded-xl border border-slate-700/50 bg-slate-800/60 p-2">
                 <ResponsiveContainer width="100%" height="100%">
                   {chartType === 'bar' ? (
                     <BarChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
