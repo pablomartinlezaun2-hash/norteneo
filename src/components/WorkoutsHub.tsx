@@ -76,13 +76,13 @@ export const WorkoutsHub = () => {
           delay: index * 0.1
         }} className="overflow-hidden rounded-2xl">
               {/* Section Header */}
-              <button onClick={() => toggleSection(section.id)} className={cn("w-full p-4 flex items-center justify-between transition-all duration-300", isExpanded ? `bg-gradient-to-r ${section.gradient} text-white rounded-t-2xl` : "bg-card border border-border hover:border-primary/50 rounded-2xl")}>
+              <button onClick={() => toggleSection(section.id)} className={cn("w-full p-4 min-h-[56px] flex items-center justify-between transition-all duration-300", isExpanded ? `bg-gradient-to-r ${section.gradient} text-white rounded-t-2xl` : "bg-card border border-border hover:border-primary/50 rounded-2xl")}>
                 <div className="flex items-center gap-3">
-                  <div className={cn("p-2.5 rounded-xl transition-colors", isExpanded ? "bg-white/20" : section.bgColor)}>
-                    <Icon className={cn("w-5 h-5", isExpanded ? "text-white" : section.textColor)} />
+                  <div className={cn("p-3 rounded-xl transition-colors", isExpanded ? "bg-white/20" : section.bgColor)}>
+                    <Icon className={cn("w-6 h-6", isExpanded ? "text-white" : section.textColor)} />
                   </div>
                   <div className="text-left">
-                    <h3 className={cn("font-semibold text-base", isExpanded ? "text-white" : "text-foreground")}>
+                    <h3 className={cn("font-semibold text-lg", isExpanded ? "text-white" : "text-foreground")}>
                       {section.label}
                     </h3>
                   </div>

@@ -99,11 +99,11 @@ export const WelcomeScreen = ({ onStartWithAssistant, onStartAlone }: WelcomeScr
           >
             <button
               onClick={() => toggleOption('assistant')}
-              className="w-full p-4 flex items-center justify-between text-left"
+              className="w-full p-4 min-h-[56px] flex items-center justify-between text-left"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-primary-foreground" />
+                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <span className="font-semibold text-foreground">
                   Empezar con el asistente de NEO
@@ -132,7 +132,7 @@ export const WelcomeScreen = ({ onStartWithAssistant, onStartAlone }: WelcomeScr
                     </p>
                     <motion.button
                       onClick={handleStartWithAssistant}
-                      className="w-full py-3 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm"
+                      className="w-full py-3.5 min-h-[44px] rounded-xl gradient-primary text-primary-foreground font-semibold text-sm"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -155,11 +155,11 @@ export const WelcomeScreen = ({ onStartWithAssistant, onStartAlone }: WelcomeScr
           >
             <button
               onClick={() => toggleOption('alone')}
-              className="w-full p-4 flex items-center justify-between text-left"
+              className="w-full p-4 min-h-[56px] flex items-center justify-between text-left"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                  <User className="w-5 h-5 text-muted-foreground" />
+                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                  <User className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <span className="font-semibold text-foreground">
                   Empezar yo mismo
@@ -188,7 +188,7 @@ export const WelcomeScreen = ({ onStartWithAssistant, onStartAlone }: WelcomeScr
                     </p>
                     <motion.button
                       onClick={onStartAlone}
-                      className="w-full py-3 rounded-lg bg-muted text-foreground font-semibold text-sm hover:bg-muted/80"
+                      className="w-full py-3.5 min-h-[44px] rounded-xl bg-muted text-foreground font-semibold text-sm hover:bg-muted/80"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
