@@ -161,9 +161,9 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
 
       {/* Distance chart */}
       <div className="gradient-card rounded-2xl p-4 border border-border">
-        <h4 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
-          <Route className="w-3.5 h-3.5" style={{ color: accentColor }} />
-          Distancia por sesión
+          <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
+           <Route className="w-4 h-4" style={{ color: accentColor }} />
+           Distancia por sesión
         </h4>
         <div className="h-40">
           <ResponsiveContainer width="100%" height="100%">
@@ -175,8 +175,8 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="distance" fill={`url(#dist-${activityType})`} radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -187,11 +187,11 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
        {/* Pace chart - reversed Y axis: lower = better */}
        {chartData.some(d => d.pace) && (
          <div className="gradient-card rounded-2xl p-4 border border-border">
-           <h4 className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
-             <Gauge className="w-3.5 h-3.5" style={{ color: accentColor }} />
-             Ritmo por sesión (min/{formatUnitLabel(paceUnit)})
-           </h4>
-           <p className="text-[9px] text-muted-foreground mb-3 flex items-center gap-1">
+            <h4 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-1.5">
+              <Gauge className="w-4 h-4" style={{ color: accentColor }} />
+              Ritmo por sesión (min/{formatUnitLabel(paceUnit)})
+            </h4>
+            <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
               <ArrowDown className="w-3 h-3 text-green-500" />
               Más abajo = más rápido = mejor rendimiento
            </p>
@@ -205,9 +205,9 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
                    </linearGradient>
                  </defs>
                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
-                 <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
-                 <YAxis
-                   tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                    tickLine={false}
                    axisLine={false}
                    reversed
@@ -235,18 +235,18 @@ export const CardioProgressChart = ({ sessions, activityType }: CardioProgressCh
              </ResponsiveContainer>
            </div>
            {/* Legend */}
-           <div className="flex items-center justify-center gap-4 mt-2">
-             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-               <div className="w-2.5 h-2.5 rounded-sm bg-green-500" />
-               Mejora
-             </div>
-             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-               <div className="w-2.5 h-2.5 rounded-sm bg-red-500" />
-               Empeora
-             </div>
-             <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-               <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: accentColor }} />
-               Primera / Similar
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="w-3 h-3 rounded-sm bg-green-500" />
+                Mejora
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="w-3 h-3 rounded-sm bg-red-500" />
+                Empeora
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: accentColor }} />
+                Primera / Similar
              </div>
            </div>
          </div>
