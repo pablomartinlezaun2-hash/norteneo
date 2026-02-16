@@ -80,6 +80,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         emailRedirectTo: redirectUrl,
       },
     });
+
+    // Send welcome email automatically after successful signup
+    if (!error) {
+      supabase.functions.invoke('send-welcome-email', {
+        body: { email },
+      }).catch((err) => {
+        console.error('Failed to send welcome email:', err);
+      });
+    }
+
     return { error: error as Error | null };
   };
 
