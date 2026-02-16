@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
-import { User, LogOut, ChevronRight, Bell, Shield, Scale, Heart, Crown, Sparkles } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, LogOut, ChevronRight, Bell, Shield, Scale, Heart, Crown, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ThemeSelector } from './ThemeSelector';
@@ -13,20 +15,45 @@ import { SubscriptionCard } from './SubscriptionCard';
 import { IntegrationsSection } from './IntegrationsSection';
 import { DataExportSection } from './DataExportSection';
 import { SupportSection } from './SupportSection';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 type ProfileView = 'main' | 'subscription' | 'language' | 'health' | 'integrations' | 'privacy';
 
 export const ProfileSection = () => {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { healthProfile, preferences, subscription, integrations, saveHealthProfile, savePreferences, setSubscriptionType, toggleIntegration, isPro } = useUserSettings();
   const [currentView, setCurrentView] = useState<ProfileView>('main');
   const [notificationsEnabled, setNotificationsEnabled] = useState(preferences.notifications);
-
+  const [deleting, setDeleting] = useState(false);
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
     savePreferences({ notifications: enabled });
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('No se pudo verificar tu sesión');
+        return;
+      }
+      const { error } = await supabase.functions.invoke('delete-account', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (error) throw error;
+      toast.success('Tu cuenta ha sido eliminada');
+      navigate('/auth');
+    } catch (err) {
+      console.error('Error deleting account:', err);
+      toast.error('Error al eliminar la cuenta. Inténtalo de nuevo.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const renderView = () => {
@@ -154,6 +181,48 @@ export const ProfileSection = () => {
           <LogOut className="w-4 h-4 mr-2" />
           {t('profile.logout')}
         </Button>
+      </motion.div>
+
+      {/* Delete Account */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className="w-full h-12 text-destructive/70 hover:text-destructive hover:bg-destructive/5 text-sm">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Eliminar mi cuenta
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-destructive flex items-center gap-2">
+                <Trash2 className="w-5 h-5" />
+                ¿Eliminar tu cuenta?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-left space-y-2">
+                <p className="font-semibold text-foreground">Esta acción es permanente e irreversible.</p>
+                <p>Se eliminarán todos tus datos para siempre, incluyendo:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Programas de entrenamiento y sesiones</li>
+                  <li>Registros de series, cardio y actividades</li>
+                  <li>Datos de nutrición y suplementos</li>
+                  <li>Perfil de salud y preferencias</li>
+                  <li>Tu cuenta de usuario</li>
+                </ul>
+                <p className="font-medium text-destructive pt-2">No podrás recuperar ningún dato después de confirmar.</p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? 'Eliminando...' : 'Sí, eliminar mi cuenta'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </motion.div>
     </div>
   );
