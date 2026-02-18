@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { supabase } from '@/integrations/supabase/client';
-import { User, LogOut, ChevronRight, Bell, Shield, Scale, Heart, Crown, Sparkles, Trash2 } from 'lucide-react';
+import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Sparkles, Trash2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ThemeSelector } from './ThemeSelector';
@@ -21,7 +21,11 @@ import { toast } from 'sonner';
 
 type ProfileView = 'main' | 'subscription' | 'language' | 'health' | 'integrations' | 'privacy';
 
-export const ProfileSection = () => {
+interface ProfileSectionProps {
+  onRestartTour?: () => void;
+}
+
+export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -174,6 +178,19 @@ export const ProfileSection = () => {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <SupportSection />
       </motion.div>
+
+      {/* Restart Neo Tour */}
+      {onRestartTour && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
+          <button
+            onClick={onRestartTour}
+            className="w-full h-12 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-primary"
+          >
+            <Play className="w-4 h-4" />
+            Iniciar presentación con Neo
+          </button>
+        </motion.div>
+      )}
 
       {/* Logout */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
