@@ -118,8 +118,14 @@ const Index = () => {
       </div>;
   }
 
+  const handleRestartTour = () => {
+    localStorage.removeItem('neo-welcome-seen');
+    setShowWelcome(true);
+    setHasSeenWelcome(false);
+  };
+
   // No program - show welcome screen for new users
-  if (!program && showWelcome) {
+  if ((!program && showWelcome) || (showWelcome)) {
     return <WelcomeScreen onStartWithAssistant={handleStartWithAssistant} onStartAlone={handleStartAlone} />;
   }
 
@@ -187,7 +193,7 @@ const Index = () => {
           duration: 0.4,
           ease: [0.25, 0.46, 0.45, 0.94]
         }}>
-            <ProfileSection />
+            <ProfileSection onRestartTour={handleRestartTour} />
           </motion.div>;
       default:
         return <motion.div key="workouts" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{
