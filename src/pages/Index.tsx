@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
 import { useCompletedSessions } from '@/hooks/useCompletedSessions';
@@ -15,6 +16,7 @@ import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 const Index = () => {
+  const { t } = useTranslation();
   const {
     signOut
   } = useAuth();
@@ -114,7 +116,7 @@ const Index = () => {
       }}>
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </motion.div>
-        <p className="text-sm text-muted-foreground">Cargando tu programa...</p>
+        <p className="text-sm text-muted-foreground">{t('index.loading')}</p>
       </div>;
   }
 
@@ -228,7 +230,7 @@ const Index = () => {
             </motion.div>
             <div>
               <p className="text-[10px] text-muted-foreground">
-                {getTotalCompleted()} entrenos • {getCyclesCompleted()} ciclos
+                {getTotalCompleted()} {t('index.sessions')} • {getCyclesCompleted()} {t('index.cycles')}
               </p>
             </div>
           </div>
@@ -284,7 +286,7 @@ const Index = () => {
                           {formattedTime}
                         </motion.span>
                         <p className="text-[11px] text-muted-foreground mt-1">
-                          {mode === 'stopwatch' ? 'Cronómetro' : 'Descanso'}
+                          {mode === 'stopwatch' ? t('index.stopwatch') : t('index.rest')}
                         </p>
                       </div>
 
@@ -293,7 +295,7 @@ const Index = () => {
                         {!isRunning ? (
                           <>
                             <Button size="sm" variant="outline" onClick={startStopwatch} className="h-10 text-sm flex-1 rounded-xl">
-                              <Play className="w-4 h-4 mr-2" /> Iniciar
+                              <Play className="w-4 h-4 mr-2" /> {t('index.start')}
                             </Button>
                             <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="h-10 w-10 rounded-xl gradient-primary text-primary-foreground p-0">
                               <Play className="w-4 h-4" />
@@ -301,7 +303,7 @@ const Index = () => {
                           </>
                         ) : (
                           <Button size="sm" variant="outline" onClick={pause} className="h-10 text-sm flex-1 rounded-xl">
-                            <Pause className="w-4 h-4 mr-2" /> Pausar
+                            <Pause className="w-4 h-4 mr-2" /> {t('index.pause')}
                           </Button>
                         )}
                         <Button size="sm" variant="ghost" onClick={reset} className="h-10 w-10 rounded-xl p-0">
@@ -311,7 +313,7 @@ const Index = () => {
 
                       {/* Presets */}
                       <div className="space-y-2">
-                        <span className="text-[11px] text-muted-foreground">Descanso rápido</span>
+                        <span className="text-[11px] text-muted-foreground">{t('index.quickRest')}</span>
                         <div className="grid grid-cols-4 gap-2">
                           {presetTimes.map(s => (
                             <motion.button
@@ -359,11 +361,11 @@ const Index = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex min-w-max px-3 py-2.5 gap-1.5">
             {([
-              { key: 'workouts' as const, icon: FolderOpen, label: 'Entrenos', delay: 0.05 },
-              { key: 'progress' as const, icon: TrendingUp, label: 'Progreso', delay: 0.1 },
-              { key: 'nutrition' as const, icon: Apple, label: 'Nutrición', delay: 0.15 },
-              { key: 'design' as const, icon: Pencil, label: 'Diseñar', delay: 0.2 },
-              { key: 'profile' as const, icon: User, label: 'Perfil', delay: 0.25 },
+              { key: 'workouts' as const, icon: FolderOpen, labelKey: 'index.workouts', delay: 0.05 },
+              { key: 'progress' as const, icon: TrendingUp, labelKey: 'index.progress', delay: 0.1 },
+              { key: 'nutrition' as const, icon: Apple, labelKey: 'index.nutrition', delay: 0.15 },
+              { key: 'design' as const, icon: Pencil, labelKey: 'index.design', delay: 0.2 },
+              { key: 'profile' as const, icon: User, labelKey: 'index.profile', delay: 0.25 },
             ] as const).map(tab => (
               <motion.button
                 key={tab.key}
@@ -381,7 +383,7 @@ const Index = () => {
                 transition={{ duration: 0.3, delay: tab.delay }}
               >
                 <tab.icon className="w-4 h-4" />
-                {tab.label}
+                {t(tab.labelKey)}
               </motion.button>
             ))}
           </div>

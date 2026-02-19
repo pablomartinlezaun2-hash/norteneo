@@ -41,6 +41,18 @@ export const fr = {
     version: 'Version',
     followUs: 'Suivez-nous',
     logout: 'Déconnexion',
+    freePlan: 'Plan gratuit',
+    planLabel: 'Plan {{type}}',
+    restartTour: 'Commencer la présentation Neo',
+    deleteAccount: 'Supprimer mon compte',
+    deleteTitle: 'Supprimer votre compte ?',
+    deleteWarning: 'Cette action est permanente et irréversible.',
+    deleteDesc: 'Toutes vos données seront supprimées :',
+    deleteItems: ['Programmes et sessions', 'Journaux', 'Données nutritionnelles', 'Profil de santé', 'Votre compte'],
+    deleteConfirmMsg: 'Vous ne pourrez pas récupérer vos données.',
+    cancel: 'Annuler',
+    deleteConfirm: 'Oui, supprimer mon compte',
+    deleting: 'Suppression...',
   },
 
   health: {
@@ -220,4 +232,8 @@ export const fr = {
     message: 'Nous n\'avons pas encore de contact disponible.',
     comingSoon: 'Bientôt disponible',
   },
+
+  index: { loading: 'Chargement...', workouts: 'Entraîn.', progress: 'Progrès', nutrition: 'Nutrition', design: 'Concevoir', profile: 'Profil', sessions: 'entraînements', cycles: 'cycles', stopwatch: 'Chronomètre', rest: 'Repos', start: 'Démarrer', pause: 'Pause', quickRest: 'Repos rapide' },
+  workoutsHub: { title: 'Entraînements', subtitle: 'Accédez à toutes vos routines', gym: 'Salle', swimming: 'Natation', running: 'Course', saved: 'Mes entraînements' },
+  gym: { noProgram: 'Aucun programme actif', noProgramDesc: 'Créez un programme pour commencer.', createProgram: 'Créer un programme', session: 'Séance', exercises: 'exercices', completedToday: 'Terminé aujourd\'hui', completeSession: 'Marquer terminée', completing: 'Finalisation...', stats: 'Statistiques', viewStats: 'Voir stats', sets: 'séries', reps: 'reps', rest: 'Repos', technique: 'Technique', execution: 'Exécution', logSet: 'Enregistrer', weight: 'Poids (kg)', repsCount: 'Reps', rir: 'RIR', save: 'Sauvegarder', warmup: 'Échauffement', lastSet: 'Dernière série', noSets: 'Aucune série', sessionCompleted: 'Séance terminée! 🎉', cycleCompleted: 'Cycle terminé! 🏆' },
 };

@@ -133,7 +133,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
           </div>
           <div className="flex-1 text-left">
             <p className="font-medium text-foreground">{t('profile.manageSubscription')}</p>
-            <p className="text-xs text-muted-foreground">{subscription.type === 'free' ? 'Plan gratuito' : `Plan ${subscription.type.toUpperCase()}`}</p>
+            <p className="text-xs text-muted-foreground">{subscription.type === 'free' ? t('profile.freePlan') : t('profile.planLabel', { type: subscription.type.toUpperCase() })}</p>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground" />
         </button>
@@ -187,7 +187,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
             className="w-full h-12 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-primary"
           >
             <Play className="w-4 h-4" />
-            Iniciar presentación con Neo
+            {t('profile.restartTour')}
           </button>
         </motion.div>
       )}
@@ -206,36 +206,34 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className="w-full h-12 text-destructive/70 hover:text-destructive hover:bg-destructive/5 text-sm">
               <Trash2 className="w-4 h-4 mr-2" />
-              Eliminar mi cuenta
+              {t('profile.deleteAccount')}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="text-destructive flex items-center gap-2">
                 <Trash2 className="w-5 h-5" />
-                ¿Eliminar tu cuenta?
+                {t('profile.deleteTitle')}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-left space-y-2">
-                <p className="font-semibold text-foreground">Esta acción es permanente e irreversible.</p>
-                <p>Se eliminarán todos tus datos para siempre, incluyendo:</p>
+                <p className="font-semibold text-foreground">{t('profile.deleteWarning')}</p>
+                <p>{t('profile.deleteDesc')}</p>
                 <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>Programas de entrenamiento y sesiones</li>
-                  <li>Registros de series, cardio y actividades</li>
-                  <li>Datos de nutrición y suplementos</li>
-                  <li>Perfil de salud y preferencias</li>
-                  <li>Tu cuenta de usuario</li>
+                  {(t('profile.deleteItems', { returnObjects: true }) as string[]).map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
                 </ul>
-                <p className="font-medium text-destructive pt-2">No podrás recuperar ningún dato después de confirmar.</p>
+                <p className="font-medium text-destructive pt-2">{t('profile.deleteConfirmMsg')}</p>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogCancel>{t('profile.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteAccount}
                 disabled={deleting}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {deleting ? 'Eliminando...' : 'Sí, eliminar mi cuenta'}
+                {deleting ? t('profile.deleting') : t('profile.deleteConfirm')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
