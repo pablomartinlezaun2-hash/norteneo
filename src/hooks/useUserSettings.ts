@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { changeLanguage } from '@/i18n';
 import { toast } from 'sonner';
 
 export interface HealthProfile {
@@ -75,7 +76,14 @@ export const useUserSettings = () => {
       const savedIntegrations = localStorage.getItem(`neo-integrations-${user?.id}`);
 
       if (savedHealth) setHealthProfile(JSON.parse(savedHealth));
-      if (savedPrefs) setPreferences(JSON.parse(savedPrefs));
+      if (savedPrefs) {
+        const parsedPrefs = JSON.parse(savedPrefs);
+        setPreferences(parsedPrefs);
+        // Apply saved language to i18next on load
+        if (parsedPrefs.language) {
+          changeLanguage(parsedPrefs.language);
+        }
+      }
       if (savedSub) setSubscription(JSON.parse(savedSub));
       if (savedIntegrations) setIntegrations(JSON.parse(savedIntegrations));
     } catch (error) {
@@ -95,6 +103,10 @@ export const useUserSettings = () => {
     const newPrefs = { ...preferences, ...prefs };
     setPreferences(newPrefs);
     localStorage.setItem(`neo-prefs-${user?.id}`, JSON.stringify(newPrefs));
+    // Sync language with i18next so the entire app re-renders in the new language
+    if (prefs.language && prefs.language !== preferences.language) {
+      changeLanguage(prefs.language);
+    }
   };
 
   const setSubscriptionType = (type: Subscription['type']) => {
