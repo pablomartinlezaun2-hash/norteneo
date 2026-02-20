@@ -12,6 +12,7 @@ import {
   MessageSquare, Save, Loader2, TrendingUp, Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface ExerciseCardNewProps {
   exercise: Exercise;
@@ -19,44 +20,24 @@ interface ExerciseCardNewProps {
 }
 
 export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSetTab, setActiveSetTab] = useState(1);
   const [showNotes, setShowNotes] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
 
-  const { 
-    logs, 
-    addLog, 
-    deleteLog, 
-    getLogsBySetNumber, 
-    getLastLogForSet, 
-    getBestWeightForSet 
-  } = useSetLogs(exercise.id);
-  
+  const { logs, addLog, deleteLog, getLogsBySetNumber, getLastLogForSet, getBestWeightForSet } = useSetLogs(exercise.id);
   const { note, saveNote } = useExerciseNotes(exercise.id);
 
   useEffect(() => {
-    if (note) {
-      setNoteText(note.note);
-    }
+    if (note) setNoteText(note.note);
   }, [note]);
 
   const handleAddLog = async (setNumber: number, data: {
-    weight: number;
-    reps: number;
-    partialReps: number;
-    rir: number | null;
-    isWarmup: boolean;
+    weight: number; reps: number; partialReps: number; rir: number | null; isWarmup: boolean;
   }) => {
-    const result = await addLog(
-      setNumber,
-      data.weight,
-      data.reps,
-      data.partialReps,
-      data.rir,
-      data.isWarmup
-    );
+    const result = await addLog(setNumber, data.weight, data.reps, data.partialReps, data.rir, data.isWarmup);
     return { error: result.error };
   };
 
@@ -66,19 +47,11 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
     setSavingNote(false);
   };
 
-  // Calculate summary for each set
   const getSummaryForSets = () => {
     const summaries = [];
     for (let i = 1; i <= exercise.series; i++) {
       const lastLog = getLastLogForSet(i);
-      if (lastLog) {
-        summaries.push({
-          set: i,
-          weight: lastLog.weight,
-          reps: lastLog.reps,
-          rir: lastLog.rir,
-        });
-      }
+      if (lastLog) summaries.push({ set: i, weight: lastLog.weight, reps: lastLog.reps, rir: lastLog.rir });
     }
     return summaries;
   };
@@ -91,24 +64,16 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
       className="gradient-card rounded-xl border border-border overflow-hidden card-hover animate-slide-up"
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      {/* Header */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-start gap-3 text-left"
-      >
+      <button onClick={() => setIsExpanded(!isExpanded)} className="w-full p-4 flex items-start gap-3 text-left">
         <div className="gradient-primary rounded-lg p-2.5 shrink-0">
           <Dumbbell className="w-5 h-5 text-primary-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-sm leading-tight mb-2">
-            {exercise.name}
-          </h3>
-          
-          {/* Quick info */}
+          <h3 className="font-semibold text-foreground text-sm leading-tight mb-2">{exercise.name}</h3>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Target className="w-3 h-3 text-primary" />
-              {exercise.series} series
+              {t('exerciseCard.series', { count: exercise.series })}
             </span>
             <span>{exercise.reps}</span>
             {exercise.rest && (
@@ -118,8 +83,6 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
               </span>
             )}
           </div>
-
-          {/* Summary of last sets */}
           {summaries.length > 0 && (
             <div className="mt-2 pt-2 border-t border-border">
               <div className="space-y-0.5">
@@ -135,43 +98,25 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
             </div>
           )}
         </div>
-        
         <div className="shrink-0 text-muted-foreground">
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5" />
-          ) : (
-            <ChevronDown className="w-5 h-5" />
-          )}
+          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </div>
       </button>
 
-      {/* Expanded Content */}
       {isExpanded && (
         <div className="border-t border-border">
-          {/* Video embed if available */}
           {exercise.video_url && (
             <div className="p-4 border-b border-border">
-              <iframe
-                width="100%"
-                height="300"
-                src={exercise.video_url}
-                frameBorder="0"
-                allowFullScreen
-                className="rounded-lg"
-              />
+              <iframe width="100%" height="300" src={exercise.video_url} frameBorder="0" allowFullScreen className="rounded-lg" />
             </div>
           )}
 
-          {/* Execution info */}
           {exercise.execution && (
             <div className="px-4 py-3 bg-muted/30 border-b border-border">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {exercise.execution}
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{exercise.execution}</p>
             </div>
           )}
 
-          {/* Set Tabs */}
           <div className="px-4 pt-4">
             <div className="flex border-b border-border">
               {Array.from({ length: exercise.series }, (_, i) => i + 1).map((setNum) => (
@@ -180,14 +125,11 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
                   onClick={() => setActiveSetTab(setNum)}
                   className={cn(
                     "flex-1 py-2 text-xs font-medium transition-all relative",
-                    activeSetTab === setNum
-                      ? "text-primary"
-                      : hasLogs(setNum)
-                        ? "text-foreground"
-                        : "text-muted-foreground/60",
+                    activeSetTab === setNum ? "text-primary"
+                      : hasLogs(setNum) ? "text-foreground" : "text-muted-foreground/60",
                   )}
                 >
-                  {setNum}ª Serie
+                  {t('exerciseCard.setNumber', { num: setNum })}
                   {activeSetTab === setNum && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
                   )}
@@ -196,78 +138,43 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
             </div>
           </div>
 
-          {/* Active Set Content */}
           <div className="p-4 space-y-4">
-            {/* Last & Best stats */}
             <div className="flex gap-4 text-xs">
               {getLastLogForSet(activeSetTab) && (
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span>
-                    Último: {getLastLogForSet(activeSetTab)!.weight} kg × {getLastLogForSet(activeSetTab)!.reps}
-                    {getLastLogForSet(activeSetTab)!.rir !== null && 
-                      ` · RIR ${getLastLogForSet(activeSetTab)!.rir}`}
+                    {t('exerciseCard.last')}: {getLastLogForSet(activeSetTab)!.weight} kg × {getLastLogForSet(activeSetTab)!.reps}
+                    {getLastLogForSet(activeSetTab)!.rir !== null && ` · RIR ${getLastLogForSet(activeSetTab)!.rir}`}
                   </span>
                 </div>
               )}
               {getBestWeightForSet(activeSetTab) > 0 && (
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Award className="w-3.5 h-3.5 text-primary" />
-                  <span>Mejor: {getBestWeightForSet(activeSetTab)} kg</span>
+                  <span>{t('exerciseCard.best')}: {getBestWeightForSet(activeSetTab)} kg</span>
                 </div>
               )}
             </div>
 
-            {/* Form */}
-            <SetForm
-              setNumber={activeSetTab}
-              onSubmit={(data) => handleAddLog(activeSetTab, data)}
-              lastLog={getLastLogForSet(activeSetTab)}
-            />
-
-            {/* Chart */}
-            <div className="pt-2">
-              <SetProgressChart logs={logs} setNumber={activeSetTab} />
-            </div>
-
-            {/* Log History */}
-            <SetLogList
-              logs={getLogsBySetNumber(activeSetTab)}
-              onDelete={deleteLog}
-            />
+            <SetForm setNumber={activeSetTab} onSubmit={(data) => handleAddLog(activeSetTab, data)} lastLog={getLastLogForSet(activeSetTab)} />
+            <div className="pt-2"><SetProgressChart logs={logs} setNumber={activeSetTab} /></div>
+            <SetLogList logs={getLogsBySetNumber(activeSetTab)} onDelete={deleteLog} />
           </div>
 
-          {/* Notes Section */}
           <div className="border-t border-border">
-            <button
-              onClick={() => setShowNotes(!showNotes)}
-              className="w-full px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <button onClick={() => setShowNotes(!showNotes)} className="w-full px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <MessageSquare className="w-4 h-4" />
-              <span>Notas del ejercicio</span>
+              <span>{t('exerciseCard.exerciseNotes')}</span>
               {note && <span className="text-xs text-primary">•</span>}
             </button>
             
             {showNotes && (
               <div className="px-4 pb-4 space-y-3">
-                <Textarea
-                  placeholder="Escribe tus notas sobre este ejercicio..."
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  className="min-h-[80px] text-sm"
-                />
-                <Button
-                  size="sm"
-                  onClick={handleSaveNote}
-                  disabled={savingNote}
-                  className="w-full"
-                >
-                  {savingNote ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
-                  Guardar nota
+                <Textarea placeholder={t('exerciseCard.notesPlaceholder')} value={noteText} onChange={(e) => setNoteText(e.target.value)} className="min-h-[80px] text-sm" />
+                <Button size="sm" onClick={handleSaveNote} disabled={savingNote} className="w-full">
+                  {savingNote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  {t('exerciseCard.saveNote')}
                 </Button>
               </div>
             )}

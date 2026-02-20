@@ -14,7 +14,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { GymStatsSection } from './GymStatsSection';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS, fr, de, type Locale } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+
+const dateLocales: Record<string, Locale> = { es, en: enUS, fr, de };
 
 interface ActiveProgram {
   id: string;
@@ -44,6 +47,7 @@ interface GymSectionProps {
 }
 
 export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSectionProps) => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { 
     markSessionComplete, 
@@ -60,13 +64,14 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
   const [completing, setCompleting] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
 
+  const dateLoc = dateLocales[i18n.language] || es;
+
   useEffect(() => {
     if (user) {
       fetchActivePrograms();
     }
   }, [user]);
 
-  // Handle initial expanded session from navigation
   useEffect(() => {
     if (initialExpandedSession && !loading) {
       setActiveSession(initialExpandedSession);
@@ -79,7 +84,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
     
     setLoading(true);
     try {
-      // Solo rutinas de gimnasio activas (sin natación/running en descripción)
       const { data: programs, error } = await supabase
         .from('training_programs')
         .select('id, name, description')
@@ -89,7 +93,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
       if (error) throw error;
 
-      // Filtrar solo gimnasio
       const gymPrograms = (programs || []).filter(p => {
         const desc = (p.description || '').toLowerCase();
         return !desc.includes('natación') && !desc.includes('swimming') && 
@@ -156,12 +159,12 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
     const result = await markSessionComplete(sessionId);
     
     if (!result.error) {
-      toast.success('¡Entreno registrado! 💪', {
-        description: 'Tu progreso se ha actualizado'
+      toast.success(t('gym.workoutRegistered'), {
+        description: t('gym.progressUpdated')
       });
       setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
     } else {
-      toast.error('Error al registrar el entreno');
+      toast.error(t('gym.errorRegistering'));
     }
     setCompleting(null);
   };
@@ -189,11 +192,11 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
         >
           <Dumbbell className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">Gimnasio</span>
+          <span className="text-sm font-medium text-primary">{t('gym.title')}</span>
         </motion.div>
-        <h2 className="text-2xl font-bold text-foreground">Mis Rutinas</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t('gym.myRoutines')}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Entrena, registra series y sigue tu progreso
+          {t('gym.routinesSubtitle')}
         </p>
       </div>
 
@@ -213,7 +216,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
           )}
         >
           <BarChart3 className="w-4 h-4" />
-          {showStats ? 'Ocultar estadísticas' : 'Ver estadísticas'}
+          {showStats ? t('gym.hideStats') : t('gym.viewStats')}
         </Button>
       </motion.div>
 
@@ -244,9 +247,9 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
           className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border"
         >
           <Dumbbell className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">No tienes rutinas activas</p>
+          <p className="text-muted-foreground font-medium">{t('gym.noActiveRoutines')}</p>
           <p className="text-sm text-muted-foreground/70 mt-1">
-            Ve a "Entrenamientos" para activar una rutina
+            {t('gym.goToWorkouts')}
           </p>
         </motion.div>
       ) : (
@@ -267,7 +270,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                 <div>
                   <h3 className="font-semibold text-foreground">{program.name}</h3>
                   <p className="text-xs text-muted-foreground">
-                    {program.sessions.length} sesiones
+                    {t('gym.sessionsCount', { count: program.sessions.length })}
                   </p>
                 </div>
               </div>
@@ -315,13 +318,13 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                           <div className="text-left">
                             <h4 className="font-semibold text-foreground">{session.name}</h4>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>{session.exercises.length} ejercicios</span>
+                              <span>{t('gym.exercisesCount', { count: session.exercises.length })}</span>
                               {lastCompleted && (
                                 <>
                                   <span>•</span>
                                   <span className="flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />
-                                    {format(lastCompleted, "dd MMM", { locale: es })}
+                                    {format(lastCompleted, "dd MMM", { locale: dateLoc })}
                                   </span>
                                 </>
                               )}
@@ -347,7 +350,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                             className="overflow-hidden"
                           >
                             <div className="px-4 pb-4 space-y-4">
-                              {/* Exercise List */}
                               <div className="space-y-3">
                                 {session.exercises.map((exercise, index) => (
                                   <ExerciseCardNew 
@@ -363,7 +365,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                 ))}
                               </div>
 
-                              {/* Complete Session Section */}
                               {!isCompletedToday && (
                                 <div className="gradient-card rounded-xl p-4 border border-border mt-4">
                                   <div className="flex items-center gap-3 mb-4">
@@ -382,7 +383,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                       htmlFor={`gym-session-complete-${session.id}`}
                                       className="text-sm font-medium text-foreground cursor-pointer"
                                     >
-                                      He completado la sesión completa
+                                      {t('gym.completedSessionConfirm')}
                                     </label>
                                   </div>
                                   
@@ -396,7 +397,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                     ) : (
                                       <CheckCircle2 className="w-4 h-4 mr-2" />
                                     )}
-                                    Registrar entreno
+                                    {t('gym.registerWorkout')}
                                   </Button>
                                 </div>
                               )}
@@ -409,7 +410,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                 >
                                   <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
                                   <p className="text-sm font-medium text-green-600">
-                                    ¡Sesión completada hoy! 💪
+                                    {t('gym.sessionCompletedToday')}
                                   </p>
                                 </motion.div>
                               )}
