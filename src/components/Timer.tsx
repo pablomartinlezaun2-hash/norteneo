@@ -3,6 +3,7 @@ import { useTimer } from '@/hooks/useTimer';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, Timer as TimerIcon, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface TimerProps {
   defaultRestTime?: number;
@@ -10,19 +11,11 @@ interface TimerProps {
 }
 
 export const Timer = ({ defaultRestTime = 120, className }: TimerProps) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { 
-    formattedTime, 
-    isRunning, 
-    mode,
-    startStopwatch, 
-    startCountdown, 
-    pause, 
-    resume, 
-    reset 
-  } = useTimer(defaultRestTime);
+  const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(defaultRestTime);
 
-  const presetTimes = [60, 120, 150, 180]; // 1, 2, 2.5, 3 minutos
+  const presetTimes = [60, 120, 150, 180];
 
   if (!isExpanded) {
     return (
@@ -49,18 +42,14 @@ export const Timer = ({ defaultRestTime = 120, className }: TimerProps) => {
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-foreground">
-            {mode === 'stopwatch' ? 'Cronómetro' : 'Descanso'}
+            {mode === 'stopwatch' ? t('timer.stopwatch') : t('timer.rest')}
           </span>
         </div>
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-muted-foreground hover:text-foreground text-xs"
-        >
-          Cerrar
+        <button onClick={() => setIsExpanded(false)} className="text-muted-foreground hover:text-foreground text-xs">
+          {t('timer.close')}
         </button>
       </div>
 
-      {/* Time Display */}
       <div className="text-center mb-4">
         <span className={cn(
           "text-4xl font-bold tabular-nums",
@@ -70,51 +59,30 @@ export const Timer = ({ defaultRestTime = 120, className }: TimerProps) => {
         </span>
       </div>
 
-      {/* Controls */}
       <div className="flex justify-center gap-2 mb-4">
         {!isRunning ? (
           <>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={startStopwatch}
-              className="flex-1"
-            >
+            <Button size="sm" variant="outline" onClick={startStopwatch} className="flex-1">
               <Play className="w-4 h-4 mr-1" />
-              Cronómetro
+              {t('timer.stopwatchBtn')}
             </Button>
-            <Button
-              size="sm"
-              onClick={resume}
-              disabled={formattedTime === '00:00'}
-              className="gradient-primary text-primary-foreground"
-            >
+            <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="gradient-primary text-primary-foreground">
               <Play className="w-4 h-4" />
             </Button>
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={pause}
-            className="flex-1"
-          >
+          <Button size="sm" variant="outline" onClick={pause} className="flex-1">
             <Pause className="w-4 h-4 mr-1" />
-            Pausar
+            {t('timer.pauseBtn')}
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={reset}
-        >
+        <Button size="sm" variant="ghost" onClick={reset}>
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Preset Rest Times */}
       <div className="space-y-2">
-        <span className="text-xs text-muted-foreground">Descanso rápido:</span>
+        <span className="text-xs text-muted-foreground">{t('timer.quickRest')}</span>
         <div className="grid grid-cols-4 gap-1">
           {presetTimes.map(seconds => (
             <button

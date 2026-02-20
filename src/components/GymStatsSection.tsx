@@ -2,9 +2,12 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format, startOfWeek, endOfWeek, eachWeekOfInterval, subDays } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS, fr, de, type Locale } from 'date-fns/locale';
 import { TrendingUp, Award, Target, Calendar, Dumbbell, Flame } from 'lucide-react';
 import { CompletedSession } from '@/types/database';
+import { useTranslation } from 'react-i18next';
+
+const dateLocales: Record<string, Locale> = { es, en: enUS, fr, de };
 
 interface GymStatsSectionProps {
   completedSessions: CompletedSession[];
@@ -19,7 +22,9 @@ export const GymStatsSection = ({
   cyclesCompleted,
   progressInCycle
 }: GymStatsSectionProps) => {
-  // Calculate stats
+  const { t, i18n } = useTranslation();
+  const dateLoc = dateLocales[i18n.language] || es;
+
   const thisWeekSessions = useMemo(() => {
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
     return completedSessions.filter(c => new Date(c.completed_at) >= weekStart).length;
@@ -27,21 +32,16 @@ export const GymStatsSection = ({
 
   const currentStreak = useMemo(() => {
     if (completedSessions.length === 0) return 0;
-    
     const sortedCompletions = [...completedSessions].sort(
       (a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
     );
-    
     let streak = 0;
     let currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
-    
     for (const completion of sortedCompletions) {
       const completionDate = new Date(completion.completed_at);
       completionDate.setHours(0, 0, 0, 0);
-      
       const diffDays = Math.floor((currentDate.getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
-      
       if (diffDays <= 1) {
         streak++;
         currentDate = completionDate;
@@ -49,15 +49,13 @@ export const GymStatsSection = ({
         break;
       }
     }
-    
     return streak;
   }, [completedSessions]);
 
-  // Weekly chart data
   const weeklyData = useMemo(() => {
     const today = new Date();
     const weeks = eachWeekOfInterval({
-      start: subDays(today, 56), // 8 weeks
+      start: subDays(today, 56),
       end: today
     }, { weekStartsOn: 1 });
 
@@ -71,10 +69,10 @@ export const GymStatsSection = ({
       return {
         week: weekStart,
         count,
-        label: format(weekStart, 'dd MMM', { locale: es })
+        label: format(weekStart, 'dd MMM', { locale: dateLoc })
       };
     });
-  }, [completedSessions]);
+  }, [completedSessions, dateLoc]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -82,18 +80,20 @@ export const GymStatsSection = ({
       return (
         <div className="bg-foreground/95 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/10">
           <p className="text-primary-foreground font-bold text-sm mb-2">
-            Semana del {data.label}
+            {t('gymStats.weekOf', { date: data.label })}
           </p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary" />
             <span className="text-primary-foreground font-semibold">{data.count}</span>
-            <span className="text-primary-foreground/60 text-xs">sesiones</span>
+            <span className="text-primary-foreground/60 text-xs">{t('gymStats.sessionsLabel')}</span>
           </div>
         </div>
       );
     }
     return null;
   };
+
+  const remaining = 4 - progressInCycle;
 
   return (
     <motion.div
@@ -113,7 +113,7 @@ export const GymStatsSection = ({
             <TrendingUp className="w-6 h-6 text-primary" />
           </div>
           <p className="text-3xl font-bold text-foreground">{totalCompleted}</p>
-          <p className="text-xs text-muted-foreground mt-1">Total</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('gymStats.total')}</p>
         </motion.div>
         
         <motion.div 
@@ -126,7 +126,7 @@ export const GymStatsSection = ({
             <Calendar className="w-6 h-6 text-primary" />
           </div>
           <p className="text-3xl font-bold text-foreground">{thisWeekSessions}</p>
-          <p className="text-xs text-muted-foreground mt-1">Esta semana</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('gymStats.thisWeek')}</p>
         </motion.div>
         
         <motion.div 
@@ -139,7 +139,7 @@ export const GymStatsSection = ({
             <Flame className="w-6 h-6 text-primary" />
           </div>
           <p className="text-3xl font-bold text-foreground">{currentStreak}</p>
-          <p className="text-xs text-muted-foreground mt-1">Racha</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('gymStats.streak')}</p>
         </motion.div>
       </div>
 
@@ -153,7 +153,7 @@ export const GymStatsSection = ({
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Ciclo actual</span>
+            <span className="text-sm font-semibold text-foreground">{t('gymStats.currentCycle')}</span>
           </div>
           <span className="text-primary font-bold">{progressInCycle}/4</span>
         </div>
@@ -175,12 +175,14 @@ export const GymStatsSection = ({
         <div className="flex justify-between items-center mt-3">
           <p className="text-xs text-muted-foreground">
             {progressInCycle === 4 
-              ? '🎉 ¡Ciclo completado!' 
-              : `${4 - progressInCycle} sesión${4 - progressInCycle > 1 ? 'es' : ''} más`
+              ? t('gymStats.cycleCompleted')
+              : remaining > 1 
+                ? t('gymStats.sessionsRemainingPlural', { count: remaining })
+                : t('gymStats.sessionsRemaining', { count: remaining })
             }
           </p>
           <p className="text-xs font-medium text-primary">
-            {cyclesCompleted} ciclos completos
+            {t('gymStats.completedCycles', { count: cyclesCompleted })}
           </p>
         </div>
       </motion.div>
@@ -194,7 +196,7 @@ export const GymStatsSection = ({
       >
         <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
           <Dumbbell className="w-4 h-4 text-primary" />
-          Progreso semanal
+          {t('gymStats.weeklyProgress')}
         </h3>
         
         {weeklyData.some(d => d.count > 0) ? (
@@ -207,12 +209,7 @@ export const GymStatsSection = ({
                     <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid 
-                  strokeDasharray="3 3" 
-                  stroke="hsl(var(--border))" 
-                  opacity={0.3} 
-                  vertical={false}
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
                 <XAxis
                   dataKey="label"
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 500 }}
@@ -227,11 +224,7 @@ export const GymStatsSection = ({
                   allowDecimals={false}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar
-                  dataKey="count"
-                  fill="url(#gymGradient)"
-                  radius={[6, 6, 0, 0]}
-                />
+                <Bar dataKey="count" fill="url(#gymGradient)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -240,7 +233,7 @@ export const GymStatsSection = ({
             <div className="text-center">
               <Dumbbell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm">
-                Completa tu primera sesión para ver el progreso
+                {t('gymStats.firstSessionPrompt')}
               </p>
             </div>
           </div>
