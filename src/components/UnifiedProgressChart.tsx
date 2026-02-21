@@ -15,7 +15,7 @@ import { MuscleRadarChart } from './performance/MuscleRadarChart';
 import { MuscleLoadChart } from './performance/MuscleLoadChart';
 import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
 import { KeyExercisesSection } from './performance/KeyExercisesSection';
-import { Neo2DAnatomyModel } from './neo';
+import { Neo2DAnatomyModel, NeoFatigueMap } from './neo';
 
 interface ActivityCompletion {
   id: string;
@@ -57,6 +57,7 @@ export const UnifiedProgressChart = ({
   const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
   const [neoOpen, setNeoOpen] = useState(false);
   const [monthlyOpen, setMonthlyOpen] = useState(false);
+  const [fatigueOpen, setFatigueOpen] = useState(false);
 
   // Get all exercises from the program
   const allExercises = useMemo(() => {
@@ -384,6 +385,21 @@ export const UnifiedProgressChart = ({
           >
             <div className="p-4">
               <Neo2DAnatomyModel setLogs={allSetLogs} exercises={allExercises} />
+            </div>
+          </CollapsibleSection>
+
+          {/* Fatigue Map */}
+          <CollapsibleSection
+            isOpen={fatigueOpen}
+            onToggle={() => setFatigueOpen(!fatigueOpen)}
+            icon={Activity}
+            title="Mapa de Fatiga"
+            subtitle="Estado de recuperación muscular"
+            gradient="from-red-500 to-orange-500"
+            delay={0.12}
+          >
+            <div className="p-4">
+              <NeoFatigueMap />
             </div>
           </CollapsibleSection>
 

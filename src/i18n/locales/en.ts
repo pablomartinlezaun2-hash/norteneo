@@ -661,4 +661,23 @@ export const en = {
     backstroke: 'Backstroke',
     butterfly: 'Butterfly',
   },
+
+  fatigueMap: {
+    title: 'Fatigue Map',
+    subtitle: 'Visualize your muscles recovery status',
+    front: 'Front',
+    back: 'Back',
+    fatigue: 'Fatigue',
+    frontView: 'Front view',
+    backView: 'Back view',
+    fatigued: 'Fatigued',
+    moderate: 'Moderate',
+    almostReady: 'Almost ready',
+    recovered: 'Recovered',
+    recovering: 'Recovering',
+    readyToTrain: 'Ready to train',
+    toNextStage: 'to next stage',
+    sinceLastTrain: 'since last workout',
+    enableFatigue: 'Enable fatigue mode to see status',
+  },
 };
