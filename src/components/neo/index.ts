@@ -7,3 +7,4 @@ export { RealisticHumanModel } from './RealisticHumanModel';
 export { AnatomicalDetailModal } from './AnatomicalDetailModal';
 export { MuscleContractionViewer } from './MuscleContractionViewer';
 export { Neo2DAnatomyModel } from './Neo2DAnatomyModel';
+export { NeoFatigueMap } from './NeoFatigueMap';

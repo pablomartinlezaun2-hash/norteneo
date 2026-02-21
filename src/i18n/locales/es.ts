@@ -694,4 +694,23 @@ export const es = {
     backstroke: 'Espalda',
     butterfly: 'Mariposa',
   },
+
+  fatigueMap: {
+    title: 'Mapa de Fatiga',
+    subtitle: 'Visualiza el estado de recuperación de tus músculos',
+    front: 'Frontal',
+    back: 'Trasera',
+    fatigue: 'Fatiga',
+    frontView: 'Vista frontal',
+    backView: 'Vista trasera',
+    fatigued: 'Fatigado',
+    moderate: 'Moderado',
+    almostReady: 'Casi listo',
+    recovered: 'Recuperado',
+    recovering: 'En recuperación',
+    readyToTrain: 'Listo para entrenar',
+    toNextStage: 'para siguiente fase',
+    sinceLastTrain: 'desde último entreno',
+    enableFatigue: 'Activa el modo fatiga para ver el estado',
+  },
 };
