@@ -679,6 +679,8 @@ export const en = {
     toNextStage: 'to next stage',
     sinceLastTrain: 'since last workout',
     enableFatigue: 'Enable fatigue mode to see status',
+    noData: 'No workout data yet. Log sets in your exercises to see the recovery map.',
+    noDataMuscle: 'No training data for this muscle',
     recoveryPercent: '{{percent}}% recovered',
     timeRemaining: '{{hours}}h remaining for full recovery',
     disclaimer: 'Note: This fatigue map is a theoretical estimate based on standard recovery times. Your actual recovery depends on individual factors such as genetics, nutrition, sleep quality, stress, and anxiety levels. Always listen to your body.',

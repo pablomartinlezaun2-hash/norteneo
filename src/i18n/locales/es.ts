@@ -712,6 +712,8 @@ export const es = {
     toNextStage: 'para siguiente fase',
     sinceLastTrain: 'desde último entreno',
     enableFatigue: 'Activa el modo fatiga para ver el estado',
+    noData: 'Aún no hay datos de entrenamiento. Registra series en tus ejercicios para ver el mapa de recuperación.',
+    noDataMuscle: 'Sin datos de entrenamiento para este músculo',
     recoveryPercent: '{{percent}}% recuperado',
     timeRemaining: 'Faltan {{hours}}h para recuperación total',
     disclaimer: 'Nota: Este mapa de fatiga es una estimación teórica basada en tiempos estándar. Tu recuperación real depende de múltiples factores individuales como tu genética, alimentación, calidad del sueño, nivel de estrés y ansiedad. Escucha siempre a tu cuerpo.',
