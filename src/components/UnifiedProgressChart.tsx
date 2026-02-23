@@ -4,7 +4,7 @@ import { CompletedSession } from '@/types/database';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, BarChart, Bar } from 'recharts';
 import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar, User } from 'lucide-react';
+import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar, User, PieChart as PieChartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
@@ -16,6 +16,7 @@ import { MuscleLoadChart } from './performance/MuscleLoadChart';
 import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
 import { KeyExercisesSection } from './performance/KeyExercisesSection';
 import { Neo2DAnatomyModel, NeoFatigueMap } from './neo';
+import { ProgressChart } from './ProgressChart';
 
 interface ActivityCompletion {
   id: string;
@@ -58,6 +59,7 @@ export const UnifiedProgressChart = ({
   const [neoOpen, setNeoOpen] = useState(false);
   const [monthlyOpen, setMonthlyOpen] = useState(false);
   const [fatigueOpen, setFatigueOpen] = useState(false);
+  const [volumeOpen, setVolumeOpen] = useState(false);
 
   // Get all exercises from the program
   const allExercises = useMemo(() => {
@@ -400,6 +402,21 @@ export const UnifiedProgressChart = ({
           >
             <div className="p-4">
               <NeoFatigueMap />
+            </div>
+          </CollapsibleSection>
+
+          {/* Volume Distribution */}
+          <CollapsibleSection
+            isOpen={volumeOpen}
+            onToggle={() => setVolumeOpen(!volumeOpen)}
+            icon={PieChartIcon}
+            title="Volumen"
+            subtitle="Distribución de series por músculo"
+            gradient="from-pink-500 to-rose-500"
+            delay={0.13}
+          >
+            <div className="p-4">
+              <ProgressChart />
             </div>
           </CollapsibleSection>
 
