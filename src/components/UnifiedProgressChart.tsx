@@ -401,7 +401,7 @@ export const UnifiedProgressChart = ({
             delay={0.12}
           >
             <div className="p-4">
-              <NeoFatigueMap />
+              <NeoFatigueMap setLogs={allSetLogs} exercises={allExercises} />
             </div>
           </CollapsibleSection>
 

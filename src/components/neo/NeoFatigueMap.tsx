@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { Activity, Eye, Info, X, Clock, Zap, FlaskConical, Dumbbell } from 'lucide-react';
+import { SetLog } from '@/types/database';
 
 // ──────────────────────────────────────────────
 // Recovery config per group
@@ -136,6 +137,145 @@ const FATIGUE_MUSCLES: MuscleDef[] = [
 ];
 
 // ──────────────────────────────────────────────
+// Exercise name → fatigue muscle ID mapping
+// Maps keywords in exercise names to fatigue muscle IDs
+// Both left/right sides are updated together
+// ──────────────────────────────────────────────
+const EXERCISE_TO_FATIGUE_MUSCLES: Record<string, string[]> = {
+  // Chest
+  'press banca': ['pec-l', 'pec-r'],
+  'press inclinado': ['pec-l', 'pec-r'],
+  'press declinado': ['pec-l', 'pec-r'],
+  'aperturas': ['pec-l', 'pec-r'],
+  'cruces': ['pec-l', 'pec-r'],
+  'fondos': ['pec-l', 'pec-r', 'triceps-l', 'triceps-r'],
+  'push up': ['pec-l', 'pec-r', 'triceps-l', 'triceps-r'],
+  'flexiones': ['pec-l', 'pec-r', 'triceps-l', 'triceps-r'],
+  'chest': ['pec-l', 'pec-r'],
+  'pectoral': ['pec-l', 'pec-r'],
+  'pecho': ['pec-l', 'pec-r'],
+  'bench': ['pec-l', 'pec-r'],
+  'fly': ['pec-l', 'pec-r'],
+
+  // Back
+  'dominadas': ['lat-l', 'lat-r', 'biceps-l', 'biceps-r'],
+  'jalón': ['lat-l', 'lat-r'],
+  'remo': ['lat-l', 'lat-r', 'trap'],
+  'pull over': ['lat-l', 'lat-r'],
+  'face pull': ['trap', 'delt-l', 'delt-r'],
+  'pulldown': ['lat-l', 'lat-r'],
+  'lat pulldown': ['lat-l', 'lat-r'],
+  'pull-up': ['lat-l', 'lat-r', 'biceps-l', 'biceps-r'],
+  'chin up': ['lat-l', 'lat-r', 'biceps-l', 'biceps-r'],
+  'row': ['lat-l', 'lat-r', 'trap'],
+  'dorsal': ['lat-l', 'lat-r'],
+  'espalda': ['lat-l', 'lat-r', 'trap'],
+
+  // Deadlift variations
+  'peso muerto': ['lower-back', 'hamstring-l', 'hamstring-r', 'glute-l', 'glute-r', 'trap'],
+  'peso muerto rumano': ['hamstring-l', 'hamstring-r', 'glute-l', 'glute-r', 'lower-back'],
+  'deadlift': ['lower-back', 'hamstring-l', 'hamstring-r', 'glute-l', 'glute-r', 'trap'],
+  'rdl': ['hamstring-l', 'hamstring-r', 'glute-l', 'glute-r', 'lower-back'],
+
+  // Shoulders
+  'press militar': ['delt-l', 'delt-r'],
+  'press hombro': ['delt-l', 'delt-r'],
+  'elevaciones laterales': ['delt-l', 'delt-r'],
+  'elevaciones frontales': ['delt-l', 'delt-r'],
+  'pájaros': ['delt-l', 'delt-r'],
+  'encogimientos': ['trap'],
+  'lateral raise': ['delt-l', 'delt-r'],
+  'shoulder press': ['delt-l', 'delt-r'],
+  'overhead press': ['delt-l', 'delt-r'],
+  'ohp': ['delt-l', 'delt-r'],
+  'hombro': ['delt-l', 'delt-r'],
+  'deltoid': ['delt-l', 'delt-r'],
+  'shrug': ['trap'],
+
+  // Arms
+  'curl': ['biceps-l', 'biceps-r'],
+  'curl bíceps': ['biceps-l', 'biceps-r'],
+  'curl martillo': ['biceps-l', 'biceps-r'],
+  'curl predicador': ['biceps-l', 'biceps-r'],
+  'bíceps': ['biceps-l', 'biceps-r'],
+  'biceps': ['biceps-l', 'biceps-r'],
+  'extensiones tríceps': ['triceps-l', 'triceps-r'],
+  'press francés': ['triceps-l', 'triceps-r'],
+  'fondos en banco': ['triceps-l', 'triceps-r'],
+  'tríceps': ['triceps-l', 'triceps-r'],
+  'triceps': ['triceps-l', 'triceps-r'],
+  'tricep': ['triceps-l', 'triceps-r'],
+  'skull crusher': ['triceps-l', 'triceps-r'],
+  'pushdown': ['triceps-l', 'triceps-r'],
+  'kickback': ['triceps-l', 'triceps-r'],
+
+  // Legs
+  'sentadillas': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'sentadilla': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'prensa': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'extensiones': ['quad-l', 'quad-r'],
+  'extensión de pierna': ['quad-l', 'quad-r'],
+  'leg extension': ['quad-l', 'quad-r'],
+  'leg press': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'squat': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'cuádriceps': ['quad-l', 'quad-r'],
+  'quads': ['quad-l', 'quad-r'],
+
+  'curl femoral': ['hamstring-l', 'hamstring-r'],
+  'leg curl': ['hamstring-l', 'hamstring-r'],
+  'isquios': ['hamstring-l', 'hamstring-r'],
+  'hamstring': ['hamstring-l', 'hamstring-r'],
+  'femoral': ['hamstring-l', 'hamstring-r'],
+
+  'zancadas': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'lunge': ['quad-l', 'quad-r', 'glute-l', 'glute-r'],
+  'hip thrust': ['glute-l', 'glute-r', 'hamstring-l', 'hamstring-r'],
+  'glúteo': ['glute-l', 'glute-r'],
+  'glute': ['glute-l', 'glute-r'],
+
+  'abductor': ['adductor-l', 'adductor-r'],
+  'aductor': ['adductor-l', 'adductor-r'],
+  'adductor': ['adductor-l', 'adductor-r'],
+
+  'elevación talones': ['calf-l', 'calf-r'],
+  'gemelos': ['calf-l', 'calf-r'],
+  'calf raise': ['calf-l', 'calf-r'],
+  'calves': ['calf-l', 'calf-r'],
+  'tibial': ['tibialis-l', 'tibialis-r'],
+
+  // Core
+  'crunch': ['abs', 'oblique-l', 'oblique-r'],
+  'plancha': ['abs', 'oblique-l', 'oblique-r'],
+  'russian twist': ['oblique-l', 'oblique-r'],
+  'elevación piernas': ['abs'],
+  'ab wheel': ['abs'],
+  'abdomen': ['abs', 'oblique-l', 'oblique-r'],
+  'abdominal': ['abs', 'oblique-l', 'oblique-r'],
+  'oblicuo': ['oblique-l', 'oblique-r'],
+  'oblique': ['oblique-l', 'oblique-r'],
+
+  // Erectors / Lower back
+  'hiperextensiones': ['lower-back'],
+  'hiperextensión': ['lower-back'],
+  'lumbar': ['lower-back'],
+  'good morning': ['lower-back', 'hamstring-l', 'hamstring-r'],
+  'back extension': ['lower-back'],
+  'erector': ['lower-back'],
+};
+
+function mapExerciseToFatigueMuscles(exerciseName: string): string[] {
+  const name = exerciseName.toLowerCase();
+  // Try longer keys first for more specific matches
+  const sortedKeys = Object.keys(EXERCISE_TO_FATIGUE_MUSCLES).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    if (name.includes(key)) {
+      return EXERCISE_TO_FATIGUE_MUSCLES[key];
+    }
+  }
+  return [];
+}
+
+// ──────────────────────────────────────────────
 // Body outline
 // ──────────────────────────────────────────────
 const BODY_OUTLINE = `
@@ -186,41 +326,26 @@ const BODY_OUTLINE = `
 `;
 
 // ──────────────────────────────────────────────
-// Initial mock data
+// Component Props
 // ──────────────────────────────────────────────
-function hoursAgo(h: number): Date {
-  return new Date(Date.now() - h * 3600_000);
+interface ExerciseInfo {
+  id: string;
+  name: string;
 }
 
-function buildInitialMock(): Record<string, Date> {
-  return {
-    'delt-l': hoursAgo(30), 'delt-r': hoursAgo(30),
-    'pec-l': hoursAgo(18), 'pec-r': hoursAgo(18),
-    'lat-l': hoursAgo(12), 'lat-r': hoursAgo(12),
-    'trap': hoursAgo(36),
-    'biceps-l': hoursAgo(36), 'biceps-r': hoursAgo(36),
-    'triceps-l': hoursAgo(40), 'triceps-r': hoursAgo(40),
-    'abs': hoursAgo(10), 'oblique-l': hoursAgo(10), 'oblique-r': hoursAgo(10),
-    'glute-l': hoursAgo(60), 'glute-r': hoursAgo(60),
-    'glute-med-l': hoursAgo(50), 'glute-med-r': hoursAgo(50),
-    'quad-l': hoursAgo(50), 'quad-r': hoursAgo(50),
-    'hamstring-l': hoursAgo(74), 'hamstring-r': hoursAgo(74),
-    'adductor-l': hoursAgo(80), 'adductor-r': hoursAgo(80),
-    'calf-l': hoursAgo(26), 'calf-r': hoursAgo(26),
-    'tibialis-l': hoursAgo(100), 'tibialis-r': hoursAgo(100),
-    'lower-back': hoursAgo(30),
-  };
+interface NeoFatigueMapProps {
+  setLogs?: SetLog[];
+  exercises?: ExerciseInfo[];
 }
 
 // ──────────────────────────────────────────────
 // Component
 // ──────────────────────────────────────────────
-export const NeoFatigueMap = () => {
+export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapProps) => {
   const { t } = useTranslation();
   const [fatigueMode, setFatigueMode] = useState(false);
   const [view, setView] = useState<'front' | 'back'>('front');
   const [hoveredMuscle, setHoveredMuscle] = useState<string | null>(null);
-  const [lastTrained, setLastTrained] = useState<Record<string, Date>>(buildInitialMock);
   const [tick, setTick] = useState(0);
   const [disclaimerDismissed, setDisclaimerDismissed] = useState(
     () => localStorage.getItem('neo-fatigue-disclaimer') === 'dismissed'
@@ -234,6 +359,43 @@ export const NeoFatigueMap = () => {
   }, []);
 
   const now = Date.now() + timeOffset;
+
+  // ──────────────────────────────────────────
+  // Compute lastTrained from real set_logs data
+  // ──────────────────────────────────────────
+  const lastTrained = useMemo(() => {
+    const result: Record<string, Date> = {};
+
+    if (setLogs.length === 0 || exercises.length === 0) return result;
+
+    // Build exercise id → name map
+    const exerciseNameMap = new Map<string, string>();
+    for (const ex of exercises) {
+      exerciseNameMap.set(ex.id, ex.name);
+    }
+
+    // For each set log, find the muscles it targets and track the most recent date
+    for (const log of setLogs) {
+      const exerciseName = exerciseNameMap.get(log.exercise_id);
+      if (!exerciseName) continue;
+
+      const muscles = mapExerciseToFatigueMuscles(exerciseName);
+      if (muscles.length === 0) continue;
+
+      const logDate = new Date(log.logged_at);
+
+      for (const muscleId of muscles) {
+        const existing = result[muscleId];
+        if (!existing || logDate > existing) {
+          result[muscleId] = logDate;
+        }
+      }
+    }
+
+    return result;
+  }, [setLogs, exercises]);
+
+  const hasRealData = Object.keys(lastTrained).length > 0;
 
   const recoveryMap = useMemo(() => {
     const map: Record<string, RecoveryResult> = {};
@@ -254,10 +416,6 @@ export const NeoFatigueMap = () => {
     setDisclaimerDismissed(true);
     localStorage.setItem('neo-fatigue-disclaimer', 'dismissed');
   }, []);
-
-  const trainMuscle = useCallback((muscleId: string) => {
-    setLastTrained(prev => ({ ...prev, [muscleId]: new Date(Date.now() + timeOffset) }));
-  }, [timeOffset]);
 
   const addTimeOffset = useCallback((hours: number) => {
     setTimeOffset(prev => prev + hours * 3_600_000);
@@ -302,9 +460,21 @@ export const NeoFatigueMap = () => {
           </div>
         </div>
 
+        {/* No data notice */}
+        {fatigueMode && !hasRealData && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Alert className="bg-muted/50 border-border">
+              <Info className="h-4 w-4 text-muted-foreground" />
+              <AlertDescription className="text-xs text-muted-foreground">
+                {t('fatigueMap.noData')}
+              </AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
         {/* Health Disclaimer */}
         <AnimatePresence>
-          {fatigueMode && !disclaimerDismissed && (
+          {fatigueMode && !disclaimerDismissed && hasRealData && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
               <Alert className="bg-accent/30 border-accent/50 relative">
                 <Info className="h-4 w-4 text-accent-foreground" />
@@ -320,7 +490,7 @@ export const NeoFatigueMap = () => {
         </AnimatePresence>
 
         {/* Legend */}
-        {fatigueMode && (
+        {fatigueMode && hasRealData && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex justify-center gap-3 flex-wrap">
             {[
               { color: '#EF4444', label: t('fatigueMap.fatigued') },
@@ -395,6 +565,8 @@ export const NeoFatigueMap = () => {
                               {Math.round(recovery.elapsedHours)}h {t('fatigueMap.sinceLastTrain')}
                             </p>
                           </>
+                        ) : fatigueMode && !recovery ? (
+                          <p className="text-[10px] text-muted-foreground">{t('fatigueMap.noDataMuscle')}</p>
                         ) : (
                           <p className="text-[10px] text-muted-foreground">{t('fatigueMap.enableFatigue')}</p>
                         )}
@@ -442,23 +614,6 @@ export const NeoFatigueMap = () => {
               >
                 Reset
               </button>
-            </div>
-
-            {/* Simulate train */}
-            <div className="flex flex-wrap gap-2">
-              {['pec-l', 'quad-l', 'biceps-l', 'delt-l', 'abs'].map(id => {
-                const muscle = FATIGUE_MUSCLES.find(m => m.id === id);
-                return (
-                  <button
-                    key={id}
-                    onClick={() => trainMuscle(id)}
-                    className="px-2.5 py-1 text-[11px] rounded-md bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary transition-colors flex items-center gap-1"
-                  >
-                    <Dumbbell className="w-3 h-3" />
-                    {muscle ? t(muscle.nameKey) : id}
-                  </button>
-                );
-              })}
             </div>
 
             {timeOffset > 0 && (
