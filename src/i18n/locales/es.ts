@@ -746,7 +746,20 @@ export const es = {
       calfR: 'Gemelo Der.',
       tibialisL: 'Tibial Izq.',
       tibialisR: 'Tibial Der.',
-      lowerBack: 'Lumbar / Erectores',
+    lowerBack: 'Lumbar / Erectores',
     },
+  },
+
+  // Volume Distribution Chart
+  volumeChart: {
+    title: 'Distribución de Volumen',
+    lastWorkout: 'Último entrenamiento',
+    last2Days: 'Últimos 2 días',
+    last5Days: 'Últimos 5 días',
+    last2Weeks: 'Últimas 2 semanas',
+    lastMonth: 'Último mes',
+    custom: 'Personalizado',
+    days: 'Días',
+    empty: 'No hay datos en este periodo. ¡Toca entrenar!',
   },
 };

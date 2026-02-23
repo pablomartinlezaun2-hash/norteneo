@@ -716,4 +716,16 @@ export const en = {
       lowerBack: 'Lower Back / Erectors',
     },
   },
+
+  volumeChart: {
+    title: 'Volume Distribution',
+    lastWorkout: 'Last workout',
+    last2Days: 'Last 2 days',
+    last5Days: 'Last 5 days',
+    last2Weeks: 'Last 2 weeks',
+    lastMonth: 'Last month',
+    custom: 'Custom',
+    days: 'Days',
+    empty: 'No data in this period. Time to train!',
+  },
 };
