@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { Activity, Eye, Info, X, Clock, Zap, FlaskConical, Dumbbell } from 'lucide-react';
@@ -345,12 +344,12 @@ export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapPro
   const { t } = useTranslation();
   const [fatigueMode, setFatigueMode] = useState(false);
   const [view, setView] = useState<'front' | 'back'>('front');
-  const [hoveredMuscle, setHoveredMuscle] = useState<string | null>(null);
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [disclaimerDismissed, setDisclaimerDismissed] = useState(
     () => localStorage.getItem('neo-fatigue-disclaimer') === 'dismissed'
   );
-  const [timeOffset, setTimeOffset] = useState(0); // debug: ms offset
+  const [timeOffset, setTimeOffset] = useState(0);
 
   // Real-time tick every 60s
   useEffect(() => {
@@ -360,21 +359,16 @@ export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapPro
 
   const now = Date.now() + timeOffset;
 
-  // ──────────────────────────────────────────
   // Compute lastTrained from real set_logs data
-  // ──────────────────────────────────────────
   const lastTrained = useMemo(() => {
     const result: Record<string, Date> = {};
-
     if (setLogs.length === 0 || exercises.length === 0) return result;
 
-    // Build exercise id → name map
     const exerciseNameMap = new Map<string, string>();
     for (const ex of exercises) {
       exerciseNameMap.set(ex.id, ex.name);
     }
 
-    // For each set log, find the muscles it targets and track the most recent date
     for (const log of setLogs) {
       const exerciseName = exerciseNameMap.get(log.exercise_id);
       if (!exerciseName) continue;
@@ -383,7 +377,6 @@ export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapPro
       if (muscles.length === 0) continue;
 
       const logDate = new Date(log.logged_at);
-
       for (const muscleId of muscles) {
         const existing = result[muscleId];
         if (!existing || logDate > existing) {
@@ -391,7 +384,6 @@ export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapPro
         }
       }
     }
-
     return result;
   }, [setLogs, exercises]);
 
@@ -421,209 +413,253 @@ export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapPro
     setTimeOffset(prev => prev + hours * 3_600_000);
   }, []);
 
+  const selectedRecovery = selectedMuscle ? recoveryMap[selectedMuscle] : null;
+  const selectedMuscleDef = selectedMuscle ? FATIGUE_MUSCLES.find(m => m.id === selectedMuscle) : null;
+
   const BASE_FILL = 'hsl(var(--muted-foreground) / 0.18)';
   const isDev = import.meta.env.DEV;
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-            <Activity className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-medium text-primary">{t('fatigueMap.title')}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">{t('fatigueMap.subtitle')}</p>
+    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+          <Activity className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-medium text-primary">{t('fatigueMap.title')}</span>
         </div>
+        <p className="text-xs text-muted-foreground">{t('fatigueMap.subtitle')}</p>
+      </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-between px-2">
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            {(['front', 'back'] as const).map(v => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                  view === v ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {t(v === 'front' ? 'fatigueMap.front' : 'fatigueMap.back')}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Neo</span>
-            <Switch checked={fatigueMode} onCheckedChange={setFatigueMode} />
-            <span className={`text-xs font-medium ${fatigueMode ? 'text-primary' : 'text-muted-foreground'}`}>
-              {t('fatigueMap.fatigue')}
-            </span>
-          </div>
+      {/* Controls */}
+      <div className="flex items-center justify-between px-2">
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          {(['front', 'back'] as const).map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                view === v ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t(v === 'front' ? 'fatigueMap.front' : 'fatigueMap.back')}
+            </button>
+          ))}
         </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Neo</span>
+          <Switch checked={fatigueMode} onCheckedChange={setFatigueMode} />
+          <span className={`text-xs font-medium ${fatigueMode ? 'text-primary' : 'text-muted-foreground'}`}>
+            {t('fatigueMap.fatigue')}
+          </span>
+        </div>
+      </div>
 
-        {/* No data notice */}
-        {fatigueMode && !hasRealData && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Alert className="bg-muted/50 border-border">
-              <Info className="h-4 w-4 text-muted-foreground" />
-              <AlertDescription className="text-xs text-muted-foreground">
-                {t('fatigueMap.noData')}
+      {/* No data notice */}
+      {fatigueMode && !hasRealData && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Alert className="bg-muted/50 border-border">
+            <Info className="h-4 w-4 text-muted-foreground" />
+            <AlertDescription className="text-xs text-muted-foreground">
+              {t('fatigueMap.noData')}
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Health Disclaimer */}
+      <AnimatePresence>
+        {fatigueMode && !disclaimerDismissed && hasRealData && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+            <Alert className="bg-accent/30 border-accent/50 relative">
+              <Info className="h-4 w-4 text-accent-foreground" />
+              <AlertDescription className="text-xs text-muted-foreground pr-6">
+                {t('fatigueMap.disclaimer')}
               </AlertDescription>
+              <button onClick={dismissDisclaimer} className="absolute top-2 right-2 p-1 rounded-md hover:bg-muted/50 transition-colors">
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
             </Alert>
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Health Disclaimer */}
-        <AnimatePresence>
-          {fatigueMode && !disclaimerDismissed && hasRealData && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-              <Alert className="bg-accent/30 border-accent/50 relative">
-                <Info className="h-4 w-4 text-accent-foreground" />
-                <AlertDescription className="text-xs text-muted-foreground pr-6">
-                  {t('fatigueMap.disclaimer')}
-                </AlertDescription>
-                <button onClick={dismissDisclaimer} className="absolute top-2 right-2 p-1 rounded-md hover:bg-muted/50 transition-colors">
-                  <X className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              </Alert>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Legend */}
-        {fatigueMode && hasRealData && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex justify-center gap-3 flex-wrap">
-            {[
-              { color: '#EF4444', label: t('fatigueMap.fatigued') },
-              { color: '#F97316', label: t('fatigueMap.moderate') },
-              { color: '#EAB308', label: t('fatigueMap.almostReady') },
-              { color: '#10B981', label: t('fatigueMap.recovered') },
-            ].map(item => (
-              <div key={item.color} className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-[10px] text-muted-foreground">{item.label}</span>
-              </div>
-            ))}
-          </motion.div>
-        )}
-
-        {/* SVG Body */}
-        <div className="relative flex justify-center">
-          <div className="relative w-full max-w-[320px] aspect-[3/4.5] rounded-2xl overflow-hidden bg-gradient-to-b from-muted/80 to-muted/40 border border-border">
-            <svg viewBox="40 10 220 430" className="w-full h-full" style={{ filter: 'drop-shadow(0 2px 8px hsl(var(--foreground) / 0.08))' }}>
-              <path d={BODY_OUTLINE} fill="hsl(var(--muted-foreground) / 0.1)" stroke="hsl(var(--muted-foreground) / 0.2)" strokeWidth="1" />
-              <ellipse cx="150" cy="48" rx="22" ry="28" fill="hsl(25 60% 72%)" stroke="hsl(25 40% 55%)" strokeWidth="0.8" />
-              <circle cx="142" cy="44" r="2" fill="hsl(var(--foreground) / 0.7)" />
-              <circle cx="158" cy="44" r="2" fill="hsl(var(--foreground) / 0.7)" />
-              <path d="M 144,56 Q 150,60 156,56" stroke="hsl(var(--foreground) / 0.4)" strokeWidth="1" fill="none" />
-              <rect x="142" y="72" width="16" height="14" rx="4" fill="hsl(25 55% 68%)" />
-
-              {visibleMuscles.map(muscle => {
-                const path = view === 'front' ? muscle.frontPath! : muscle.backPath!;
-                const recovery = recoveryMap[muscle.id];
-                const fill = fatigueMode && recovery ? recovery.color : BASE_FILL;
-                const isHovered = hoveredMuscle === muscle.id;
-
-                return (
-                  <Tooltip key={muscle.id}>
-                    <TooltipTrigger asChild>
-                      <motion.path
-                        d={path}
-                        fill={fill}
-                        fillOpacity={fatigueMode ? (isHovered ? 1 : 0.75) : (isHovered ? 0.5 : 0.3)}
-                        stroke={isHovered ? 'hsl(var(--foreground) / 0.6)' : 'hsl(var(--foreground) / 0.12)'}
-                        strokeWidth={isHovered ? 1.5 : 0.6}
-                        style={{ cursor: 'pointer', transition: 'fill 0.3s, fill-opacity 0.2s, stroke 0.2s' }}
-                        onMouseEnter={() => setHoveredMuscle(muscle.id)}
-                        onMouseLeave={() => setHoveredMuscle(null)}
-                        onClick={() => setHoveredMuscle(muscle.id === hoveredMuscle ? null : muscle.id)}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[220px]">
-                      <div className="space-y-1.5">
-                        <p className="font-semibold text-xs">{t(muscle.nameKey)}</p>
-                        {fatigueMode && recovery ? (
-                          <>
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: recovery.color }} />
-                              <span className="text-[11px] font-medium">{t(recovery.statusKey)}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <Zap className="w-3 h-3" />
-                              <span>{t('fatigueMap.recoveryPercent', { percent: recovery.percent })}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <Clock className="w-3 h-3" />
-                              <span>
-                                {recovery.remainingHours > 0
-                                  ? t('fatigueMap.timeRemaining', { hours: recovery.remainingHours })
-                                  : t('fatigueMap.readyToTrain')}
-                              </span>
-                            </div>
-                            <p className="text-[10px] text-muted-foreground">
-                              {Math.round(recovery.elapsedHours)}h {t('fatigueMap.sinceLastTrain')}
-                            </p>
-                          </>
-                        ) : fatigueMode && !recovery ? (
-                          <p className="text-[10px] text-muted-foreground">{t('fatigueMap.noDataMuscle')}</p>
-                        ) : (
-                          <p className="text-[10px] text-muted-foreground">{t('fatigueMap.enableFatigue')}</p>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </svg>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-background/80 border border-border text-muted-foreground backdrop-blur-sm flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                {t(view === 'front' ? 'fatigueMap.frontView' : 'fatigueMap.backView')}
-              </span>
+      {/* Legend */}
+      {fatigueMode && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center gap-3 flex-wrap">
+          {[
+            { color: '#EF4444', label: t('fatigueMap.fatigued') },
+            { color: '#F97316', label: t('fatigueMap.moderate') },
+            { color: '#EAB308', label: t('fatigueMap.almostReady') },
+            { color: '#10B981', label: t('fatigueMap.recovered') },
+          ].map(item => (
+            <div key={item.color} className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="text-[10px] text-muted-foreground">{item.label}</span>
             </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* SVG Body */}
+      <div className="relative flex justify-center">
+        <div className="relative w-full max-w-[320px] aspect-[3/4.5] rounded-2xl overflow-hidden bg-gradient-to-b from-muted/80 to-muted/40 border border-border">
+          <svg viewBox="40 10 220 430" className="w-full h-full" style={{ filter: 'drop-shadow(0 2px 8px hsl(var(--foreground) / 0.08))' }}>
+            <path d={BODY_OUTLINE} fill="hsl(var(--muted-foreground) / 0.1)" stroke="hsl(var(--muted-foreground) / 0.2)" strokeWidth="1" />
+            <ellipse cx="150" cy="48" rx="22" ry="28" fill="hsl(25 60% 72%)" stroke="hsl(25 40% 55%)" strokeWidth="0.8" />
+            <circle cx="142" cy="44" r="2" fill="hsl(var(--foreground) / 0.7)" />
+            <circle cx="158" cy="44" r="2" fill="hsl(var(--foreground) / 0.7)" />
+            <path d="M 144,56 Q 150,60 156,56" stroke="hsl(var(--foreground) / 0.4)" strokeWidth="1" fill="none" />
+            <rect x="142" y="72" width="16" height="14" rx="4" fill="hsl(25 55% 68%)" />
+
+            {visibleMuscles.map(muscle => {
+              const path = view === 'front' ? muscle.frontPath! : muscle.backPath!;
+              const recovery = recoveryMap[muscle.id];
+              const fill = fatigueMode && recovery ? recovery.color : BASE_FILL;
+              const isSelected = selectedMuscle === muscle.id;
+
+              return (
+                <path
+                  key={muscle.id}
+                  d={path}
+                  fill={fill}
+                  fillOpacity={fatigueMode ? (isSelected ? 1 : 0.75) : (isSelected ? 0.5 : 0.3)}
+                  stroke={isSelected ? 'hsl(var(--foreground) / 0.8)' : 'hsl(var(--foreground) / 0.12)'}
+                  strokeWidth={isSelected ? 2 : 0.6}
+                  style={{ cursor: 'pointer', transition: 'fill 0.3s, fill-opacity 0.2s, stroke 0.2s, stroke-width 0.2s' }}
+                  onClick={() => setSelectedMuscle(muscle.id === selectedMuscle ? null : muscle.id)}
+                />
+              );
+            })}
+          </svg>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-background/80 border border-border text-muted-foreground backdrop-blur-sm flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {t(view === 'front' ? 'fatigueMap.frontView' : 'fatigueMap.backView')}
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Debug Panel — DEV only */}
-        {isDev && fatigueMode && (
+      {/* Selected Muscle Info Panel */}
+      <AnimatePresence>
+        {selectedMuscle && selectedMuscleDef && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-3 rounded-xl border border-dashed border-accent bg-accent/10 space-y-3"
+            key={selectedMuscle}
+            initial={{ opacity: 0, y: 10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            className="overflow-hidden"
           >
-            <div className="flex items-center gap-2 text-xs font-medium text-accent-foreground">
-              <FlaskConical className="w-3.5 h-3.5" />
-              {t('fatigueMap.debugTitle')}
-            </div>
-
-            {/* Time warp buttons */}
-            <div className="flex flex-wrap gap-2">
-              {[1, 12, 24, 48].map(h => (
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4 text-primary" />
+                  <p className="font-semibold text-sm text-foreground">{t(selectedMuscleDef.nameKey)}</p>
+                </div>
                 <button
-                  key={h}
-                  onClick={() => addTimeOffset(h)}
-                  className="px-2.5 py-1 text-[11px] rounded-md bg-muted hover:bg-muted/80 border border-border text-foreground transition-colors"
+                  onClick={() => setSelectedMuscle(null)}
+                  className="p-1 rounded-md hover:bg-muted/50 transition-colors"
                 >
-                  +{h}h
+                  <X className="w-4 h-4 text-muted-foreground" />
                 </button>
-              ))}
-              <button
-                onClick={() => setTimeOffset(0)}
-                className="px-2.5 py-1 text-[11px] rounded-md bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 text-destructive transition-colors"
-              >
-                Reset
-              </button>
-            </div>
+              </div>
 
-            {timeOffset > 0 && (
-              <p className="text-[10px] text-muted-foreground">
-                ⏱ {t('fatigueMap.debugOffset', { hours: Math.round(timeOffset / 3_600_000) })}
-              </p>
-            )}
+              {fatigueMode && selectedRecovery ? (
+                <div className="space-y-3">
+                  {/* Recovery bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedRecovery.color }} />
+                        <span className="font-medium text-foreground">{t(selectedRecovery.statusKey)}</span>
+                      </div>
+                      <span className="font-bold text-foreground">{selectedRecovery.percent}%</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${selectedRecovery.percent}%` }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        className="h-full rounded-full"
+                        style={{ backgroundColor: selectedRecovery.color }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">{t('fatigueMap.sinceLastTrain')}</p>
+                        <p className="text-xs font-semibold text-foreground">{Math.round(selectedRecovery.elapsedHours)}h</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <Zap className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">
+                          {selectedRecovery.remainingHours > 0 ? t('fatigueMap.timeRemaining', { hours: selectedRecovery.remainingHours }) : t('fatigueMap.readyToTrain')}
+                        </p>
+                        <p className="text-xs font-semibold text-foreground">
+                          {selectedRecovery.remainingHours > 0 ? `${selectedRecovery.remainingHours}h` : '✓'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : fatigueMode ? (
+                <p className="text-xs text-muted-foreground py-2">{t('fatigueMap.noDataMuscle')}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground py-2">{t('fatigueMap.enableFatigue')}</p>
+              )}
+            </div>
           </motion.div>
         )}
-      </motion.div>
-    </TooltipProvider>
+      </AnimatePresence>
+
+      {/* Tap hint */}
+      {!selectedMuscle && (
+        <p className="text-center text-[10px] text-muted-foreground">
+          {t('fatigueMap.tapHint', { defaultValue: 'Toca un músculo para ver su estado de recuperación' })}
+        </p>
+      )}
+
+      {/* Debug Panel — DEV only */}
+      {isDev && fatigueMode && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3 rounded-xl border border-dashed border-accent bg-accent/10 space-y-3"
+        >
+          <div className="flex items-center gap-2 text-xs font-medium text-accent-foreground">
+            <FlaskConical className="w-3.5 h-3.5" />
+            {t('fatigueMap.debugTitle')}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[1, 12, 24, 48].map(h => (
+              <button
+                key={h}
+                onClick={() => addTimeOffset(h)}
+                className="px-2.5 py-1 text-[11px] rounded-md bg-muted hover:bg-muted/80 border border-border text-foreground transition-colors"
+              >
+                +{h}h
+              </button>
+            ))}
+            <button
+              onClick={() => setTimeOffset(0)}
+              className="px-2.5 py-1 text-[11px] rounded-md bg-destructive/10 hover:bg-destructive/20 border border-destructive/30 text-destructive transition-colors"
+            >
+              Reset
+            </button>
+          </div>
+          {timeOffset > 0 && (
+            <p className="text-[10px] text-muted-foreground">
+              ⏱ {t('fatigueMap.debugOffset', { hours: Math.round(timeOffset / 3_600_000) })}
+            </p>
+          )}
+        </motion.div>
+      )}
+    </motion.div>
   );
 };
