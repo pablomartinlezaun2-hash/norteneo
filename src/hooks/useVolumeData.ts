@@ -22,7 +22,7 @@ export interface MuscleVolume {
     totalReps: number;
     maxWeight: number;
     lastDate: string;
-    logs: { date: string; sets: number; weight: number; reps: number }[];
+    logs: { date: string; sets: number; weight: number; reps: number; rir?: number; partialReps?: number }[];
   }[];
 }
 
@@ -34,6 +34,8 @@ interface SetLogRow {
   reps: number;
   logged_at: string;
   is_warmup: boolean | null;
+  rir: number | null;
+  partial_reps: number | null;
 }
 
 interface ExerciseRow {
@@ -111,7 +113,7 @@ export const useVolumeData = () => {
       // Fetch all user set_logs (non-warmup)
       const { data: logs, error: logsErr } = await supabase
         .from('set_logs')
-        .select('id, exercise_id, set_number, weight, reps, logged_at, is_warmup')
+        .select('id, exercise_id, set_number, weight, reps, logged_at, is_warmup, rir, partial_reps')
         .eq('user_id', user.id)
         .order('logged_at', { ascending: false });
       if (logsErr) throw logsErr;
@@ -250,13 +252,15 @@ export const useVolumeData = () => {
       const lastDate = logs.reduce((latest, l) => l.logged_at > latest ? l.logged_at : latest, '');
 
       // Group logs by date for sparkline
-      const byDate = new Map<string, { sets: number; weight: number; reps: number }>();
+      const byDate = new Map<string, { sets: number; weight: number; reps: number; rir?: number; partialReps?: number }>();
       for (const log of logs) {
         const d = log.logged_at.split('T')[0];
         const existing = byDate.get(d) || { sets: 0, weight: 0, reps: 0 };
         existing.sets += 1;
         existing.weight = Math.max(existing.weight, log.weight);
         existing.reps += log.reps;
+        if (log.rir != null) existing.rir = log.rir;
+        if (log.partial_reps != null && log.partial_reps > 0) existing.partialReps = (existing.partialReps || 0) + log.partial_reps;
         byDate.set(d, existing);
       }
 
