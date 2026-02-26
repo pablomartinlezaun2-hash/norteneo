@@ -184,7 +184,7 @@ function computeTooltipPosition(
   return { x: rawX, y: rawY, side };
 }
 
-/* ── External Tooltip — shows on single click with "Consultar datos" ── */
+/* ── External Tooltip — simple, no AnimatePresence key flicker ── */
 const ExternalTooltip = memo(({
   data,
   position,
@@ -194,8 +194,6 @@ const ExternalTooltip = memo(({
   position: { x: number; y: number; side: 'left' | 'right' | 'top' | 'bottom' };
   onConsultar: () => void;
 }) => {
-  const reduced = prefersReducedMotion();
-
   let transform = '';
   switch (position.side) {
     case 'right': transform = 'translate(4px, -50%)'; break;
@@ -205,12 +203,8 @@ const ExternalTooltip = memo(({
   }
 
   return (
-    <motion.div
-      initial={reduced ? false : { opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={reduced ? undefined : { opacity: 0, scale: 0.92 }}
-      transition={{ duration: 0.15, ease: [0.2, 0.9, 0.25, 1] }}
-      className="absolute pointer-events-auto"
+    <div
+      className="absolute pointer-events-auto animate-in fade-in-0 zoom-in-95 duration-150"
       style={{
         left: position.x,
         top: position.y,
@@ -255,7 +249,7 @@ const ExternalTooltip = memo(({
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 });
 ExternalTooltip.displayName = 'ExternalTooltip';
@@ -319,7 +313,6 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     if (filter === 'last') {
-      // "last" returns today only — we'll handle this differently
       return { start: todayStr, end: todayStr, isLast: true };
     }
     const days = filter === 'custom' ? customDays : FILTER_DAYS[filter]!;
@@ -332,7 +325,6 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     const totalSets = [...totals.values()].reduce((a, b) => a + b.sets, 0);
     if (totalSets === 0) return [];
 
-    // Assign colors by index from palette
     let colorIndex = 0;
     const all: ChartItem[] = [...totals.entries()]
       .map(([muscleId, data]) => {
@@ -375,7 +367,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     return computeTooltipPosition(chartData, visibleIndex);
   }, [visibleIndex, chartData]);
 
-  // Hover handlers (only active when nothing is pinned)
+  // Hover handlers (only when nothing pinned)
   const handlePieEnter = useCallback((_: any, index: number) => {
     if (pinnedIndex === null) setHoverIndex(index);
   }, [pinnedIndex]);
@@ -384,10 +376,9 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     if (pinnedIndex === null) setHoverIndex(null);
   }, [pinnedIndex]);
 
-  // Single click: pin tooltip immediately (with "Consultar datos" button)
+  // Single click: pin tooltip immediately
   const handlePieClick = useCallback((_: any, index: number) => {
     if (pinnedIndex === index) {
-      // Click same segment again: unpin
       setPinnedIndex(null);
     } else {
       setPinnedIndex(index);
@@ -395,7 +386,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     }
   }, [pinnedIndex]);
 
-  // "Consultar datos" button navigates to detail
+  // "Consultar datos" navigates directly
   const handleConsultar = useCallback(() => {
     if (pinnedIndex !== null && chartData[pinnedIndex] && chartData[pinnedIndex].id !== '_others') {
       navigate(`/muscle/${chartData[pinnedIndex].id}`);
@@ -412,21 +403,21 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     setCustomDays(Math.max(1, Number(e.target.value)));
   }, []);
 
-  // Legend handlers
-  const handleLegendHover = useCallback((i: number) => () => {
+  // Legend handlers — stable refs
+  const handleLegendHover = useCallback((i: number) => {
     if (pinnedIndex === null) setHoverIndex(i);
   }, [pinnedIndex]);
   const handleLegendLeave = useCallback(() => {
     if (pinnedIndex === null) setHoverIndex(null);
   }, [pinnedIndex]);
-  const handleLegendClick = useCallback((i: number) => () => {
-    if (pinnedIndex === i) {
-      setPinnedIndex(null);
-    } else {
-      setPinnedIndex(i);
-      setHoverIndex(i);
+  const handleLegendClick = useCallback((i: number) => {
+    const item = chartData[i];
+    if (!item) return;
+    // If it's a real muscle, navigate directly
+    if (item.id !== '_others') {
+      navigate(`/muscle/${item.id}`);
     }
-  }, [pinnedIndex]);
+  }, [chartData, navigate]);
 
   const cssVars = useMemo(() => {
     if (isDark) {
@@ -467,11 +458,8 @@ export const ProgressChart = (_props: ProgressChartProps) => {
   const highlightIndex = pinnedIndex !== null ? pinnedIndex : hoverIndex;
 
   return (
-    <motion.div
+    <div
       ref={containerRef}
-      initial={reduced ? false : { opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.45, ease: [0.2, 0.9, 0.25, 1] }}
       className="relative rounded-2xl overflow-visible"
       style={{
         ...cssVars,
@@ -546,16 +534,12 @@ export const ProgressChart = (_props: ProgressChartProps) => {
           <p className="text-xs text-muted-foreground mt-3">Cargando datos...</p>
         </div>
       ) : chartData.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center py-16 text-center"
-        >
+        <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-20 h-20 rounded-full border-2 border-border/30 flex items-center justify-center mb-4">
             <Dumbbell className="w-8 h-8 text-muted-foreground/50" />
           </div>
           <p className="text-sm text-muted-foreground">{t('volumeChart.empty')}</p>
-        </motion.div>
+        </div>
       ) : (
         <div className="relative flex flex-col md:flex-row md:items-start gap-6">
           {/* Donut with 3D effect */}
@@ -572,13 +556,12 @@ export const ProgressChart = (_props: ProgressChartProps) => {
             {/* 3D perspective wrapper */}
             <div
               className="relative w-full h-full"
-              style={{ perspective: '900px', willChange: 'transform' }}
+              style={{ perspective: '900px' }}
             >
               <div
                 style={{
                   transform: 'rotateX(15deg) translateZ(0)',
                   transformStyle: 'preserve-3d',
-                  willChange: 'transform',
                 }}
               >
                 <ResponsiveContainer width="100%" height={DONUT_SIZE}>
@@ -608,7 +591,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                           fill={d.color}
                           stroke="transparent"
                           aria-label={`${d.name}: ${d.percent}%`}
-                          className="cursor-pointer"
+                          className="cursor-pointer outline-none"
                           tabIndex={0}
                           onKeyDown={(e: any) => {
                             if (e.key === 'Enter' || e.key === ' ') {
@@ -645,17 +628,14 @@ export const ProgressChart = (_props: ProgressChartProps) => {
               </span>
             </div>
 
-            {/* External tooltip — positioned outside donut */}
-            <AnimatePresence>
-              {visibleIndex !== null && tooltipPos && chartData[visibleIndex] && (
-                <ExternalTooltip
-                  key={visibleIndex}
-                  data={chartData[visibleIndex]}
-                  position={tooltipPos}
-                  onConsultar={handleConsultar}
-                />
-              )}
-            </AnimatePresence>
+            {/* External tooltip — NO AnimatePresence to avoid flicker */}
+            {visibleIndex !== null && tooltipPos && chartData[visibleIndex] && (
+              <ExternalTooltip
+                data={chartData[visibleIndex]}
+                position={tooltipPos}
+                onConsultar={handleConsultar}
+              />
+            )}
           </div>
 
           {/* Legend */}
@@ -666,9 +646,9 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                   key={d.id}
                   item={d}
                   isActive={highlightIndex === i}
-                  onHover={handleLegendHover(i)}
+                  onHover={() => handleLegendHover(i)}
                   onLeave={handleLegendLeave}
-                  onClick={handleLegendClick(i)}
+                  onClick={() => handleLegendClick(i)}
                   index={i}
                 />
               ))}
@@ -676,6 +656,6 @@ export const ProgressChart = (_props: ProgressChartProps) => {
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
