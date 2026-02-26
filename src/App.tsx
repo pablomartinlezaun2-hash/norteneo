@@ -12,6 +12,7 @@ import { ThemeInitializer } from "@/components/ThemeInitializer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MuscleDetail from "./pages/MuscleDetail";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,14 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <Index />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/muscle/:id"
+          element={
+            <ProtectedRoute>
+              <MuscleDetail />
             </ProtectedRoute>
           }
         />
