@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef, memo } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { Dumbbell } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { Dumbbell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 /* ── Types ── */
@@ -108,36 +109,6 @@ const MAX_SEGMENTS = 8;
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ── Custom Tooltip ── */
-const CustomPieTooltip = memo(({ active, payload }: any) => {
-  if (!active || !payload?.length) return null;
-  const { name, sets, percent, color } = payload[0].payload;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15 }}
-      className="rounded-xl px-3.5 py-2.5 border"
-      style={{
-        background: 'var(--tooltip-bg)',
-        borderColor: 'var(--tooltip-border)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-      }}
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <div
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
-        />
-        <p className="font-semibold text-foreground text-xs tracking-tight">{name}</p>
-      </div>
-      <p className="text-muted-foreground text-[11px]">{sets} sets · {percent}%</p>
-    </motion.div>
-  );
-});
-CustomPieTooltip.displayName = 'CustomPieTooltip';
-
 /* ── Animated counter ── */
 const AnimatedCounter = memo(({ value }: { value: number }) => {
   const [display, setDisplay] = useState(0);
@@ -177,12 +148,14 @@ const LegendItem = memo(({
   isActive,
   onHover,
   onLeave,
+  onClick,
   index,
 }: {
   item: { id: string; name: string; color: string; sets: number; percent: number };
   isActive: boolean;
   onHover: () => void;
   onLeave: () => void;
+  onClick: () => void;
   index: number;
 }) => {
   const reduced = prefersReducedMotion();
@@ -195,7 +168,8 @@ const LegendItem = memo(({
       transition={{ delay: index * 0.03, duration: 0.3, ease: [0.2, 0.9, 0.25, 1] }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-default"
+      onClick={onClick}
+      className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer"
       style={{
         background: isActive ? 'var(--legend-hover-bg)' : 'transparent',
         transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
@@ -203,6 +177,8 @@ const LegendItem = memo(({
       }}
       role="listitem"
       aria-label={`${item.name}: ${item.sets} sets, ${item.percent}%`}
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
     >
       <div
         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -226,6 +202,124 @@ const LegendItem = memo(({
 });
 LegendItem.displayName = 'LegendItem';
 
+/* ── Compute tooltip position outside the donut ── */
+const DONUT_SIZE = 208;
+const CX = DONUT_SIZE / 2; // 104
+const CY = DONUT_SIZE / 2; // 104
+const OUTER_R = DONUT_SIZE * 0.82 / 2; // ~85
+const TOOLTIP_OFFSET = 18;
+
+function computeTooltipPosition(
+  chartData: { value: number }[],
+  index: number
+): { x: number; y: number; side: 'left' | 'right' | 'top' | 'bottom' } {
+  const total = chartData.reduce((a, b) => a + b.value, 0);
+  if (total === 0) return { x: CX, y: 0, side: 'top' };
+
+  // Calculate midAngle for the segment
+  let startAngle = 90; // Recharts starts at 90deg (top)
+  for (let i = 0; i < index; i++) {
+    startAngle -= (chartData[i].value / total) * 360;
+  }
+  const segAngle = (chartData[index].value / total) * 360;
+  const midAngle = startAngle - segAngle / 2;
+
+  // Convert to radians
+  const rad = (midAngle * Math.PI) / 180;
+  const tipR = OUTER_R + TOOLTIP_OFFSET;
+  const rawX = CX + tipR * Math.cos(rad);
+  const rawY = CY - tipR * Math.sin(rad);
+
+  // Determine side for alignment
+  const normAngle = ((midAngle % 360) + 360) % 360;
+  let side: 'left' | 'right' | 'top' | 'bottom';
+  if (normAngle >= 45 && normAngle < 135) side = 'top';
+  else if (normAngle >= 135 && normAngle < 225) side = 'left';
+  else if (normAngle >= 225 && normAngle < 315) side = 'bottom';
+  else side = 'right';
+
+  return { x: rawX, y: rawY, side };
+}
+
+/* ── External Tooltip ── */
+const ExternalTooltip = memo(({
+  data,
+  position,
+  isPinned,
+  onConsultar,
+}: {
+  data: { name: string; sets: number; percent: number; color: string; id: string };
+  position: { x: number; y: number; side: 'left' | 'right' | 'top' | 'bottom' };
+  isPinned: boolean;
+  onConsultar: () => void;
+}) => {
+  const reduced = prefersReducedMotion();
+
+  // Translate so tooltip doesn't overlap the anchor point
+  let transform = '';
+  switch (position.side) {
+    case 'right': transform = 'translate(4px, -50%)'; break;
+    case 'left': transform = 'translate(calc(-100% - 4px), -50%)'; break;
+    case 'top': transform = 'translate(-50%, calc(-100% - 4px))'; break;
+    case 'bottom': transform = 'translate(-50%, 4px)'; break;
+  }
+
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={reduced ? undefined : { opacity: 0, scale: 0.92 }}
+      transition={{ duration: 0.15, ease: [0.2, 0.9, 0.25, 1] }}
+      className="absolute pointer-events-auto"
+      style={{
+        left: position.x,
+        top: position.y,
+        transform,
+        zIndex: 50,
+      }}
+      role="tooltip"
+      aria-label={`${data.name}: ${data.sets} sets, ${data.percent}%`}
+    >
+      <div
+        className="rounded-xl px-3.5 py-2.5 border min-w-[140px]"
+        style={{
+          background: 'var(--tooltip-bg)',
+          borderColor: 'var(--tooltip-border)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          boxShadow: `0 0 20px ${data.color}22, 0 4px 16px rgba(0,0,0,0.15)`,
+        }}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <div
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: data.color, boxShadow: `0 0 8px ${data.color}` }}
+          />
+          <p className="font-semibold text-foreground text-xs tracking-tight">{data.name}</p>
+        </div>
+        <p className="text-muted-foreground text-[11px]">{data.sets} sets · {data.percent}%</p>
+        {isPinned && data.id !== '_others' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onConsultar(); }}
+            className="mt-2 flex items-center gap-1.5 text-[11px] font-medium rounded-lg px-2.5 py-1.5 w-full justify-center transition-all"
+            style={{
+              background: `${data.color}18`,
+              color: data.color,
+              border: `1px solid ${data.color}30`,
+            }}
+            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = `${data.color}30`; }}
+            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = `${data.color}18`; }}
+          >
+            <Search className="w-3 h-3" />
+            Consultar datos
+          </button>
+        )}
+      </div>
+    </motion.div>
+  );
+});
+ExternalTooltip.displayName = 'ExternalTooltip';
+
 /* ── Main Component ── */
 interface ProgressChartProps {
   totalCompleted?: number;
@@ -235,11 +329,31 @@ interface ProgressChartProps {
 
 export const ProgressChart = (_props: ProgressChartProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<TimeFilter>('2w');
   const [customDays, setCustomDays] = useState(7);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [pinnedIndex, setPinnedIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const reduced = prefersReducedMotion();
+
+  // Close pinned tooltip on click outside
+  useEffect(() => {
+    if (pinnedIndex === null) return;
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setPinnedIndex(null);
+        setActiveIndex(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [pinnedIndex]);
 
   const filterOptions = useMemo(() => [
     { value: 'last' as TimeFilter, label: t('volumeChart.lastWorkout') },
@@ -287,7 +401,6 @@ export const ProgressChart = (_props: ProgressChartProps) => {
       })
       .sort((a, b) => b.sets - a.sets);
 
-    // Top N + "Otros"
     if (all.length <= MAX_SEGMENTS) return all;
 
     const top = all.slice(0, MAX_SEGMENTS);
@@ -307,27 +420,66 @@ export const ProgressChart = (_props: ProgressChartProps) => {
 
   const totalSets = useMemo(() => chartData.reduce((a, b) => a + b.sets, 0), [chartData]);
 
+  // Tooltip position memoized for active/pinned index
+  const visibleIndex = pinnedIndex !== null ? pinnedIndex : activeIndex;
+  const tooltipPos = useMemo(() => {
+    if (visibleIndex === null || visibleIndex >= chartData.length) return null;
+    return computeTooltipPosition(chartData, visibleIndex);
+  }, [visibleIndex, chartData]);
+
   const handlePieEnter = useCallback((_: any, index: number) => {
-    setActiveIndex(index);
-  }, []);
+    if (pinnedIndex === null) setActiveIndex(index);
+  }, [pinnedIndex]);
 
   const handlePieLeave = useCallback(() => {
-    setActiveIndex(null);
-  }, []);
+    if (pinnedIndex === null) setActiveIndex(null);
+  }, [pinnedIndex]);
+
+  const handlePieClick = useCallback((_: any, index: number) => {
+    if (pinnedIndex === index) {
+      // Second click on same segment → navigate
+      const item = chartData[index];
+      if (item && item.id !== '_others') {
+        navigate(`/muscle/${item.id}`);
+      }
+    } else {
+      setPinnedIndex(index);
+      setActiveIndex(index);
+    }
+  }, [pinnedIndex, chartData, navigate]);
+
+  const handleConsultar = useCallback(() => {
+    if (pinnedIndex !== null && chartData[pinnedIndex]) {
+      navigate(`/muscle/${chartData[pinnedIndex].id}`);
+    }
+  }, [pinnedIndex, chartData, navigate]);
 
   const handleFilterChange = useCallback((v: string) => {
     setFilter(v as TimeFilter);
     setActiveIndex(null);
+    setPinnedIndex(null);
   }, []);
 
   const handleCustomDaysChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomDays(Math.max(1, Number(e.target.value)));
   }, []);
 
-  const handleLegendHover = useCallback((i: number) => () => setActiveIndex(i), []);
-  const handleLegendLeave = useCallback(() => setActiveIndex(null), []);
+  const handleLegendHover = useCallback((i: number) => () => {
+    if (pinnedIndex === null) setActiveIndex(i);
+  }, [pinnedIndex]);
+  const handleLegendLeave = useCallback(() => {
+    if (pinnedIndex === null) setActiveIndex(null);
+  }, [pinnedIndex]);
+  const handleLegendClick = useCallback((i: number) => () => {
+    if (pinnedIndex === i) {
+      const item = chartData[i];
+      if (item && item.id !== '_others') navigate(`/muscle/${item.id}`);
+    } else {
+      setPinnedIndex(i);
+      setActiveIndex(i);
+    }
+  }, [pinnedIndex, chartData, navigate]);
 
-  /* CSS variables for theme */
   const cssVars = useMemo(() => {
     if (isDark) {
       return {
@@ -335,8 +487,8 @@ export const ProgressChart = (_props: ProgressChartProps) => {
         '--chart-border': 'rgba(255, 255, 255, 0.05)',
         '--chart-number': '#E6EDF7',
         '--chart-subtitle': '#6E7C93',
-        '--tooltip-bg': 'rgba(11, 18, 32, 0.85)',
-        '--tooltip-border': 'rgba(255, 255, 255, 0.08)',
+        '--tooltip-bg': 'rgba(11, 18, 32, 0.92)',
+        '--tooltip-border': 'rgba(255, 255, 255, 0.1)',
         '--legend-hover-bg': 'rgba(255, 255, 255, 0.04)',
         '--legend-text': '#9FB0C6',
         '--legend-muted': '#6E7C93',
@@ -349,8 +501,8 @@ export const ProgressChart = (_props: ProgressChartProps) => {
       '--chart-border': 'rgba(0, 0, 0, 0.04)',
       '--chart-number': '#0F1724',
       '--chart-subtitle': '#64748B',
-      '--tooltip-bg': 'rgba(255, 255, 255, 0.9)',
-      '--tooltip-border': 'rgba(0, 0, 0, 0.06)',
+      '--tooltip-bg': 'rgba(255, 255, 255, 0.95)',
+      '--tooltip-border': 'rgba(0, 0, 0, 0.08)',
       '--legend-hover-bg': 'rgba(0, 0, 0, 0.03)',
       '--legend-text': '#475569',
       '--legend-muted': '#64748B',
@@ -364,12 +516,15 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     return opt?.label || '';
   }, [filter, filterOptions]);
 
+  const highlightIndex = pinnedIndex !== null ? pinnedIndex : activeIndex;
+
   return (
     <motion.div
+      ref={containerRef}
       initial={reduced ? false : { opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.45, ease: [0.2, 0.9, 0.25, 1] }}
-      className="relative rounded-2xl overflow-hidden"
+      className="relative rounded-2xl overflow-visible"
       style={{
         ...cssVars,
         background: 'var(--chart-bg)',
@@ -466,7 +621,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                   willChange: 'transform',
                 }}
               >
-                <ResponsiveContainer width="100%" height={208}>
+                <ResponsiveContainer width="100%" height={DONUT_SIZE}>
                   <PieChart>
                     <Pie
                       data={chartData}
@@ -485,6 +640,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                       strokeWidth={0}
                       onMouseEnter={handlePieEnter}
                       onMouseLeave={handlePieLeave}
+                      onClick={handlePieClick}
                     >
                       {chartData.map((d, i) => (
                         <Cell
@@ -492,26 +648,29 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                           fill={d.color}
                           stroke="transparent"
                           aria-label={`${d.name}: ${d.percent}%`}
+                          className="cursor-pointer"
+                          tabIndex={0}
+                          onKeyDown={(e: any) => { if (e.key === 'Enter') handlePieClick(null, i); }}
                           style={{
-                            filter: activeIndex === i
+                            filter: highlightIndex === i
                               ? `drop-shadow(0 0 10px ${d.color})`
                               : 'none',
-                            opacity: activeIndex !== null && activeIndex !== i ? 0.45 : 1,
-                            transform: activeIndex === i ? 'scale(1.04)' : 'scale(1)',
+                            opacity: highlightIndex !== null && highlightIndex !== i ? 0.45 : 1,
+                            transform: highlightIndex === i ? 'scale(1.04)' : 'scale(1)',
                             transformOrigin: 'center',
                             transition: 'filter 0.3s, opacity 0.3s, transform 0.3s',
                           }}
                         />
                       ))}
                     </Pie>
-                    <Tooltip content={<CustomPieTooltip />} />
+                    {/* No Recharts Tooltip — using external */}
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Center label */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ marginTop: '-6px' }}>
+            {/* Center label — always visible, z-index below external tooltip but above chart */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10" style={{ marginTop: '-6px' }}>
               <AnimatedCounter value={totalSets} />
               <span className="text-[10px] uppercase tracking-[0.15em] font-medium mt-0.5" style={{ color: 'var(--chart-subtitle)' }}>
                 sets
@@ -520,6 +679,19 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                 {filterLabel}
               </span>
             </div>
+
+            {/* External tooltip — positioned outside donut, z-index above center */}
+            <AnimatePresence>
+              {visibleIndex !== null && tooltipPos && chartData[visibleIndex] && (
+                <ExternalTooltip
+                  key={visibleIndex}
+                  data={chartData[visibleIndex]}
+                  position={tooltipPos}
+                  isPinned={pinnedIndex !== null}
+                  onConsultar={handleConsultar}
+                />
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Legend */}
@@ -529,9 +701,10 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                 <LegendItem
                   key={d.id}
                   item={d}
-                  isActive={activeIndex === i}
+                  isActive={highlightIndex === i}
                   onHover={handleLegendHover(i)}
                   onLeave={handleLegendLeave}
+                  onClick={handleLegendClick(i)}
                   index={i}
                 />
               ))}
