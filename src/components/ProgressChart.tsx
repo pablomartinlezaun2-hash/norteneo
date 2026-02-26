@@ -17,7 +17,7 @@ interface ChartItem {
   value: number;
 }
 
-/* ── Neon palette — assigned by index ── */
+/* ── Neon palette ── */
 const PALETTE = [
   { color: 'hsl(185 100% 45%)', darkColor: 'hsl(185 100% 50%)' },
   { color: 'hsl(320 100% 55%)', darkColor: 'hsl(320 100% 58%)' },
@@ -42,16 +42,11 @@ const PALETTE = [
 type TimeFilter = 'last' | '2d' | '5d' | '2w' | '1m' | 'custom';
 
 const FILTER_DAYS: Record<Exclude<TimeFilter, 'custom'>, number | null> = {
-  last: 0,
-  '2d': 2,
-  '5d': 5,
-  '2w': 14,
-  '1m': 30,
+  last: 0, '2d': 2, '5d': 5, '2w': 14, '1m': 30,
 };
 
 const MAX_SEGMENTS = 8;
 
-/* ── Reduced motion check ── */
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -67,7 +62,6 @@ const AnimatedCounter = memo(({ value }: { value: number }) => {
     if (diff === 0) return;
     const duration = 500;
     const startTime = performance.now();
-
     const tick = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
@@ -90,19 +84,9 @@ AnimatedCounter.displayName = 'AnimatedCounter';
 
 /* ── Legend Item ── */
 const LegendItem = memo(({
-  item,
-  isActive,
-  onHover,
-  onLeave,
-  onClick,
-  index,
+  item, isActive, onHover, onLeave, onClick, index,
 }: {
-  item: ChartItem;
-  isActive: boolean;
-  onHover: () => void;
-  onLeave: () => void;
-  onClick: () => void;
-  index: number;
+  item: ChartItem; isActive: boolean; onHover: () => void; onLeave: () => void; onClick: () => void; index: number;
 }) => {
   const reduced = prefersReducedMotion();
   return (
@@ -126,133 +110,16 @@ const LegendItem = memo(({
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
     >
-      <div
-        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-        style={{
-          backgroundColor: item.color,
-          boxShadow: isActive ? `0 0 8px ${item.color}` : 'none',
-          transition: 'box-shadow 0.3s',
-        }}
-      />
-      <span className="text-xs flex-1 truncate" style={{ color: 'var(--legend-text)', transition: 'color 0.2s' }}>
-        {item.name}
-      </span>
-      <span className="text-[10px] tabular-nums" style={{ color: 'var(--legend-muted)' }}>
-        {item.sets}
-      </span>
-      <span className="text-xs font-semibold w-12 text-right tabular-nums tracking-tight" style={{ color: 'var(--legend-percent)' }}>
-        {item.percent}%
-      </span>
+      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color, boxShadow: isActive ? `0 0 8px ${item.color}` : 'none', transition: 'box-shadow 0.3s' }} />
+      <span className="text-xs flex-1 truncate" style={{ color: 'var(--legend-text)', transition: 'color 0.2s' }}>{item.name}</span>
+      <span className="text-[10px] tabular-nums" style={{ color: 'var(--legend-muted)' }}>{item.sets}</span>
+      <span className="text-xs font-semibold w-12 text-right tabular-nums tracking-tight" style={{ color: 'var(--legend-percent)' }}>{item.percent}%</span>
     </motion.div>
   );
 });
 LegendItem.displayName = 'LegendItem';
 
-/* ── Compute tooltip position outside the donut ── */
 const DONUT_SIZE = 208;
-const CX = DONUT_SIZE / 2;
-const CY = DONUT_SIZE / 2;
-const OUTER_R = DONUT_SIZE * 0.82 / 2;
-const TOOLTIP_OFFSET = 18;
-
-function computeTooltipPosition(
-  chartData: { value: number }[],
-  index: number
-): { x: number; y: number; side: 'left' | 'right' | 'top' | 'bottom' } {
-  const total = chartData.reduce((a, b) => a + b.value, 0);
-  if (total === 0) return { x: CX, y: 0, side: 'top' };
-
-  let startAngle = 90;
-  for (let i = 0; i < index; i++) {
-    startAngle -= (chartData[i].value / total) * 360;
-  }
-  const segAngle = (chartData[index].value / total) * 360;
-  const midAngle = startAngle - segAngle / 2;
-
-  const rad = (midAngle * Math.PI) / 180;
-  const tipR = OUTER_R + TOOLTIP_OFFSET;
-  const rawX = CX + tipR * Math.cos(rad);
-  const rawY = CY - tipR * Math.sin(rad);
-
-  const normAngle = ((midAngle % 360) + 360) % 360;
-  let side: 'left' | 'right' | 'top' | 'bottom';
-  if (normAngle >= 45 && normAngle < 135) side = 'top';
-  else if (normAngle >= 135 && normAngle < 225) side = 'left';
-  else if (normAngle >= 225 && normAngle < 315) side = 'bottom';
-  else side = 'right';
-
-  return { x: rawX, y: rawY, side };
-}
-
-/* ── External Tooltip — simple, no AnimatePresence key flicker ── */
-const ExternalTooltip = memo(({
-  data,
-  position,
-  onConsultar,
-}: {
-  data: ChartItem;
-  position: { x: number; y: number; side: 'left' | 'right' | 'top' | 'bottom' };
-  onConsultar: () => void;
-}) => {
-  let transform = '';
-  switch (position.side) {
-    case 'right': transform = 'translate(4px, -50%)'; break;
-    case 'left': transform = 'translate(calc(-100% - 4px), -50%)'; break;
-    case 'top': transform = 'translate(-50%, calc(-100% - 4px))'; break;
-    case 'bottom': transform = 'translate(-50%, 4px)'; break;
-  }
-
-  return (
-    <div
-      className="absolute pointer-events-auto animate-in fade-in-0 zoom-in-95 duration-150"
-      style={{
-        left: position.x,
-        top: position.y,
-        transform,
-        zIndex: 50,
-      }}
-      role="tooltip"
-      aria-label={`${data.name}: ${data.sets} sets, ${data.percent}%`}
-    >
-      <div
-        className="rounded-xl px-3.5 py-2.5 border min-w-[140px]"
-        style={{
-          background: 'var(--tooltip-bg)',
-          borderColor: 'var(--tooltip-border)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          boxShadow: `0 0 20px ${data.color}22, 0 4px 16px rgba(0,0,0,0.15)`,
-        }}
-      >
-        <div className="flex items-center gap-2 mb-1">
-          <div
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: data.color, boxShadow: `0 0 8px ${data.color}` }}
-          />
-          <p className="font-semibold text-foreground text-xs tracking-tight">{data.name}</p>
-        </div>
-        <p className="text-muted-foreground text-[11px]">{data.sets} sets · {data.percent}%</p>
-        {data.id !== '_others' && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onConsultar(); }}
-            className="mt-2 flex items-center gap-1.5 text-[11px] font-medium rounded-lg px-2.5 py-1.5 w-full justify-center transition-all"
-            style={{
-              background: `${data.color}18`,
-              color: data.color,
-              border: `1px solid ${data.color}30`,
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = `${data.color}30`; }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = `${data.color}18`; }}
-          >
-            <Search className="w-3 h-3" />
-            Consultar datos
-          </button>
-        )}
-      </div>
-    </div>
-  );
-});
-ExternalTooltip.displayName = 'ExternalTooltip';
 
 /* ── Main Component ── */
 interface ProgressChartProps {
@@ -274,7 +141,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
 
   const { getMuscleVolume, unmappedCount, loading: volumeLoading } = useVolumeData();
 
-  // Close pinned tooltip on click outside or Escape
+  // Close on click outside or Escape
   useEffect(() => {
     if (pinnedIndex === null) return;
     const handleClick = (e: MouseEvent | TouchEvent) => {
@@ -284,10 +151,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
       }
     };
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPinnedIndex(null);
-        setHoverIndex(null);
-      }
+      if (e.key === 'Escape') { setPinnedIndex(null); setHoverIndex(null); }
     };
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('touchstart', handleClick);
@@ -308,13 +172,10 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     { value: 'custom' as TimeFilter, label: t('volumeChart.custom') },
   ], [t]);
 
-  // Compute date range from filter
   const dateRange = useMemo(() => {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
-    if (filter === 'last') {
-      return { start: todayStr, end: todayStr, isLast: true };
-    }
+    if (filter === 'last') return { start: todayStr, end: todayStr, isLast: true };
     const days = filter === 'custom' ? customDays : FILTER_DAYS[filter]!;
     const cutoff = new Date(now.getTime() - days * 86400000).toISOString().split('T')[0];
     return { start: cutoff, end: todayStr, isLast: false };
@@ -331,8 +192,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
         const p = PALETTE[colorIndex % PALETTE.length];
         colorIndex++;
         return {
-          id: muscleId,
-          name: data.name,
+          id: muscleId, name: data.name,
           color: isDark ? p.darkColor : p.color,
           sets: data.sets,
           percent: Math.round((data.sets / totalSets) * 1000) / 10,
@@ -342,17 +202,14 @@ export const ProgressChart = (_props: ProgressChartProps) => {
       .sort((a, b) => b.sets - a.sets);
 
     if (all.length <= MAX_SEGMENTS) return all;
-
     const top = all.slice(0, MAX_SEGMENTS);
     const rest = all.slice(MAX_SEGMENTS);
     const otherSets = rest.reduce((a, b) => a + b.sets, 0);
-    const otherPercent = Math.round((otherSets / totalSets) * 1000) / 10;
     top.push({
-      id: '_others',
-      name: 'Otros',
+      id: '_others', name: 'Otros',
       color: isDark ? 'hsl(220 15% 40%)' : 'hsl(220 15% 65%)',
       sets: otherSets,
-      percent: otherPercent,
+      percent: Math.round((otherSets / [...totals.values()].reduce((a, b) => a + b.sets, 0)) * 1000) / 10,
       value: otherSets,
     });
     return top;
@@ -360,14 +217,11 @@ export const ProgressChart = (_props: ProgressChartProps) => {
 
   const totalSets = useMemo(() => chartData.reduce((a, b) => a + b.sets, 0), [chartData]);
 
-  // Active index: pinned takes priority over hover
+  // Active index: pinned > hover
   const visibleIndex = pinnedIndex !== null ? pinnedIndex : hoverIndex;
-  const tooltipPos = useMemo(() => {
-    if (visibleIndex === null || visibleIndex >= chartData.length) return null;
-    return computeTooltipPosition(chartData, visibleIndex);
-  }, [visibleIndex, chartData]);
+  const activeItem = visibleIndex !== null ? chartData[visibleIndex] ?? null : null;
 
-  // Hover handlers (only when nothing pinned)
+  // Hover handlers
   const handlePieEnter = useCallback((_: any, index: number) => {
     if (pinnedIndex === null) setHoverIndex(index);
   }, [pinnedIndex]);
@@ -376,7 +230,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     if (pinnedIndex === null) setHoverIndex(null);
   }, [pinnedIndex]);
 
-  // Single click: pin tooltip immediately
+  // SINGLE click: pin tooltip immediately
   const handlePieClick = useCallback((_: any, index: number) => {
     if (pinnedIndex === index) {
       setPinnedIndex(null);
@@ -386,10 +240,13 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     }
   }, [pinnedIndex]);
 
-  // "Consultar datos" navigates directly
+  // "Consultar datos" → navigate directly
   const handleConsultar = useCallback(() => {
     if (pinnedIndex !== null && chartData[pinnedIndex] && chartData[pinnedIndex].id !== '_others') {
-      navigate(`/muscle/${chartData[pinnedIndex].id}`);
+      const id = chartData[pinnedIndex].id;
+      setPinnedIndex(null);
+      setHoverIndex(null);
+      navigate(`/muscle/${id}`);
     }
   }, [pinnedIndex, chartData, navigate]);
 
@@ -403,7 +260,6 @@ export const ProgressChart = (_props: ProgressChartProps) => {
     setCustomDays(Math.max(1, Number(e.target.value)));
   }, []);
 
-  // Legend handlers — stable refs
   const handleLegendHover = useCallback((i: number) => {
     if (pinnedIndex === null) setHoverIndex(i);
   }, [pinnedIndex]);
@@ -412,11 +268,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
   }, [pinnedIndex]);
   const handleLegendClick = useCallback((i: number) => {
     const item = chartData[i];
-    if (!item) return;
-    // If it's a real muscle, navigate directly
-    if (item.id !== '_others') {
-      navigate(`/muscle/${item.id}`);
-    }
+    if (item && item.id !== '_others') navigate(`/muscle/${item.id}`);
   }, [chartData, navigate]);
 
   const cssVars = useMemo(() => {
@@ -426,8 +278,8 @@ export const ProgressChart = (_props: ProgressChartProps) => {
         '--chart-border': 'rgba(255, 255, 255, 0.05)',
         '--chart-number': '#E6EDF7',
         '--chart-subtitle': '#6E7C93',
-        '--tooltip-bg': 'rgba(11, 18, 32, 0.92)',
-        '--tooltip-border': 'rgba(255, 255, 255, 0.1)',
+        '--tooltip-bg': 'rgba(11, 18, 32, 0.95)',
+        '--tooltip-border': 'rgba(255, 255, 255, 0.12)',
         '--legend-hover-bg': 'rgba(255, 255, 255, 0.04)',
         '--legend-text': '#9FB0C6',
         '--legend-muted': '#6E7C93',
@@ -440,8 +292,8 @@ export const ProgressChart = (_props: ProgressChartProps) => {
       '--chart-border': 'rgba(0, 0, 0, 0.04)',
       '--chart-number': '#0F1724',
       '--chart-subtitle': '#64748B',
-      '--tooltip-bg': 'rgba(255, 255, 255, 0.95)',
-      '--tooltip-border': 'rgba(0, 0, 0, 0.08)',
+      '--tooltip-bg': 'rgba(255, 255, 255, 0.97)',
+      '--tooltip-border': 'rgba(0, 0, 0, 0.1)',
       '--legend-hover-bg': 'rgba(0, 0, 0, 0.03)',
       '--legend-text': '#475569',
       '--legend-muted': '#64748B',
@@ -473,12 +325,8 @@ export const ProgressChart = (_props: ProgressChartProps) => {
       {/* Header */}
       <div className="relative flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight">
-            {t('volumeChart.title')}
-          </h3>
-          <p className="text-[11px] mt-0.5" style={{ color: 'var(--chart-subtitle)' }}>
-            Distribución por grupo muscular
-          </p>
+          <h3 className="text-sm font-semibold text-foreground tracking-tight">{t('volumeChart.title')}</h3>
+          <p className="text-[11px] mt-0.5" style={{ color: 'var(--chart-subtitle)' }}>Distribución por grupo muscular</p>
         </div>
         <Select value={filter} onValueChange={handleFilterChange}>
           <SelectTrigger className="w-[140px] h-8 text-xs rounded-xl border-border/30 bg-secondary/50 hover:bg-secondary/80 transition-colors">
@@ -504,20 +352,14 @@ export const ProgressChart = (_props: ProgressChartProps) => {
           >
             <div className="flex items-center gap-2">
               <label className="text-xs text-muted-foreground">{t('volumeChart.days')}:</label>
-              <input
-                type="number"
-                min={1}
-                max={365}
-                value={customDays}
-                onChange={handleCustomDaysChange}
-                className="w-16 h-8 rounded-xl border border-border/30 bg-secondary/40 text-center text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
-              />
+              <input type="number" min={1} max={365} value={customDays} onChange={handleCustomDaysChange}
+                className="w-16 h-8 rounded-xl border border-border/30 bg-secondary/40 text-center text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Unmapped exercises warning */}
+      {/* Unmapped warning */}
       {unmappedCount > 0 && (
         <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
@@ -527,7 +369,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
         </div>
       )}
 
-      {/* Loading state */}
+      {/* Content */}
       {volumeLoading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -542,38 +384,21 @@ export const ProgressChart = (_props: ProgressChartProps) => {
         </div>
       ) : (
         <div className="relative flex flex-col md:flex-row md:items-start gap-6">
-          {/* Donut with 3D effect */}
+          {/* Donut */}
           <div className="relative mx-auto md:mx-0 w-52 h-52 flex-shrink-0">
             {/* 3D shadow */}
-            <div
-              className="absolute inset-4 rounded-full pointer-events-none"
-              style={{
-                background: 'var(--donut-shadow)',
-                transform: 'translateY(10px) scaleY(0.25)',
-                filter: 'blur(8px)',
-              }}
-            />
-            {/* 3D perspective wrapper */}
-            <div
-              className="relative w-full h-full"
-              style={{ perspective: '900px' }}
-            >
-              <div
-                style={{
-                  transform: 'rotateX(15deg) translateZ(0)',
-                  transformStyle: 'preserve-3d',
-                }}
-              >
+            <div className="absolute inset-4 rounded-full pointer-events-none" style={{ background: 'var(--donut-shadow)', transform: 'translateY(10px) scaleY(0.25)', filter: 'blur(8px)' }} />
+            {/* 3D perspective */}
+            <div className="relative w-full h-full" style={{ perspective: '900px' }}>
+              <div style={{ transform: 'rotateX(15deg) translateZ(0)', transformStyle: 'preserve-3d' }}>
                 <ResponsiveContainer width="100%" height={DONUT_SIZE}>
                   <PieChart>
                     <Pie
                       data={chartData}
                       dataKey="value"
                       nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="58%"
-                      outerRadius="82%"
+                      cx="50%" cy="50%"
+                      innerRadius="58%" outerRadius="82%"
                       paddingAngle={2.5}
                       label={false}
                       animationBegin={0}
@@ -594,16 +419,11 @@ export const ProgressChart = (_props: ProgressChartProps) => {
                           className="cursor-pointer outline-none"
                           tabIndex={0}
                           onKeyDown={(e: any) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              handlePieClick(null, i);
-                            }
+                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePieClick(null, i); }
                             if (e.key === 'Escape') setPinnedIndex(null);
                           }}
                           style={{
-                            filter: highlightIndex === i
-                              ? `drop-shadow(0 0 10px ${d.color})`
-                              : 'none',
+                            filter: highlightIndex === i ? `drop-shadow(0 0 10px ${d.color})` : 'none',
                             opacity: highlightIndex !== null && highlightIndex !== i ? 0.45 : 1,
                             transform: highlightIndex === i ? 'scale(1.04)' : 'scale(1)',
                             transformOrigin: 'center',
@@ -617,26 +437,84 @@ export const ProgressChart = (_props: ProgressChartProps) => {
               </div>
             </div>
 
-            {/* Center label — always visible */}
+            {/* Center label — always visible, z-10 */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10" style={{ marginTop: '-6px' }}>
               <AnimatedCounter value={totalSets} />
-              <span className="text-[10px] uppercase tracking-[0.15em] font-medium mt-0.5" style={{ color: 'var(--chart-subtitle)' }}>
-                sets
-              </span>
-              <span className="text-[9px] mt-0.5 truncate max-w-[90px] text-center" style={{ color: 'var(--legend-muted)' }}>
-                {filterLabel}
-              </span>
+              <span className="text-[10px] uppercase tracking-[0.15em] font-medium mt-0.5" style={{ color: 'var(--chart-subtitle)' }}>sets</span>
+              <span className="text-[9px] mt-0.5 truncate max-w-[90px] text-center" style={{ color: 'var(--legend-muted)' }}>{filterLabel}</span>
             </div>
-
-            {/* External tooltip — NO AnimatePresence to avoid flicker */}
-            {visibleIndex !== null && tooltipPos && chartData[visibleIndex] && (
-              <ExternalTooltip
-                data={chartData[visibleIndex]}
-                position={tooltipPos}
-                onConsultar={handleConsultar}
-              />
-            )}
           </div>
+
+          {/* TOOLTIP: Fixed position ABOVE the donut, centered */}
+          {activeItem && pinnedIndex !== null && (
+            <div
+              className="absolute left-0 right-0 mx-auto z-50 flex justify-center pointer-events-none"
+              style={{ top: '-8px', transform: 'translateY(-100%)' }}
+            >
+              <div
+                className="pointer-events-auto rounded-xl px-4 py-3 border shadow-lg"
+                style={{
+                  background: 'var(--tooltip-bg)',
+                  borderColor: 'var(--tooltip-border)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  boxShadow: `0 0 24px ${activeItem.color}22, 0 8px 24px rgba(0,0,0,0.18)`,
+                  minWidth: 200,
+                  maxWidth: 280,
+                }}
+                role="tooltip"
+                aria-label={`${activeItem.name}: ${activeItem.sets} sets, ${activeItem.percent}%`}
+              >
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: activeItem.color, boxShadow: `0 0 10px ${activeItem.color}` }} />
+                  <p className="font-bold text-foreground text-sm tracking-tight">{activeItem.name}</p>
+                </div>
+                <p className="text-muted-foreground text-xs mb-3">{activeItem.sets} sets · {activeItem.percent}%</p>
+                {activeItem.id !== '_others' && (
+                  <button
+                    onClick={handleConsultar}
+                    className="flex items-center gap-2 text-xs font-semibold rounded-lg px-3 py-2 w-full justify-center transition-all"
+                    style={{
+                      background: `${activeItem.color}20`,
+                      color: activeItem.color,
+                      border: `1px solid ${activeItem.color}35`,
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = `${activeItem.color}35`; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = `${activeItem.color}20`; }}
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    Consultar datos
+                  </button>
+                )}
+                {/* Arrow indicator pointing down */}
+                <div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 rotate-45" style={{ background: 'var(--tooltip-bg)', borderRight: '1px solid var(--tooltip-border)', borderBottom: '1px solid var(--tooltip-border)' }} />
+              </div>
+            </div>
+          )}
+
+          {/* Hover-only mini tooltip (non-pinned, subtle) */}
+          {activeItem && pinnedIndex === null && hoverIndex !== null && (
+            <div
+              className="absolute left-0 right-0 mx-auto z-40 flex justify-center pointer-events-none"
+              style={{ top: '-4px', transform: 'translateY(-100%)' }}
+            >
+              <div
+                className="rounded-lg px-3 py-1.5 border"
+                style={{
+                  background: 'var(--tooltip-bg)',
+                  borderColor: 'var(--tooltip-border)',
+                  backdropFilter: 'blur(12px)',
+                  opacity: 0.95,
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeItem.color }} />
+                  <span className="text-xs font-medium text-foreground">{activeItem.name}</span>
+                  <span className="text-[10px] text-muted-foreground">{activeItem.sets}s · {activeItem.percent}%</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Legend */}
           <div className="flex-1 max-h-56 overflow-y-auto scrollbar-hide space-y-1 pr-1" role="list" aria-label="Muscle volume distribution">
