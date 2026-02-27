@@ -1,8 +1,9 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Dumbbell, TrendingUp, Activity, BarChart3, Zap, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Dumbbell, TrendingUp, Activity, BarChart3, Zap, ChevronDown, ChevronUp, CalendarDays, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useVolumeData } from '@/hooks/useVolumeData';
+import { usePerformanceEngine, type ExercisePerformance } from '@/hooks/usePerformanceEngine';
+import { getPointColor, exportToCSV, type ChartPointData } from '@/lib/performanceEngine';
 
 type DetailFilter = '2d' | '4d' | '1w' | '1m' | '3m' | 'all' | 'custom';
 
@@ -14,106 +15,68 @@ const FILTER_LABELS: Record<DetailFilter, string> = {
   '2d': '2 días', '4d': '4 días', '1w': '1 sem', '1m': '1 mes', '3m': '3 meses', 'all': 'Todo', 'custom': 'Personalizado',
 };
 
-/* ── Fatigue calculation ── */
-type RecoveryGroup = 'large' | 'medium' | 'fast';
-const RECOVERY_HOURS: Record<RecoveryGroup, number> = { large: 72, medium: 48, fast: 24 };
-
-const MUSCLE_RECOVERY_GROUP: Record<string, RecoveryGroup> = {
-  'cuádriceps': 'large', 'quadriceps': 'large', 'cuadriceps': 'large',
-  'isquiotibiales': 'large', 'hamstrings': 'large', 'isquios': 'large',
-  'dorsal': 'large', 'espalda': 'large', 'back': 'large', 'lats': 'large',
-  'pectoral': 'large', 'pecho': 'large', 'chest': 'large',
-  'glúteos': 'large', 'gluteos': 'large', 'glutes': 'large', 'glúteo mayor': 'large',
-  'trapecio': 'large', 'traps': 'large',
-  'abductor': 'large', 'aductor': 'large', 'adductor': 'large',
-  'bíceps': 'medium', 'biceps': 'medium',
-  'tríceps': 'medium', 'triceps': 'medium',
-  'gemelos': 'medium', 'calves': 'medium', 'pantorrillas': 'medium',
-  'antebrazo': 'medium', 'forearm': 'medium', 'forearms': 'medium',
-  'lumbar': 'medium', 'lower back': 'medium', 'erector': 'medium',
-  'deltoides': 'fast', 'hombros': 'fast', 'shoulders': 'fast', 'delts': 'fast',
-  'abdominales': 'fast', 'abdomen': 'fast', 'abs': 'fast', 'core': 'fast',
-  'oblicuos': 'fast', 'obliques': 'fast',
-};
-
-function getRecoveryGroup(muscleName: string): RecoveryGroup {
-  const n = muscleName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  for (const [key, group] of Object.entries(MUSCLE_RECOVERY_GROUP)) {
-    if (n.includes(key)) return group;
-  }
-  return 'medium';
-}
-
-function computeFatigue(muscleName: string, lastTrainedDate: string | null) {
-  if (!lastTrainedDate) return { percent: 100, color: '#10B981', label: 'Recuperado', hoursAgo: 999 };
-  const group = getRecoveryGroup(muscleName);
-  const totalHours = RECOVERY_HOURS[group];
-  const hoursAgo = (Date.now() - new Date(lastTrainedDate).getTime()) / 3_600_000;
-  const percent = Math.min(100, Math.round((hoursAgo / totalHours) * 100));
-  let color = '#10B981', label = 'Recuperado';
-  if (percent < 33) { color = '#EF4444'; label = 'Fatigado'; }
-  else if (percent < 67) { color = '#F97316'; label = 'Recuperándose'; }
-  else if (percent < 100) { color = '#EAB308'; label = 'Casi listo'; }
-  return { percent, color, label, hoursAgo: Math.round(hoursAgo) };
-}
-
-/* ── Progression chart per exercise (line + dots like reference) ── */
-const ExerciseProgressionChart = ({ logs }: { logs: { date: string; sets: number; weight: number; reps: number; rir?: number; partialReps?: number }[] }) => {
+/* ── Enhanced progression chart using PerformanceEngine ── */
+const ExerciseProgressionChart = ({ points }: { points: ChartPointData[] }) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  if (logs.length < 2) {
+  const [showMode, setShowMode] = useState<'est1rm' | 'weight'>('est1rm');
+
+  if (points.length < 2) {
     return <p className="text-[10px] text-muted-foreground/60 mt-2 italic">Datos insuficientes para gráfica</p>;
   }
 
-  const last16 = logs.slice(-16);
-  const weights = last16.map(l => l.weight);
-  const minW = Math.min(...weights);
-  const maxW = Math.max(...weights);
-  const range = maxW - minW || 1;
-  const paddedMin = minW - range * 0.15;
-  const paddedMax = maxW + range * 0.15;
+  const last16 = points.slice(-16);
+  const values = last16.map(p => showMode === 'est1rm' ? p.est_1rm_set : p.best_weight);
+  const minV = Math.min(...values);
+  const maxV = Math.max(...values);
+  const range = maxV - minV || 1;
+  const paddedMin = minV - range * 0.15;
+  const paddedMax = maxV + range * 0.15;
   const paddedRange = paddedMax - paddedMin;
 
-  const W = 320;
-  const H = 140;
-  const padX = 36;
-  const padY = 16;
-  const chartW = W - padX * 2;
-  const chartH = H - padY * 2;
+  const W = 320, H = 140, padX = 40, padY = 16;
+  const chartW = W - padX * 2, chartH = H - padY * 2;
 
-  const points = last16.map((log, i) => ({
+  const pts = last16.map((p, i) => ({
     x: padX + (last16.length === 1 ? chartW / 2 : (i / (last16.length - 1)) * chartW),
-    y: padY + chartH - ((log.weight - paddedMin) / paddedRange) * chartH,
-    log,
-    i,
+    y: padY + chartH - (((showMode === 'est1rm' ? p.est_1rm_set : p.best_weight) - paddedMin) / paddedRange) * chartH,
+    point: p, i,
   }));
 
-  const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
+  const polyline = pts.map(p => `${p.x},${p.y}`).join(' ');
 
-  // Y-axis ticks
   const ticks = 5;
   const yLabels = Array.from({ length: ticks }, (_, i) => {
     const val = paddedMin + (i / (ticks - 1)) * paddedRange;
-    return { val: Math.round(val), y: padY + chartH - (i / (ticks - 1)) * chartH };
+    return { val: Math.round(val * 10) / 10, y: padY + chartH - (i / (ticks - 1)) * chartH };
   });
 
   return (
     <div className="mt-3 pt-3 border-t border-border/20">
-      <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider font-medium">Progresión de peso</p>
+      {/* Toggle: est1RM vs weight */}
+      <div className="flex items-center gap-2 mb-2">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium flex-1">
+          {showMode === 'est1rm' ? 'Progresión est. 1RM' : 'Progresión peso'}
+        </p>
+        <button
+          onClick={() => setShowMode(m => m === 'est1rm' ? 'weight' : 'est1rm')}
+          className="text-[9px] px-2 py-1 rounded-md bg-secondary/50 text-muted-foreground hover:bg-secondary/80 transition-colors"
+        >
+          {showMode === 'est1rm' ? 'Ver peso' : 'Ver est. 1RM'}
+        </button>
+      </div>
       <div className="relative">
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 180 }}>
-          {/* Y grid lines + labels */}
           {yLabels.map((t, i) => (
             <g key={i}>
               <line x1={padX} y1={t.y} x2={W - padX} y2={t.y} stroke="hsl(var(--border))" strokeWidth={0.5} strokeDasharray="3,3" opacity={0.4} />
               <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize={8} opacity={0.6}>{t.val}</text>
             </g>
           ))}
-          {/* Line */}
           <polyline points={polyline} fill="none" stroke="hsl(var(--primary))" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-          {/* Dots */}
-          {points.map((p) => (
+          {pts.map((p) => (
             <g key={p.i}>
-              <circle cx={p.x} cy={p.y} r={hoveredIdx === p.i ? 6 : 4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2}
+              <circle cx={p.x} cy={p.y} r={hoveredIdx === p.i ? 6 : 4}
+                fill={p.point.color} stroke="hsl(var(--background))" strokeWidth={2}
                 className="cursor-pointer transition-all"
                 onMouseEnter={() => setHoveredIdx(p.i)}
                 onMouseLeave={() => setHoveredIdx(null)}
@@ -122,10 +85,10 @@ const ExerciseProgressionChart = ({ logs }: { logs: { date: string; sets: number
             </g>
           ))}
         </svg>
-        {/* X-axis dates */}
-        <div className="flex justify-between px-9 -mt-1">
-          {last16.length <= 8 ? last16.map((l, i) => (
-            <span key={i} className="text-[7px] text-muted-foreground/50">{l.date.slice(5)}</span>
+        {/* X dates */}
+        <div className="flex justify-between px-10 -mt-1">
+          {last16.length <= 8 ? last16.map((p, i) => (
+            <span key={i} className="text-[7px] text-muted-foreground/50">{p.date.slice(5)}</span>
           )) : (
             <>
               <span className="text-[7px] text-muted-foreground/50">{last16[0]?.date?.slice(5)}</span>
@@ -135,20 +98,35 @@ const ExerciseProgressionChart = ({ logs }: { logs: { date: string; sets: number
           )}
         </div>
         {/* Tooltip */}
-        {hoveredIdx !== null && points[hoveredIdx] && (
+        {hoveredIdx !== null && pts[hoveredIdx] && (
           <div
             className="absolute z-50 pointer-events-none"
             style={{
-              left: `${(points[hoveredIdx].x / W) * 100}%`,
-              top: `${(points[hoveredIdx].y / H) * 100}%`,
+              left: `${(pts[hoveredIdx].x / W) * 100}%`,
+              top: `${(pts[hoveredIdx].y / H) * 100}%`,
               transform: 'translate(-50%, -120%)',
             }}
           >
             <div className="bg-popover border border-border rounded-lg px-2.5 py-1.5 shadow-xl text-[10px] whitespace-nowrap">
-              <p className="font-semibold text-foreground">{points[hoveredIdx].log.date.slice(5)}</p>
-              <p className="text-primary font-bold">{points[hoveredIdx].log.weight} kg × {points[hoveredIdx].log.reps}</p>
-              {points[hoveredIdx].log.rir != null && <p className="text-muted-foreground">RIR {points[hoveredIdx].log.rir}</p>}
-              {(points[hoveredIdx].log.partialReps ?? 0) > 0 && <p className="text-muted-foreground">+{points[hoveredIdx].log.partialReps} parciales</p>}
+              <p className="font-semibold text-foreground">{pts[hoveredIdx].point.date}</p>
+              <p className="text-primary font-bold">
+                {pts[hoveredIdx].point.best_weight} kg × {pts[hoveredIdx].point.best_reps}
+              </p>
+              <p className="text-muted-foreground">
+                est. 1RM: <span className="font-semibold text-foreground">{pts[hoveredIdx].point.est_1rm_set.toFixed(1)} kg</span>
+              </p>
+              <p className="text-muted-foreground">
+                IEM sesión: {pts[hoveredIdx].point.session_iem.toFixed(1)}
+              </p>
+              {pts[hoveredIdx].point.best_rir !== null && (
+                <p className="text-muted-foreground">
+                  RIR: {pts[hoveredIdx].point.best_rir}
+                  {pts[hoveredIdx].point.rir_estimated && <span className="text-amber-500 ml-1">(est.)</span>}
+                </p>
+              )}
+              <p className={`font-medium ${pts[hoveredIdx].point.pct_change > 0 ? 'text-green-500' : pts[hoveredIdx].point.pct_change < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                vs baseline: {(pts[hoveredIdx].point.pct_change * 100).toFixed(1)}%
+              </p>
             </div>
           </div>
         )}
@@ -158,38 +136,48 @@ const ExerciseProgressionChart = ({ logs }: { logs: { date: string; sets: number
 };
 
 /* ── Exercise card with expandable chart ── */
-const ExerciseItem = ({ ex }: { ex: {
-  exerciseId: string; exerciseName: string; totalSets: number; totalReps: number; maxWeight: number; lastDate: string;
-  logs: { date: string; sets: number; weight: number; reps: number; rir?: number; partialReps?: number }[];
-}}) => {
+const ExerciseItem = ({ ex, chartPoints }: { ex: ExercisePerformance; chartPoints: ChartPointData[] }) => {
   const [expanded, setExpanded] = useState(false);
   const lastDateFormatted = ex.lastDate ? formatRelativeDate(ex.lastDate) : 'Sin datos';
+  const latestPctStr = ex.latestPctChange !== 0
+    ? `${ex.latestPctChange > 0 ? '+' : ''}${(ex.latestPctChange * 100).toFixed(1)}%`
+    : '';
 
   return (
     <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-sm overflow-hidden">
       <div className="p-3">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">{ex.exerciseName}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground truncate">{ex.exerciseName}</p>
+              {latestPctStr && (
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                  ex.latestPctChange > 0 ? 'bg-green-500/15 text-green-500' : 'bg-red-500/15 text-red-500'
+                }`}>
+                  {latestPctStr}
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {ex.totalSets} series · {ex.totalReps} reps · {ex.maxWeight}kg PR · {lastDateFormatted}
+              {ex.totalSets} series · {ex.totalReps} reps · est.1RM {ex.bestEst1rm.toFixed(1)}kg · {lastDateFormatted}
             </p>
           </div>
-          {/* Mini sparkline */}
-          {ex.logs.length > 1 && (
-            <div className="flex items-end gap-px h-6 flex-shrink-0">
-              {ex.logs.slice(-8).map((log, j) => {
-                const maxSets = Math.max(...ex.logs.slice(-8).map(l => l.sets));
-                const h = maxSets > 0 ? (log.sets / maxSets) * 100 : 50;
-                return (
-                  <div key={j} className="w-1.5 rounded-t-sm bg-primary" style={{ height: `${Math.max(h, 15)}%`, opacity: 0.3 + (h / 100) * 0.7 }} />
-                );
-              })}
+          {/* Alert badges */}
+          {ex.alerts.length > 0 && (
+            <div className="flex gap-1">
+              {ex.alerts.map((a, j) => (
+                <span key={j} className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium ${
+                  a.severity === 'error' ? 'bg-red-500/15 text-red-500' :
+                  a.severity === 'warn' ? 'bg-amber-500/15 text-amber-500' :
+                  'bg-green-500/15 text-green-500'
+                }`}>
+                  {a.type === 'improvement' ? '↑' : a.type === 'regression' ? '↓' : a.type === 'stagnation' ? '=' : '⚠'}
+                </span>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Expand/collapse button */}
         <button
           onClick={() => setExpanded(v => !v)}
           className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors min-h-[44px] w-full justify-center rounded-lg bg-primary/5 hover:bg-primary/10"
@@ -199,10 +187,9 @@ const ExerciseItem = ({ ex }: { ex: {
         </button>
       </div>
 
-      {/* Expanded chart */}
       {expanded && (
         <div className="px-3 pb-3">
-          <ExerciseProgressionChart logs={ex.logs} />
+          <ExerciseProgressionChart points={chartPoints} />
         </div>
       )}
     </div>
@@ -218,7 +205,7 @@ const MuscleDetail = () => {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
 
-  const { getMuscleDetail, loading } = useVolumeData();
+  const { computeMusclePerformances, getExerciseChartPoints, loading } = usePerformanceEngine();
 
   const dateRange = useMemo(() => {
     if (filter === 'custom') {
@@ -232,18 +219,33 @@ const MuscleDetail = () => {
     return { start, end };
   }, [filter, customStart, customEnd]);
 
-  const muscleData = useMemo(() => {
+  const musclePerf = useMemo(() => {
     if (!id) return null;
-    return getMuscleDetail(id, dateRange.start, dateRange.end);
-  }, [id, getMuscleDetail, dateRange]);
+    const muscles = computeMusclePerformances(dateRange.start, dateRange.end);
+    return muscles.get(id) || null;
+  }, [id, computeMusclePerformances, dateRange]);
 
-  // Fatigue: use all-time data for last training date
-  const fatigue = useMemo(() => {
-    if (!muscleData) return null;
-    const allTimeData = getMuscleDetail(id!, undefined, undefined);
-    const lastDate = allTimeData?.exercises.reduce((latest, ex) => (ex.lastDate > latest ? ex.lastDate : latest), '') || null;
-    return computeFatigue(muscleData.name, lastDate);
-  }, [muscleData, id, getMuscleDetail]);
+  const handleExport = useCallback(() => {
+    if (!musclePerf) return;
+    const rows: Record<string, any>[] = [];
+    for (const ex of musclePerf.exercises) {
+      for (const s of ex.sessions) {
+        rows.push({
+          muscle: musclePerf.muscleName,
+          exercise: ex.exerciseName,
+          date: s.sessionDate,
+          est_1rm: s.session_est_1rm,
+          session_iem: s.session_iem,
+          baseline: s.baseline,
+          pct_change: s.pct_change,
+          sets: s.sets.length,
+          best_weight: s.bestWeight,
+          best_reps: s.bestReps,
+        });
+      }
+    }
+    exportToCSV(rows, `muscle_${musclePerf.muscleName}_performance`);
+  }, [musclePerf]);
 
   if (loading) {
     return (
@@ -253,7 +255,7 @@ const MuscleDetail = () => {
     );
   }
 
-  if (!muscleData) {
+  if (!musclePerf) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -266,8 +268,11 @@ const MuscleDetail = () => {
     );
   }
 
-  const totalReps = muscleData.exercises.reduce((a, b) => a + b.totalReps, 0);
-  const bestWeight = Math.max(...muscleData.exercises.map(e => e.maxWeight), 0);
+  const totalReps = musclePerf.exercises.reduce((a, b) => a + b.totalReps, 0);
+  const bestEst1rm = musclePerf.exercises.length > 0
+    ? Math.max(...musclePerf.exercises.map(e => e.bestEst1rm))
+    : 0;
+  const fatigue = musclePerf.fatigue;
 
   return (
     <div className="min-h-screen bg-background">
@@ -277,7 +282,10 @@ const MuscleDetail = () => {
           <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-secondary/60 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-bold text-foreground tracking-tight">{muscleData.name}</h1>
+          <h1 className="text-lg font-bold text-foreground tracking-tight flex-1">{musclePerf.muscleName}</h1>
+          <button onClick={handleExport} className="p-2 rounded-xl hover:bg-secondary/60 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" title="Exportar CSV">
+            <Download className="w-4 h-4 text-muted-foreground" />
+          </button>
         </div>
       </div>
 
@@ -299,7 +307,6 @@ const MuscleDetail = () => {
           ))}
         </div>
 
-        {/* Custom date range */}
         {filter === 'custom' && (
           <div className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-muted-foreground" />
@@ -311,31 +318,33 @@ const MuscleDetail = () => {
           </div>
         )}
 
-        {/* Fatigue indicator */}
-        {fatigue && (
-          <div className="rounded-xl p-3 border border-border/30 bg-card/60 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4" style={{ color: fatigue.color }} />
-              <span className="text-xs font-semibold text-foreground">Estado de recuperación</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium ml-auto" style={{ background: `${fatigue.color}20`, color: fatigue.color }}>
-                {fatigue.label}
-              </span>
-            </div>
-            <div className="w-full h-2.5 rounded-full bg-secondary/50 overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${fatigue.percent}%`, background: fatigue.color }} />
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1.5">
-              {fatigue.percent}% recuperado · {fatigue.hoursAgo < 999 ? `Hace ${fatigue.hoursAgo}h` : 'Sin datos recientes'}
-            </p>
+        {/* Fatigue indicator — Neo Fatigue 2.0 exponential model */}
+        <div className="rounded-xl p-3 border border-border/30 bg-card/60 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-4 h-4" style={{ color: fatigue.color }} />
+            <span className="text-xs font-semibold text-foreground">Estado de recuperación</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium ml-auto" style={{ background: `${fatigue.color}20`, color: fatigue.color }}>
+              {fatigue.label}
+            </span>
           </div>
-        )}
+          <div className="w-full h-2.5 rounded-full bg-secondary/50 overflow-hidden">
+            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${fatigue.recovery_pct}%`, background: fatigue.color }} />
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1.5">
+            {fatigue.recovery_pct}% recuperado · {fatigue.hours_since_last < 999 ? `Hace ${fatigue.hours_since_last}h` : 'Sin datos'}
+            {fatigue.hours_remaining > 0 && ` · ~${fatigue.hours_remaining}h restantes`}
+          </p>
+          <p className="text-[9px] text-muted-foreground/60 mt-1">
+            Modelo: decaimiento exponencial (k={fatigue.recovery_group})
+          </p>
+        </div>
 
         {/* Stats cards */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: Dumbbell, label: 'Series totales', value: muscleData.totalSets },
-            { icon: TrendingUp, label: 'Mejor peso (kg)', value: bestWeight },
-            { icon: Activity, label: 'Reps totales', value: totalReps },
+            { icon: Dumbbell, label: 'Series totales', value: musclePerf.totalSets },
+            { icon: TrendingUp, label: 'Mejor est. 1RM', value: `${bestEst1rm.toFixed(1)}` },
+            { icon: Activity, label: 'IEM total', value: `${musclePerf.totalIEM.toFixed(0)}` },
           ].map((stat, i) => (
             <div key={i} className="rounded-xl p-3 border border-border/30 bg-card/60 backdrop-blur-sm">
               <stat.icon className="w-4 h-4 text-muted-foreground mb-1.5" />
@@ -348,16 +357,20 @@ const MuscleDetail = () => {
         {/* Exercise list */}
         <div>
           <h2 className="text-sm font-semibold text-foreground mb-3">
-            Ejercicios realizados ({muscleData.exercises.length})
+            Ejercicios realizados ({musclePerf.exercises.length})
           </h2>
           <div className="space-y-3">
-            {muscleData.exercises.map(ex => (
-              <ExerciseItem key={ex.exerciseId} ex={ex} />
+            {musclePerf.exercises.map(ex => (
+              <ExerciseItem
+                key={ex.exerciseId}
+                ex={ex}
+                chartPoints={getExerciseChartPoints(ex.exerciseId, dateRange.start, dateRange.end)}
+              />
             ))}
           </div>
         </div>
 
-        {muscleData.exercises.length === 0 && (
+        {musclePerf.exercises.length === 0 && (
           <div className="text-center py-8">
             <p className="text-sm text-muted-foreground">No hay ejercicios registrados para este periodo</p>
           </div>

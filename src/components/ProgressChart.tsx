@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useVolumeData } from '@/hooks/useVolumeData';
+import { usePerformanceEngine } from '@/hooks/usePerformanceEngine';
 
 /* ── Types ── */
 interface ChartItem {
@@ -139,7 +139,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
   const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const reduced = prefersReducedMotion();
 
-  const { getMuscleVolume, unmappedCount, loading: volumeLoading } = useVolumeData();
+  const { getMuscleVolume, unmappedCount, loading: volumeLoading } = usePerformanceEngine();
 
   // Close on click outside or Escape
   useEffect(() => {
