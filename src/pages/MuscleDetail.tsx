@@ -57,67 +57,101 @@ function computeFatigue(muscleName: string, lastTrainedDate: string | null) {
   return { percent, color, label, hoursAgo: Math.round(hoursAgo) };
 }
 
-/* ── Progression chart per exercise ── */
+/* ── Progression chart per exercise (line + dots like reference) ── */
 const ExerciseProgressionChart = ({ logs }: { logs: { date: string; sets: number; weight: number; reps: number; rir?: number; partialReps?: number }[] }) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   if (logs.length < 2) {
     return <p className="text-[10px] text-muted-foreground/60 mt-2 italic">Datos insuficientes para gráfica</p>;
   }
 
-  const last12 = logs.slice(-12);
-  const maxVol = Math.max(...last12.map(l => l.weight * l.reps), 1);
+  const last16 = logs.slice(-16);
+  const weights = last16.map(l => l.weight);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const range = maxW - minW || 1;
+  const paddedMin = minW - range * 0.15;
+  const paddedMax = maxW + range * 0.15;
+  const paddedRange = paddedMax - paddedMin;
+
+  const W = 320;
+  const H = 140;
+  const padX = 36;
+  const padY = 16;
+  const chartW = W - padX * 2;
+  const chartH = H - padY * 2;
+
+  const points = last16.map((log, i) => ({
+    x: padX + (last16.length === 1 ? chartW / 2 : (i / (last16.length - 1)) * chartW),
+    y: padY + chartH - ((log.weight - paddedMin) / paddedRange) * chartH,
+    log,
+    i,
+  }));
+
+  const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
+
+  // Y-axis ticks
+  const ticks = 5;
+  const yLabels = Array.from({ length: ticks }, (_, i) => {
+    const val = paddedMin + (i / (ticks - 1)) * paddedRange;
+    return { val: Math.round(val), y: padY + chartH - (i / (ticks - 1)) * chartH };
+  });
 
   return (
     <div className="mt-3 pt-3 border-t border-border/20">
-      <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider font-medium">Progresión de volumen</p>
-      <div className="relative flex items-end gap-[3px] h-16">
-        {last12.map((log, j) => {
-          const vol = log.weight * log.reps;
-          const h = (vol / maxVol) * 100;
-          const isLast = j === last12.length - 1;
-          const isHovered = hoveredIdx === j;
-          return (
-            <div
-              key={j}
-              className="flex-1 flex flex-col items-center relative cursor-pointer"
-              onMouseEnter={() => setHoveredIdx(j)}
-              onMouseLeave={() => setHoveredIdx(null)}
-              onTouchStart={() => setHoveredIdx(j)}
-              onTouchEnd={() => setTimeout(() => setHoveredIdx(null), 2000)}
-            >
-              {/* Tooltip on hover */}
-              {isHovered && (
-                <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap">
-                  <div className="bg-popover border border-border rounded-lg px-2.5 py-1.5 shadow-lg text-[10px]">
-                    <p className="font-semibold text-foreground">{log.date.slice(5)}</p>
-                    <p className="text-muted-foreground">{log.weight}kg × {log.reps}r</p>
-                    {log.rir != null && <p className="text-muted-foreground">RIR: {log.rir}</p>}
-                    {(log.partialReps ?? 0) > 0 && <p className="text-muted-foreground">Parciales: {log.partialReps}</p>}
-                    <p className="text-primary font-medium">Vol: {vol}kg</p>
-                  </div>
-                </div>
-              )}
-              <div
-                className="w-full rounded-t-sm transition-all duration-200"
-                style={{
-                  height: `${Math.max(h, 8)}%`,
-                  minHeight: '4px',
-                  background: isLast
-                    ? 'hsl(var(--primary))'
-                    : isHovered
-                      ? 'hsl(var(--primary) / 0.6)'
-                      : 'hsl(var(--primary) / 0.3)',
-                  transform: isHovered ? 'scaleY(1.05)' : 'scaleY(1)',
-                  transformOrigin: 'bottom',
-                }}
+      <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider font-medium">Progresión de peso</p>
+      <div className="relative">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 180 }}>
+          {/* Y grid lines + labels */}
+          {yLabels.map((t, i) => (
+            <g key={i}>
+              <line x1={padX} y1={t.y} x2={W - padX} y2={t.y} stroke="hsl(var(--border))" strokeWidth={0.5} strokeDasharray="3,3" opacity={0.4} />
+              <text x={padX - 4} y={t.y + 3} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize={8} opacity={0.6}>{t.val}</text>
+            </g>
+          ))}
+          {/* Line */}
+          <polyline points={polyline} fill="none" stroke="hsl(var(--primary))" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+          {/* Dots */}
+          {points.map((p) => (
+            <g key={p.i}>
+              <circle cx={p.x} cy={p.y} r={hoveredIdx === p.i ? 6 : 4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2}
+                className="cursor-pointer transition-all"
+                onMouseEnter={() => setHoveredIdx(p.i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                onTouchStart={() => setHoveredIdx(p.i)}
               />
+            </g>
+          ))}
+        </svg>
+        {/* X-axis dates */}
+        <div className="flex justify-between px-9 -mt-1">
+          {last16.length <= 8 ? last16.map((l, i) => (
+            <span key={i} className="text-[7px] text-muted-foreground/50">{l.date.slice(5)}</span>
+          )) : (
+            <>
+              <span className="text-[7px] text-muted-foreground/50">{last16[0]?.date?.slice(5)}</span>
+              <span className="text-[7px] text-muted-foreground/50">{last16[Math.floor(last16.length / 2)]?.date?.slice(5)}</span>
+              <span className="text-[7px] text-muted-foreground/50">{last16[last16.length - 1]?.date?.slice(5)}</span>
+            </>
+          )}
+        </div>
+        {/* Tooltip */}
+        {hoveredIdx !== null && points[hoveredIdx] && (
+          <div
+            className="absolute z-50 pointer-events-none"
+            style={{
+              left: `${(points[hoveredIdx].x / W) * 100}%`,
+              top: `${(points[hoveredIdx].y / H) * 100}%`,
+              transform: 'translate(-50%, -120%)',
+            }}
+          >
+            <div className="bg-popover border border-border rounded-lg px-2.5 py-1.5 shadow-xl text-[10px] whitespace-nowrap">
+              <p className="font-semibold text-foreground">{points[hoveredIdx].log.date.slice(5)}</p>
+              <p className="text-primary font-bold">{points[hoveredIdx].log.weight} kg × {points[hoveredIdx].log.reps}</p>
+              {points[hoveredIdx].log.rir != null && <p className="text-muted-foreground">RIR {points[hoveredIdx].log.rir}</p>}
+              {(points[hoveredIdx].log.partialReps ?? 0) > 0 && <p className="text-muted-foreground">+{points[hoveredIdx].log.partialReps} parciales</p>}
             </div>
-          );
-        })}
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[8px] text-muted-foreground/60">{last12[0]?.date?.slice(5)}</span>
-        <span className="text-[8px] text-muted-foreground/60">{last12[last12.length - 1]?.date?.slice(5)}</span>
+          </div>
+        )}
       </div>
     </div>
   );
