@@ -499,6 +499,41 @@ export type Database = {
           },
         ]
       }
+      muscle_fatigue_states: {
+        Row: {
+          current_fatigue_value: number
+          hours_remaining_estimate: number | null
+          id: string
+          last_updated_at: string
+          muscle_id: string
+          user_id: string
+        }
+        Insert: {
+          current_fatigue_value?: number
+          hours_remaining_estimate?: number | null
+          id?: string
+          last_updated_at?: string
+          muscle_id: string
+          user_id: string
+        }
+        Update: {
+          current_fatigue_value?: number
+          hours_remaining_estimate?: number | null
+          id?: string
+          last_updated_at?: string
+          muscle_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muscle_fatigue_states_muscle_id_fkey"
+            columns: ["muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscle_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       muscle_groups: {
         Row: {
           category: string
@@ -522,6 +557,44 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      muscle_load_logs: {
+        Row: {
+          created_at: string
+          id: string
+          load_amount: number
+          muscle_id: string
+          session_date: string
+          source_modality: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          load_amount?: number
+          muscle_id: string
+          session_date?: string
+          source_modality?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          load_amount?: number
+          muscle_id?: string
+          session_date?: string
+          source_modality?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muscle_load_logs_muscle_id_fkey"
+            columns: ["muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscle_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nutrition_goals: {
         Row: {
@@ -552,6 +625,36 @@ export type Database = {
           daily_protein?: number
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      performance_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          read_flag: boolean
+          severity: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          read_flag?: boolean
+          severity?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          read_flag?: boolean
+          severity?: string
           user_id?: string
         }
         Relationships: []
@@ -643,11 +746,52 @@ export type Database = {
         }
         Relationships: []
       }
-      set_logs: {
+      session_exercise_summary: {
         Row: {
+          adjusted_pct: number | null
+          baseline: number | null
           created_at: string
           exercise_id: string
           id: string
+          pct_change: number | null
+          session_date: string
+          session_est_1rm: number
+          session_iem: number
+          user_id: string
+        }
+        Insert: {
+          adjusted_pct?: number | null
+          baseline?: number | null
+          created_at?: string
+          exercise_id: string
+          id?: string
+          pct_change?: number | null
+          session_date: string
+          session_est_1rm?: number
+          session_iem?: number
+          user_id: string
+        }
+        Update: {
+          adjusted_pct?: number | null
+          baseline?: number | null
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          pct_change?: number | null
+          session_date?: string
+          session_est_1rm?: number
+          session_iem?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      set_logs: {
+        Row: {
+          created_at: string
+          est_1rm_set: number | null
+          exercise_id: string
+          id: string
+          iem_set: number | null
           is_warmup: boolean | null
           logged_at: string
           partial_reps: number | null
@@ -659,8 +803,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          est_1rm_set?: number | null
           exercise_id: string
           id?: string
+          iem_set?: number | null
           is_warmup?: boolean | null
           logged_at?: string
           partial_reps?: number | null
@@ -672,8 +818,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          est_1rm_set?: number | null
           exercise_id?: string
           id?: string
+          iem_set?: number | null
           is_warmup?: boolean | null
           logged_at?: string
           partial_reps?: number | null
