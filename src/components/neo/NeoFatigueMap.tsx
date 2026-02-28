@@ -5,28 +5,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { Activity, Eye, Info, X, Clock, Zap, FlaskConical, Dumbbell } from 'lucide-react';
 import { SetLog } from '@/types/database';
+import { calculateFatigue, type FatigueState, type RecoveryGroup } from '@/lib/performanceEngine';
 
 // ──────────────────────────────────────────────
-// Recovery config per group
-// ──────────────────────────────────────────────
-type RecoveryGroup = 'large' | 'medium' | 'spinal' | 'fast';
-
-const TOTAL_RECOVERY_HOURS: Record<RecoveryGroup, number> = {
-  large: 72,
-  medium: 48,
-  spinal: 48,
-  fast: 24,
-};
-
-const RECOVERY_COLORS: Record<RecoveryGroup, { thresholds: number[]; colors: string[] }> = {
-  large: { thresholds: [24, 48, 72], colors: ['#EF4444', '#F97316', '#EAB308', '#10B981'] },
-  medium: { thresholds: [24, 48], colors: ['#EF4444', '#EAB308', '#10B981'] },
-  spinal: { thresholds: [24, 48], colors: ['#EF4444', '#EAB308', '#10B981'] },
-  fast: { thresholds: [24], colors: ['#EF4444', '#10B981'] },
-};
-
-// ──────────────────────────────────────────────
-// Core calculation engine
+// Recovery result adapter (wraps PerformanceEngine's exponential model)
 // ──────────────────────────────────────────────
 interface RecoveryResult {
   percent: number;
@@ -34,26 +16,26 @@ interface RecoveryResult {
   elapsedHours: number;
   remainingHours: number;
   statusKey: string;
+  currentFatigue: number;
 }
 
-function calculateRecovery(group: RecoveryGroup, lastTrained: Date, now: number): RecoveryResult {
-  const elapsedHours = (now - lastTrained.getTime()) / 3_600_000;
-  const total = TOTAL_RECOVERY_HOURS[group];
-  const percent = Math.min(100, Math.round((elapsedHours / total) * 100));
-  const remainingHours = Math.max(0, Math.ceil(total - elapsedHours));
-
-  const { thresholds, colors } = RECOVERY_COLORS[group];
-  let color = colors[colors.length - 1];
-  for (let i = 0; i < thresholds.length; i++) {
-    if (elapsedHours < thresholds[i]) { color = colors[i]; break; }
-  }
+function calculateRecoveryFromEngine(muscleName: string, lastTrained: Date, _now: number): RecoveryResult {
+  const lastTrainedISO = lastTrained.toISOString();
+  const fatigue = calculateFatigue(muscleName, lastTrainedISO);
 
   let statusKey = 'fatigueMap.recovered';
-  if (percent < 33) statusKey = 'fatigueMap.fatigued';
-  else if (percent < 67) statusKey = 'fatigueMap.moderate';
-  else if (percent < 100) statusKey = 'fatigueMap.almostReady';
+  if (fatigue.recovery_pct < 33) statusKey = 'fatigueMap.fatigued';
+  else if (fatigue.recovery_pct < 67) statusKey = 'fatigueMap.moderate';
+  else if (fatigue.recovery_pct < 100) statusKey = 'fatigueMap.almostReady';
 
-  return { percent, color, elapsedHours, remainingHours, statusKey };
+  return {
+    percent: fatigue.recovery_pct,
+    color: fatigue.color,
+    elapsedHours: fatigue.hours_since_last,
+    remainingHours: fatigue.hours_remaining,
+    statusKey,
+    currentFatigue: fatigue.current_fatigue,
+  };
 }
 
 // ──────────────────────────────────────────────
@@ -131,7 +113,7 @@ const FATIGUE_MUSCLES: MuscleDef[] = [
     frontPath: 'M 118,334 Q 122,348 124,366 Q 124,384 122,396 Q 118,398 114,396 Q 114,384 114,366 Q 114,348 118,334 Z' },
   { id: 'tibialis-r', nameKey: 'fatigueMap.muscles.tibialisR', group: 'medium',
     frontPath: 'M 182,334 Q 178,348 176,366 Q 176,384 178,396 Q 182,398 186,396 Q 186,384 186,366 Q 186,348 182,334 Z' },
-  { id: 'lower-back', nameKey: 'fatigueMap.muscles.lowerBack', group: 'spinal',
+  { id: 'lower-back', nameKey: 'fatigueMap.muscles.lowerBack', group: 'medium',
     backPath: 'M 134,140 Q 130,160 130,186 Q 132,208 140,218 Q 148,222 150,222 Q 152,222 160,218 Q 168,208 170,186 Q 170,160 166,140 Q 158,136 150,136 Q 142,136 134,140 Z' },
 ];
 
@@ -389,11 +371,33 @@ export const NeoFatigueMap = ({ setLogs = [], exercises = [] }: NeoFatigueMapPro
 
   const hasRealData = Object.keys(lastTrained).length > 0;
 
+  // Map muscle IDs to human-readable names for PerformanceEngine's muscle group detection
+  const MUSCLE_ID_TO_NAME: Record<string, string> = {
+    'delt-l': 'deltoides', 'delt-r': 'deltoides',
+    'pec-l': 'pectoral', 'pec-r': 'pectoral',
+    'lat-l': 'dorsal', 'lat-r': 'dorsal',
+    'trap': 'trapecio',
+    'biceps-l': 'bíceps', 'biceps-r': 'bíceps',
+    'triceps-l': 'tríceps', 'triceps-r': 'tríceps',
+    'abs': 'abdominales', 'oblique-l': 'oblicuos', 'oblique-r': 'oblicuos',
+    'glute-l': 'glúteos', 'glute-r': 'glúteos',
+    'glute-med-l': 'glúteos', 'glute-med-r': 'glúteos',
+    'quad-l': 'cuádriceps', 'quad-r': 'cuádriceps',
+    'hamstring-l': 'isquiotibiales', 'hamstring-r': 'isquiotibiales',
+    'adductor-l': 'aductor', 'adductor-r': 'aductor',
+    'calf-l': 'gemelos', 'calf-r': 'gemelos',
+    'tibialis-l': 'gemelos', 'tibialis-r': 'gemelos',
+    'lower-back': 'lumbar',
+  };
+
   const recoveryMap = useMemo(() => {
     const map: Record<string, RecoveryResult> = {};
     for (const m of FATIGUE_MUSCLES) {
       const date = lastTrained[m.id];
-      if (date) map[m.id] = calculateRecovery(m.group, date, now);
+      if (date) {
+        const muscleName = MUSCLE_ID_TO_NAME[m.id] || m.id;
+        map[m.id] = calculateRecoveryFromEngine(muscleName, date, now);
+      }
     }
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
