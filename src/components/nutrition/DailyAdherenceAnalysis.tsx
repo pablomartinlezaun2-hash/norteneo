@@ -2,108 +2,77 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
-  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock,
+  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { NutritionGoals } from '@/hooks/useNutritionData';
 import {
-  calcMacroAccuracy,
-  calcSetsScore,
-  calcRepsScore,
-  calcRirScore,
-  calcExerciseAccuracy,
+  calcGeneralAccuracy,
+  calcTimeAccuracy,
+  calcRepsRangeAccuracy,
+  calcSetsAccuracy,
+  calcMealMacroAverage,
+  calcGlobalAccuracy,
+  getAccuracyTextColor,
+  getAccuracyBgColor,
   getAdherenceColor,
   DEFAULT_WEIGHTS,
 } from './adherenceCalculations';
 import { cn } from '@/lib/utils';
 
-/* ───────────────────── helpers ───────────────────── */
-
-const pctColor = (v: number) => {
-  if (v >= 95) return 'text-green-500';
-  if (v >= 90) return 'text-orange-500';
-  return 'text-red-500';
-};
-const barColor = (v: number) => {
-  if (v >= 95) return 'bg-green-500';
-  if (v >= 90) return 'bg-orange-500';
-  return 'bg-red-500';
-};
-const barBg = (v: number) => getAdherenceColor(v);
-
-/* ───────────────── MOCK DATA ───────────────── */
-
-const MOCK_AI_TEXT =
-  'Buen trabajo hoy. Has clavado el entrenamiento de pecho, pero te has quedado corto en los carbohidratos de la comida 2 y en las horas de sueño. Ajustaremos la recuperación para mañana.';
+/* ───────────────────── MOCK DATA (strict specs) ───────────────────── */
 
 const MOCK_MEALS = [
   {
     name: 'Comida 1',
-    scheduledTime: '09:00',
-    realTime: '09:30',
+    scheduledTime: '14:00',
+    realTime: '14:30',
+    food: { planned: '75g Arroz', real: '72g Pasta' },
     macros: [
-      { label: 'Proteína', planned: '200g pollo (46g)', real: '200g pollo (46g)', plannedG: 46, realG: 46 },
-      { label: 'Carbohidratos', planned: '250g arroz (200g CH)', real: '250g arroz (200g CH)', plannedG: 200, realG: 200 },
-      { label: 'Grasas', planned: '15ml aceite (13g)', real: '15ml aceite (13g)', plannedG: 13, realG: 13 },
+      { label: 'Carbohidratos', planned: 63, real: 61, unit: 'g' },
+      { label: 'Proteínas', planned: 25, real: 25, unit: 'g' },
+      { label: 'Grasas', planned: 10, real: 12, unit: 'g' },
     ],
-    accuracy: 100,
   },
   {
     name: 'Comida 2',
-    scheduledTime: '13:00',
-    realTime: '13:20',
+    scheduledTime: '18:00',
+    realTime: '20:30',
+    food: { planned: '200g Pavo', real: '100g Pavo' },
     macros: [
-      { label: 'Proteína', planned: '200g pavo (50g)', real: '180g pavo (45g)', plannedG: 50, realG: 45 },
-      { label: 'Carbohidratos', planned: '200g arroz (170g CH)', real: '150g arroz (127g CH)', plannedG: 170, realG: 127 },
-      { label: 'Grasas', planned: '10g mantequilla (8g)', real: '10g mantequilla (8g)', plannedG: 8, realG: 8 },
+      { label: 'Proteína', planned: 60, real: 30, unit: 'g' },
     ],
-    accuracy: 75,
-  },
-  {
-    name: 'Comida 3',
-    scheduledTime: '17:00',
-    realTime: '17:10',
-    macros: [
-      { label: 'Proteína', planned: '2 scoops whey (50g)', real: '2 scoops whey (50g)', plannedG: 50, realG: 50 },
-      { label: 'Carbohidratos', planned: '80g avena (60g CH)', real: '80g avena (60g CH)', plannedG: 60, realG: 60 },
-      { label: 'Grasas', planned: '30g cacahuete (15g)', real: '25g cacahuete (12g)', plannedG: 15, realG: 12 },
-    ],
-    accuracy: 93,
   },
 ];
 
-const MOCK_WATER = { planned: 3, real: 3.2, accuracy: 100 };
+const MOCK_WATER = { planned: 3, real: 2, unit: 'L' };
 
 const MOCK_EXERCISES = [
   {
     name: 'Press Inclinado',
-    planned: { sets: 2, reps: '8-10', rir: '1-2' },
-    real: { sets: 2, reps: '9, 8', rir: '1, 0' },
-    accuracy: 95,
-  },
-  {
-    name: 'Aperturas con Mancuernas',
-    planned: { sets: 3, reps: '10-12', rir: '2' },
-    real: { sets: 3, reps: '12, 11, 10', rir: '2, 1, 1' },
-    accuracy: 97,
+    planned: { sets: 2, minReps: 10, maxReps: 15, rir: '1-2' },
+    real: { sets: 2, reps: [9] as number[], rir: '1, 0' },
   },
 ];
 
-const MOCK_SLEEP = { planned: 8, real: 6.5, accuracy: 81 };
+const MOCK_SLEEP = {
+  plannedTime: '23:00',
+  realTime: '00:30',
+  plannedHours: 8,
+  realHours: 6,
+};
 
 const MOCK_SUPPLEMENTS = [
   {
-    name: 'Creatina 5g',
+    name: 'Creatina',
     plannedTime: '09:00',
-    realTime: '10:15',
-    dosePlanned: 5,
-    doseReal: 5,
-    accuracy: 90,
+    realTime: '10:30',
+    plannedDose: 5,
+    realDose: 5,
+    unit: 'g',
   },
 ];
-
-const MOCK_GLOBAL = 92;
 
 /* ───────────── Circular Score ───────────── */
 
@@ -111,10 +80,10 @@ const CircularScore = ({ value }: { value: number }) => {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (Math.min(value, 100) / 100) * circumference;
-  const colorClass = pctColor(value);
+  const colorClass = getAccuracyTextColor(value);
 
   return (
-    <div className="relative w-32 h-32 mx-auto">
+    <div className="relative w-36 h-36 mx-auto">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
         <circle cx="64" cy="64" r={radius} fill="none" className="stroke-secondary" strokeWidth="10" />
         <motion.circle
@@ -128,12 +97,25 @@ const CircularScore = ({ value }: { value: number }) => {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={cn('text-3xl font-black tabular-nums', colorClass)}>{Math.round(value)}%</span>
-        <span className="text-[10px] text-muted-foreground font-medium mt-0.5">Precisión</span>
+        <span className={cn('text-4xl font-black tabular-nums', colorClass)}>{Math.round(value)}%</span>
+        <span className="text-xs text-muted-foreground font-semibold mt-1">Precisión Diaria</span>
       </div>
     </div>
   );
 };
+
+/* ───────────── Horizontal Progress Bar ───────────── */
+
+const ProgressBar = ({ value, colorType }: { value: number; colorType?: 'green' | 'blue' | 'orange' | 'red' }) => (
+  <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
+    <motion.div
+      className={cn('h-full rounded-full', getAccuracyBgColor(value, colorType))}
+      initial={{ width: 0 }}
+      animate={{ width: `${Math.min(value, 100)}%` }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+    />
+  </div>
+);
 
 /* ───────────── Accordion Section ───────────── */
 
@@ -141,27 +123,27 @@ interface AccordionSectionProps {
   icon: React.ElementType;
   title: string;
   accuracy: number;
+  colorType?: 'green' | 'blue' | 'orange' | 'red';
   defaultOpen?: boolean;
   children: React.ReactNode;
 }
 
-const AccordionSection = ({ icon: Icon, title, accuracy, defaultOpen = false, children }: AccordionSectionProps) => {
+const AccordionSection = ({ icon: Icon, title, accuracy, colorType, defaultOpen = false, children }: AccordionSectionProps) => {
   const [open, setOpen] = useState(defaultOpen);
-  const colorClass = pctColor(accuracy);
 
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-4 py-4 min-h-[64px] text-left active:bg-muted/30 transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-4 min-h-[68px] text-left active:bg-muted/30 transition-colors"
       >
-        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+        <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
           <Icon className="w-5 h-5 text-foreground" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-base font-bold text-foreground">{title}</p>
         </div>
-        <span className={cn('text-xl font-black tabular-nums mr-1', colorClass)}>
+        <span className={cn('text-xl font-black tabular-nums mr-1', getAccuracyTextColor(accuracy, colorType))}>
           {Math.round(accuracy)}%
         </span>
         <ChevronDown className={cn('w-5 h-5 text-muted-foreground transition-transform', open && 'rotate-180')} />
@@ -185,106 +167,40 @@ const AccordionSection = ({ icon: Icon, title, accuracy, defaultOpen = false, ch
   );
 };
 
-/* ───────────── Horizontal Bar ───────────── */
-
-const HorizontalBar = ({ value }: { value: number }) => (
-  <div className="w-full h-3 bg-secondary rounded-full overflow-hidden">
-    <motion.div
-      className={cn('h-full rounded-full', barColor(value))}
-      initial={{ width: 0 }}
-      animate={{ width: `${Math.min(value, 100)}%` }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
-    />
-  </div>
+/* ───────────── Deviation Badge ───────────── */
+const DeviationBadge = () => (
+  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full">
+    <AlertTriangle className="w-3 h-3" /> Desviación detectada
+  </span>
 );
 
-/* ───────────── Meal Card ───────────── */
-
-const MealCard = ({ meal }: { meal: typeof MOCK_MEALS[0] }) => {
-  const colorClass = pctColor(meal.accuracy);
-  return (
-    <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-bold text-foreground">{meal.name}</p>
-          <div className="flex items-center gap-1 mt-0.5">
-            <Clock className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground">
-              Pautada {meal.scheduledTime} | Real {meal.realTime}
-            </span>
-          </div>
-        </div>
-        <span className={cn('text-lg font-black tabular-nums', colorClass)}>
-          {meal.accuracy}%
-        </span>
+/* ───────────── Metric Row ───────────── */
+const MetricRow = ({
+  label, planned, real, unit, accuracy, colorType,
+}: {
+  label: string; planned: string | number; real: string | number; unit?: string;
+  accuracy: number; colorType?: 'green' | 'blue' | 'orange' | 'red';
+}) => (
+  <div className="space-y-1.5">
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-semibold text-foreground">{label}</span>
+      <span className={cn('text-base font-black tabular-nums', getAccuracyTextColor(accuracy, colorType))}>
+        {accuracy}%
+      </span>
+    </div>
+    <div className="flex gap-4 text-xs">
+      <div className="flex-1">
+        <span className="text-muted-foreground">Pautado: </span>
+        <span className="text-muted-foreground font-medium">{planned}{unit ? unit : ''}</span>
       </div>
-
-      {/* Macro rows */}
-      <div className="space-y-2.5">
-        {meal.macros.map((m, i) => {
-          const acc = calcMacroAccuracy(m.realG, m.plannedG);
-          const color = pctColor(acc);
-          return (
-            <div key={i} className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-foreground">{m.label}</span>
-                <span className={cn('font-bold tabular-nums', color)}>{Math.round(acc)}%</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div>
-                  <span className="text-muted-foreground">Pautado: </span>
-                  <span className="text-muted-foreground font-medium">{m.planned}</span>
-                </div>
-                <div>
-                  <span className="text-foreground">Real: </span>
-                  <span className="text-foreground font-bold">{m.real}</span>
-                </div>
-              </div>
-              <HorizontalBar value={acc} />
-            </div>
-          );
-        })}
+      <div className="flex-1">
+        <span className="text-foreground">Real: </span>
+        <span className="text-foreground font-bold">{real}{unit ? unit : ''}</span>
       </div>
     </div>
-  );
-};
-
-/* ───────────── Exercise Card ───────────── */
-
-const ExerciseCard = ({ exercise }: { exercise: typeof MOCK_EXERCISES[0] }) => {
-  const colorClass = pctColor(exercise.accuracy);
-  return (
-    <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-foreground">{exercise.name}</p>
-        <span className={cn('text-lg font-black tabular-nums', colorClass)}>
-          {exercise.accuracy}%
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-        {/* Headers */}
-        <p className="text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">Pautado</p>
-        <p className="text-foreground font-semibold uppercase tracking-wider text-[10px]">Realizado</p>
-
-        {/* Sets */}
-        <p className="text-muted-foreground">{exercise.planned.sets} Series</p>
-        <p className="text-foreground font-bold">{exercise.real.sets} Series</p>
-
-        {/* Reps */}
-        <p className="text-muted-foreground">{exercise.planned.reps} Reps</p>
-        <p className="text-foreground font-bold">{exercise.real.reps} Reps</p>
-
-        {/* RIR */}
-        <p className="text-muted-foreground">RIR {exercise.planned.rir}</p>
-        <p className="text-foreground font-bold">RIR {exercise.real.rir}</p>
-      </div>
-
-      <HorizontalBar value={exercise.accuracy} />
-    </div>
-  );
-};
+    <ProgressBar value={accuracy} colorType={colorType} />
+  </div>
+);
 
 /* ═══════════════════ MAIN COMPONENT ═══════════════════ */
 
@@ -324,24 +240,24 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0 }: DailyAdher
     load();
   }, [user, today, refreshTrigger]);
 
-  /* ── Real data calculations (used when real data exists) ── */
-  const nutritionData = useMemo(() => {
+  /* ── Real data: nutrition ── */
+  const realNutrition = useMemo(() => {
+    if (foodLogs.length === 0) return null;
     const totalProtein = foodLogs.reduce((s, l) => s + (Number(l.protein) || 0), 0);
     const totalCarbs = foodLogs.reduce((s, l) => s + (Number(l.carbs) || 0), 0);
     const totalFat = foodLogs.reduce((s, l) => s + (Number(l.fat) || 0), 0);
-    const totalCal = foodLogs.reduce((s, l) => s + (Number(l.calories) || 0), 0);
-    const accP = calcMacroAccuracy(totalProtein, g.daily_protein);
-    const accC = calcMacroAccuracy(totalCarbs, g.daily_carbs);
-    const accF = calcMacroAccuracy(totalFat, g.daily_fat);
-    const accK = calcMacroAccuracy(totalCal, g.daily_calories);
-    return { accuracy: (accP + accC + accF + accK) / 4, totalProtein, totalCarbs, totalFat, totalCal, accP, accC, accF, accK };
+    const accP = calcGeneralAccuracy(g.daily_protein, totalProtein);
+    const accC = calcGeneralAccuracy(g.daily_carbs, totalCarbs);
+    const accF = calcGeneralAccuracy(g.daily_fat, totalFat);
+    return { totalProtein, totalCarbs, totalFat, accP, accC, accF, avg: Math.round((accP + accC + accF) / 3) };
   }, [foodLogs, g]);
 
-  const trainingData = useMemo(() => {
-    if (setLogs.length === 0) return { accuracy: 100, exercises: [] as any[] };
+  /* ── Real data: training ── */
+  const realTraining = useMemo(() => {
+    if (setLogs.length === 0) return null;
     const byEx: Record<string, any[]> = {};
     setLogs.forEach(log => { const id = log.exercise_id; if (!byEx[id]) byEx[id] = []; byEx[id].push(log); });
-    const scores: any[] = [];
+    const exercises: any[] = [];
     Object.entries(byEx).forEach(([, logs]) => {
       const ex = logs[0]?.exercises;
       const name = ex?.name || 'Ejercicio';
@@ -349,47 +265,93 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0 }: DailyAdher
       const repsStr = ex?.reps || '8-12';
       const [minR, maxR] = repsStr.includes('-') ? repsStr.split('-').map(Number) : [Number(repsStr), Number(repsStr)];
       const work = logs.filter((l: any) => !l.is_warmup);
-      const s = calcSetsScore(work.length, tSets);
-      const r = calcRepsScore(work.map((l: any) => l.reps), minR || 8, maxR || 12);
-      const ri = calcRirScore(work.map((l: any) => l.rir), null);
-      scores.push({ name, accuracy: calcExerciseAccuracy(s, r, ri), sets: work.length, targetSets: tSets });
+      const setsResult = calcSetsAccuracy(tSets, work.length);
+      // Average reps accuracy across sets
+      const repsResults = work.map((l: any) => calcRepsRangeAccuracy(minR || 8, maxR || 12, l.reps));
+      const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
+      const overallAcc = Math.round((setsResult.accuracy + avgRepsAcc) / 2);
+      exercises.push({ name, accuracy: overallAcc, sets: work.length, targetSets: tSets, reps: work.map((l: any) => l.reps), minR, maxR, setsResult, repsResults });
     });
-    return { accuracy: scores.length ? scores.reduce((a, e) => a + e.accuracy, 0) / scores.length : 100, exercises: scores };
+    const avg = exercises.length ? Math.round(exercises.reduce((a, e) => a + e.accuracy, 0) / exercises.length) : 100;
+    return { exercises, avg };
   }, [setLogs]);
 
-  const supplementData = useMemo(() => {
-    if (supplements.length === 0) return { accuracy: 100, taken: 0, total: 0, hasData: false };
+  /* ── Real data: supplements ── */
+  const realSupplements = useMemo(() => {
+    if (supplements.length === 0) return null;
     const taken = supplements.filter((s: any) => supplementLogs.some((l: any) => l.supplement_id === s.id)).length;
-    return { accuracy: (taken / supplements.length) * 100, taken, total: supplements.length, hasData: true };
+    const acc = calcGeneralAccuracy(supplements.length, taken);
+    return { taken, total: supplements.length, acc };
   }, [supplements, supplementLogs]);
 
-  /* decide if we use real or mock */
-  const hasRealData = foodLogs.length > 0 || setLogs.length > 0 || supplementData.hasData;
+  const hasRealData = foodLogs.length > 0 || setLogs.length > 0 || (supplements.length > 0 && supplementLogs.length > 0);
 
-  // Compute real global if real data
-  const realGlobal = useMemo(() => {
-    if (!hasRealData) return MOCK_GLOBAL;
-    let w = 0, s = 0;
-    if (foodLogs.length > 0) { s += nutritionData.accuracy * DEFAULT_WEIGHTS.nutrition; w += DEFAULT_WEIGHTS.nutrition; }
-    if (setLogs.length > 0) { s += trainingData.accuracy * DEFAULT_WEIGHTS.training; w += DEFAULT_WEIGHTS.training; }
-    if (supplementData.hasData) { s += supplementData.accuracy * DEFAULT_WEIGHTS.supplements; w += DEFAULT_WEIGHTS.supplements; }
-    return w > 0 ? s / w : MOCK_GLOBAL;
-  }, [hasRealData, nutritionData, trainingData, supplementData, foodLogs, setLogs]);
+  /* ── Mock calculations ── */
+  const mockMealAccuracies = MOCK_MEALS.map(meal => {
+    const macroAcc = calcMealMacroAverage(meal.macros.map(m => ({ planned: m.planned, real: m.real })));
+    const timeAcc = calcTimeAccuracy(meal.scheduledTime, meal.realTime);
+    return { ...meal, macroAcc, timeAcc, overallAcc: Math.round((macroAcc + timeAcc) / 2) };
+  });
+  const mockWaterAcc = calcGeneralAccuracy(MOCK_WATER.planned, MOCK_WATER.real);
+  const mockNutritionAcc = Math.round(
+    (mockMealAccuracies.reduce((a, m) => a + m.overallAcc, 0) + mockWaterAcc) / (mockMealAccuracies.length + 1)
+  );
 
-  const globalScore = hasRealData ? realGlobal : MOCK_GLOBAL;
+  const mockExerciseCalcs = MOCK_EXERCISES.map(ex => {
+    const setsResult = calcSetsAccuracy(ex.planned.sets, ex.real.sets);
+    // For mock, real sets count = planned (2 series done)
+    const setsAcc = calcSetsAccuracy(ex.planned.sets, 2);
+    const repsResults = ex.real.reps.map(r => calcRepsRangeAccuracy(ex.planned.minReps, ex.planned.maxReps, r));
+    const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
+    const overallAcc = Math.round((setsAcc.accuracy + avgRepsAcc) / 2);
+    const hasDeviation = setsAcc.accuracy < 90 || repsResults.some(r => r.accuracy < 90);
+    return { ...ex, setsAcc, repsResults, avgRepsAcc, overallAcc, hasDeviation };
+  });
+  const mockTrainingAcc = Math.round(mockExerciseCalcs.reduce((a, e) => a + e.overallAcc, 0) / mockExerciseCalcs.length);
 
-  /* Nutrition section accuracy for accordion header */
-  const nutritionSectionAcc = hasRealData && foodLogs.length > 0
-    ? nutritionData.accuracy
-    : Math.round(MOCK_MEALS.reduce((a, m) => a + m.accuracy, 0) / MOCK_MEALS.length);
+  const mockSleepTimeAcc = calcTimeAccuracy(MOCK_SLEEP.plannedTime, MOCK_SLEEP.realTime);
+  const mockSleepHoursAcc = calcGeneralAccuracy(MOCK_SLEEP.plannedHours, MOCK_SLEEP.realHours);
+  const mockSleepAcc = Math.round((mockSleepTimeAcc + mockSleepHoursAcc) / 2);
 
-  const trainingSectionAcc = hasRealData && setLogs.length > 0
-    ? trainingData.accuracy
-    : Math.round(MOCK_EXERCISES.reduce((a, e) => a + e.accuracy, 0) / MOCK_EXERCISES.length);
+  const mockSuppCalcs = MOCK_SUPPLEMENTS.map(s => {
+    const timeAcc = calcTimeAccuracy(s.plannedTime, s.realTime);
+    const doseAcc = calcGeneralAccuracy(s.plannedDose, s.realDose);
+    const overallAcc = Math.round((timeAcc + doseAcc) / 2);
+    return { ...s, timeAcc, doseAcc, overallAcc };
+  });
+  const mockSuppAcc = Math.round(mockSuppCalcs.reduce((a, s) => a + s.overallAcc, 0) / mockSuppCalcs.length);
 
-  const recoverySectionAcc = hasRealData && supplementData.hasData
-    ? (MOCK_SLEEP.accuracy + supplementData.accuracy) / 2
-    : Math.round((MOCK_SLEEP.accuracy + MOCK_SUPPLEMENTS[0].accuracy) / 2);
+  /* ── Section accuracies ── */
+  const nutritionAcc = realNutrition ? realNutrition.avg : mockNutritionAcc;
+  const trainingAcc = realTraining ? realTraining.avg : mockTrainingAcc;
+  const sleepAcc = mockSleepAcc; // No sleep table yet
+  const suppAcc = realSupplements ? realSupplements.acc : mockSuppAcc;
+
+  const globalScore = calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc);
+
+  /* ── AI Summary Text (structured: positive, negative, positive) ── */
+  const aiText = useMemo(() => {
+    const positives: string[] = [];
+    const negatives: string[] = [];
+
+    if (nutritionAcc >= 95) positives.push('los alimentos y macros');
+    else if (nutritionAcc < 90) negatives.push(`la nutrición está al ${nutritionAcc}%`);
+
+    if (trainingAcc >= 95) positives.push('el entrenamiento');
+    else if (trainingAcc < 90) negatives.push(`el entrenamiento marca ${trainingAcc}%`);
+
+    if (sleepAcc >= 95) positives.push('tu sueño');
+    else if (sleepAcc < 90) negatives.push(`dormiste menos de lo pautado (${sleepAcc}%)`);
+
+    if (suppAcc >= 95) positives.push('la adherencia a los suplementos');
+    else if (suppAcc < 90) negatives.push(`suplementación al ${suppAcc}%`);
+
+    const posText = positives.length > 0 ? `¡Excelente disciplina hoy! Has clavado ${positives.join(' y ')}.` : '¡Buen esfuerzo hoy!';
+    const negText = negatives.length > 0 ? ` Sin embargo, ${negatives.join(', ')}, lo que afecta tu recuperación.` : '';
+    const closeText = ' Aún así, tu esfuerzo general es brutal, ¡sigamos ajustando para mañana!';
+
+    return posText + negText + closeText;
+  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc]);
 
   if (loading) {
     return (
@@ -402,143 +364,231 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0 }: DailyAdher
   return (
     <div className="space-y-5 p-4">
 
-      {/* ═══════ 1. AI SUMMARY + GLOBAL SCORE ═══════ */}
+      {/* ═══════ 1. GLOBAL SCORE + AI SUMMARY ═══════ */}
       <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
         <CircularScore value={globalScore} />
 
-        <p className="text-center text-base font-bold text-foreground">Precisión Diaria</p>
-
         <div className="rounded-xl bg-muted/50 p-4 flex gap-3 items-start">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground leading-relaxed">{MOCK_AI_TEXT}</p>
+          <p className="text-sm text-foreground leading-relaxed">{aiText}</p>
         </div>
       </div>
 
       {/* ═══════ 2. NUTRICIÓN E HIDRATACIÓN ═══════ */}
-      <AccordionSection icon={UtensilsCrossed} title="Nutrición e Hidratación" accuracy={nutritionSectionAcc}>
-        {/* Meals (mock or real) */}
-        {hasRealData && foodLogs.length > 0 ? (
+      <AccordionSection icon={UtensilsCrossed} title="Nutrición e Hidratación" accuracy={nutritionAcc}>
+        {hasRealData && realNutrition ? (
           <div className="space-y-3">
-            {/* Show real summary */}
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
               <p className="text-sm font-bold text-foreground">Resumen del día</p>
-              {[
-                { label: 'Proteína', planned: g.daily_protein, real: Math.round(nutritionData.totalProtein), acc: nutritionData.accP },
-                { label: 'Carbohidratos', planned: g.daily_carbs, real: Math.round(nutritionData.totalCarbs), acc: nutritionData.accC },
-                { label: 'Grasas', planned: g.daily_fat, real: Math.round(nutritionData.totalFat), acc: nutritionData.accF },
-                { label: 'Calorías', planned: g.daily_calories, real: nutritionData.totalCal, acc: nutritionData.accK },
-              ].map((row, i) => (
-                <div key={i} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-foreground">{row.label}</span>
-                    <span className={cn('font-bold tabular-nums', pctColor(row.acc))}>{Math.round(row.acc)}%</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <span className="text-muted-foreground">Pautado: {row.planned}g</span>
-                    <span className="text-foreground font-bold">Real: {row.real}g</span>
-                  </div>
-                  <HorizontalBar value={row.acc} />
-                </div>
-              ))}
+              <MetricRow label="Proteína" planned={g.daily_protein} real={Math.round(realNutrition.totalProtein)} unit="g" accuracy={realNutrition.accP} />
+              <MetricRow label="Carbohidratos" planned={g.daily_carbs} real={Math.round(realNutrition.totalCarbs)} unit="g" accuracy={realNutrition.accC} />
+              <MetricRow label="Grasas" planned={g.daily_fat} real={Math.round(realNutrition.totalFat)} unit="g" accuracy={realNutrition.accF} />
+              <div className="pt-2">
+                <ProgressBar value={realNutrition.avg} />
+              </div>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            {MOCK_MEALS.map((meal, i) => (
-              <MealCard key={i} meal={meal} />
-            ))}
+            {mockMealAccuracies.map((meal, idx) => {
+              const timeAcc = meal.timeAcc;
+              return (
+                <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+                  {/* Meal header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{meal.name}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-[11px] text-muted-foreground">
+                          Pautada {meal.scheduledTime} | Real {meal.realTime}
+                        </span>
+                        <span className={cn('text-[11px] font-bold ml-1', getAccuracyTextColor(timeAcc))}>
+                          ({timeAcc}%)
+                        </span>
+                      </div>
+                    </div>
+                    <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(meal.overallAcc))}>
+                      {meal.overallAcc}%
+                    </span>
+                  </div>
+
+                  {/* Food */}
+                  <div className="text-xs space-y-0.5">
+                    <div className="flex gap-4">
+                      <span className="text-muted-foreground">Pautado: <span className="font-medium">{meal.food.planned}</span></span>
+                      <span className="text-foreground">Real: <span className="font-bold">{meal.food.real}</span></span>
+                    </div>
+                  </div>
+
+                  {/* Macros */}
+                  {meal.macros.map((m, i) => {
+                    const acc = calcGeneralAccuracy(m.planned, m.real);
+                    return (
+                      <MetricRow key={i} label={m.label} planned={m.planned} real={m.real} unit={m.unit} accuracy={acc} />
+                    );
+                  })}
+
+                  <ProgressBar value={meal.macroAcc} />
+                </div>
+              );
+            })}
+
+            {/* Water */}
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Droplets className="w-4 h-4 text-foreground" />
+                <span className="text-sm font-bold text-foreground">Hidratación</span>
+              </div>
+              <MetricRow label="Agua" planned={MOCK_WATER.planned} real={MOCK_WATER.real} unit="L" accuracy={mockWaterAcc} />
+              <ProgressBar value={mockWaterAcc} />
+            </div>
           </div>
         )}
-
-        {/* Water */}
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Droplets className="w-4 h-4 text-blue-400" />
-            <p className="text-sm font-bold text-foreground">Hidratación</p>
-            <span className={cn('ml-auto text-lg font-black tabular-nums', pctColor(MOCK_WATER.accuracy))}>
-              {MOCK_WATER.accuracy}%
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <span className="text-muted-foreground">Pautado: {MOCK_WATER.planned}L</span>
-            <span className="text-foreground font-bold">Real: {MOCK_WATER.real}L</span>
-          </div>
-          <HorizontalBar value={MOCK_WATER.accuracy} />
-        </div>
       </AccordionSection>
 
       {/* ═══════ 3. ENTRENAMIENTO ═══════ */}
-      <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={trainingSectionAcc}>
-        {hasRealData && setLogs.length > 0 ? (
+      <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={trainingAcc}>
+        {hasRealData && realTraining ? (
           <div className="space-y-3">
-            {trainingData.exercises.map((ex: any, i: number) => (
-              <div key={i} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
+            {realTraining.exercises.map((ex: any, idx: number) => (
+              <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-bold text-foreground">{ex.name}</p>
-                  <span className={cn('text-lg font-black tabular-nums', pctColor(ex.accuracy))}>{Math.round(ex.accuracy)}%</span>
+                  <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(ex.accuracy))}>
+                    {ex.accuracy}%
+                  </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <span className="text-muted-foreground">Pautado: {ex.targetSets} series</span>
-                  <span className="text-foreground font-bold">Real: {ex.sets} series</span>
-                </div>
-                <HorizontalBar value={ex.accuracy} />
+                <MetricRow
+                  label="Series"
+                  planned={ex.targetSets}
+                  real={ex.sets}
+                  accuracy={ex.setsResult.accuracy}
+                  colorType={ex.setsResult.colorType}
+                />
+                {ex.reps.map((r: number, i: number) => (
+                  <MetricRow
+                    key={i}
+                    label={`Reps Serie ${i + 1}`}
+                    planned={`${ex.minR}-${ex.maxR}`}
+                    real={r}
+                    accuracy={ex.repsResults[i]?.accuracy ?? 100}
+                    colorType={ex.repsResults[i]?.colorType}
+                  />
+                ))}
+                {ex.accuracy < 90 && <DeviationBadge />}
+                <ProgressBar value={ex.accuracy} />
               </div>
             ))}
           </div>
         ) : (
           <div className="space-y-3">
-            {MOCK_EXERCISES.map((ex, i) => (
-              <ExerciseCard key={i} exercise={ex} />
+            {mockExerciseCalcs.map((ex, idx) => (
+              <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-foreground">{ex.name}</p>
+                  <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(ex.overallAcc))}>
+                    {ex.overallAcc}%
+                  </span>
+                </div>
+
+                {/* Sets */}
+                <MetricRow
+                  label="Series"
+                  planned={ex.planned.sets}
+                  real={2}
+                  accuracy={ex.setsAcc.accuracy}
+                  colorType={ex.setsAcc.colorType}
+                />
+
+                {/* Reps */}
+                <MetricRow
+                  label="Repeticiones"
+                  planned={`${ex.planned.minReps}-${ex.planned.maxReps}`}
+                  real={ex.real.reps.join(', ')}
+                  accuracy={ex.avgRepsAcc}
+                  colorType={ex.repsResults[0]?.colorType}
+                />
+
+                {/* RIR */}
+                <div className="text-xs flex gap-4">
+                  <span className="text-muted-foreground">RIR Pautado: <span className="font-medium">{ex.planned.rir}</span></span>
+                  <span className="text-foreground">RIR Real: <span className="font-bold">{ex.real.rir}</span></span>
+                </div>
+
+                {ex.hasDeviation && <DeviationBadge />}
+                <ProgressBar value={ex.overallAcc} colorType={ex.repsResults[0]?.colorType} />
+              </div>
             ))}
           </div>
         )}
       </AccordionSection>
 
-      {/* ═══════ 4. RECUPERACIÓN ═══════ */}
-      <AccordionSection icon={Moon} title="Recuperación" accuracy={recoverySectionAcc}>
+      {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
+      <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={Math.round((sleepAcc + suppAcc) / 2)}>
         {/* Sleep */}
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Moon className="w-4 h-4 text-indigo-400" />
-            <p className="text-sm font-bold text-foreground">Sueño</p>
-            <span className={cn('ml-auto text-lg font-black tabular-nums', pctColor(MOCK_SLEEP.accuracy))}>
-              {MOCK_SLEEP.accuracy}%
-            </span>
+        <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Moon className="w-4 h-4 text-foreground" />
+            <span className="text-sm font-bold text-foreground">Sueño</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <span className="text-muted-foreground">Pautado: {MOCK_SLEEP.planned}h</span>
-            <span className="text-foreground font-bold">Real: {MOCK_SLEEP.real}h</span>
-          </div>
-          <HorizontalBar value={MOCK_SLEEP.accuracy} />
+          <MetricRow
+            label="Horario"
+            planned={MOCK_SLEEP.plannedTime}
+            real={MOCK_SLEEP.realTime}
+            accuracy={mockSleepTimeAcc}
+          />
+          <MetricRow
+            label="Horas"
+            planned={MOCK_SLEEP.plannedHours}
+            real={MOCK_SLEEP.realHours}
+            unit="h"
+            accuracy={mockSleepHoursAcc}
+          />
+          <ProgressBar value={mockSleepAcc} />
         </div>
 
         {/* Supplements */}
-        {MOCK_SUPPLEMENTS.map((sup, i) => (
-          <div key={i} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Pill className="w-4 h-4 text-amber-400" />
-              <p className="text-sm font-bold text-foreground">{sup.name}</p>
-              <span className={cn('ml-auto text-lg font-black tabular-nums', pctColor(sup.accuracy))}>
-                {sup.accuracy}%
-              </span>
+        {hasRealData && realSupplements ? (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Pill className="w-4 h-4 text-foreground" />
+              <span className="text-sm font-bold text-foreground">Suplementación</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="space-y-0.5">
-                <p className="text-muted-foreground">Pautado: {sup.dosePlanned}g</p>
-                <p className="text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {sup.plannedTime}
-                </p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-foreground font-bold">Real: {sup.doseReal}g</p>
-                <p className="text-foreground font-bold flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {sup.realTime}
-                </p>
-              </div>
-            </div>
-            <HorizontalBar value={sup.accuracy} />
+            <MetricRow
+              label="Tomados"
+              planned={realSupplements.total}
+              real={realSupplements.taken}
+              accuracy={realSupplements.acc}
+            />
+            <ProgressBar value={realSupplements.acc} />
           </div>
-        ))}
+        ) : (
+          <div className="space-y-3">
+            {mockSuppCalcs.map((supp, idx) => (
+              <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Pill className="w-4 h-4 text-foreground" />
+                  <span className="text-sm font-bold text-foreground">{supp.name}</span>
+                </div>
+                <MetricRow
+                  label="Horario"
+                  planned={supp.plannedTime}
+                  real={supp.realTime}
+                  accuracy={supp.timeAcc}
+                />
+                <MetricRow
+                  label="Dosis"
+                  planned={supp.plannedDose}
+                  real={supp.realDose}
+                  unit={supp.unit}
+                  accuracy={supp.doseAcc}
+                />
+                <ProgressBar value={supp.overallAcc} />
+              </div>
+            ))}
+          </div>
+        )}
       </AccordionSection>
     </div>
   );
