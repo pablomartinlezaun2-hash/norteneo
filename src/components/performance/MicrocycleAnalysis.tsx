@@ -25,197 +25,211 @@ import {
 import { cn } from '@/lib/utils';
 
 /* ═══════════════════════════════════════════════════════
-   MOCK DATA — Microciclo completo 5 días (Push/Pull/Legs)
-   Con registros detallados de entrenamiento, nutrición,
-   suplementación y sueño. Variabilidad realista.
+   MOCK DATA — Microciclo 5 días basado en programa real
+   Push-Legs-Pull-Legs 2 + Descanso
+   Goals: 2700kcal · 180P · 250C · 115F
+   Supps: Creatina 5g, Proteína 30g
    ═══════════════════════════════════════════════════════ */
 
 const mockMicrocycleData: DayData[] = [
   // ── DÍA 1: PUSH — Excelente (97%) ──
   {
     date: '2026-02-24',
-    dateFormatted: '24 feb · Push',
+    dateFormatted: '24 feb · PUSH',
     nutritionAcc: 97,
     trainingAcc: 98,
     sleepAcc: 96,
     suppAcc: 100,
     globalAcc: 97,
-    sleepData: { planned: '23:00', real: '23:15', hoursPlanned: 8, hoursReal: 7.75 },
+    sleepData: { planned: '23:00', real: '23:10', hoursPlanned: 8, hoursReal: 7.8 },
     foodLogs: [
-      { food_name: 'Avena con plátano y whey', meal_type: 'Desayuno', protein: 38, carbs: 62, fat: 8, calories: 420, logged_date: '2026-02-24' },
-      { food_name: 'Arroz con pollo y aguacate', meal_type: 'Comida', protein: 52, carbs: 75, fat: 18, calories: 650, logged_date: '2026-02-24' },
-      { food_name: 'Yogur griego con frutos secos', meal_type: 'Merienda', protein: 22, carbs: 28, fat: 14, calories: 310, logged_date: '2026-02-24' },
-      { food_name: 'Salmón con boniato', meal_type: 'Cena', protein: 40, carbs: 55, fat: 16, calories: 480, logged_date: '2026-02-24' },
+      { food_name: 'Avena con whey y plátano', meal_type: 'Desayuno', protein: 45, carbs: 65, fat: 10, calories: 530, logged_date: '2026-02-24' },
+      { food_name: 'Arroz con pollo y aguacate', meal_type: 'Comida', protein: 55, carbs: 80, fat: 28, calories: 780, logged_date: '2026-02-24' },
+      { food_name: 'Yogur griego con nueces', meal_type: 'Merienda', protein: 22, carbs: 20, fat: 18, calories: 330, logged_date: '2026-02-24' },
+      { food_name: 'Salmón con boniato y brócoli', meal_type: 'Cena', protein: 48, carbs: 60, fat: 22, calories: 620, logged_date: '2026-02-24' },
+      { food_name: 'Batido nocturno caseína', meal_type: 'Snack', protein: 12, carbs: 18, fat: 35, calories: 430, logged_date: '2026-02-24' },
     ],
     setLogs: [
-      // Press Banca — 4x10-12
-      { exercise_id: 'push1', reps: 12, weight: 80, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:00:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
-      { exercise_id: 'push1', reps: 11, weight: 80, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:04:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
-      { exercise_id: 'push1', reps: 11, weight: 80, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:08:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
-      { exercise_id: 'push1', reps: 10, weight: 80, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:12:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
-      // Press Inclinado Mancuernas — 3x10-12
-      { exercise_id: 'push2', reps: 12, weight: 30, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:20:00', exercises: { name: 'Press Inclinado DB', series: 3, reps: '10-12' } },
-      { exercise_id: 'push2', reps: 11, weight: 30, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:24:00', exercises: { name: 'Press Inclinado DB', series: 3, reps: '10-12' } },
-      { exercise_id: 'push2', reps: 10, weight: 30, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:28:00', exercises: { name: 'Press Inclinado DB', series: 3, reps: '10-12' } },
-      // Elevaciones Laterales — 3x12-15
-      { exercise_id: 'push3', reps: 15, weight: 12, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:36:00', exercises: { name: 'Elevaciones Laterales', series: 3, reps: '12-15' } },
-      { exercise_id: 'push3', reps: 14, weight: 12, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:40:00', exercises: { name: 'Elevaciones Laterales', series: 3, reps: '12-15' } },
-      { exercise_id: 'push3', reps: 13, weight: 12, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:44:00', exercises: { name: 'Elevaciones Laterales', series: 3, reps: '12-15' } },
+      // Elevaciones laterales en polea 3x12-15
+      { exercise_id: '2b3b9b3b-3f0e-4715-807b-8841ae1d25a9', reps: 15, weight: 10, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:00:00', exercises: { name: 'Elevaciones laterales en polea', series: 3, reps: '12-15' } },
+      { exercise_id: '2b3b9b3b-3f0e-4715-807b-8841ae1d25a9', reps: 14, weight: 10, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:03:00', exercises: { name: 'Elevaciones laterales en polea', series: 3, reps: '12-15' } },
+      { exercise_id: '2b3b9b3b-3f0e-4715-807b-8841ae1d25a9', reps: 13, weight: 10, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:06:00', exercises: { name: 'Elevaciones laterales en polea', series: 3, reps: '12-15' } },
+      // Press inclinado en máquina 3x8-12
+      { exercise_id: 'd86a2977-e298-4494-a714-f2b222cd596d', reps: 10, weight: 60, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:12:00', exercises: { name: 'Press inclinado en máquina', series: 3, reps: '8-12' } },
+      { exercise_id: 'd86a2977-e298-4494-a714-f2b222cd596d', reps: 9, weight: 60, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:16:00', exercises: { name: 'Press inclinado en máquina', series: 3, reps: '8-12' } },
+      { exercise_id: 'd86a2977-e298-4494-a714-f2b222cd596d', reps: 8, weight: 60, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:20:00', exercises: { name: 'Press inclinado en máquina', series: 3, reps: '8-12' } },
+      // Press plano DB 30° 3x6-12
+      { exercise_id: 'fa538990-205d-4a05-8210-7a3a5ac21b15', reps: 8, weight: 32, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:28:00', exercises: { name: 'Press plano con mancuernas a 30°', series: 3, reps: '6-12' } },
+      { exercise_id: 'fa538990-205d-4a05-8210-7a3a5ac21b15', reps: 11, weight: 28, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:32:00', exercises: { name: 'Press plano con mancuernas a 30°', series: 3, reps: '6-12' } },
+      { exercise_id: 'fa538990-205d-4a05-8210-7a3a5ac21b15', reps: 10, weight: 28, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:36:00', exercises: { name: 'Press plano con mancuernas a 30°', series: 3, reps: '6-12' } },
+      // Cruces polea 2x10-15
+      { exercise_id: '65dc632d-7d09-4140-989b-bd5e1e0ee6d2', reps: 14, weight: 15, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:44:00', exercises: { name: 'Cruces en polea', series: 2, reps: '10-15' } },
+      { exercise_id: '65dc632d-7d09-4140-989b-bd5e1e0ee6d2', reps: 12, weight: 15, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:48:00', exercises: { name: 'Cruces en polea', series: 2, reps: '10-15' } },
+      // Ext. tríceps barra 2x12-15
+      { exercise_id: '7f557f96-78b2-48cd-aeea-2a244b658d93', reps: 15, weight: 25, rir: 2, is_warmup: false, logged_at: '2026-02-24T10:54:00', exercises: { name: 'Extensión tríceps barra', series: 2, reps: '12-15' } },
+      { exercise_id: '7f557f96-78b2-48cd-aeea-2a244b658d93', reps: 13, weight: 25, rir: 1, is_warmup: false, logged_at: '2026-02-24T10:58:00', exercises: { name: 'Extensión tríceps barra', series: 2, reps: '12-15' } },
+      // Ext. tríceps katana 2x10-12
+      { exercise_id: 'f8c956e4-b377-458a-8868-abff260e8d12', reps: 12, weight: 12, rir: 2, is_warmup: false, logged_at: '2026-02-24T11:04:00', exercises: { name: 'Ext. tríceps katana', series: 2, reps: '10-12' } },
+      { exercise_id: 'f8c956e4-b377-458a-8868-abff260e8d12', reps: 11, weight: 12, rir: 1, is_warmup: false, logged_at: '2026-02-24T11:08:00', exercises: { name: 'Ext. tríceps katana', series: 2, reps: '10-12' } },
     ],
     suppLogs: [
-      { supplement_id: 'creatina', logged_date: '2026-02-24', name: 'Creatina 5g' },
-      { supplement_id: 'omega3', logged_date: '2026-02-24', name: 'Omega 3' },
-      { supplement_id: 'vitd', logged_date: '2026-02-24', name: 'Vitamina D' },
+      { supplement_id: '2cd1577a-1e7d-4f76-81ac-0737dfead83b', logged_date: '2026-02-24', name: 'Creatina 5g' },
+      { supplement_id: 'f32a40fd-d668-4a40-8cf8-4096260e97ca', logged_date: '2026-02-24', name: 'Proteína 30g' },
     ],
     hasData: true,
   },
 
-  // ── DÍA 2: PULL — Bueno con fallos leves (92%) ──
+  // ── DÍA 2: LEGS — Bueno con fallos (91%) ──
   {
     date: '2026-02-25',
-    dateFormatted: '25 feb · Pull',
-    nutritionAcc: 91,
-    trainingAcc: 93,
+    dateFormatted: '25 feb · LEGS',
+    nutritionAcc: 90,
+    trainingAcc: 92,
     sleepAcc: 90,
     suppAcc: 100,
-    globalAcc: 92,
-    sleepData: { planned: '23:00', real: '00:10', hoursPlanned: 8, hoursReal: 7 },
+    globalAcc: 91,
+    sleepData: { planned: '23:00', real: '00:05', hoursPlanned: 8, hoursReal: 7 },
     foodLogs: [
-      { food_name: 'Tostadas integrales con huevo revuelto', meal_type: 'Desayuno', protein: 28, carbs: 42, fat: 14, calories: 380, logged_date: '2026-02-25' },
-      { food_name: 'Pasta boloñesa de pavo', meal_type: 'Comida', protein: 45, carbs: 82, fat: 15, calories: 620, logged_date: '2026-02-25' },
-      { food_name: 'Batido de proteínas con avena', meal_type: 'Merienda', protein: 32, carbs: 35, fat: 6, calories: 290, logged_date: '2026-02-25' },
-      { food_name: 'Tortilla francesa con ensalada', meal_type: 'Cena', protein: 30, carbs: 15, fat: 22, calories: 370, logged_date: '2026-02-25' },
+      { food_name: 'Tostadas con huevo y aguacate', meal_type: 'Desayuno', protein: 30, carbs: 45, fat: 22, calories: 490, logged_date: '2026-02-25' },
+      { food_name: 'Pasta con ternera y verduras', meal_type: 'Comida', protein: 50, carbs: 85, fat: 18, calories: 690, logged_date: '2026-02-25' },
+      { food_name: 'Batido proteínas con avena', meal_type: 'Merienda', protein: 35, carbs: 40, fat: 8, calories: 370, logged_date: '2026-02-25' },
+      { food_name: 'Tortilla con ensalada', meal_type: 'Cena', protein: 35, carbs: 15, fat: 25, calories: 420, logged_date: '2026-02-25' },
+      { food_name: 'Pan con mantequilla cacahuete', meal_type: 'Snack', protein: 12, carbs: 30, fat: 20, calories: 340, logged_date: '2026-02-25' },
     ],
     setLogs: [
-      // Dominadas — 4x8-10
-      { exercise_id: 'pull1', reps: 10, weight: 0, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:00:00', exercises: { name: 'Dominadas', series: 4, reps: '8-10' } },
-      { exercise_id: 'pull1', reps: 9, weight: 0, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:04:00', exercises: { name: 'Dominadas', series: 4, reps: '8-10' } },
-      { exercise_id: 'pull1', reps: 8, weight: 0, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:08:00', exercises: { name: 'Dominadas', series: 4, reps: '8-10' } },
-      { exercise_id: 'pull1', reps: 7, weight: 0, rir: 0, is_warmup: false, logged_at: '2026-02-25T17:12:00', exercises: { name: 'Dominadas', series: 4, reps: '8-10' } },
-      // Remo con Barra — 4x8-10
-      { exercise_id: 'pull2', reps: 10, weight: 70, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:20:00', exercises: { name: 'Remo con Barra', series: 4, reps: '8-10' } },
-      { exercise_id: 'pull2', reps: 9, weight: 70, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:24:00', exercises: { name: 'Remo con Barra', series: 4, reps: '8-10' } },
-      { exercise_id: 'pull2', reps: 8, weight: 70, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:28:00', exercises: { name: 'Remo con Barra', series: 4, reps: '8-10' } },
-      { exercise_id: 'pull2', reps: 8, weight: 70, rir: 0, is_warmup: false, logged_at: '2026-02-25T17:32:00', exercises: { name: 'Remo con Barra', series: 4, reps: '8-10' } },
-      // Curl Bíceps — 3x10-12
-      { exercise_id: 'pull3', reps: 12, weight: 14, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:40:00', exercises: { name: 'Curl Bíceps', series: 3, reps: '10-12' } },
-      { exercise_id: 'pull3', reps: 10, weight: 14, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:44:00', exercises: { name: 'Curl Bíceps', series: 3, reps: '10-12' } },
-      { exercise_id: 'pull3', reps: 9, weight: 14, rir: 0, is_warmup: false, logged_at: '2026-02-25T17:48:00', exercises: { name: 'Curl Bíceps', series: 3, reps: '10-12' } },
+      // AB crunch 3x12-15
+      { exercise_id: 'cf622f85-2832-4905-a784-596cc0594c2b', reps: 15, weight: 0, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:00:00', exercises: { name: 'AB crunch / Dragons', series: 3, reps: '12-15' } },
+      { exercise_id: 'cf622f85-2832-4905-a784-596cc0594c2b', reps: 13, weight: 0, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:03:00', exercises: { name: 'AB crunch / Dragons', series: 3, reps: '12-15' } },
+      { exercise_id: 'cf622f85-2832-4905-a784-596cc0594c2b', reps: 12, weight: 0, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:06:00', exercises: { name: 'AB crunch / Dragons', series: 3, reps: '12-15' } },
+      // Abductor máquina 3x10-12
+      { exercise_id: '0801585b-66b4-4bed-8872-53d46ffd2092', reps: 12, weight: 60, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:12:00', exercises: { name: 'Abductor en máquina', series: 3, reps: '10-12' } },
+      { exercise_id: '0801585b-66b4-4bed-8872-53d46ffd2092', reps: 11, weight: 60, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:16:00', exercises: { name: 'Abductor en máquina', series: 3, reps: '10-12' } },
+      { exercise_id: '0801585b-66b4-4bed-8872-53d46ffd2092', reps: 9, weight: 60, rir: 0, is_warmup: false, logged_at: '2026-02-25T17:20:00', exercises: { name: 'Abductor en máquina', series: 3, reps: '10-12' } },
+      // Isquios máquina 3x10-15
+      { exercise_id: '9318e67d-b352-4c00-8111-088f6959a76e', reps: 14, weight: 40, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:26:00', exercises: { name: 'Isquios en máquina', series: 3, reps: '10-15' } },
+      { exercise_id: '9318e67d-b352-4c00-8111-088f6959a76e', reps: 12, weight: 40, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:30:00', exercises: { name: 'Isquios en máquina', series: 3, reps: '10-15' } },
+      { exercise_id: '9318e67d-b352-4c00-8111-088f6959a76e', reps: 10, weight: 40, rir: 0, is_warmup: false, logged_at: '2026-02-25T17:34:00', exercises: { name: 'Isquios en máquina', series: 3, reps: '10-15' } },
+      // Extensión cuádriceps 3x10-15
+      { exercise_id: '53787e55-22ef-4f8c-8c0f-1f3aa497c274', reps: 14, weight: 50, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:40:00', exercises: { name: 'Extensión cuádriceps', series: 3, reps: '10-15' } },
+      { exercise_id: '53787e55-22ef-4f8c-8c0f-1f3aa497c274', reps: 12, weight: 50, rir: 1, is_warmup: false, logged_at: '2026-02-25T17:44:00', exercises: { name: 'Extensión cuádriceps', series: 3, reps: '10-15' } },
+      { exercise_id: '53787e55-22ef-4f8c-8c0f-1f3aa497c274', reps: 10, weight: 50, rir: 0, is_warmup: false, logged_at: '2026-02-25T17:48:00', exercises: { name: 'Extensión cuádriceps', series: 3, reps: '10-15' } },
+      // Prensa 2x8-12
+      { exercise_id: '040f3bf1-df51-42ba-816b-af0f20646da8', reps: 10, weight: 180, rir: 2, is_warmup: false, logged_at: '2026-02-25T17:56:00', exercises: { name: 'Prensa', series: 2, reps: '8-12' } },
+      { exercise_id: '040f3bf1-df51-42ba-816b-af0f20646da8', reps: 9, weight: 180, rir: 1, is_warmup: false, logged_at: '2026-02-25T18:00:00', exercises: { name: 'Prensa', series: 2, reps: '8-12' } },
+      // Sentadilla búlgara 3x6-10
+      { exercise_id: 'ed9ca66f-043c-45f8-b921-07feb3bb5d01', reps: 8, weight: 20, rir: 2, is_warmup: false, logged_at: '2026-02-25T18:08:00', exercises: { name: 'Sentadilla búlgara', series: 3, reps: '6-10' } },
+      { exercise_id: 'ed9ca66f-043c-45f8-b921-07feb3bb5d01', reps: 7, weight: 20, rir: 1, is_warmup: false, logged_at: '2026-02-25T18:12:00', exercises: { name: 'Sentadilla búlgara', series: 3, reps: '6-10' } },
+      { exercise_id: 'ed9ca66f-043c-45f8-b921-07feb3bb5d01', reps: 6, weight: 20, rir: 0, is_warmup: false, logged_at: '2026-02-25T18:16:00', exercises: { name: 'Sentadilla búlgara', series: 3, reps: '6-10' } },
     ],
     suppLogs: [
-      { supplement_id: 'creatina', logged_date: '2026-02-25', name: 'Creatina 5g' },
-      { supplement_id: 'omega3', logged_date: '2026-02-25', name: 'Omega 3' },
-      { supplement_id: 'vitd', logged_date: '2026-02-25', name: 'Vitamina D' },
+      { supplement_id: '2cd1577a-1e7d-4f76-81ac-0737dfead83b', logged_date: '2026-02-25', name: 'Creatina 5g' },
+      { supplement_id: 'f32a40fd-d668-4a40-8cf8-4096260e97ca', logged_date: '2026-02-25', name: 'Proteína 30g' },
     ],
     hasData: true,
   },
 
-  // ── DÍA 3: LEGS — Desastroso (64%) ──
+  // ── DÍA 3: PULL — Desastroso (58%) ──
   {
     date: '2026-02-26',
-    dateFormatted: '26 feb · Legs',
-    nutritionAcc: 58,
-    trainingAcc: 65,
-    sleepAcc: 55,
-    suppAcc: 33,
-    globalAcc: 57,
-    sleepData: { planned: '23:00', real: '02:30', hoursPlanned: 8, hoursReal: 5.5 },
+    dateFormatted: '26 feb · PULL',
+    nutritionAcc: 52,
+    trainingAcc: 60,
+    sleepAcc: 50,
+    suppAcc: 50,
+    globalAcc: 54,
+    sleepData: { planned: '23:00', real: '03:00', hoursPlanned: 8, hoursReal: 4.5 },
     foodLogs: [
-      { food_name: 'Café con galletas', meal_type: 'Desayuno', protein: 5, carbs: 40, fat: 12, calories: 250, logged_date: '2026-02-26' },
-      { food_name: 'Bocadillo de jamón y queso', meal_type: 'Comida', protein: 25, carbs: 50, fat: 18, calories: 420, logged_date: '2026-02-26' },
-      // Se saltó merienda y cena
+      { food_name: 'Café con galletas', meal_type: 'Desayuno', protein: 4, carbs: 45, fat: 12, calories: 300, logged_date: '2026-02-26' },
+      { food_name: 'Bocadillo de jamón', meal_type: 'Comida', protein: 22, carbs: 55, fat: 14, calories: 430, logged_date: '2026-02-26' },
+      // Saltó merienda y cena
     ],
     setLogs: [
-      // Sentadilla — 4x8-10 (solo hizo 2 series, reps bajas)
-      { exercise_id: 'legs1', reps: 7, weight: 90, rir: 0, is_warmup: false, logged_at: '2026-02-26T19:00:00', exercises: { name: 'Sentadilla', series: 4, reps: '8-10' } },
-      { exercise_id: 'legs1', reps: 5, weight: 90, rir: 0, is_warmup: false, logged_at: '2026-02-26T19:05:00', exercises: { name: 'Sentadilla', series: 4, reps: '8-10' } },
-      // Prensa — 3x10-12 (solo 2 series)
-      { exercise_id: 'legs2', reps: 8, weight: 120, rir: 0, is_warmup: false, logged_at: '2026-02-26T19:15:00', exercises: { name: 'Prensa', series: 3, reps: '10-12' } },
-      { exercise_id: 'legs2', reps: 6, weight: 120, rir: 0, is_warmup: false, logged_at: '2026-02-26T19:20:00', exercises: { name: 'Prensa', series: 3, reps: '10-12' } },
-      // Curl Femoral — 3x12-15 (abandonó, solo 1 serie)
-      { exercise_id: 'legs3', reps: 9, weight: 35, rir: 0, is_warmup: false, logged_at: '2026-02-26T19:30:00', exercises: { name: 'Curl Femoral', series: 3, reps: '12-15' } },
+      // Elevaciones laterales DB 3x12-15 (solo 2 series)
+      { exercise_id: 'ec0a969c-6705-40a1-97e5-e4fc3b1172f7', reps: 11, weight: 10, rir: 0, is_warmup: false, logged_at: '2026-02-26T20:00:00', exercises: { name: 'Elevaciones laterales DB', series: 3, reps: '12-15' } },
+      { exercise_id: 'ec0a969c-6705-40a1-97e5-e4fc3b1172f7', reps: 9, weight: 10, rir: 0, is_warmup: false, logged_at: '2026-02-26T20:04:00', exercises: { name: 'Elevaciones laterales DB', series: 3, reps: '12-15' } },
+      // Tracción vertical 3x6-10 (solo 2 series, reps bajas)
+      { exercise_id: '7f84dc09-d177-48f1-8887-b152a466d975', reps: 6, weight: 55, rir: 0, is_warmup: false, logged_at: '2026-02-26T20:12:00', exercises: { name: 'Tracción vertical unilateral', series: 3, reps: '6-10' } },
+      { exercise_id: '7f84dc09-d177-48f1-8887-b152a466d975', reps: 5, weight: 55, rir: 0, is_warmup: false, logged_at: '2026-02-26T20:16:00', exercises: { name: 'Tracción vertical unilateral', series: 3, reps: '6-10' } },
+      // Remo agarre mag 3x6-10 (abandonó, 1 serie)
+      { exercise_id: 'cf796839-ca5e-40a7-b349-2ea773b91f6b', reps: 7, weight: 65, rir: 0, is_warmup: false, logged_at: '2026-02-26T20:24:00', exercises: { name: 'Remo agarre mag', series: 3, reps: '6-10' } },
+      // No hizo Remo unilateral, Remo low row ni Curl bíceps
     ],
     suppLogs: [
-      { supplement_id: 'creatina', logged_date: '2026-02-26', name: 'Creatina 5g' },
-      // Olvidó omega3 y vitamina D
+      { supplement_id: '2cd1577a-1e7d-4f76-81ac-0737dfead83b', logged_date: '2026-02-26', name: 'Creatina 5g' },
+      // Olvidó Proteína
     ],
     hasData: true,
   },
 
-  // ── DÍA 4: PUSH B — Regular/Recuperación (88%) ──
+  // ── DÍA 4: LEGS 2 — Regular (87%) ──
   {
     date: '2026-02-27',
-    dateFormatted: '27 feb · Push B',
-    nutritionAcc: 89,
-    trainingAcc: 88,
+    dateFormatted: '27 feb · LEGS 2',
+    nutritionAcc: 88,
+    trainingAcc: 86,
     sleepAcc: 85,
     suppAcc: 100,
-    globalAcc: 89,
-    sleepData: { planned: '23:00', real: '23:45', hoursPlanned: 8, hoursReal: 7.25 },
+    globalAcc: 87,
+    sleepData: { planned: '23:00', real: '23:50', hoursPlanned: 8, hoursReal: 7 },
     foodLogs: [
-      { food_name: 'Tortitas de avena con miel', meal_type: 'Desayuno', protein: 22, carbs: 55, fat: 8, calories: 360, logged_date: '2026-02-27' },
-      { food_name: 'Arroz con ternera y verduras', meal_type: 'Comida', protein: 48, carbs: 70, fat: 14, calories: 580, logged_date: '2026-02-27' },
-      { food_name: 'Queso fresco con nueces', meal_type: 'Merienda', protein: 18, carbs: 8, fat: 20, calories: 280, logged_date: '2026-02-27' },
-      { food_name: 'Pechuga a la plancha con ensalada', meal_type: 'Cena', protein: 42, carbs: 12, fat: 9, calories: 290, logged_date: '2026-02-27' },
+      { food_name: 'Tortitas de avena con miel', meal_type: 'Desayuno', protein: 25, carbs: 60, fat: 10, calories: 430, logged_date: '2026-02-27' },
+      { food_name: 'Arroz con ternera y verduras', meal_type: 'Comida', protein: 50, carbs: 75, fat: 16, calories: 640, logged_date: '2026-02-27' },
+      { food_name: 'Queso fresco con nueces', meal_type: 'Merienda', protein: 20, carbs: 10, fat: 22, calories: 310, logged_date: '2026-02-27' },
+      { food_name: 'Pechuga con ensalada', meal_type: 'Cena', protein: 45, carbs: 12, fat: 8, calories: 300, logged_date: '2026-02-27' },
     ],
     setLogs: [
-      // Press Militar — 4x8-10
-      { exercise_id: 'pushb1', reps: 10, weight: 40, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:00:00', exercises: { name: 'Press Militar', series: 4, reps: '8-10' } },
-      { exercise_id: 'pushb1', reps: 9, weight: 40, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:04:00', exercises: { name: 'Press Militar', series: 4, reps: '8-10' } },
-      { exercise_id: 'pushb1', reps: 8, weight: 40, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:08:00', exercises: { name: 'Press Militar', series: 4, reps: '8-10' } },
-      { exercise_id: 'pushb1', reps: 7, weight: 40, rir: 0, is_warmup: false, logged_at: '2026-02-27T10:12:00', exercises: { name: 'Press Militar', series: 4, reps: '8-10' } },
-      // Aperturas en Polea — 3x12-15
-      { exercise_id: 'pushb2', reps: 14, weight: 15, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:20:00', exercises: { name: 'Aperturas Polea', series: 3, reps: '12-15' } },
-      { exercise_id: 'pushb2', reps: 12, weight: 15, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:24:00', exercises: { name: 'Aperturas Polea', series: 3, reps: '12-15' } },
-      { exercise_id: 'pushb2', reps: 11, weight: 15, rir: 0, is_warmup: false, logged_at: '2026-02-27T10:28:00', exercises: { name: 'Aperturas Polea', series: 3, reps: '12-15' } },
-      // Extensiones Tríceps — 3x10-12
-      { exercise_id: 'pushb3', reps: 12, weight: 20, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:36:00', exercises: { name: 'Extensiones Tríceps', series: 3, reps: '10-12' } },
-      { exercise_id: 'pushb3', reps: 10, weight: 20, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:40:00', exercises: { name: 'Extensiones Tríceps', series: 3, reps: '10-12' } },
-      { exercise_id: 'pushb3', reps: 10, weight: 20, rir: 0, is_warmup: false, logged_at: '2026-02-27T10:44:00', exercises: { name: 'Extensiones Tríceps', series: 3, reps: '10-12' } },
+      // ABS / Dragons 3x8-12
+      { exercise_id: '68a12c93-7c74-490e-8bbe-637298668c4e', reps: 12, weight: 0, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:00:00', exercises: { name: 'ABS / Dragons', series: 3, reps: '8-12' } },
+      { exercise_id: '68a12c93-7c74-490e-8bbe-637298668c4e', reps: 10, weight: 0, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:03:00', exercises: { name: 'ABS / Dragons', series: 3, reps: '8-12' } },
+      { exercise_id: '68a12c93-7c74-490e-8bbe-637298668c4e', reps: 8, weight: 0, rir: 0, is_warmup: false, logged_at: '2026-02-27T10:06:00', exercises: { name: 'ABS / Dragons', series: 3, reps: '8-12' } },
+      // Abductor máquina 3x10-12
+      { exercise_id: 'b7f23d93-59e8-451b-9574-1ee96fcde31b', reps: 12, weight: 65, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:12:00', exercises: { name: 'Abductor en máquina', series: 3, reps: '10-12' } },
+      { exercise_id: 'b7f23d93-59e8-451b-9574-1ee96fcde31b', reps: 10, weight: 65, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:16:00', exercises: { name: 'Abductor en máquina', series: 3, reps: '10-12' } },
+      { exercise_id: 'b7f23d93-59e8-451b-9574-1ee96fcde31b', reps: 9, weight: 65, rir: 0, is_warmup: false, logged_at: '2026-02-27T10:20:00', exercises: { name: 'Abductor en máquina', series: 3, reps: '10-12' } },
+      // Glúteo medio polea 2x8-10
+      { exercise_id: 'fa587f28-f9ee-4ea8-a15f-851214bbd9a4', reps: 10, weight: 15, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:26:00', exercises: { name: 'Glúteo medio en polea', series: 2, reps: '8-10' } },
+      { exercise_id: 'fa587f28-f9ee-4ea8-a15f-851214bbd9a4', reps: 8, weight: 15, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:30:00', exercises: { name: 'Glúteo medio en polea', series: 2, reps: '8-10' } },
+      // Peso muerto rumano 2x6-10
+      { exercise_id: '97f988c2-8a7a-46e6-8a6a-8573b1a7f5a9', reps: 8, weight: 80, rir: 2, is_warmup: false, logged_at: '2026-02-27T10:38:00', exercises: { name: 'Peso muerto rumano', series: 2, reps: '6-10' } },
+      { exercise_id: '97f988c2-8a7a-46e6-8a6a-8573b1a7f5a9', reps: 7, weight: 80, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:42:00', exercises: { name: 'Peso muerto rumano', series: 2, reps: '6-10' } },
+      // Ext. cuádriceps 2x10-15
+      { exercise_id: '842c370d-3bc9-4676-99a6-91aa4d22b8ec', reps: 13, weight: 45, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:48:00', exercises: { name: 'Extensión cuádriceps', series: 2, reps: '10-15' } },
+      { exercise_id: '842c370d-3bc9-4676-99a6-91aa4d22b8ec', reps: 10, weight: 45, rir: 0, is_warmup: false, logged_at: '2026-02-27T10:52:00', exercises: { name: 'Extensión cuádriceps', series: 2, reps: '10-15' } },
+      // Prensa 2x6-10
+      { exercise_id: 'a4465143-cd21-48ee-a214-ab2744029eaf', reps: 9, weight: 200, rir: 1, is_warmup: false, logged_at: '2026-02-27T10:58:00', exercises: { name: 'Prensa', series: 2, reps: '6-10' } },
+      { exercise_id: 'a4465143-cd21-48ee-a214-ab2744029eaf', reps: 7, weight: 200, rir: 0, is_warmup: false, logged_at: '2026-02-27T11:02:00', exercises: { name: 'Prensa', series: 2, reps: '6-10' } },
+      // Hip Thrust 3x6-10 (solo hizo 2)
+      { exercise_id: '66fa6acd-d1c5-435e-ace1-576f74a6c762', reps: 8, weight: 100, rir: 1, is_warmup: false, logged_at: '2026-02-27T11:10:00', exercises: { name: 'Hip Thrust', series: 3, reps: '6-10' } },
+      { exercise_id: '66fa6acd-d1c5-435e-ace1-576f74a6c762', reps: 7, weight: 100, rir: 0, is_warmup: false, logged_at: '2026-02-27T11:14:00', exercises: { name: 'Hip Thrust', series: 3, reps: '6-10' } },
     ],
     suppLogs: [
-      { supplement_id: 'creatina', logged_date: '2026-02-27', name: 'Creatina 5g' },
-      { supplement_id: 'omega3', logged_date: '2026-02-27', name: 'Omega 3' },
-      { supplement_id: 'vitd', logged_date: '2026-02-27', name: 'Vitamina D' },
+      { supplement_id: '2cd1577a-1e7d-4f76-81ac-0737dfead83b', logged_date: '2026-02-27', name: 'Creatina 5g' },
+      { supplement_id: 'f32a40fd-d668-4a40-8cf8-4096260e97ca', logged_date: '2026-02-27', name: 'Proteína 30g' },
     ],
     hasData: true,
   },
 
-  // ── DÍA 5: PULL B — Perfecto (100%) ──
+  // ── DÍA 5: DESCANSO — Perfecto (100%) ──
   {
     date: '2026-02-28',
-    dateFormatted: '28 feb · Pull B',
+    dateFormatted: '28 feb · Descanso',
     nutritionAcc: 100,
     trainingAcc: 100,
     sleepAcc: 100,
     suppAcc: 100,
     globalAcc: 100,
-    sleepData: { planned: '23:00', real: '22:50', hoursPlanned: 8, hoursReal: 8.25 },
+    sleepData: { planned: '23:00', real: '22:45', hoursPlanned: 8, hoursReal: 8.5 },
     foodLogs: [
-      { food_name: 'Avena con whey y arándanos', meal_type: 'Desayuno', protein: 40, carbs: 58, fat: 8, calories: 410, logged_date: '2026-02-28' },
-      { food_name: 'Pollo al curry con arroz basmati', meal_type: 'Comida', protein: 50, carbs: 72, fat: 16, calories: 620, logged_date: '2026-02-28' },
-      { food_name: 'Requesón con miel y nueces', meal_type: 'Merienda', protein: 25, carbs: 30, fat: 12, calories: 310, logged_date: '2026-02-28' },
-      { food_name: 'Merluza al horno con patata', meal_type: 'Cena', protein: 38, carbs: 45, fat: 10, calories: 400, logged_date: '2026-02-28' },
+      { food_name: 'Avena con whey y arándanos', meal_type: 'Desayuno', protein: 45, carbs: 62, fat: 10, calories: 520, logged_date: '2026-02-28' },
+      { food_name: 'Pollo al curry con arroz basmati', meal_type: 'Comida', protein: 55, carbs: 78, fat: 24, calories: 740, logged_date: '2026-02-28' },
+      { food_name: 'Requesón con miel y nueces', meal_type: 'Merienda', protein: 28, carbs: 25, fat: 16, calories: 350, logged_date: '2026-02-28' },
+      { food_name: 'Merluza al horno con patata y judías', meal_type: 'Cena', protein: 42, carbs: 55, fat: 12, calories: 500, logged_date: '2026-02-28' },
+      { food_name: 'Frutos secos variados', meal_type: 'Snack', protein: 10, carbs: 15, fat: 50, calories: 550, logged_date: '2026-02-28' },
     ],
-    setLogs: [
-      // Peso Muerto — 4x6-8
-      { exercise_id: 'pullb1', reps: 8, weight: 120, rir: 2, is_warmup: false, logged_at: '2026-02-28T09:00:00', exercises: { name: 'Peso Muerto', series: 4, reps: '6-8' } },
-      { exercise_id: 'pullb1', reps: 7, weight: 120, rir: 2, is_warmup: false, logged_at: '2026-02-28T09:05:00', exercises: { name: 'Peso Muerto', series: 4, reps: '6-8' } },
-      { exercise_id: 'pullb1', reps: 7, weight: 120, rir: 1, is_warmup: false, logged_at: '2026-02-28T09:10:00', exercises: { name: 'Peso Muerto', series: 4, reps: '6-8' } },
-      { exercise_id: 'pullb1', reps: 6, weight: 120, rir: 1, is_warmup: false, logged_at: '2026-02-28T09:15:00', exercises: { name: 'Peso Muerto', series: 4, reps: '6-8' } },
-      // Jalón al Pecho — 3x10-12
-      { exercise_id: 'pullb2', reps: 12, weight: 60, rir: 2, is_warmup: false, logged_at: '2026-02-28T09:24:00', exercises: { name: 'Jalón al Pecho', series: 3, reps: '10-12' } },
-      { exercise_id: 'pullb2', reps: 11, weight: 60, rir: 1, is_warmup: false, logged_at: '2026-02-28T09:28:00', exercises: { name: 'Jalón al Pecho', series: 3, reps: '10-12' } },
-      { exercise_id: 'pullb2', reps: 10, weight: 60, rir: 1, is_warmup: false, logged_at: '2026-02-28T09:32:00', exercises: { name: 'Jalón al Pecho', series: 3, reps: '10-12' } },
-      // Face Pull — 3x15-20
-      { exercise_id: 'pullb3', reps: 20, weight: 15, rir: 2, is_warmup: false, logged_at: '2026-02-28T09:40:00', exercises: { name: 'Face Pull', series: 3, reps: '15-20' } },
-      { exercise_id: 'pullb3', reps: 18, weight: 15, rir: 1, is_warmup: false, logged_at: '2026-02-28T09:44:00', exercises: { name: 'Face Pull', series: 3, reps: '15-20' } },
-      { exercise_id: 'pullb3', reps: 16, weight: 15, rir: 1, is_warmup: false, logged_at: '2026-02-28T09:48:00', exercises: { name: 'Face Pull', series: 3, reps: '15-20' } },
-    ],
+    setLogs: [], // Día de descanso
     suppLogs: [
-      { supplement_id: 'creatina', logged_date: '2026-02-28', name: 'Creatina 5g' },
-      { supplement_id: 'omega3', logged_date: '2026-02-28', name: 'Omega 3' },
-      { supplement_id: 'vitd', logged_date: '2026-02-28', name: 'Vitamina D' },
+      { supplement_id: '2cd1577a-1e7d-4f76-81ac-0737dfead83b', logged_date: '2026-02-28', name: 'Creatina 5g' },
+      { supplement_id: 'f32a40fd-d668-4a40-8cf8-4096260e97ca', logged_date: '2026-02-28', name: 'Proteína 30g' },
     ],
     hasData: true,
   },
