@@ -1,10 +1,11 @@
-import { motion } from 'framer-motion';
-import { Layers, ChevronRight, Plus, Loader2, AlertTriangle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Layers, ChevronRight, Plus, Loader2, AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePeriodization } from '@/hooks/usePeriodization';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { MicrocycleHistoryChart } from '@/components/MicrocycleHistoryChart';
 
 interface PeriodizationBadgeProps {
   programId?: string;
@@ -16,6 +17,7 @@ export const PeriodizationBadge = ({ programId, variant = 'compact' }: Periodiza
   const {
     activeMesocycle,
     activeMicrocycle,
+    allMicrocycles,
     sessionStatuses,
     loading,
     initializePeriodization,
@@ -23,6 +25,8 @@ export const PeriodizationBadge = ({ programId, variant = 'compact' }: Periodiza
   } = usePeriodization(programId);
 
   const [initializing, setInitializing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
   const [microcycleCount, setMicrocycleCount] = useState(4);
   const [durationWeeks, setDurationWeeks] = useState(8);
 
@@ -280,6 +284,27 @@ export const PeriodizationBadge = ({ programId, variant = 'compact' }: Periodiza
           </div>
         </div>
       )}
+
+      {/* History button */}
+      {allMicrocycles.filter(m => m.status === 'completed').length > 0 && (
+        <button
+          onClick={() => setShowHistory(true)}
+          className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-primary hover:bg-primary/5 rounded-xl transition-colors"
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          Ver historial de microciclos
+        </button>
+      )}
+
+      <AnimatePresence>
+        {showHistory && (
+          <MicrocycleHistoryChart
+            microcycles={allMicrocycles}
+            mesocycleNumber={mesoNum}
+            onClose={() => setShowHistory(false)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
