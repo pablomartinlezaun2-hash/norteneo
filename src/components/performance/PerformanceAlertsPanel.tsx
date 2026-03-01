@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, AlertTriangle, Activity, Bell, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePerformanceEngine } from '@/hooks/usePerformanceEngine';
 import type { PerformanceAlert, AlertType } from '@/lib/performanceEngine';
+import { ExerciseTrendChart } from './ExerciseTrendChart';
 
 const ALERT_CONFIG: Record<AlertType, {
   icon: typeof TrendingUp;
@@ -46,6 +47,7 @@ const SEVERITY_ORDER = { error: 0, warn: 1, info: 2 };
 
 export const PerformanceAlertsPanel = () => {
   const { getAllAlerts, loading } = usePerformanceEngine();
+  const [selectedAlert, setSelectedAlert] = useState<PerformanceAlert | null>(null);
 
   const alerts = useMemo(() => {
     if (loading) return [];
@@ -82,109 +84,132 @@ export const PerformanceAlertsPanel = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-4"
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Bell className="w-4 h-4 text-primary" />
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="space-y-4"
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Bell className="w-4 h-4 text-primary" />
+          </div>
+          <h3 className="font-semibold text-foreground text-sm">Alertas de Rendimiento</h3>
+          {alerts.length > 0 && (
+            <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              {alerts.length}
+            </span>
+          )}
         </div>
-        <h3 className="font-semibold text-foreground text-sm">Alertas de Rendimiento</h3>
+
+        {/* Summary pills */}
         {alerts.length > 0 && (
-          <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-            {alerts.length}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            {summary.improvements > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                <TrendingUp className="w-3 h-3" />
+                {summary.improvements} mejora{summary.improvements > 1 ? 's' : ''}
+              </span>
+            )}
+            {summary.stagnations > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                <Activity className="w-3 h-3" />
+                {summary.stagnations} estancamiento{summary.stagnations > 1 ? 's' : ''}
+              </span>
+            )}
+            {summary.regressions > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">
+                <TrendingDown className="w-3 h-3" />
+                {summary.regressions} retroceso{summary.regressions > 1 ? 's' : ''}
+              </span>
+            )}
+            {summary.overtraining > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-600/10 text-red-600 border border-red-600/20">
+                <AlertTriangle className="w-3 h-3" />
+                {summary.overtraining} sobreentrenamiento
+              </span>
+            )}
+          </div>
         )}
-      </div>
 
-      {/* Summary pills */}
-      {alerts.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {summary.improvements > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-              <TrendingUp className="w-3 h-3" />
-              {summary.improvements} mejora{summary.improvements > 1 ? 's' : ''}
-            </span>
-          )}
-          {summary.stagnations > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
-              <Activity className="w-3 h-3" />
-              {summary.stagnations} estancamiento{summary.stagnations > 1 ? 's' : ''}
-            </span>
-          )}
-          {summary.regressions > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">
-              <TrendingDown className="w-3 h-3" />
-              {summary.regressions} retroceso{summary.regressions > 1 ? 's' : ''}
-            </span>
-          )}
-          {summary.overtraining > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-600/10 text-red-600 border border-red-600/20">
-              <AlertTriangle className="w-3 h-3" />
-              {summary.overtraining} sobreentrenamiento
-            </span>
-          )}
-        </div>
-      )}
+        {/* Alert list */}
+        {alerts.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            <Activity className="w-8 h-8 mx-auto mb-2 opacity-40" />
+            <p>Sin alertas activas</p>
+            <p className="text-xs mt-1">Se necesitan al menos 4 sesiones por ejercicio para detectar tendencias</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <AnimatePresence>
+              {alerts.map((alert, i) => {
+                const cfg = ALERT_CONFIG[alert.type];
+                const Icon = cfg.icon;
+                const pctDisplay = alert.pct_change != null
+                  ? `${alert.pct_change > 0 ? '+' : ''}${(alert.pct_change * 100).toFixed(1)}%`
+                  : null;
 
-      {/* Alert list */}
-      {alerts.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          <Activity className="w-8 h-8 mx-auto mb-2 opacity-40" />
-          <p>Sin alertas activas</p>
-          <p className="text-xs mt-1">Se necesitan al menos 4 sesiones por ejercicio para detectar tendencias</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <AnimatePresence>
-            {alerts.map((alert, i) => {
-              const cfg = ALERT_CONFIG[alert.type];
-              const Icon = cfg.icon;
-              const pctDisplay = alert.pct_change != null
-                ? `${alert.pct_change > 0 ? '+' : ''}${(alert.pct_change * 100).toFixed(1)}%`
-                : null;
+                const isClickable = !!alert.exerciseId;
 
-              return (
-                <motion.div
-                  key={`${alert.type}-${alert.exerciseId}-${i}`}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 12 }}
-                  transition={{ delay: i * 0.05 }}
-                  className={cn(
-                    "flex items-start gap-3 p-3 rounded-xl border transition-colors",
-                    cfg.bgClass, cfg.borderClass
-                  )}
-                >
-                  <div className={cn("p-1.5 rounded-lg", cfg.bgClass)}>
-                    <Icon className={cn("w-4 h-4", cfg.iconClass)} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={cn("text-[10px] font-semibold uppercase tracking-wider", cfg.iconClass)}>
-                        {cfg.label}
-                      </span>
-                      {pctDisplay && (
-                        <span className={cn("text-[10px] font-mono", cfg.iconClass)}>
-                          {pctDisplay}
+                return (
+                  <motion.button
+                    key={`${alert.type}-${alert.exerciseId}-${i}`}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 12 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => isClickable && setSelectedAlert(alert)}
+                    disabled={!isClickable}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-xl border transition-colors w-full text-left",
+                      cfg.bgClass, cfg.borderClass,
+                      isClickable && "cursor-pointer active:scale-[0.98]"
+                    )}
+                  >
+                    <div className={cn("p-1.5 rounded-lg", cfg.bgClass)}>
+                      <Icon className={cn("w-4 h-4", cfg.iconClass)} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={cn("text-[10px] font-semibold uppercase tracking-wider", cfg.iconClass)}>
+                          {cfg.label}
                         </span>
+                        {pctDisplay && (
+                          <span className={cn("text-[10px] font-mono", cfg.iconClass)}>
+                            {pctDisplay}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-foreground mt-0.5 leading-snug">
+                        {alert.message}
+                      </p>
+                      {isClickable && (
+                        <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
+                          Ver gráfico de tendencia <ChevronRight className="w-3 h-3" />
+                        </p>
                       )}
                     </div>
-                    <p className="text-sm text-foreground mt-0.5 leading-snug">
-                      {alert.message}
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1" />
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-      )}
-    </motion.div>
+                    <ChevronRight className={cn("w-4 h-4 shrink-0 mt-1", isClickable ? cfg.iconClass : "text-muted-foreground")} />
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Exercise Trend Chart Modal */}
+      <AnimatePresence>
+        {selectedAlert?.exerciseId && (
+          <ExerciseTrendChart
+            exerciseId={selectedAlert.exerciseId}
+            exerciseName={selectedAlert.exerciseName || 'Ejercicio'}
+            onClose={() => setSelectedAlert(null)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
