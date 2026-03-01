@@ -385,94 +385,88 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const aiText = useMemo(() => {
     const lines: string[] = [];
 
-    // ── Opening verdict ──
     if (globalScore >= 95) {
-      lines.push('📊 **Día sobresaliente.** Tu disciplina hoy ha sido prácticamente perfecta en todas las métricas.');
+      lines.push('Día sobresaliente. Tu disciplina hoy ha sido prácticamente perfecta en todas las métricas.');
     } else if (globalScore >= 90) {
-      lines.push(`📊 **Buen día (${globalScore}%).** Rendimiento sólido con algunos puntos menores que ajustar.`);
+      lines.push(`Buen día (${globalScore}%). Rendimiento sólido con algunos puntos menores que ajustar.`);
     } else if (globalScore >= 75) {
-      lines.push(`⚠️ **Día irregular (${globalScore}%).** Se detectan desviaciones significativas en varias métricas.`);
+      lines.push(`Día irregular (${globalScore}%). Se detectan desviaciones significativas en varias métricas.`);
     } else {
-      lines.push(`🔴 **Día crítico (${globalScore}%).** Múltiples áreas presentan desviaciones graves que pueden impactar tu progreso.`);
+      lines.push(`Día crítico (${globalScore}%). Múltiples áreas presentan desviaciones graves que pueden impactar tu progreso.`);
     }
 
-    // ── Nutrition detail ──
     if (realNutrition) {
       const { totalProtein, totalCarbs, totalFat, accP, accC, accF, avg } = realNutrition;
       const diffP = totalProtein - g.daily_protein;
       const diffC = totalCarbs - g.daily_carbs;
       const diffF = totalFat - g.daily_fat;
       if (avg >= 95) {
-        lines.push(`🍽️ **Nutrición excelente (${avg}%).** Macros prácticamente clavados: P ${Math.round(totalProtein)}g, C ${Math.round(totalCarbs)}g, G ${Math.round(totalFat)}g.`);
+        lines.push(`Nutrición excelente (${avg}%). Macros prácticamente clavados: P ${Math.round(totalProtein)}g, C ${Math.round(totalCarbs)}g, G ${Math.round(totalFat)}g.`);
       } else {
         const issues: string[] = [];
         if (accP < 90) issues.push(`proteína ${diffP > 0 ? '+' : ''}${Math.round(diffP)}g (${accP}%)`);
         if (accC < 90) issues.push(`carbohidratos ${diffC > 0 ? '+' : ''}${Math.round(diffC)}g (${accC}%)`);
         if (accF < 90) issues.push(`grasas ${diffF > 0 ? '+' : ''}${Math.round(diffF)}g (${accF}%)`);
         if (issues.length > 0) {
-          lines.push(`🍽️ **Nutrición al ${avg}%.** Desviaciones en: ${issues.join(', ')}. ${diffP < -20 ? 'El déficit de proteína puede comprometer la recuperación muscular y la síntesis proteica.' : diffP > 30 ? 'El exceso de proteína podría indicar un desbalance de macros.' : ''}`);
+          lines.push(`Nutrición al ${avg}%. Desviaciones en: ${issues.join(', ')}. ${diffP < -20 ? 'El déficit de proteína puede comprometer la recuperación muscular y la síntesis proteica.' : diffP > 30 ? 'El exceso de proteína podría indicar un desbalance de macros.' : ''}`);
         } else {
-          lines.push(`🍽️ **Nutrición al ${avg}%.** Los macros están cerca del objetivo pero hay margen de mejora en la precisión.`);
+          lines.push(`Nutrición al ${avg}%. Los macros están cerca del objetivo pero hay margen de mejora en la precisión.`);
         }
       }
       if (mealGroups.length < 3) {
-        lines.push(`   ⚠ Solo ${mealGroups.length} comidas registradas. Distribuir las ingestas en 4-5 tomas mejora la absorción de nutrientes y el control del apetito.`);
+        lines.push(`Solo ${mealGroups.length} comidas registradas. Distribuir las ingestas en 4 o 5 tomas mejora la absorción de nutrientes y el control del apetito.`);
       }
     } else {
-      lines.push(`🍽️ **Nutrición (mock ${nutritionAcc}%).** Sin datos reales registrados hoy. Recuerda loguear tus comidas para un análisis preciso.`);
+      lines.push(`Nutrición (mock ${nutritionAcc}%). Sin datos reales registrados hoy. Recuerda loguear tus comidas para un análisis preciso.`);
     }
 
-    // ── Training detail ──
     if (realTraining) {
       const { exercises, avg } = realTraining;
       const failedEx = exercises.filter(e => e.accuracy < 85);
       const perfectEx = exercises.filter(e => e.accuracy >= 98);
       if (avg >= 95) {
-        lines.push(`💪 **Entrenamiento impecable (${avg}%).** ${exercises.length} ejercicios completados con alta precisión.${perfectEx.length > 0 ? ` Destacan: ${perfectEx.map(e => e.name).join(', ')}.` : ''}`);
+        lines.push(`Entrenamiento impecable (${avg}%). ${exercises.length} ejercicios completados con alta precisión.${perfectEx.length > 0 ? ` Destacan: ${perfectEx.map(e => e.name).join(', ')}.` : ''}`);
       } else {
-        lines.push(`💪 **Entrenamiento al ${avg}%.** ${exercises.length} ejercicios realizados.`);
+        lines.push(`Entrenamiento al ${avg}%. ${exercises.length} ejercicios realizados.`);
         if (failedEx.length > 0) {
           failedEx.forEach(ex => {
             const setsIssue = ex.sets < ex.targetSets ? `faltan ${ex.targetSets - ex.sets} series` : '';
             const repsBelow = ex.reps.filter((r: number) => r < ex.minR).length;
             const repsIssue = repsBelow > 0 ? `${repsBelow} series por debajo del rango mínimo (${ex.minR})` : '';
             const details = [setsIssue, repsIssue].filter(Boolean).join(', ');
-            lines.push(`   ⚠ ${ex.name} (${ex.accuracy}%): ${details || 'precisión baja en repeticiones'}. ${ex.accuracy < 70 ? 'Considera reducir el peso o ajustar el rango de repeticiones si la fatiga persiste.' : 'Pequeño ajuste necesario.'}`);
+            lines.push(`${ex.name} (${ex.accuracy}%): ${details || 'precisión baja en repeticiones'}. ${ex.accuracy < 70 ? 'Considera reducir el peso o ajustar el rango de repeticiones si la fatiga persiste.' : 'Pequeño ajuste necesario.'}`);
           });
         }
       }
     } else {
-      lines.push(`💪 **Entrenamiento (mock ${trainingAcc}%).** Sin series registradas hoy. Si fue día de descanso, perfecto.`);
+      lines.push(`Entrenamiento (mock ${trainingAcc}%). Sin series registradas hoy. Si fue día de descanso, perfecto.`);
     }
 
-    // ── Sleep ──
     if (sleepAcc >= 95) {
-      lines.push(`😴 **Sueño óptimo (${sleepAcc}%).** El descanso adecuado maximiza la síntesis proteica nocturna y la recuperación del SNC.`);
+      lines.push(`Sueño óptimo (${sleepAcc}%). El descanso adecuado maximiza la síntesis proteica nocturna y la recuperación del SNC.`);
     } else if (sleepAcc >= 80) {
-      lines.push(`😴 **Sueño aceptable (${sleepAcc}%).** Una leve desviación en el horario o duración. Intenta mantener la hora de dormir consistente para regular tu ritmo circadiano.`);
+      lines.push(`Sueño aceptable (${sleepAcc}%). Una leve desviación en el horario o duración. Intenta mantener la hora de dormir consistente para regular tu ritmo circadiano.`);
     } else {
-      lines.push(`😴 **Sueño deficiente (${sleepAcc}%).** El descanso insuficiente reduce hasta un 40% la capacidad de recuperación muscular y aumenta la percepción de fatiga. Prioriza dormir al menos 7h.`);
+      lines.push(`Sueño deficiente (${sleepAcc}%). El descanso insuficiente reduce hasta un 40% la capacidad de recuperación muscular y aumenta la percepción de fatiga. Prioriza dormir al menos 7h.`);
     }
 
-    // ── Supplements ──
     if (realSupplements) {
       if (realSupplements.acc >= 100) {
-        lines.push(`💊 **Suplementación perfecta.** Todos los suplementos tomados (${realSupplements.taken}/${realSupplements.total}).`);
+        lines.push(`Suplementación perfecta. Todos los suplementos tomados (${realSupplements.taken}/${realSupplements.total}).`);
       } else {
         const missed = realSupplements.total - realSupplements.taken;
-        lines.push(`💊 **Suplementación al ${realSupplements.acc}%.** Faltan ${missed} suplemento(s) por tomar. La consistencia diaria es clave para obtener beneficios acumulativos.`);
+        lines.push(`Suplementación al ${realSupplements.acc}%. Faltan ${missed} suplemento(s) por tomar. La consistencia diaria es clave para obtener beneficios acumulativos.`);
       }
     } else {
-      lines.push(`💊 **Suplementación (mock ${suppAcc}%).** Sin datos reales de suplementos hoy.`);
+      lines.push(`Suplementación (mock ${suppAcc}%). Sin datos reales de suplementos hoy.`);
     }
 
-    // ── Closing recommendation ──
     if (globalScore >= 95) {
-      lines.push('✅ **Conclusión:** Día excelente. Mantener esta consistencia durante todo el microciclo es la clave para maximizar las adaptaciones.');
+      lines.push('Conclusión: Día excelente. Mantener esta consistencia durante todo el microciclo es la clave para maximizar las adaptaciones.');
     } else if (globalScore >= 85) {
-      lines.push('📌 **Conclusión:** Buen día con margen de mejora. Enfócate mañana en las áreas marcadas con ⚠ para acercarte al 95%+.');
+      lines.push('Conclusión: Buen día con margen de mejora. Enfócate mañana en las áreas señaladas para acercarte al 95%+.');
     } else {
-      lines.push('🚨 **Conclusión:** Hoy se detectan desviaciones que, si se repiten, pueden frenar tu progreso. Revisa las alertas y ajusta para mañana.');
+      lines.push('Conclusión: Hoy se detectan desviaciones que, si se repiten, pueden frenar tu progreso. Revisa las alertas y ajusta para mañana.');
     }
 
     return lines.join('\n\n');
