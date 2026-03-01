@@ -230,31 +230,70 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const defaultGoals = { daily_calories: 2000, daily_protein: 150, daily_carbs: 250, daily_fat: 70 };
   const g = goals || defaultGoals;
 
+  const fetchAll = async () => {
+    if (!user) return;
+    setLoading(true);
+    const [foodRes, setLogRes, suppRes, suppLogRes] = await Promise.all([
+      supabase.from('food_logs').select('*').eq('user_id', user.id).eq('logged_date', today).order('created_at'),
+      supabase.from('set_logs').select('*, exercises(name, series, reps, session_id)').eq('user_id', user.id).gte('logged_at', today + 'T00:00:00').lte('logged_at', today + 'T23:59:59'),
+      supabase.from('user_supplements').select('*').eq('user_id', user.id).eq('is_active', true),
+      supabase.from('supplement_logs').select('*').eq('user_id', user.id).eq('logged_date', today),
+    ]);
+    setFoodLogs(foodRes.data || []);
+    setSetLogs(setLogRes.data || []);
+    setSupplements(suppRes.data || []);
+    setSupplementLogs(suppLogRes.data || []);
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const [foodRes, setLogRes, suppRes, suppLogRes] = await Promise.all([
-        supabase.from('food_logs').select('*').eq('user_id', user.id).eq('logged_date', today),
-        supabase.from('set_logs').select('*, exercises(name, series, reps, session_id)').eq('user_id', user.id).gte('logged_at', today + 'T00:00:00').lte('logged_at', today + 'T23:59:59'),
-        supabase.from('user_supplements').select('*').eq('user_id', user.id).eq('is_active', true),
-        supabase.from('supplement_logs').select('*').eq('user_id', user.id).eq('logged_date', today),
-      ]);
-      setFoodLogs(foodRes.data || []);
-      setSetLogs(setLogRes.data || []);
-      setSupplements(suppRes.data || []);
-      setSupplementLogs(suppLogRes.data || []);
-      setLoading(false);
-    };
-    load();
+    fetchAll();
   }, [user, today, refreshTrigger]);
 
-  /* ── Real data: nutrition ── */
+  /* ── Realtime subscriptions ── */
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase.channel('adherence-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'food_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'set_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'supplement_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  /* ── Real data: nutrition grouped by meal ── */
+  const mealGroups = useMemo(() => {
+    if (foodLogs.length === 0) return [];
+    // Group by meal_type
+    const grouped: Record<string, any[]> = {};
+    foodLogs.forEach((log: any) => {
+      const key = log.meal_type || 'Otro';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(log);
+    });
+    // Sort by earliest created_at per group
+    const entries = Object.entries(grouped).sort((a, b) => {
+      const tA = new Date(a[1][0]?.created_at || 0).getTime();
+      const tB = new Date(b[1][0]?.created_at || 0).getTime();
+      return tA - tB;
+    });
+    return entries.map(([mealType, logs], idx) => {
+      const protein = logs.reduce((s: number, l: any) => s + (Number(l.protein) || 0), 0);
+      const carbs = logs.reduce((s: number, l: any) => s + (Number(l.carbs) || 0), 0);
+      const fat = logs.reduce((s: number, l: any) => s + (Number(l.fat) || 0), 0);
+      const calories = logs.reduce((s: number, l: any) => s + (Number(l.calories) || 0), 0);
+      const loggedTime = logs[0]?.created_at ? format(new Date(logs[0].created_at), 'HH:mm') : '--:--';
+      const foods = logs.map((l: any) => `${l.quantity}${l.unit || 'g'} ${l.food_name}`);
+      return { mealType, index: idx + 1, protein, carbs, fat, calories, loggedTime, foods, logCount: logs.length };
+    });
+  }, [foodLogs]);
+
   const realNutrition = useMemo(() => {
     if (foodLogs.length === 0) return null;
-    const totalProtein = foodLogs.reduce((s, l) => s + (Number(l.protein) || 0), 0);
-    const totalCarbs = foodLogs.reduce((s, l) => s + (Number(l.carbs) || 0), 0);
-    const totalFat = foodLogs.reduce((s, l) => s + (Number(l.fat) || 0), 0);
+    const totalProtein = foodLogs.reduce((s: number, l: any) => s + (Number(l.protein) || 0), 0);
+    const totalCarbs = foodLogs.reduce((s: number, l: any) => s + (Number(l.carbs) || 0), 0);
+    const totalFat = foodLogs.reduce((s: number, l: any) => s + (Number(l.fat) || 0), 0);
     const accP = calcGeneralAccuracy(g.daily_protein, totalProtein);
     const accC = calcGeneralAccuracy(g.daily_carbs, totalCarbs);
     const accF = calcGeneralAccuracy(g.daily_fat, totalFat);
@@ -385,16 +424,75 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
       {/* ═══════ 2. NUTRICIÓN E HIDRATACIÓN ═══════ */}
       <AccordionSection icon={UtensilsCrossed} title="Nutrición e Hidratación" accuracy={nutritionAcc}>
-        {hasRealData && realNutrition ? (
+        {mealGroups.length > 0 ? (
           <div className="space-y-3">
-            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-              <p className="text-sm font-bold text-foreground">Resumen del día</p>
-              <MetricRow label="Proteína" planned={g.daily_protein} real={Math.round(realNutrition.totalProtein)} unit="g" accuracy={realNutrition.accP} />
-              <MetricRow label="Carbohidratos" planned={g.daily_carbs} real={Math.round(realNutrition.totalCarbs)} unit="g" accuracy={realNutrition.accC} />
-              <MetricRow label="Grasas" planned={g.daily_fat} real={Math.round(realNutrition.totalFat)} unit="g" accuracy={realNutrition.accF} />
-              <div className="pt-2">
+            {/* Per-meal cards */}
+            {mealGroups.map((meal) => {
+              // Per-meal target = daily goal / number of meals
+              const numMeals = mealGroups.length || 1;
+              const mealTargetP = Math.round(g.daily_protein / numMeals);
+              const mealTargetC = Math.round(g.daily_carbs / numMeals);
+              const mealTargetF = Math.round(g.daily_fat / numMeals);
+
+              const accP = calcGeneralAccuracy(mealTargetP, Math.round(meal.protein));
+              const accC = calcGeneralAccuracy(mealTargetC, Math.round(meal.carbs));
+              const accF = calcGeneralAccuracy(mealTargetF, Math.round(meal.fat));
+              const mealAvg = Math.round((accP + accC + accF) / 3);
+
+              return (
+                <div key={meal.mealType} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Comida {meal.index} — {meal.mealType}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-[11px] text-muted-foreground">
+                          Registrada a las {meal.loggedTime}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(mealAvg))}>
+                      {mealAvg}%
+                    </span>
+                  </div>
+
+                  {/* Foods logged */}
+                  <div className="text-xs space-y-0.5">
+                    {meal.foods.map((f: string, i: number) => (
+                      <p key={i} className="text-foreground font-medium">• {f}</p>
+                    ))}
+                  </div>
+
+                  {/* Macros */}
+                  <MetricRow label="Proteína" planned={mealTargetP} real={Math.round(meal.protein)} unit="g" accuracy={accP} />
+                  <MetricRow label="Carbohidratos" planned={mealTargetC} real={Math.round(meal.carbs)} unit="g" accuracy={accC} />
+                  <MetricRow label="Grasas" planned={mealTargetF} real={Math.round(meal.fat)} unit="g" accuracy={accF} />
+
+                  <ProgressBar value={mealAvg} />
+                </div>
+              );
+            })}
+
+            {/* Daily total summary */}
+            {realNutrition && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <p className="text-sm font-bold text-foreground">📊 Total del día</p>
+                <MetricRow label="Proteína" planned={g.daily_protein} real={Math.round(realNutrition.totalProtein)} unit="g" accuracy={realNutrition.accP} />
+                <MetricRow label="Carbohidratos" planned={g.daily_carbs} real={Math.round(realNutrition.totalCarbs)} unit="g" accuracy={realNutrition.accC} />
+                <MetricRow label="Grasas" planned={g.daily_fat} real={Math.round(realNutrition.totalFat)} unit="g" accuracy={realNutrition.accF} />
                 <ProgressBar value={realNutrition.avg} />
               </div>
+            )}
+
+            {/* Water */}
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Droplets className="w-4 h-4 text-foreground" />
+                <span className="text-sm font-bold text-foreground">Hidratación</span>
+              </div>
+              <MetricRow label="Agua" planned={MOCK_WATER.planned} real={MOCK_WATER.real} unit="L" accuracy={mockWaterAcc} />
+              <ProgressBar value={mockWaterAcc} />
             </div>
           </div>
         ) : (
@@ -403,7 +501,6 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
               const timeAcc = meal.timeAcc;
               return (
                 <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-                  {/* Meal header */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-bold text-foreground">{meal.name}</p>
@@ -421,29 +518,20 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                       {meal.overallAcc}%
                     </span>
                   </div>
-
-                  {/* Food */}
                   <div className="text-xs space-y-0.5">
                     <div className="flex gap-4">
                       <span className="text-muted-foreground">Pautado: <span className="font-medium">{meal.food.planned}</span></span>
                       <span className="text-foreground">Real: <span className="font-bold">{meal.food.real}</span></span>
                     </div>
                   </div>
-
-                  {/* Macros */}
                   {meal.macros.map((m, i) => {
                     const acc = calcGeneralAccuracy(m.planned, m.real);
-                    return (
-                      <MetricRow key={i} label={m.label} planned={m.planned} real={m.real} unit={m.unit} accuracy={acc} />
-                    );
+                    return <MetricRow key={i} label={m.label} planned={m.planned} real={m.real} unit={m.unit} accuracy={acc} />;
                   })}
-
                   <ProgressBar value={meal.macroAcc} />
                 </div>
               );
             })}
-
-            {/* Water */}
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <Droplets className="w-4 h-4 text-foreground" />
