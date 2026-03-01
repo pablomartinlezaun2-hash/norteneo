@@ -131,22 +131,32 @@ export type Database = {
         Row: {
           completed_at: string
           id: string
+          microcycle_id: string | null
           session_id: string
           user_id: string
         }
         Insert: {
           completed_at?: string
           id?: string
+          microcycle_id?: string | null
           session_id: string
           user_id: string
         }
         Update: {
           completed_at?: string
           id?: string
+          microcycle_id?: string | null
           session_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "completed_sessions_microcycle_id_fkey"
+            columns: ["microcycle_id"]
+            isOneToOne: false
+            referencedRelation: "microcycles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "completed_sessions_session_id_fkey"
             columns: ["session_id"]
@@ -495,6 +505,100 @@ export type Database = {
             columns: ["food_id"]
             isOneToOne: false
             referencedRelation: "food_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mesocycles: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          mesocycle_number: number
+          program_id: string
+          start_date: string
+          status: string
+          total_microcycles: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          mesocycle_number?: number
+          program_id: string
+          start_date?: string
+          status?: string
+          total_microcycles?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          mesocycle_number?: number
+          program_id?: string
+          start_date?: string
+          status?: string
+          total_microcycles?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mesocycles_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      microcycles: {
+        Row: {
+          created_at: string
+          duration_weeks: number
+          end_date: string | null
+          id: string
+          mesocycle_id: string
+          microcycle_number: number
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_weeks?: number
+          end_date?: string | null
+          id?: string
+          mesocycle_id: string
+          microcycle_number?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_weeks?: number
+          end_date?: string | null
+          id?: string
+          mesocycle_id?: string
+          microcycle_number?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "microcycles_mesocycle_id_fkey"
+            columns: ["mesocycle_id"]
+            isOneToOne: false
+            referencedRelation: "mesocycles"
             referencedColumns: ["id"]
           },
         ]

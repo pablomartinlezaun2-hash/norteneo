@@ -13,6 +13,7 @@ import { ExerciseCardNew } from './ExerciseCardNew';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { GymStatsSection } from './GymStatsSection';
+import { PeriodizationBadge } from './PeriodizationBadge';
 import { format } from 'date-fns';
 import { es, enUS, fr, de, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -262,6 +263,9 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
               transition={{ delay: programIndex * 0.1 }}
               className="space-y-3"
             >
+              {/* Periodization indicator */}
+              <PeriodizationBadge programId={program.id} variant="full" />
+
               {/* Program Header */}
               <div className="flex items-center gap-3 px-1">
                 <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
