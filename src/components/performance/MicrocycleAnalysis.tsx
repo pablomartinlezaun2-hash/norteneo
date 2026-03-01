@@ -271,7 +271,7 @@ const CriticalAlertItem = ({ alert, onGoToDay }: { alert: { id: string; icon: st
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left"
       >
-        <span className="text-base">{alert.icon}</span>
+        <AlertTriangle className={cn('w-3.5 h-3.5 shrink-0', alert.severity === 'critical' ? 'text-destructive' : 'text-orange-500')} />
         <span className={cn(
           'text-xs font-bold flex-1',
           alert.severity === 'critical' ? 'text-destructive' : 'text-orange-600 dark:text-orange-400'
@@ -296,7 +296,7 @@ const CriticalAlertItem = ({ alert, onGoToDay }: { alert: { id: string; icon: st
                   onClick={() => onGoToDay(alert.dayDate!)}
                   className="text-[11px] font-bold text-primary underline underline-offset-2"
                 >
-                  Ver detalle del día →
+                  Ver detalle del día
                 </button>
               )}
             </div>
@@ -336,62 +336,57 @@ const DayDetailView = ({ day, goals, onBack }: { day: DayData; goals: any; onBac
     return { name, accuracy, sets: work.length, targetSets: tSets, reps: work.map((l: any) => l.reps), minR, maxR, setsResult, repsResults };
   });
 
-  // Day-level AI summary — exhaustive
+  // Day-level AI summary
   const summaryLines: string[] = [];
 
-  // Opening
   if (day.globalAcc >= 95) {
-    summaryLines.push(`📊 **Día sobresaliente (${day.globalAcc}%).** Disciplina ejemplar en todas las áreas.`);
+    summaryLines.push(`Día sobresaliente (${day.globalAcc}%). Disciplina ejemplar en todas las áreas.`);
   } else if (day.globalAcc >= 85) {
-    summaryLines.push(`📊 **Día aceptable (${day.globalAcc}%).** Buen esfuerzo con áreas puntuales a mejorar.`);
+    summaryLines.push(`Día aceptable (${day.globalAcc}%). Buen esfuerzo con áreas puntuales a mejorar.`);
   } else {
-    summaryLines.push(`🔴 **Día crítico (${day.globalAcc}%).** Varias métricas presentan desviaciones importantes.`);
+    summaryLines.push(`Día crítico (${day.globalAcc}%). Varias métricas presentan desviaciones importantes.`);
   }
 
-  // Nutrition detail
   if (day.foodLogs.length > 0) {
     const diffP = totalProtein - g.daily_protein;
     const diffC = totalCarbs - g.daily_carbs;
     const diffF = totalFat - g.daily_fat;
     if (day.nutritionAcc >= 95) {
-      summaryLines.push(`🍽️ Nutrición excelente (${day.nutritionAcc}%). Macros clavados: P${Math.round(totalProtein)}g C${Math.round(totalCarbs)}g G${Math.round(totalFat)}g.`);
+      summaryLines.push(`Nutrición excelente (${day.nutritionAcc}%). Macros clavados: P${Math.round(totalProtein)}g C${Math.round(totalCarbs)}g G${Math.round(totalFat)}g.`);
     } else {
       const issues: string[] = [];
       if (accP < 90) issues.push(`proteína ${diffP > 0 ? '+' : ''}${Math.round(diffP)}g`);
       if (accC < 90) issues.push(`carbos ${diffC > 0 ? '+' : ''}${Math.round(diffC)}g`);
       if (accF < 90) issues.push(`grasas ${diffF > 0 ? '+' : ''}${Math.round(diffF)}g`);
-      summaryLines.push(`🍽️ Nutrición al ${day.nutritionAcc}%. Desviaciones: ${issues.length > 0 ? issues.join(', ') : 'menores'}. ${day.foodLogs.length < 3 ? 'Pocas comidas registradas — distribuir mejor las ingestas.' : ''}`);
+      summaryLines.push(`Nutrición al ${day.nutritionAcc}%. Desviaciones: ${issues.length > 0 ? issues.join(', ') : 'menores'}. ${day.foodLogs.length < 3 ? 'Pocas comidas registradas, distribuir mejor las ingestas.' : ''}`);
     }
   }
 
-  // Training detail
   if (exercises.length > 0) {
     const failedEx = exercises.filter(e => e.accuracy < 85);
     if (day.trainingAcc >= 95) {
-      summaryLines.push(`💪 Entrenamiento impecable (${day.trainingAcc}%). ${exercises.length} ejercicios completados con alta precisión.`);
+      summaryLines.push(`Entrenamiento impecable (${day.trainingAcc}%). ${exercises.length} ejercicios completados con alta precisión.`);
     } else {
-      summaryLines.push(`💪 Entrenamiento al ${day.trainingAcc}%.${failedEx.length > 0 ? ` Ejercicios con baja adherencia: ${failedEx.map(e => `${e.name} (${e.accuracy}%)`).join(', ')}.` : ''}`);
+      summaryLines.push(`Entrenamiento al ${day.trainingAcc}%.${failedEx.length > 0 ? ` Ejercicios con baja adherencia: ${failedEx.map(e => `${e.name} (${e.accuracy}%)`).join(', ')}.` : ''}`);
       failedEx.forEach(ex => {
-        if (ex.sets < ex.targetSets) summaryLines.push(`   ⚠ ${ex.name}: faltan ${ex.targetSets - ex.sets} series. Posible fatiga acumulada.`);
+        if (ex.sets < ex.targetSets) summaryLines.push(`${ex.name}: faltan ${ex.targetSets - ex.sets} series. Posible fatiga acumulada.`);
       });
     }
   }
 
-  // Sleep
   if (day.sleepData) {
     if (day.sleepAcc >= 95) {
-      summaryLines.push(`😴 Sueño óptimo (${day.sleepAcc}%). Descanso adecuado para la recuperación.`);
+      summaryLines.push(`Sueño óptimo (${day.sleepAcc}%). Descanso adecuado para la recuperación.`);
     } else {
-      summaryLines.push(`😴 Sueño al ${day.sleepAcc}%. ${day.sleepData.hoursReal < 6 ? 'Menos de 6h: la recuperación se ve severamente comprometida.' : `${day.sleepData.hoursReal}h de ${day.sleepData.hoursPlanned}h objetivo.`} ${day.sleepData.real > '01:00' ? 'Hora de dormir muy tardía — afecta ritmo circadiano.' : ''}`);
+      summaryLines.push(`Sueño al ${day.sleepAcc}%. ${day.sleepData.hoursReal < 6 ? 'Menos de 6h: la recuperación se ve severamente comprometida.' : `${day.sleepData.hoursReal}h de ${day.sleepData.hoursPlanned}h objetivo.`} ${day.sleepData.real > '01:00' ? 'Hora de dormir muy tardía, afecta ritmo circadiano.' : ''}`);
     }
   }
 
-  // Supplements
   if (day.suppLogs.length > 0 || day.suppAcc < 100) {
     if (day.suppAcc >= 100) {
-      summaryLines.push(`💊 Suplementación completa.`);
+      summaryLines.push(`Suplementación completa.`);
     } else {
-      summaryLines.push(`💊 Suplementación al ${day.suppAcc}%. Faltan suplementos por tomar.`);
+      summaryLines.push(`Suplementación al ${day.suppAcc}%. Faltan suplementos por tomar.`);
     }
   }
 
@@ -689,45 +684,42 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
 
     const lines: string[] = [];
 
-    // ── Header ──
-    lines.push(`📊 **Análisis exhaustivo del microciclo** (${daysWithData.length} días registrados)`);
-    lines.push(`Precisión media: **${microcycleAvg}%** · Variabilidad: ±${variance}% · Mejor: ${bestDay.dateFormatted} (${bestDay.globalAcc}%) · Peor: ${worstDay.dateFormatted} (${worstDay.globalAcc}%)`);
+    lines.push(`Análisis exhaustivo del microciclo (${daysWithData.length} días registrados)`);
+    lines.push(`Precisión media: ${microcycleAvg}%. Variabilidad: ±${variance}%. Mejor: ${bestDay.dateFormatted} (${bestDay.globalAcc}%). Peor: ${worstDay.dateFormatted} (${worstDay.globalAcc}%).`);
 
-    // ── Trend analysis ──
     if (isDecline) {
-      lines.push(`📉 **Tendencia descendente detectada.** La adherencia ha caído ${accuracies[0] - accuracies[accuracies.length - 1]} puntos desde el inicio del microciclo. Esto puede indicar fatiga acumulada, estrés externo o pérdida de motivación.`);
+      lines.push(`Tendencia descendente detectada. La adherencia ha caído ${accuracies[0] - accuracies[accuracies.length - 1]} puntos desde el inicio del microciclo. Esto puede indicar fatiga acumulada, estrés externo o pérdida de motivación.`);
       alerts.push({
         id: 'trend-decline',
-        icon: '📉',
+        icon: '',
         title: 'Tendencia descendente en adherencia',
         severity: 'warning',
         detail: `La adherencia global ha pasado de ${accuracies[0]}% a ${accuracies[accuracies.length - 1]}% a lo largo del microciclo. Esto sugiere fatiga acumulada o factores externos. Recomendación: evaluar si es necesario adelantar un deload o simplificar la dieta.`,
       });
     } else if (isImproving) {
-      lines.push(`📈 **Tendencia ascendente.** La adherencia ha mejorado progresivamente, lo que indica buena adaptación y consistencia creciente.`);
+      lines.push(`Tendencia ascendente. La adherencia ha mejorado progresivamente, lo que indica buena adaptación y consistencia creciente.`);
     } else if (variance > 15) {
-      lines.push(`🔀 **Alta variabilidad (±${variance}%).** Hay días muy buenos y otros muy malos. La inconsistencia reduce la efectividad global del programa.`);
+      lines.push(`Alta variabilidad (±${variance}%). Hay días muy buenos y otros muy malos. La inconsistencia reduce la efectividad global del programa.`);
       alerts.push({
         id: 'high-variance',
-        icon: '🔀',
+        icon: '',
         title: 'Inconsistencia extrema entre días',
         severity: 'warning',
         detail: `La variabilidad de ±${variance}% indica que la adherencia fluctúa demasiado. Los días bajos (${worstDay.dateFormatted}: ${worstDay.globalAcc}%) contrarrestan los días buenos. Busca patrones: ¿son siempre los mismos días de la semana? ¿Coinciden con estrés laboral?`,
       });
     }
 
-    // ── Nutrition analysis ──
     if (avgNut >= 95) {
-      lines.push(`🍽️ **Nutrición excelente (${avgNut}%).** Los macros se han mantenido consistentemente cerca del objetivo durante todo el microciclo.`);
+      lines.push(`Nutrición excelente (${avgNut}%). Los macros se han mantenido consistentemente cerca del objetivo durante todo el microciclo.`);
     } else if (avgNut >= 85) {
       const lowNutDays = daysWithData.filter(d => d.nutritionAcc < 85);
-      lines.push(`🍽️ **Nutrición aceptable (${avgNut}%).** ${lowNutDays.length} día(s) con adherencia baja. La media está cerca del objetivo pero los días inconsistentes frenan el progreso.`);
+      lines.push(`Nutrición aceptable (${avgNut}%). ${lowNutDays.length} día(s) con adherencia baja. La media está cerca del objetivo pero los días inconsistentes frenan el progreso.`);
     } else {
       const lowNutDays = daysWithData.filter(d => d.nutritionAcc < 80);
-      lines.push(`🍽️ **Nutrición deficiente (${avgNut}%).** ${lowNutDays.length} día(s) con adherencia por debajo del 80%. Esto puede generar déficits proteicos que comprometan la recuperación y la ganancia muscular.`);
+      lines.push(`Nutrición deficiente (${avgNut}%). ${lowNutDays.length} día(s) con adherencia por debajo del 80%. Esto puede generar déficits proteicos que comprometan la recuperación y la ganancia muscular.`);
       alerts.push({
         id: 'nutrition-low',
-        icon: '🍽️',
+        icon: '',
         title: `Nutrición crítica: ${avgNut}% media`,
         severity: 'critical',
         dayDate: lowNutDays[0]?.date,
@@ -735,79 +727,74 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
       });
     }
 
-    // ── Training analysis ──
     if (avgTrain >= 95) {
-      lines.push(`💪 **Entrenamiento impecable (${avgTrain}%).** Todas las sesiones se han completado con alta precisión en series y repeticiones.`);
+      lines.push(`Entrenamiento impecable (${avgTrain}%). Todas las sesiones se han completado con alta precisión en series y repeticiones.`);
     } else if (avgTrain >= 85) {
       const failDays = daysWithData.filter(d => d.trainingAcc < 85);
-      lines.push(`💪 **Entrenamiento bueno (${avgTrain}%).** Hay ${failDays.length} sesión(es) con desviaciones. Revisa si el volumen programado es sostenible o si necesitas ajustar cargas.`);
+      lines.push(`Entrenamiento bueno (${avgTrain}%). Hay ${failDays.length} sesión(es) con desviaciones. Revisa si el volumen programado es sostenible o si necesitas ajustar cargas.`);
     } else {
       const failDays = daysWithData.filter(d => d.trainingAcc < 80 && d.setLogs.length > 0);
-      lines.push(`💪 **Entrenamiento con problemas (${avgTrain}%).** ${failDays.length} sesión(es) con adherencia baja. Esto puede indicar que el volumen/intensidad programados superan tu capacidad de recuperación actual.`);
+      lines.push(`Entrenamiento con problemas (${avgTrain}%). ${failDays.length} sesión(es) con adherencia baja. Esto puede indicar que el volumen o intensidad programados superan tu capacidad de recuperación actual.`);
       if (failDays.length > 0) {
         alerts.push({
           id: 'training-low',
-          icon: '💪',
+          icon: '',
           title: `Entrenamiento: ${failDays.length} sesiones fallidas`,
           severity: failDays.length >= 3 ? 'critical' : 'warning',
           dayDate: failDays[0]?.date,
-          detail: `Las sesiones con baja adherencia son: ${failDays.map(d => `${d.dateFormatted} (${d.trainingAcc}%)`).join(', ')}. Esto puede deberse a: (1) fatiga acumulada — considera un deload, (2) cargas demasiado altas — reduce el peso 5-10%, o (3) mal descanso/nutrición previos que reducen el rendimiento.`,
+          detail: `Las sesiones con baja adherencia son: ${failDays.map(d => `${d.dateFormatted} (${d.trainingAcc}%)`).join(', ')}. Esto puede deberse a: (1) fatiga acumulada, considera un deload, (2) cargas demasiado altas, reduce el peso 5 a 10%, o (3) mal descanso o nutrición previos que reducen el rendimiento.`,
         });
       }
     }
 
-    // ── Sleep analysis ──
     if (avgSleep >= 95) {
-      lines.push(`😴 **Sueño óptimo (${avgSleep}%).** El descanso ha sido consistente, maximizando la recuperación y la supercompensación.`);
+      lines.push(`Sueño óptimo (${avgSleep}%). El descanso ha sido consistente, maximizando la recuperación y la supercompensación.`);
     } else if (avgSleep >= 80) {
-      lines.push(`😴 **Sueño aceptable (${avgSleep}%).** Pequeñas desviaciones en horario o duración. Mantener un horario fijo de sueño mejora la calidad del descanso a largo plazo.`);
+      lines.push(`Sueño aceptable (${avgSleep}%). Pequeñas desviaciones en horario o duración. Mantener un horario fijo de sueño mejora la calidad del descanso a largo plazo.`);
     } else {
       const badSleepDays = daysWithData.filter(d => d.sleepAcc < 75);
-      lines.push(`😴 **Sueño deficiente (${avgSleep}%).** ${badSleepDays.length} día(s) con sueño inadecuado. El déficit de sueño reduce la producción de hormona del crecimiento y testosterona, afectando directamente la recuperación.`);
+      lines.push(`Sueño deficiente (${avgSleep}%). ${badSleepDays.length} día(s) con sueño inadecuado. El déficit de sueño reduce la producción de hormona del crecimiento y testosterona, afectando directamente la recuperación.`);
       alerts.push({
         id: 'sleep-low',
-        icon: '😴',
+        icon: '',
         title: `Sueño insuficiente: ${badSleepDays.length} noches malas`,
         severity: badSleepDays.length >= 3 ? 'critical' : 'warning',
         dayDate: badSleepDays[0]?.date,
-        detail: `Las noches con peor descanso: ${badSleepDays.map(d => `${d.dateFormatted} (${d.sleepAcc}%${d.sleepData ? `, ${d.sleepData.hoursReal}h de ${d.sleepData.hoursPlanned}h` : ''})`).join(', ')}. El sueño insuficiente (<7h) aumenta el cortisol un 37%, reduce la síntesis proteica y empeora la toma de decisiones nutricionales al día siguiente.`,
+        detail: `Las noches con peor descanso: ${badSleepDays.map(d => `${d.dateFormatted} (${d.sleepAcc}%${d.sleepData ? `, ${d.sleepData.hoursReal}h de ${d.sleepData.hoursPlanned}h` : ''})`).join(', ')}. El sueño insuficiente (menos de 7h) aumenta el cortisol un 37%, reduce la síntesis proteica y empeora la toma de decisiones nutricionales al día siguiente.`,
       });
     }
 
-    // ── Supplements ──
     if (avgSupp >= 95) {
-      lines.push(`💊 **Suplementación perfecta (${avgSupp}%).** Todos los suplementos se han tomado consistentemente.`);
+      lines.push(`Suplementación perfecta (${avgSupp}%). Todos los suplementos se han tomado consistentemente.`);
     } else {
       const missedDays = daysWithData.filter(d => d.suppAcc < 100);
-      lines.push(`💊 **Suplementación al ${avgSupp}%.** ${missedDays.length} día(s) con suplementos faltantes. La creatina requiere toma diaria para mantener la saturación muscular.`);
+      lines.push(`Suplementación al ${avgSupp}%. ${missedDays.length} día(s) con suplementos faltantes. La creatina requiere toma diaria para mantener la saturación muscular.`);
     }
 
-    // ── Cross-metric correlations ──
     const daysBadSleepBadTrain = daysWithData.filter(d => d.sleepAcc < 80 && d.trainingAcc < 85);
     if (daysBadSleepBadTrain.length > 0) {
-      lines.push(`🔗 **Correlación detectada:** ${daysBadSleepBadTrain.length} día(s) donde el mal sueño coincidió con bajo rendimiento en el entreno. Esto confirma que la calidad del descanso impacta directamente tu capacidad de trabajo.`);
+      lines.push(`Correlación detectada: ${daysBadSleepBadTrain.length} día(s) donde el mal sueño coincidió con bajo rendimiento en el entreno. Esto confirma que la calidad del descanso impacta directamente tu capacidad de trabajo.`);
       alerts.push({
         id: 'sleep-train-correlation',
-        icon: '🔗',
-        title: 'Mal sueño → bajo rendimiento',
+        icon: '',
+        title: 'Mal sueño, bajo rendimiento',
         severity: 'warning',
         dayDate: daysBadSleepBadTrain[0]?.date,
-        detail: `En ${daysBadSleepBadTrain.map(d => d.dateFormatted).join(', ')}, el sueño deficiente (<80%) coincidió con entrenamiento por debajo del objetivo (<85%). Patrón claro: priorizar el descanso mejorará automáticamente tu rendimiento en el gym.`,
+        detail: `En ${daysBadSleepBadTrain.map(d => d.dateFormatted).join(', ')}, el sueño deficiente (menos del 80%) coincidió con entrenamiento por debajo del objetivo (menos del 85%). Patrón claro: priorizar el descanso mejorará automáticamente tu rendimiento en el gym.`,
       });
     }
 
     const daysBadNutBadTrain = daysWithData.filter(d => d.nutritionAcc < 80 && d.trainingAcc < 85);
     if (daysBadNutBadTrain.length > 0 && daysBadNutBadTrain !== daysBadSleepBadTrain) {
-      lines.push(`🔗 **Correlación nutrición-entreno:** ${daysBadNutBadTrain.length} día(s) con mala nutrición y bajo rendimiento. Asegurar una ingesta adecuada pre-entreno es fundamental.`);
+      lines.push(`Correlación nutrición y entreno: ${daysBadNutBadTrain.length} día(s) con mala nutrición y bajo rendimiento. Asegurar una ingesta adecuada pre entreno es fundamental.`);
     }
 
-    // ── Final verdict ──
     if (microcycleAvg >= 95) {
-      lines.push(`\n✅ **Veredicto final:** Microciclo sobresaliente. Esta consistencia maximiza las adaptaciones del programa. Mantén esta línea y el próximo microciclo puedes considerar un incremento progresivo de volumen.`);
+      lines.push(`\nVeredicto final: Microciclo sobresaliente. Esta consistencia maximiza las adaptaciones del programa. Mantén esta línea y el próximo microciclo puedes considerar un incremento progresivo de volumen.`);
     } else if (microcycleAvg >= 85) {
-      lines.push(`\n📌 **Veredicto final:** Microciclo aceptable con margen de mejora. Céntrate en las alertas señaladas para escalar al 95%+ en el próximo bloque.`);
+      lines.push(`\nVeredicto final: Microciclo aceptable con margen de mejora. Céntrate en las alertas señaladas para escalar al 95%+ en el próximo bloque.`);
     } else {
-      lines.push(`\n🚨 **Veredicto final:** Microciclo por debajo del estándar. Las desviaciones acumuladas pueden retrasar tu progreso 1-2 semanas. Revisa las alertas críticas y corrige antes del siguiente microciclo.`);
+      lines.push(`\nVeredicto final: Microciclo por debajo del estándar. Las desviaciones acumuladas pueden retrasar tu progreso 1 a 2 semanas. Revisa las alertas críticas y corrige antes del siguiente microciclo.`);
     }
 
     return {
