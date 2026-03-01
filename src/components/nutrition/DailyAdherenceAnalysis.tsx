@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
-  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle,
+  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle, TrendingUp,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +19,7 @@ import {
   getAdherenceColor,
   DEFAULT_WEIGHTS,
 } from './adherenceCalculations';
+import { MicrocycleAnalysis } from '@/components/performance/MicrocycleAnalysis';
 import { cn } from '@/lib/utils';
 
 /* ───────────────────── MOCK DATA (strict specs) ───────────────────── */
@@ -123,12 +124,13 @@ interface AccordionSectionProps {
   icon: React.ElementType;
   title: string;
   accuracy: number;
+  hideAccuracy?: boolean;
   colorType?: 'green' | 'blue' | 'orange' | 'red';
   defaultOpen?: boolean;
   children: React.ReactNode;
 }
 
-const AccordionSection = ({ icon: Icon, title, accuracy, colorType, defaultOpen = false, children }: AccordionSectionProps) => {
+const AccordionSection = ({ icon: Icon, title, accuracy, hideAccuracy, colorType, defaultOpen = false, children }: AccordionSectionProps) => {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -143,9 +145,11 @@ const AccordionSection = ({ icon: Icon, title, accuracy, colorType, defaultOpen 
         <div className="flex-1 min-w-0">
           <p className="text-base font-bold text-foreground">{title}</p>
         </div>
-        <span className={cn('text-xl font-black tabular-nums mr-1', getAccuracyTextColor(accuracy, colorType))}>
-          {Math.round(accuracy)}%
-        </span>
+        {!hideAccuracy && (
+          <span className={cn('text-xl font-black tabular-nums mr-1', getAccuracyTextColor(accuracy, colorType))}>
+            {Math.round(accuracy)}%
+          </span>
+        )}
         <ChevronDown className={cn('w-5 h-5 text-muted-foreground transition-transform', open && 'rotate-180')} />
       </button>
       <AnimatePresence>
@@ -207,10 +211,15 @@ const MetricRow = ({
 interface DailyAdherenceAnalysisProps {
   goals: NutritionGoals | null;
   refreshTrigger?: number;
+  microcycleId?: string;
+  microcycleStart?: string;
+  microcycleEnd?: string | null;
+  durationWeeks?: number;
 }
 
-export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0 }: DailyAdherenceAnalysisProps) => {
+export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId, microcycleStart, microcycleEnd, durationWeeks }: DailyAdherenceAnalysisProps) => {
   const { user } = useAuth();
+  const [microAnalysisOpen, setMicroAnalysisOpen] = useState(false);
   const today = format(new Date(), 'yyyy-MM-dd');
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
   const [setLogs, setSetLogs] = useState<any[]>([]);
@@ -589,6 +598,17 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0 }: DailyAdher
             ))}
           </div>
         )}
+      </AccordionSection>
+
+      {/* ═══════ 5. ANÁLISIS DEL MICROCICLO ═══════ */}
+      <AccordionSection icon={TrendingUp} title="Análisis del Microciclo" accuracy={0} hideAccuracy defaultOpen={false}>
+        <MicrocycleAnalysis
+          goals={goals}
+          microcycleId={microcycleId}
+          microcycleStart={microcycleStart}
+          microcycleEnd={microcycleEnd}
+          durationWeeks={durationWeeks}
+        />
       </AccordionSection>
     </div>
   );

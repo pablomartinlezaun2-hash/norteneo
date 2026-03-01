@@ -11,6 +11,7 @@ import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { useActivityCompletions } from '@/hooks/useActivityCompletions';
 import { useAllSetLogs } from '@/hooks/useAllSetLogs';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
+import { usePeriodization } from '@/hooks/usePeriodization';
 import { MuscleRadarChart } from './performance/MuscleRadarChart';
 import { MuscleLoadChart } from './performance/MuscleLoadChart';
 import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
@@ -56,7 +57,8 @@ export const UnifiedProgressChart = ({
   const { completions: swimmingCompletions } = useActivityCompletions('swimming');
   const { completions: runningCompletions } = useActivityCompletions('running');
   const { logs: allSetLogs } = useAllSetLogs();
-  const { program } = useTrainingProgram();
+   const { program } = useTrainingProgram();
+  const periodization = usePeriodization(program?.id);
   const [selectedWorkout, setSelectedWorkout] = useState<UnifiedWorkout | null>(null);
   const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
   const [neoOpen, setNeoOpen] = useState(false);
@@ -421,7 +423,14 @@ export const UnifiedProgressChart = ({
             gradient="from-violet-600 to-purple-600"
             delay={0.115}
           >
-            <DailyAdherenceAnalysis goals={goals} refreshTrigger={foodLogs.length} />
+            <DailyAdherenceAnalysis
+              goals={goals}
+              refreshTrigger={foodLogs.length}
+              microcycleId={periodization.activeMicrocycle?.id}
+              microcycleStart={periodization.activeMicrocycle?.start_date}
+              microcycleEnd={periodization.activeMicrocycle?.end_date}
+              durationWeeks={periodization.activeMicrocycle?.duration_weeks}
+            />
           </CollapsibleSection>
 
           {/* Fatigue Map */}
