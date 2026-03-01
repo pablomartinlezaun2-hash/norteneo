@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompletedSessions } from '@/hooks/useCompletedSessions';
+import { usePeriodization } from '@/hooks/usePeriodization';
 import { toast } from 'sonner';
 import { ExerciseCardNew } from './ExerciseCardNew';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -51,7 +52,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { 
-    markSessionComplete, 
     completedSessions, 
     getTotalCompleted, 
     getCyclesCompleted, 
@@ -64,6 +64,10 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
   const [sessionCompleteCheck, setSessionCompleteCheck] = useState<{[key: string]: boolean}>({});
   const [completing, setCompleting] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
+
+  // We'll use periodization for the first active program
+  const firstProgramId = activePrograms[0]?.id;
+  const periodization = usePeriodization(firstProgramId);
 
   const dateLoc = dateLocales[i18n.language] || es;
 
@@ -138,14 +142,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
     }
   };
 
-  const isSessionCompletedToday = (sessionId: string) => {
-    const today = new Date().toDateString();
-    return completedSessions.some(s => 
-      s.session_id === sessionId && 
-      new Date(s.completed_at).toDateString() === today
-    );
-  };
-
   const getLastCompletedDate = (sessionId: string) => {
     const session = completedSessions
       .filter(s => s.session_id === sessionId)
@@ -157,16 +153,39 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
     if (!sessionCompleteCheck[sessionId]) return;
     
     setCompleting(sessionId);
-    const result = await markSessionComplete(sessionId);
-    
-    if (!result.error) {
-      toast.success(t('gym.workoutRegistered'), {
-        description: t('gym.progressUpdated')
-      });
-      setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
+
+    // Use periodization-aware completion if active
+    if (periodization.activeMicrocycle) {
+      const result = await periodization.completeSessionWithPeriodization(sessionId);
+      
+      if (!result.error) {
+        if (result.microcycleCompleted) {
+          toast.success('¡Microciclo completado!', {
+            description: 'Se ha avanzado automáticamente al siguiente microciclo.'
+          });
+        } else {
+          toast.success(t('gym.workoutRegistered'), {
+            description: t('gym.progressUpdated')
+          });
+        }
+        setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
+      } else {
+        toast.error(result.error);
+      }
     } else {
-      toast.error(t('gym.errorRegistering'));
+      // Fallback: just mark as completed without periodization
+      const { error } = await supabase
+        .from('completed_sessions')
+        .insert({ user_id: user!.id, session_id: sessionId });
+      
+      if (!error) {
+        toast.success(t('gym.workoutRegistered'));
+        setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
+      } else {
+        toast.error(t('gym.errorRegistering'));
+      }
     }
+    
     setCompleting(null);
   };
 
@@ -283,7 +302,8 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
               <div className="space-y-3">
                 {program.sessions.map((session, sessionIndex) => {
                   const isActive = activeSession === session.id;
-                  const isCompletedToday = isSessionCompletedToday(session.id);
+                  // Use microcycle-aware completion check
+                  const isCompletedInMicrocycle = periodization.isSessionCompletedInMicrocycle(session.id);
                   const isChecked = sessionCompleteCheck[session.id] || false;
                   const isCompletingThis = completing === session.id;
                   const lastCompleted = getLastCompletedDate(session.id);
@@ -309,11 +329,11 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "w-12 h-12 rounded-xl flex items-center justify-center font-bold text-base",
-                            isCompletedToday 
-                              ? "bg-green-500/20 text-green-500" 
+                            isCompletedInMicrocycle 
+                              ? "bg-primary/20 text-primary" 
                               : "gradient-primary text-primary-foreground"
                           )}>
-                            {isCompletedToday ? (
+                            {isCompletedInMicrocycle ? (
                               <CheckCircle2 className="w-6 h-6" />
                             ) : (
                               session.short_name.slice(0, 2)
@@ -369,7 +389,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                 ))}
                               </div>
 
-                              {!isCompletedToday && (
+                              {!isCompletedInMicrocycle && (
                                 <div className="gradient-card rounded-xl p-4 border border-border mt-4">
                                   <div className="flex items-center gap-3 mb-4">
                                     <Checkbox 
@@ -406,15 +426,15 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                 </div>
                               )}
 
-                              {isCompletedToday && (
+                              {isCompletedInMicrocycle && (
                                 <motion.div 
                                   initial={{ opacity: 0, scale: 0.95 }}
                                   animate={{ opacity: 1, scale: 1 }}
-                                  className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-center"
+                                  className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center"
                                 >
-                                  <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                                  <p className="text-sm font-medium text-green-600">
-                                    {t('gym.sessionCompletedToday')}
+                                  <CheckCircle2 className="w-8 h-8 text-primary mx-auto mb-2" />
+                                  <p className="text-sm font-medium text-primary">
+                                    Sesión completada en este microciclo ✓
                                   </p>
                                 </motion.div>
                               )}

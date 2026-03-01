@@ -130,6 +130,7 @@ export type Database = {
       completed_sessions: {
         Row: {
           completed_at: string
+          fatigue_score: number | null
           id: string
           microcycle_id: string | null
           session_id: string
@@ -137,6 +138,7 @@ export type Database = {
         }
         Insert: {
           completed_at?: string
+          fatigue_score?: number | null
           id?: string
           microcycle_id?: string | null
           session_id: string
@@ -144,6 +146,7 @@ export type Database = {
         }
         Update: {
           completed_at?: string
+          fatigue_score?: number | null
           id?: string
           microcycle_id?: string | null
           session_id?: string
@@ -561,9 +564,12 @@ export type Database = {
           created_at: string
           duration_weeks: number
           end_date: string | null
+          fatigue_index: number | null
           id: string
           mesocycle_id: string
           microcycle_number: number
+          performance_trend: number | null
+          recommendation: string | null
           start_date: string
           status: string
           updated_at: string
@@ -573,9 +579,12 @@ export type Database = {
           created_at?: string
           duration_weeks?: number
           end_date?: string | null
+          fatigue_index?: number | null
           id?: string
           mesocycle_id: string
           microcycle_number?: number
+          performance_trend?: number | null
+          recommendation?: string | null
           start_date?: string
           status?: string
           updated_at?: string
@@ -585,9 +594,12 @@ export type Database = {
           created_at?: string
           duration_weeks?: number
           end_date?: string | null
+          fatigue_index?: number | null
           id?: string
           mesocycle_id?: string
           microcycle_number?: number
+          performance_trend?: number | null
+          recommendation?: string | null
           start_date?: string
           status?: string
           updated_at?: string
