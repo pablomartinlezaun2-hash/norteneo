@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3 } from 'lucide-react';
+import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNutritionData } from '@/hooks/useNutritionData';
 import { FoodLogSection } from './nutrition/FoodLogSection';
@@ -9,6 +9,7 @@ import { SupplementsSection } from './nutrition/SupplementsSection';
 import { RecipesSection } from './nutrition/RecipesSection';
 import { NutritionAssistantPro } from './nutrition/NutritionAssistantPro';
 import { NutritionStatusSection } from './nutrition/NutritionStatusSection';
+import { DailyAdherenceAnalysis } from './nutrition/DailyAdherenceAnalysis';
 import { CollapsibleSection } from './CollapsibleSection';
 import { useTranslation } from 'react-i18next';
 
@@ -19,6 +20,7 @@ export const NutritionSection = () => {
   const [activeTab, setActiveTab] = useState<NutritionTab>('log');
   const [showDesigner, setShowDesigner] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
+  const [adherenceOpen, setAdherenceOpen] = useState(false);
   
   const {
     loading, foodCatalog, foodLogs, goals, supplements, supplementLogs, recipes,
@@ -80,6 +82,17 @@ export const NutritionSection = () => {
                 delay={0.05}
               >
                 <NutritionStatusSection goals={goals} onNavigateToGoals={() => setActiveTab('goals')} onNavigateToDay={(date) => { setSelectedDate(date); setStatusOpen(false); }} refreshTrigger={foodLogs.length} />
+              </CollapsibleSection>
+              <CollapsibleSection
+                isOpen={adherenceOpen}
+                onToggle={() => setAdherenceOpen(!adherenceOpen)}
+                icon={Activity}
+                title="Análisis Diario de Adherencia"
+                subtitle="Comparativa objetivo vs real por categoría"
+                gradient="from-violet-600 to-purple-600"
+                delay={0.1}
+              >
+                <DailyAdherenceAnalysis goals={goals} refreshTrigger={foodLogs.length} />
               </CollapsibleSection>
               <FoodLogSection foodLogs={foodLogs} foodCatalog={foodCatalog} goals={goals} dailyTotals={dailyTotals} selectedDate={selectedDate} onDateChange={setSelectedDate} onAddFood={addFoodLog} onDeleteLog={deleteFoodLog} />
             </div>
