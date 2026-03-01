@@ -447,10 +447,10 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     loadData();
   }, [user, dateRange, goals]);
 
-  // Fallback to mock data when no real data exists
+  // Use mock data when real data has fewer than 2 days with data (not enough for a useful chart)
   const effectiveData = useMemo(() => {
     const realWithData = daysData.filter(d => d.hasData);
-    return realWithData.length > 0 ? daysData : mockMicrocycleData;
+    return realWithData.length >= 2 ? daysData : mockMicrocycleData;
   }, [daysData]);
 
   // Chart data
