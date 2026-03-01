@@ -294,15 +294,15 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
           </div>
 
           {/* AI Summary collapsible */}
-          <div className="mt-4 mx-2">
+          <div className="mt-5 mx-0">
             <button
               onClick={handleToggleSummary}
-              className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-medium text-foreground/80 flex-1 text-left">Resumen IA</span>
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground/80 flex-1 text-left">Resumen IA</span>
               <motion.div animate={{ rotate: summaryOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
               </motion.div>
             </button>
 
@@ -315,18 +315,18 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-1 pt-4 pb-2">
+                  <div className="px-2 pt-5 pb-3">
                     {summaryLoading ? (
                       <div className="flex items-center gap-2 py-6 justify-center">
-                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-sm text-muted-foreground">Analizando...</span>
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        <span className="text-base text-muted-foreground">Analizando...</span>
                       </div>
                     ) : summary ? (
-                      <p className="text-[15px] leading-[1.7] text-foreground/85">
+                      <p className="text-base leading-[1.75] text-foreground/90">
                         {summary}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground/60 text-center py-4">
+                      <p className="text-base text-muted-foreground/60 text-center py-4">
                         No se pudo generar el resumen
                       </p>
                     )}
