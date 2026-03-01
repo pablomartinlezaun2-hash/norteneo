@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Dot } from 'recharts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { X, TrendingUp, TrendingDown, Minus, Dumbbell, Zap, Target } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Minus, Dumbbell, Zap, Target, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePerformanceEngine } from '@/hooks/usePerformanceEngine';
+import { useExerciseSummary } from '@/hooks/useExerciseSummary';
 import type { ChartPointData } from '@/lib/performanceEngine';
 
 interface ExerciseTrendChartProps {
@@ -68,6 +69,8 @@ const ChartTooltip = ({ active, payload }: any) => {
 
 export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: ExerciseTrendChartProps) => {
   const { getExerciseChartPoints, computeExercisePerformances } = usePerformanceEngine();
+  const { summary, loading: summaryLoading, fetchSummary, reset: resetSummary } = useExerciseSummary();
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const points = useMemo(() => getExerciseChartPoints(exerciseId), [exerciseId, getExerciseChartPoints]);
 
@@ -122,6 +125,22 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
 
   const inflectionCount = enrichedPoints.filter(p => p.isInflection).length;
   const latestPct = exPerf?.latestPctChange ?? 0;
+  const alertType = latestPct > 0.02 ? 'improvement' : latestPct < -0.03 ? 'regression' : 'stagnation';
+
+  const handleToggleSummary = () => {
+    const next = !summaryOpen;
+    setSummaryOpen(next);
+    if (next && !summary && !summaryLoading) {
+      const setLogs = points.map(p => ({
+        date: p.date,
+        weight: p.best_weight,
+        reps: p.best_reps,
+        rir: p.best_rir,
+        est_1rm: p.est_1rm_set,
+      }));
+      fetchSummary(exerciseName, setLogs, exPerf?.latestPctChange ?? null, alertType);
+    }
+  };
 
   return (
     <motion.div
@@ -272,6 +291,49 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/40" />
               Inflexión
             </div>
+          </div>
+
+          {/* AI Summary collapsible */}
+          <div className="mt-4 mx-2">
+            <button
+              onClick={handleToggleSummary}
+              className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-medium text-foreground/80 flex-1 text-left">Resumen IA</span>
+              <motion.div animate={{ rotate: summaryOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+              </motion.div>
+            </button>
+
+            <AnimatePresence>
+              {summaryOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-3 pt-3 pb-1">
+                    {summaryLoading ? (
+                      <div className="flex items-center gap-2 py-4 justify-center">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        <span className="text-xs text-muted-foreground">Analizando...</span>
+                      </div>
+                    ) : summary ? (
+                      <p className="text-[13px] leading-relaxed text-foreground/80">
+                        {summary}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground/60 text-center py-3">
+                        No se pudo generar el resumen
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.div>
