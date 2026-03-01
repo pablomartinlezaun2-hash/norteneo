@@ -529,13 +529,16 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
           trainingAcc = Math.round(exScores.reduce((a, b) => a + b, 0) / exScores.length);
         }
 
-        // Supplements
-        const daySuppLogs = allSuppLogs.filter((s: any) => s.logged_date === dateStr);
+        // Supplements — enrich with names
+        const daySuppLogs = allSuppLogs.filter((s: any) => s.logged_date === dateStr).map((sl: any) => {
+          const supp = supps.find((s: any) => s.id === sl.supplement_id);
+          return { ...sl, name: supp?.name || 'Suplemento' };
+        });
         const suppAcc = supps.length > 0
           ? calcGeneralAccuracy(supps.length, daySuppLogs.length)
           : 100;
 
-        // Sleep (mock for now)
+        // Sleep (no table yet — default 100)
         const sleepAcc = 100;
 
         const globalAcc = calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc);
@@ -563,10 +566,10 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     loadData();
   }, [user, dateRange, goals]);
 
-  // Use mock data when real data has fewer than 2 days with data (not enough for a useful chart)
+  // Use mock data only when there's zero real data; any real day triggers real mode
   const effectiveData = useMemo(() => {
     const realWithData = daysData.filter(d => d.hasData);
-    return realWithData.length >= 2 ? daysData : mockMicrocycleData;
+    return realWithData.length > 0 ? daysData : mockMicrocycleData;
   }, [daysData]);
 
   // Chart data
