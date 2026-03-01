@@ -25,10 +25,114 @@ import {
 import { cn } from '@/lib/utils';
 
 /* ═══════════════════════════════════════════════════════
+   MOCK DATA — 5 días con variabilidad para testear gráfica
+   ═══════════════════════════════════════════════════════ */
+
+const mockMicrocycleData: DayData[] = [
+  {
+    date: '2026-02-24',
+    dateFormatted: '24 de febrero',
+    nutritionAcc: 97,
+    trainingAcc: 98,
+    sleepAcc: 95,
+    suppAcc: 100,
+    globalAcc: 97, // Excelente — todo verde
+    foodLogs: [
+      { protein: 148, carbs: 245, fat: 68, food_name: 'Pollo a la plancha', meal_type: 'Comida', logged_date: '2026-02-24', calories: 530 },
+      { protein: 35, carbs: 60, fat: 12, food_name: 'Avena con plátano', meal_type: 'Desayuno', logged_date: '2026-02-24', calories: 320 },
+    ],
+    setLogs: [
+      { exercise_id: 'ex1', reps: 12, weight: 80, is_warmup: false, logged_at: '2026-02-24T10:00:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex1', reps: 11, weight: 80, is_warmup: false, logged_at: '2026-02-24T10:05:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex1', reps: 10, weight: 80, is_warmup: false, logged_at: '2026-02-24T10:10:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex1', reps: 10, weight: 80, is_warmup: false, logged_at: '2026-02-24T10:15:00', exercises: { name: 'Press Banca', series: 4, reps: '10-12' } },
+    ],
+    suppLogs: [{ supplement_id: 's1', logged_date: '2026-02-24' }, { supplement_id: 's2', logged_date: '2026-02-24' }],
+    hasData: true,
+  },
+  {
+    date: '2026-02-25',
+    dateFormatted: '25 de febrero',
+    nutritionAcc: 93,
+    trainingAcc: 90,
+    sleepAcc: 95,
+    suppAcc: 90,
+    globalAcc: 92, // Bueno con fallos leves — azul/naranja
+    foodLogs: [
+      { protein: 140, carbs: 270, fat: 75, food_name: 'Pasta boloñesa', meal_type: 'Comida', logged_date: '2026-02-25', calories: 620 },
+      { protein: 30, carbs: 50, fat: 10, food_name: 'Tostadas con huevo', meal_type: 'Desayuno', logged_date: '2026-02-25', calories: 280 },
+    ],
+    setLogs: [
+      { exercise_id: 'ex2', reps: 8, weight: 60, is_warmup: false, logged_at: '2026-02-25T17:00:00', exercises: { name: 'Sentadilla', series: 4, reps: '8-10' } },
+      { exercise_id: 'ex2', reps: 7, weight: 60, is_warmup: false, logged_at: '2026-02-25T17:05:00', exercises: { name: 'Sentadilla', series: 4, reps: '8-10' } },
+      { exercise_id: 'ex2', reps: 7, weight: 60, is_warmup: false, logged_at: '2026-02-25T17:10:00', exercises: { name: 'Sentadilla', series: 4, reps: '8-10' } },
+    ],
+    suppLogs: [{ supplement_id: 's1', logged_date: '2026-02-25' }],
+    hasData: true,
+  },
+  {
+    date: '2026-02-26',
+    dateFormatted: '26 de febrero',
+    nutritionAcc: 65,
+    trainingAcc: 70,
+    sleepAcc: 60,
+    suppAcc: 50,
+    globalAcc: 64, // Malo/Desastroso — rojos, pico hacia abajo
+    foodLogs: [
+      { protein: 60, carbs: 100, fat: 45, food_name: 'Bocadillo rápido', meal_type: 'Comida', logged_date: '2026-02-26', calories: 350 },
+    ],
+    setLogs: [
+      { exercise_id: 'ex3', reps: 5, weight: 40, is_warmup: false, logged_at: '2026-02-26T19:00:00', exercises: { name: 'Remo con barra', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex3', reps: 4, weight: 40, is_warmup: false, logged_at: '2026-02-26T19:05:00', exercises: { name: 'Remo con barra', series: 4, reps: '10-12' } },
+    ],
+    suppLogs: [{ supplement_id: 's1', logged_date: '2026-02-26' }],
+    hasData: true,
+  },
+  {
+    date: '2026-02-27',
+    dateFormatted: '27 de febrero',
+    nutritionAcc: 90,
+    trainingAcc: 88,
+    sleepAcc: 85,
+    suppAcc: 90,
+    globalAcc: 88, // Recuperación/Regular
+    foodLogs: [
+      { protein: 135, carbs: 230, fat: 65, food_name: 'Arroz con pollo', meal_type: 'Comida', logged_date: '2026-02-27', calories: 500 },
+      { protein: 30, carbs: 45, fat: 10, food_name: 'Yogur con frutos secos', meal_type: 'Merienda', logged_date: '2026-02-27', calories: 260 },
+    ],
+    setLogs: [
+      { exercise_id: 'ex4', reps: 10, weight: 50, is_warmup: false, logged_at: '2026-02-27T10:00:00', exercises: { name: 'Press Militar', series: 3, reps: '10-12' } },
+      { exercise_id: 'ex4', reps: 9, weight: 50, is_warmup: false, logged_at: '2026-02-27T10:05:00', exercises: { name: 'Press Militar', series: 3, reps: '10-12' } },
+      { exercise_id: 'ex4', reps: 8, weight: 50, is_warmup: false, logged_at: '2026-02-27T10:10:00', exercises: { name: 'Press Militar', series: 3, reps: '10-12' } },
+    ],
+    suppLogs: [{ supplement_id: 's1', logged_date: '2026-02-27' }, { supplement_id: 's2', logged_date: '2026-02-27' }],
+    hasData: true,
+  },
+  {
+    date: '2026-02-28',
+    dateFormatted: '28 de febrero',
+    nutritionAcc: 100,
+    trainingAcc: 100,
+    sleepAcc: 100,
+    suppAcc: 100,
+    globalAcc: 100, // Perfecto — toca el tope
+    foodLogs: [
+      { protein: 150, carbs: 250, fat: 70, food_name: 'Plan perfecto', meal_type: 'Comida', logged_date: '2026-02-28', calories: 540 },
+      { protein: 40, carbs: 60, fat: 15, food_name: 'Batido proteico', meal_type: 'Desayuno', logged_date: '2026-02-28', calories: 340 },
+    ],
+    setLogs: [
+      { exercise_id: 'ex5', reps: 12, weight: 70, is_warmup: false, logged_at: '2026-02-28T09:00:00', exercises: { name: 'Peso Muerto', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex5', reps: 11, weight: 70, is_warmup: false, logged_at: '2026-02-28T09:05:00', exercises: { name: 'Peso Muerto', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex5', reps: 11, weight: 70, is_warmup: false, logged_at: '2026-02-28T09:10:00', exercises: { name: 'Peso Muerto', series: 4, reps: '10-12' } },
+      { exercise_id: 'ex5', reps: 10, weight: 70, is_warmup: false, logged_at: '2026-02-28T09:15:00', exercises: { name: 'Peso Muerto', series: 4, reps: '10-12' } },
+    ],
+    suppLogs: [{ supplement_id: 's1', logged_date: '2026-02-28' }, { supplement_id: 's2', logged_date: '2026-02-28' }],
+    hasData: true,
+  },
+];
+
+/* ═══════════════════════════════════════════════════════
    MICROCYCLE ANALYSIS COMPONENT
-   - Line chart of daily accuracy across the microcycle
-   - Click on a day to see full breakdown
-   - AI summary for the whole microcycle + per day
    ═══════════════════════════════════════════════════════ */
 
 interface MicrocycleAnalysisProps {
@@ -343,16 +447,22 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     loadData();
   }, [user, dateRange, goals]);
 
+  // Fallback to mock data when no real data exists
+  const effectiveData = useMemo(() => {
+    const realWithData = daysData.filter(d => d.hasData);
+    return realWithData.length > 0 ? daysData : mockMicrocycleData;
+  }, [daysData]);
+
   // Chart data
-  const chartData = useMemo(() => daysData.map(d => ({
+  const chartData = useMemo(() => effectiveData.map(d => ({
     name: format(parseISO(d.date), 'dd MMM', { locale: es }),
     date: d.date,
     accuracy: d.globalAcc,
     hasData: d.hasData,
-  })), [daysData]);
+  })), [effectiveData]);
 
   // Microcycle average
-  const daysWithData = daysData.filter(d => d.hasData);
+  const daysWithData = effectiveData.filter(d => d.hasData);
   const microcycleAvg = daysWithData.length > 0
     ? Math.round(daysWithData.reduce((a, d) => a + d.globalAcc, 0) / daysWithData.length)
     : 0;
@@ -420,7 +530,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
   const handleChartClick = (data: any) => {
     if (data?.activePayload?.[0]) {
       const dateStr = data.activePayload[0].payload.date;
-      const day = daysData.find(d => d.date === dateStr);
+      const day = effectiveData.find(d => d.date === dateStr);
       if (day?.hasData) setSelectedDay(day);
     }
   };
@@ -433,13 +543,8 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     );
   }
 
-  if (dateRange.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground text-sm">
-        No hay microciclo activo para analizar.
-      </div>
-    );
-  }
+  // When no microcycle range, still show mock data as demo
+  const showingMock = dateRange.length === 0 || daysData.filter(d => d.hasData).length === 0;
 
   return (
     <div className="space-y-5 p-4">
@@ -464,7 +569,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
               <div>
                 <h3 className="text-lg font-bold text-foreground">Análisis del Microciclo</h3>
                 <p className="text-xs text-muted-foreground">
-                  {dateRange.length} días · {daysWithData.length} con datos
+                  {showingMock ? '5 días · Datos de ejemplo' : `${dateRange.length} días · ${daysWithData.length} con datos`}
                 </p>
               </div>
               <div className="text-right">
@@ -547,7 +652,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
             {/* Day list */}
             <div className="space-y-2">
               <p className="text-sm font-bold text-foreground px-1">Días del Microciclo</p>
-              {daysData.map((day, idx) => (
+              {effectiveData.map((day, idx) => (
                 <button
                   key={day.date}
                   onClick={() => day.hasData ? setSelectedDay(day) : null}
