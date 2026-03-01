@@ -129,7 +129,7 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
             >
               {slide.isWelcome ? (
                 <div className="w-28 h-28 rounded-[28px] bg-black border border-white/15 flex items-center justify-center shadow-lg">
-                  <NeoLogo size="sm" />
+                  <span className="text-white font-bold text-2xl tracking-[0.25em]">N E O</span>
                 </div>
               ) : (
                 <div className={cn(
