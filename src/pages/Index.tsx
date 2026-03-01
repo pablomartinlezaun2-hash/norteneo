@@ -15,6 +15,7 @@ import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIco
 import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PeriodizationBadge } from '@/components/PeriodizationBadge';
 const Index = () => {
   const { t } = useTranslation();
   const {
@@ -228,10 +229,11 @@ const Index = () => {
           }}>
               <span className="font-bold tracking-tight text-background text-xl text-center">NEO</span>
             </motion.div>
-            <div>
+            <div className="flex items-center gap-2">
               <p className="text-[10px] text-muted-foreground">
                 {getTotalCompleted()} {t('index.sessions')} • {getCyclesCompleted()} {t('index.cycles')}
               </p>
+              <PeriodizationBadge programId={program?.id} variant="compact" />
             </div>
           </div>
 
