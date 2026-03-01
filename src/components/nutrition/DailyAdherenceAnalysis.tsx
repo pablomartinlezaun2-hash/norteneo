@@ -11,7 +11,6 @@ import {
   calcGeneralAccuracy,
   calcTimeAccuracy,
   calcRepsRangeAccuracy,
-  calcSetsAccuracy,
   calcMealMacroAverage,
   calcGlobalAccuracy,
   getAccuracyTextColor,
@@ -52,13 +51,8 @@ const MOCK_WATER = { planned: 3, real: 2, unit: 'L' };
 const MOCK_EXERCISES = [
   {
     name: 'Press Inclinado',
-    planned: { sets: 2, repRange: '10-15', minReps: 10, maxReps: 15, rir: '1-2' },
-    real: { sets: 2, reps: [9, 12] as number[], rir: [1, 0] as number[] },
-  },
-  {
-    name: 'Aperturas con Mancuerna',
-    planned: { sets: 3, repRange: '12-15', minReps: 12, maxReps: 15, rir: '2-3' },
-    real: { sets: 3, reps: [14, 13, 12] as number[], rir: [2, 2, 1] as number[] },
+    planned: { sets: 2, repRange: '8-8', minReps: 8, maxReps: 8, rir: '1-2' },
+    real: { sets: 4, reps: [8, 8, 8, 8] as number[], rir: [1, 1, 0, 0] as number[] },
   },
 ];
 
@@ -177,9 +171,9 @@ const AccordionSection = ({ icon: Icon, title, accuracy, hideAccuracy, colorType
 };
 
 /* ───────────── Deviation Badge ───────────── */
-const DeviationBadge = () => (
+const DeviationBadge = ({ label }: { label?: string }) => (
   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full">
-    <AlertTriangle className="w-3 h-3" /> Desviación detectada
+    <AlertTriangle className="w-3 h-3" /> {label || 'Volumen incorrecto'}
   </span>
 );
 
@@ -320,7 +314,8 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       const repsStr = ex?.reps || '8-12';
       const [minR, maxR] = repsStr.includes('-') ? repsStr.split('-').map(Number) : [Number(repsStr), Number(repsStr)];
       const work = logs.filter((l: any) => !l.is_warmup);
-      const setsResult = calcSetsAccuracy(tSets, work.length);
+      const setsAccVal = calcGeneralAccuracy(tSets, work.length);
+      const setsResult = { accuracy: setsAccVal, colorType: (setsAccVal >= 95 ? 'green' : setsAccVal >= 90 ? 'orange' : 'red') as 'green' | 'orange' | 'red' };
       // Average reps accuracy across sets
       const repsResults = work.map((l: any) => calcRepsRangeAccuracy(minR || 8, maxR || 12, l.reps));
       const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
@@ -353,8 +348,9 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   );
 
   const mockExerciseCalcs = MOCK_EXERCISES.map(ex => {
-    const setsAcc = calcSetsAccuracy(ex.planned.sets, ex.real.sets);
-    const repsResults = ex.real.reps.map(r => calcRepsRangeAccuracy(ex.planned.minReps, ex.planned.maxReps, r));
+    const setsAccVal = calcGeneralAccuracy(ex.planned.sets, ex.real.sets);
+    const setsAcc = { accuracy: setsAccVal, colorType: (setsAccVal >= 95 ? 'green' : setsAccVal >= 90 ? 'orange' : 'red') as 'green' | 'orange' | 'red' };
+    const repsResults = ex.real.reps.slice(0, ex.planned.sets).map(r => calcRepsRangeAccuracy(ex.planned.minReps, ex.planned.maxReps, r));
     const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
     const overallAcc = Math.round((setsAcc.accuracy + avgRepsAcc) / 2);
     return { ...ex, setsAcc, repsResults, avgRepsAcc, overallAcc };
@@ -385,69 +381,51 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const aiText = useMemo(() => {
     const lines: string[] = [];
 
-    if (globalScore >= 95) {
-      lines.push('Día sobresaliente. Tu disciplina hoy ha sido prácticamente perfecta en todas las métricas.');
-    } else if (globalScore >= 90) {
-      lines.push(`Buen día (${globalScore}%). Rendimiento sólido con algunos puntos menores que ajustar.`);
-    } else if (globalScore >= 75) {
-      lines.push(`Día irregular (${globalScore}%). Se detectan desviaciones significativas en varias métricas.`);
-    } else {
-      lines.push(`Día crítico (${globalScore}%). Múltiples áreas presentan desviaciones graves que pueden impactar tu progreso.`);
-    }
+    lines.push(`Resumen Diario: Buen trabajo en la Comida 1, pero has excedido el volumen de entrenamiento en el Press Inclinado, lo que penaliza tu recuperación. Ajustaremos el descanso.`);
 
     if (realNutrition) {
       const { totalProtein, totalCarbs, totalFat, accP, accC, accF, avg } = realNutrition;
-      const diffP = totalProtein - g.daily_protein;
-      const diffC = totalCarbs - g.daily_carbs;
-      const diffF = totalFat - g.daily_fat;
       if (avg >= 95) {
         lines.push(`Nutrición excelente (${avg}%). Macros prácticamente clavados: P ${Math.round(totalProtein)}g, C ${Math.round(totalCarbs)}g, G ${Math.round(totalFat)}g.`);
       } else {
         const issues: string[] = [];
+        const diffP = totalProtein - g.daily_protein;
+        const diffC = totalCarbs - g.daily_carbs;
+        const diffF = totalFat - g.daily_fat;
         if (accP < 90) issues.push(`proteína ${diffP > 0 ? '+' : ''}${Math.round(diffP)}g (${accP}%)`);
         if (accC < 90) issues.push(`carbohidratos ${diffC > 0 ? '+' : ''}${Math.round(diffC)}g (${accC}%)`);
         if (accF < 90) issues.push(`grasas ${diffF > 0 ? '+' : ''}${Math.round(diffF)}g (${accF}%)`);
         if (issues.length > 0) {
-          lines.push(`Nutrición al ${avg}%. Desviaciones en: ${issues.join(', ')}. ${diffP < -20 ? 'El déficit de proteína puede comprometer la recuperación muscular y la síntesis proteica.' : diffP > 30 ? 'El exceso de proteína podría indicar un desbalance de macros.' : ''}`);
+          lines.push(`Nutrición al ${avg}%. Desviaciones en: ${issues.join(', ')}.`);
         } else {
-          lines.push(`Nutrición al ${avg}%. Los macros están cerca del objetivo pero hay margen de mejora en la precisión.`);
+          lines.push(`Nutrición al ${avg}%. Los macros están cerca del objetivo pero hay margen de mejora.`);
         }
       }
-      if (mealGroups.length < 3) {
-        lines.push(`Solo ${mealGroups.length} comidas registradas. Distribuir las ingestas en 4 o 5 tomas mejora la absorción de nutrientes y el control del apetito.`);
-      }
     } else {
-      lines.push(`Nutrición (mock ${nutritionAcc}%). Sin datos reales registrados hoy. Recuerda loguear tus comidas para un análisis preciso.`);
+      lines.push(`Nutrición (${nutritionAcc}%). Sin datos reales registrados hoy. Recuerda loguear tus comidas.`);
     }
 
     if (realTraining) {
       const { exercises, avg } = realTraining;
-      const failedEx = exercises.filter(e => e.accuracy < 85);
-      const perfectEx = exercises.filter(e => e.accuracy >= 98);
+      const failedEx = exercises.filter((e: any) => e.accuracy < 85);
       if (avg >= 95) {
-        lines.push(`Entrenamiento impecable (${avg}%). ${exercises.length} ejercicios completados con alta precisión.${perfectEx.length > 0 ? ` Destacan: ${perfectEx.map(e => e.name).join(', ')}.` : ''}`);
+        lines.push(`Entrenamiento impecable (${avg}%). ${exercises.length} ejercicios completados con alta precisión.`);
       } else {
-        lines.push(`Entrenamiento al ${avg}%. ${exercises.length} ejercicios realizados.`);
-        if (failedEx.length > 0) {
-          failedEx.forEach(ex => {
-            const setsIssue = ex.sets < ex.targetSets ? `faltan ${ex.targetSets - ex.sets} series` : '';
-            const repsBelow = ex.reps.filter((r: number) => r < ex.minR).length;
-            const repsIssue = repsBelow > 0 ? `${repsBelow} series por debajo del rango mínimo (${ex.minR})` : '';
-            const details = [setsIssue, repsIssue].filter(Boolean).join(', ');
-            lines.push(`${ex.name} (${ex.accuracy}%): ${details || 'precisión baja en repeticiones'}. ${ex.accuracy < 70 ? 'Considera reducir el peso o ajustar el rango de repeticiones si la fatiga persiste.' : 'Pequeño ajuste necesario.'}`);
-          });
-        }
+        lines.push(`Entrenamiento al ${avg}%.`);
+        failedEx.forEach((ex: any) => {
+          lines.push(`${ex.name} (${ex.accuracy}%): precisión baja. Considera ajustar carga o volumen.`);
+        });
       }
     } else {
-      lines.push(`Entrenamiento (mock ${trainingAcc}%). Sin series registradas hoy. Si fue día de descanso, perfecto.`);
+      lines.push(`Entrenamiento (${trainingAcc}%). El Press Inclinado muestra un exceso de series (4 vs 2 pautadas), lo que implica un volumen no planificado que puede comprometer la recuperación.`);
     }
 
     if (sleepAcc >= 95) {
-      lines.push(`Sueño óptimo (${sleepAcc}%). El descanso adecuado maximiza la síntesis proteica nocturna y la recuperación del SNC.`);
+      lines.push(`Sueño óptimo (${sleepAcc}%). Descanso adecuado para la recuperación.`);
     } else if (sleepAcc >= 80) {
-      lines.push(`Sueño aceptable (${sleepAcc}%). Una leve desviación en el horario o duración. Intenta mantener la hora de dormir consistente para regular tu ritmo circadiano.`);
+      lines.push(`Sueño aceptable (${sleepAcc}%). Intenta mantener la hora de dormir consistente.`);
     } else {
-      lines.push(`Sueño deficiente (${sleepAcc}%). El descanso insuficiente reduce hasta un 40% la capacidad de recuperación muscular y aumenta la percepción de fatiga. Prioriza dormir al menos 7h.`);
+      lines.push(`Sueño deficiente (${sleepAcc}%). El descanso insuficiente reduce la capacidad de recuperación muscular. Prioriza dormir al menos 7h.`);
     }
 
     if (realSupplements) {
@@ -455,18 +433,10 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
         lines.push(`Suplementación perfecta. Todos los suplementos tomados (${realSupplements.taken}/${realSupplements.total}).`);
       } else {
         const missed = realSupplements.total - realSupplements.taken;
-        lines.push(`Suplementación al ${realSupplements.acc}%. Faltan ${missed} suplemento(s) por tomar. La consistencia diaria es clave para obtener beneficios acumulativos.`);
+        lines.push(`Suplementación al ${realSupplements.acc}%. Faltan ${missed} suplemento(s). La consistencia diaria es clave.`);
       }
     } else {
-      lines.push(`Suplementación (mock ${suppAcc}%). Sin datos reales de suplementos hoy.`);
-    }
-
-    if (globalScore >= 95) {
-      lines.push('Conclusión: Día excelente. Mantener esta consistencia durante todo el microciclo es la clave para maximizar las adaptaciones.');
-    } else if (globalScore >= 85) {
-      lines.push('Conclusión: Buen día con margen de mejora. Enfócate mañana en las áreas señaladas para acercarte al 95%+.');
-    } else {
-      lines.push('Conclusión: Hoy se detectan desviaciones que, si se repiten, pueden frenar tu progreso. Revisa las alertas y ajusta para mañana.');
+      lines.push(`Suplementación (${suppAcc}%). Creatina completada correctamente.`);
     }
 
     return lines.join('\n\n');
@@ -608,7 +578,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
               {/* ── Daily total ── */}
               {realNutrition && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
-                  <p className="text-sm font-bold text-foreground">📊 Total del día</p>
+                  <p className="text-sm font-bold text-foreground">Total del día</p>
                   <MetricRow label="Proteína" planned={g.daily_protein} real={Math.round(realNutrition.totalProtein)} unit="g" accuracy={realNutrition.accP} />
                   <MetricRow label="Carbohidratos" planned={g.daily_carbs} real={Math.round(realNutrition.totalCarbs)} unit="g" accuracy={realNutrition.accC} />
                   <MetricRow label="Grasas" planned={g.daily_fat} real={Math.round(realNutrition.totalFat)} unit="g" accuracy={realNutrition.accF} />
@@ -720,7 +690,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                         </span>
                       </div>
                       <ProgressBar value={ex.accuracy} />
-                      {ex.accuracy < 90 && <DeviationBadge />}
+                      {ex.accuracy < 90 && <DeviationBadge label="Volumen incorrecto" />}
                       <button
                         onClick={() => setExpandedExercise(isExpanded ? null : ex.id)}
                         className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-1.5 active:opacity-70 transition-opacity"
