@@ -226,6 +226,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const [supplements, setSupplements] = useState<any[]>([]);
   const [supplementLogs, setSupplementLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeMealIdx, setActiveMealIdx] = useState(0);
 
   const defaultGoals = { daily_calories: 2000, daily_protein: 150, daily_carbs: 250, daily_fat: 70 };
   const g = goals || defaultGoals;
@@ -424,78 +425,112 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
       {/* ═══════ 2. NUTRICIÓN E HIDRATACIÓN ═══════ */}
       <AccordionSection icon={UtensilsCrossed} title="Nutrición e Hidratación" accuracy={nutritionAcc}>
-        {mealGroups.length > 0 ? (
-          <div className="space-y-3">
-            {/* Per-meal cards */}
-            {mealGroups.map((meal) => {
-              // Per-meal target = daily goal / number of meals
-              const numMeals = mealGroups.length || 1;
-              const mealTargetP = Math.round(g.daily_protein / numMeals);
-              const mealTargetC = Math.round(g.daily_carbs / numMeals);
-              const mealTargetF = Math.round(g.daily_fat / numMeals);
+        {mealGroups.length > 0 ? (() => {
+          const numMeals = mealGroups.length;
+          const safeMealIdx = Math.min(activeMealIdx, numMeals - 1);
+          const activeMeal = mealGroups[safeMealIdx];
+          const mealTargetP = Math.round(g.daily_protein / numMeals);
+          const mealTargetC = Math.round(g.daily_carbs / numMeals);
+          const mealTargetF = Math.round(g.daily_fat / numMeals);
+          const accP = calcGeneralAccuracy(mealTargetP, Math.round(activeMeal.protein));
+          const accC = calcGeneralAccuracy(mealTargetC, Math.round(activeMeal.carbs));
+          const accF = calcGeneralAccuracy(mealTargetF, Math.round(activeMeal.fat));
+          const mealAvg = Math.round((accP + accC + accF) / 3);
 
-              const accP = calcGeneralAccuracy(mealTargetP, Math.round(meal.protein));
-              const accC = calcGeneralAccuracy(mealTargetC, Math.round(meal.carbs));
-              const accF = calcGeneralAccuracy(mealTargetF, Math.round(meal.fat));
-              const mealAvg = Math.round((accP + accC + accF) / 3);
+          return (
+            <div className="space-y-4">
+              {/* ── Meal selector circles ── */}
+              <div className="flex items-center justify-center gap-3">
+                {mealGroups.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveMealIdx(idx)}
+                    className={cn(
+                      'w-10 h-10 rounded-full text-sm font-bold transition-all flex items-center justify-center',
+                      idx === safeMealIdx
+                        ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background'
+                        : 'bg-muted text-muted-foreground hover:bg-accent'
+                    )}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
 
-              return (
-                <div key={meal.mealType} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+              {/* ── Active meal panel ── */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={safeMealIdx}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="rounded-xl border border-border/60 bg-muted/30 p-5 space-y-4"
+                >
                   {/* Header */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-bold text-foreground">Comida {meal.index} — {meal.mealType}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-[11px] text-muted-foreground">
-                          Registrada a las {meal.loggedTime}
+                      <p className="text-base font-bold text-foreground">Comida {safeMealIdx + 1} — {activeMeal.mealType}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          Registrada a las {activeMeal.loggedTime}
                         </span>
                       </div>
                     </div>
-                    <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(mealAvg))}>
+                    <span className={cn('text-2xl font-black tabular-nums', getAccuracyTextColor(mealAvg))}>
                       {mealAvg}%
                     </span>
                   </div>
 
-                  {/* Foods logged */}
-                  <div className="text-xs space-y-0.5">
-                    {meal.foods.map((f: string, i: number) => (
+                  {/* Foods */}
+                  <div className="text-xs space-y-1 bg-background/50 rounded-lg p-3">
+                    {activeMeal.foods.map((f: string, i: number) => (
                       <p key={i} className="text-foreground font-medium">• {f}</p>
                     ))}
                   </div>
 
-                  {/* Macros */}
-                  <MetricRow label="Proteína" planned={mealTargetP} real={Math.round(meal.protein)} unit="g" accuracy={accP} />
-                  <MetricRow label="Carbohidratos" planned={mealTargetC} real={Math.round(meal.carbs)} unit="g" accuracy={accC} />
-                  <MetricRow label="Grasas" planned={mealTargetF} real={Math.round(meal.fat)} unit="g" accuracy={accF} />
+                  {/* Individual macro bars */}
+                  <div className="space-y-4">
+                    <MetricRow label="Proteína" planned={mealTargetP} real={Math.round(activeMeal.protein)} unit="g" accuracy={accP} />
+                    <MetricRow label="Carbohidratos" planned={mealTargetC} real={Math.round(activeMeal.carbs)} unit="g" accuracy={accC} />
+                    <MetricRow label="Grasas" planned={mealTargetF} real={Math.round(activeMeal.fat)} unit="g" accuracy={accF} />
+                  </div>
 
-                  <ProgressBar value={mealAvg} />
+                  {/* Overall meal bar */}
+                  <div className="pt-1">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="font-semibold text-muted-foreground">Exactitud media comida</span>
+                      <span className={cn('font-black', getAccuracyTextColor(mealAvg))}>{mealAvg}%</span>
+                    </div>
+                    <ProgressBar value={mealAvg} />
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* ── Daily total ── */}
+              {realNutrition && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                  <p className="text-sm font-bold text-foreground">📊 Total del día</p>
+                  <MetricRow label="Proteína" planned={g.daily_protein} real={Math.round(realNutrition.totalProtein)} unit="g" accuracy={realNutrition.accP} />
+                  <MetricRow label="Carbohidratos" planned={g.daily_carbs} real={Math.round(realNutrition.totalCarbs)} unit="g" accuracy={realNutrition.accC} />
+                  <MetricRow label="Grasas" planned={g.daily_fat} real={Math.round(realNutrition.totalFat)} unit="g" accuracy={realNutrition.accF} />
+                  <ProgressBar value={realNutrition.avg} />
                 </div>
-              );
-            })}
+              )}
 
-            {/* Daily total summary */}
-            {realNutrition && (
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
-                <p className="text-sm font-bold text-foreground">📊 Total del día</p>
-                <MetricRow label="Proteína" planned={g.daily_protein} real={Math.round(realNutrition.totalProtein)} unit="g" accuracy={realNutrition.accP} />
-                <MetricRow label="Carbohidratos" planned={g.daily_carbs} real={Math.round(realNutrition.totalCarbs)} unit="g" accuracy={realNutrition.accC} />
-                <MetricRow label="Grasas" planned={g.daily_fat} real={Math.round(realNutrition.totalFat)} unit="g" accuracy={realNutrition.accF} />
-                <ProgressBar value={realNutrition.avg} />
+              {/* ── Water ── */}
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Droplets className="w-4 h-4 text-foreground" />
+                  <span className="text-sm font-bold text-foreground">Hidratación</span>
+                </div>
+                <MetricRow label="Agua" planned={MOCK_WATER.planned} real={MOCK_WATER.real} unit="L" accuracy={mockWaterAcc} />
+                <ProgressBar value={mockWaterAcc} />
               </div>
-            )}
-
-            {/* Water */}
-            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Droplets className="w-4 h-4 text-foreground" />
-                <span className="text-sm font-bold text-foreground">Hidratación</span>
-              </div>
-              <MetricRow label="Agua" planned={MOCK_WATER.planned} real={MOCK_WATER.real} unit="L" accuracy={mockWaterAcc} />
-              <ProgressBar value={mockWaterAcc} />
             </div>
-          </div>
-        ) : (
+          );
+        })() : (
           <div className="space-y-3">
             {mockMealAccuracies.map((meal, idx) => {
               const timeAcc = meal.timeAcc;
