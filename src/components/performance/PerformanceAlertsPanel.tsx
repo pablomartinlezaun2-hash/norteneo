@@ -13,27 +13,11 @@ const ALERT_ICON: Record<AlertType, typeof TrendingUp> = {
   overtraining: AlertTriangle,
 };
 
-const ALERT_STYLE: Record<AlertType, { text: string; bg: string; accent: string }> = {
-  improvement: {
-    text: 'text-emerald-400',
-    bg: 'bg-emerald-500/5',
-    accent: 'text-emerald-400/80',
-  },
-  stagnation: {
-    text: 'text-amber-400',
-    bg: 'bg-amber-500/5',
-    accent: 'text-amber-400/80',
-  },
-  regression: {
-    text: 'text-rose-400',
-    bg: 'bg-rose-500/5',
-    accent: 'text-rose-400/80',
-  },
-  overtraining: {
-    text: 'text-rose-500',
-    bg: 'bg-rose-500/8',
-    accent: 'text-rose-500/80',
-  },
+const ALERT_STYLE: Record<AlertType, { pctColor: string }> = {
+  improvement: { pctColor: 'text-emerald-500' },
+  stagnation: { pctColor: 'text-muted-foreground' },
+  regression: { pctColor: 'text-red-500' },
+  overtraining: { pctColor: 'text-red-500' },
 };
 
 const SEVERITY_ORDER = { error: 0, warn: 1, info: 2 };
@@ -102,25 +86,21 @@ export const PerformanceAlertsPanel = () => {
                     onClick={() => isClickable && setSelectedAlert(alert)}
                     disabled={!isClickable}
                     className={cn(
-                      "flex items-center gap-4 w-full px-4 py-3 rounded-2xl transition-all",
-                      "border border-border/40",
-                      style.bg,
-                      isClickable && "cursor-pointer active:scale-[0.98] hover:border-border/80"
+                      "flex items-center gap-4 w-full px-4 py-3 rounded-xl transition-all",
+                      "border border-border/30 bg-card/50",
+                      isClickable && "cursor-pointer active:scale-[0.98] hover:bg-card"
                     )}
                   >
-                    {/* Icon */}
-                    <Icon className={cn("w-4 h-4 shrink-0", style.accent)} />
+                    <Icon className="w-3.5 h-3.5 shrink-0 text-muted-foreground/50" />
 
-                    {/* Exercise name */}
-                    <span className="flex-1 text-left text-[15px] font-medium text-foreground truncate">
+                    <span className="flex-1 text-left text-[15px] font-medium text-foreground/90 truncate">
                       {alert.exerciseName || 'Ejercicio'}
                     </span>
 
-                    {/* Percentage */}
                     {pct && (
                       <span className={cn(
-                        "text-lg font-semibold tabular-nums tracking-tight",
-                        style.text
+                        "text-lg font-semibold tabular-nums tracking-tight font-mono",
+                        style.pctColor
                       )}>
                         {pct}
                       </span>
