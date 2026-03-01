@@ -52,8 +52,13 @@ const MOCK_WATER = { planned: 3, real: 2, unit: 'L' };
 const MOCK_EXERCISES = [
   {
     name: 'Press Inclinado',
-    planned: { sets: 2, minReps: 10, maxReps: 15, rir: '1-2' },
-    real: { sets: 2, reps: [9] as number[], rir: '1, 0' },
+    planned: { sets: 2, repRange: '10-15', minReps: 10, maxReps: 15, rir: '1-2' },
+    real: { sets: 2, reps: [9, 12] as number[], rir: [1, 0] as number[] },
+  },
+  {
+    name: 'Aperturas con Mancuerna',
+    planned: { sets: 3, repRange: '12-15', minReps: 12, maxReps: 15, rir: '2-3' },
+    real: { sets: 3, reps: [14, 13, 12] as number[], rir: [2, 2, 1] as number[] },
   },
 ];
 
@@ -227,6 +232,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const [supplementLogs, setSupplementLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMealIdx, setActiveMealIdx] = useState(0);
+  const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
 
   const defaultGoals = { daily_calories: 2000, daily_protein: 150, daily_carbs: 250, daily_fat: 70 };
   const g = goals || defaultGoals;
@@ -347,14 +353,11 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   );
 
   const mockExerciseCalcs = MOCK_EXERCISES.map(ex => {
-    const setsResult = calcSetsAccuracy(ex.planned.sets, ex.real.sets);
-    // For mock, real sets count = planned (2 series done)
-    const setsAcc = calcSetsAccuracy(ex.planned.sets, 2);
+    const setsAcc = calcSetsAccuracy(ex.planned.sets, ex.real.sets);
     const repsResults = ex.real.reps.map(r => calcRepsRangeAccuracy(ex.planned.minReps, ex.planned.maxReps, r));
     const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
     const overallAcc = Math.round((setsAcc.accuracy + avgRepsAcc) / 2);
-    const hasDeviation = setsAcc.accuracy < 90 || repsResults.some(r => r.accuracy < 90);
-    return { ...ex, setsAcc, repsResults, avgRepsAcc, overallAcc, hasDeviation };
+    return { ...ex, setsAcc, repsResults, avgRepsAcc, overallAcc };
   });
   const mockTrainingAcc = Math.round(mockExerciseCalcs.reduce((a, e) => a + e.overallAcc, 0) / mockExerciseCalcs.length);
 
@@ -608,79 +611,113 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
       {/* ═══════ 3. ENTRENAMIENTO ═══════ */}
       <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={trainingAcc}>
-        {hasRealData && realTraining ? (
-          <div className="space-y-3">
-            {realTraining.exercises.map((ex: any, idx: number) => (
-              <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-foreground">{ex.name}</p>
-                  <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(ex.accuracy))}>
-                    {ex.accuracy}%
-                  </span>
-                </div>
-                <MetricRow
-                  label="Series"
-                  planned={ex.targetSets}
-                  real={ex.sets}
-                  accuracy={ex.setsResult.accuracy}
-                  colorType={ex.setsResult.colorType}
-                />
-                {ex.reps.map((r: number, i: number) => (
-                  <MetricRow
-                    key={i}
-                    label={`Reps Serie ${i + 1}`}
-                    planned={`${ex.minR}-${ex.maxR}`}
-                    real={r}
-                    accuracy={ex.repsResults[i]?.accuracy ?? 100}
-                    colorType={ex.repsResults[i]?.colorType}
-                  />
-                ))}
-                {ex.accuracy < 90 && <DeviationBadge />}
-                <ProgressBar value={ex.accuracy} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {mockExerciseCalcs.map((ex, idx) => (
-              <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-foreground">{ex.name}</p>
-                  <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(ex.overallAcc))}>
-                    {ex.overallAcc}%
-                  </span>
-                </div>
+        {(() => {
+          // Unified exercise list (real or mock)
+          const exercises = realTraining ? realTraining.exercises.map((ex: any) => ({
+            id: ex.name,
+            name: ex.name,
+            accuracy: ex.accuracy,
+            targetSets: ex.targetSets,
+            realSets: ex.sets,
+            setsAcc: ex.setsResult,
+            repRange: `${ex.minR}-${ex.maxR}`,
+            reps: ex.reps as number[],
+            repsResults: ex.repsResults,
+          })) : mockExerciseCalcs.map((ex) => ({
+            id: ex.name,
+            name: ex.name,
+            accuracy: ex.overallAcc,
+            targetSets: ex.planned.sets,
+            realSets: ex.real.sets,
+            setsAcc: ex.setsAcc,
+            repRange: ex.planned.repRange,
+            reps: ex.real.reps,
+            repsResults: ex.repsResults,
+          }));
 
-                {/* Sets */}
-                <MetricRow
-                  label="Series"
-                  planned={ex.planned.sets}
-                  real={2}
-                  accuracy={ex.setsAcc.accuracy}
-                  colorType={ex.setsAcc.colorType}
-                />
+          return (
+            <div className="space-y-3">
+              {exercises.map((ex: any) => {
+                const isExpanded = expandedExercise === ex.id;
+                return (
+                  <div key={ex.id} className="rounded-xl border border-border/60 bg-muted/30 overflow-hidden">
+                    {/* Summary row */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Dumbbell className="w-4 h-4 text-muted-foreground" />
+                          <p className="text-sm font-bold text-foreground">{ex.name}</p>
+                        </div>
+                        <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(ex.accuracy))}>
+                          {ex.accuracy}%
+                        </span>
+                      </div>
+                      <ProgressBar value={ex.accuracy} />
+                      {ex.accuracy < 90 && <DeviationBadge />}
+                      <button
+                        onClick={() => setExpandedExercise(isExpanded ? null : ex.id)}
+                        className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-primary py-1.5 active:opacity-70 transition-opacity"
+                      >
+                        {isExpanded ? 'Ocultar detalle' : 'Ver detalle'}
+                        <ChevronDown className={cn('w-4 h-4 transition-transform', isExpanded && 'rotate-180')} />
+                      </button>
+                    </div>
 
-                {/* Reps */}
-                <MetricRow
-                  label="Repeticiones"
-                  planned={`${ex.planned.minReps}-${ex.planned.maxReps}`}
-                  real={ex.real.reps.join(', ')}
-                  accuracy={ex.avgRepsAcc}
-                  colorType={ex.repsResults[0]?.colorType}
-                />
+                    {/* Detail panel */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 pt-1 space-y-4 border-t border-border">
+                            {/* Sets accuracy */}
+                            <MetricRow
+                              label="Series"
+                              planned={ex.targetSets}
+                              real={ex.realSets}
+                              accuracy={ex.setsAcc.accuracy}
+                              colorType={ex.setsAcc.colorType}
+                            />
 
-                {/* RIR */}
-                <div className="text-xs flex gap-4">
-                  <span className="text-muted-foreground">RIR Pautado: <span className="font-medium">{ex.planned.rir}</span></span>
-                  <span className="text-foreground">RIR Real: <span className="font-bold">{ex.real.rir}</span></span>
-                </div>
-
-                {ex.hasDeviation && <DeviationBadge />}
-                <ProgressBar value={ex.overallAcc} colorType={ex.repsResults[0]?.colorType} />
-              </div>
-            ))}
-          </div>
-        )}
+                            {/* Per-set reps detail */}
+                            {ex.reps.map((r: number, i: number) => {
+                              const result = ex.repsResults[i];
+                              return (
+                                <div key={i} className="space-y-1.5">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-foreground">Serie {i + 1}</span>
+                                    <span className={cn('text-base font-black tabular-nums', getAccuracyTextColor(result?.accuracy ?? 100, result?.colorType))}>
+                                      {result?.accuracy ?? 100}%
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-4 text-xs">
+                                    <div className="flex-1">
+                                      <span className="text-muted-foreground">Rango pautado: </span>
+                                      <span className="text-muted-foreground font-medium">{ex.repRange}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="text-foreground">Realizado: </span>
+                                      <span className="text-foreground font-bold">{r} reps</span>
+                                    </div>
+                                  </div>
+                                  <ProgressBar value={result?.accuracy ?? 100} colorType={result?.colorType} />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </AccordionSection>
 
       {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
