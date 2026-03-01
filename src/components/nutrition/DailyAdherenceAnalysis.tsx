@@ -426,6 +426,11 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       {/* ═══════ 2. NUTRICIÓN E HIDRATACIÓN ═══════ */}
       <AccordionSection icon={UtensilsCrossed} title="Nutrición e Hidratación" accuracy={nutritionAcc}>
         {mealGroups.length > 0 ? (() => {
+          const SCHEDULED_TIMES: Record<string, string> = {
+            'Desayuno': '08:00', 'Comida': '14:00', 'Merienda': '17:00',
+            'Cena': '21:00', 'Snack': '11:00', 'Pre-entreno': '16:00',
+            'Post-entreno': '18:00', 'Otro': '12:00',
+          };
           const numMeals = mealGroups.length;
           const safeMealIdx = Math.min(activeMealIdx, numMeals - 1);
           const activeMeal = mealGroups[safeMealIdx];
@@ -471,17 +476,39 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-base font-bold text-foreground">Comida {safeMealIdx + 1} — {activeMeal.mealType}</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          Registrada a las {activeMeal.loggedTime}
-                        </span>
-                      </div>
                     </div>
                     <span className={cn('text-2xl font-black tabular-nums', getAccuracyTextColor(mealAvg))}>
                       {mealAvg}%
                     </span>
                   </div>
+
+                  {/* Time accuracy */}
+                  {(() => {
+                    const scheduledTime = SCHEDULED_TIMES[activeMeal.mealType] || '12:00';
+                    const timeAcc = calcTimeAccuracy(scheduledTime, activeMeal.loggedTime);
+                    return (
+                      <div className="rounded-lg bg-background/50 p-3 space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-semibold text-foreground">Horario</span>
+                          <span className={cn('text-sm font-black tabular-nums ml-auto', getAccuracyTextColor(timeAcc))}>
+                            {timeAcc}%
+                          </span>
+                        </div>
+                        <div className="flex gap-4 text-xs">
+                          <div className="flex-1">
+                            <span className="text-muted-foreground">Pautada: </span>
+                            <span className="text-muted-foreground font-medium">{scheduledTime}</span>
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-foreground">Real: </span>
+                            <span className="text-foreground font-bold">{activeMeal.loggedTime}</span>
+                          </div>
+                        </div>
+                        <ProgressBar value={timeAcc} />
+                      </div>
+                    );
+                  })()}
 
                   {/* Foods */}
                   <div className="text-xs space-y-1 bg-background/50 rounded-lg p-3">
