@@ -4,7 +4,7 @@ import { CompletedSession } from '@/types/database';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, BarChart, Bar } from 'recharts';
 import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar, User, PieChart as PieChartIcon, Bell } from 'lucide-react';
+import { TrendingUp, Award, Target, Dumbbell, Waves, Footprints, ChevronRight, X, Activity, Calendar, User, PieChart as PieChartIcon, Bell, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
@@ -18,6 +18,8 @@ import { KeyExercisesSection } from './performance/KeyExercisesSection';
 import { PerformanceAlertsPanel } from './performance/PerformanceAlertsPanel';
 import { Neo2DAnatomyModel, NeoFatigueMap } from './neo';
 import { ProgressChart } from './ProgressChart';
+import { DailyAdherenceAnalysis } from './nutrition/DailyAdherenceAnalysis';
+import { useNutritionData } from '@/hooks/useNutritionData';
 
 interface ActivityCompletion {
   id: string;
@@ -62,6 +64,8 @@ export const UnifiedProgressChart = ({
    const [fatigueOpen, setFatigueOpen] = useState(false);
    const [volumeOpen, setVolumeOpen] = useState(false);
    const [alertsOpen, setAlertsOpen] = useState(true);
+   const [adherenceOpen, setAdherenceOpen] = useState(false);
+   const { goals, foodLogs } = useNutritionData();
 
   // Get all exercises from the program
   const allExercises = useMemo(() => {
@@ -405,6 +409,19 @@ export const UnifiedProgressChart = ({
             <div className="p-4">
               <PerformanceAlertsPanel />
             </div>
+          </CollapsibleSection>
+
+          {/* Daily Adherence Analysis */}
+          <CollapsibleSection
+            isOpen={adherenceOpen}
+            onToggle={() => setAdherenceOpen(!adherenceOpen)}
+            icon={BarChart3}
+            title="Análisis Diario de Adherencia"
+            subtitle="Comparativa objetivo vs real por categoría"
+            gradient="from-violet-600 to-purple-600"
+            delay={0.115}
+          >
+            <DailyAdherenceAnalysis goals={goals} refreshTrigger={foodLogs.length} />
           </CollapsibleSection>
 
           {/* Fatigue Map */}
