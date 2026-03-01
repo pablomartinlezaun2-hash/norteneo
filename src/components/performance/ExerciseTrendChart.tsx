@@ -315,18 +315,18 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-3 pt-3 pb-1">
+                  <div className="px-1 pt-4 pb-2">
                     {summaryLoading ? (
-                      <div className="flex items-center gap-2 py-4 justify-center">
+                      <div className="flex items-center gap-2 py-6 justify-center">
                         <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-xs text-muted-foreground">Analizando...</span>
+                        <span className="text-sm text-muted-foreground">Analizando...</span>
                       </div>
                     ) : summary ? (
-                      <p className="text-[13px] leading-relaxed text-foreground/80">
+                      <p className="text-[15px] leading-[1.7] text-foreground/85">
                         {summary}
                       </p>
                     ) : (
-                      <p className="text-xs text-muted-foreground/60 text-center py-3">
+                      <p className="text-sm text-muted-foreground/60 text-center py-4">
                         No se pudo generar el resumen
                       </p>
                     )}

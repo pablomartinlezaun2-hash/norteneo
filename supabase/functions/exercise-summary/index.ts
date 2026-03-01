@@ -32,12 +32,11 @@ serve(async (req) => {
       .join("\n");
 
     const systemPrompt = `Eres un analista de rendimiento deportivo. Responde SOLO en español.
-Dado el historial de sets de un ejercicio, genera un resumen breve (3-5 frases máximo) explicando:
-- La causa principal del ${alertType === "improvement" ? "progreso" : alertType === "regression" ? "retroceso" : "estancamiento"} (¿fue por cambio de peso, repeticiones, RIR, o combinación?).
-- Si el volumen o intensidad cambiaron significativamente.
-- Una recomendación breve y concreta.
+Dado el historial de sets, genera un resumen MUY breve (2-3 frases, máximo 50 palabras) explicando:
+- Causa principal del ${alertType === "improvement" ? "progreso" : alertType === "regression" ? "retroceso" : "estancamiento"} (peso, reps, RIR o combinación).
+- Una recomendación concreta en una frase.
 
-Sé directo, técnico y conciso. No uses introducciones ni despedidas. No uses markdown, solo texto plano.`;
+Sé directo y técnico. Sin introducciones, despedidas ni markdown. Solo texto plano.`;
 
     const userPrompt = `Ejercicio: ${exerciseName}
 Cambio reciente: ${pctChange != null ? (pctChange * 100).toFixed(1) : "?"}%
