@@ -259,6 +259,54 @@ const MetricRow = ({
   </div>
 );
 
+/* ───────────── Critical Alert Item ───────────── */
+const CriticalAlertItem = ({ alert, onGoToDay }: { alert: { id: string; icon: string; title: string; severity: 'critical' | 'warning'; detail: string; dayDate?: string }; onGoToDay: (date: string) => void }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className={cn(
+      'rounded-xl border overflow-hidden transition-colors',
+      alert.severity === 'critical' ? 'border-destructive/40 bg-destructive/5' : 'border-orange-500/30 bg-orange-500/5'
+    )}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left"
+      >
+        <span className="text-base">{alert.icon}</span>
+        <span className={cn(
+          'text-xs font-bold flex-1',
+          alert.severity === 'critical' ? 'text-destructive' : 'text-orange-600 dark:text-orange-400'
+        )}>
+          {alert.title}
+        </span>
+        <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform', expanded && 'rotate-180')} />
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 space-y-2 border-t border-border/30">
+              <p className="text-xs text-foreground leading-relaxed pt-2">{alert.detail}</p>
+              {alert.dayDate && (
+                <button
+                  onClick={() => onGoToDay(alert.dayDate!)}
+                  className="text-[11px] font-bold text-primary underline underline-offset-2"
+                >
+                  Ver detalle del día →
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 /* ───────────── Day Detail View ───────────── */
 const DayDetailView = ({ day, goals, onBack }: { day: DayData; goals: any; onBack: () => void }) => {
   const g = goals || { daily_calories: 2000, daily_protein: 150, daily_carbs: 250, daily_fat: 70 };
@@ -288,19 +336,66 @@ const DayDetailView = ({ day, goals, onBack }: { day: DayData; goals: any; onBac
     return { name, accuracy, sets: work.length, targetSets: tSets, reps: work.map((l: any) => l.reps), minR, maxR, setsResult, repsResults };
   });
 
-  // Day-level AI summary
-  const positives: string[] = [];
-  const negatives: string[] = [];
-  if (day.nutritionAcc >= 95) positives.push('nutrición');
-  else if (day.nutritionAcc < 90) negatives.push(`nutrición al ${day.nutritionAcc}%`);
-  if (day.trainingAcc >= 95) positives.push('entrenamiento');
-  else if (day.trainingAcc < 90) negatives.push(`entrenamiento al ${day.trainingAcc}%`);
-  if (day.sleepAcc >= 95) positives.push('sueño');
-  else if (day.sleepAcc < 90) negatives.push(`sueño al ${day.sleepAcc}%`);
-  if (day.suppAcc >= 95) positives.push('suplementación');
-  else if (day.suppAcc < 90) negatives.push(`suplementación al ${day.suppAcc}%`);
+  // Day-level AI summary — exhaustive
+  const summaryLines: string[] = [];
 
-  const summaryText = `Precisión del ${day.globalAcc}% este día.${positives.length > 0 ? ` Puntos fuertes: ${positives.join(', ')}.` : ''}${negatives.length > 0 ? ` Áreas a mejorar: ${negatives.join(', ')}.` : ''} ${day.globalAcc >= 95 ? '¡Día excelente!' : day.globalAcc >= 90 ? 'Buen día, con margen de mejora.' : 'Hay aspectos importantes que ajustar.'}`;
+  // Opening
+  if (day.globalAcc >= 95) {
+    summaryLines.push(`📊 **Día sobresaliente (${day.globalAcc}%).** Disciplina ejemplar en todas las áreas.`);
+  } else if (day.globalAcc >= 85) {
+    summaryLines.push(`📊 **Día aceptable (${day.globalAcc}%).** Buen esfuerzo con áreas puntuales a mejorar.`);
+  } else {
+    summaryLines.push(`🔴 **Día crítico (${day.globalAcc}%).** Varias métricas presentan desviaciones importantes.`);
+  }
+
+  // Nutrition detail
+  if (day.foodLogs.length > 0) {
+    const diffP = totalProtein - g.daily_protein;
+    const diffC = totalCarbs - g.daily_carbs;
+    const diffF = totalFat - g.daily_fat;
+    if (day.nutritionAcc >= 95) {
+      summaryLines.push(`🍽️ Nutrición excelente (${day.nutritionAcc}%). Macros clavados: P${Math.round(totalProtein)}g C${Math.round(totalCarbs)}g G${Math.round(totalFat)}g.`);
+    } else {
+      const issues: string[] = [];
+      if (accP < 90) issues.push(`proteína ${diffP > 0 ? '+' : ''}${Math.round(diffP)}g`);
+      if (accC < 90) issues.push(`carbos ${diffC > 0 ? '+' : ''}${Math.round(diffC)}g`);
+      if (accF < 90) issues.push(`grasas ${diffF > 0 ? '+' : ''}${Math.round(diffF)}g`);
+      summaryLines.push(`🍽️ Nutrición al ${day.nutritionAcc}%. Desviaciones: ${issues.length > 0 ? issues.join(', ') : 'menores'}. ${day.foodLogs.length < 3 ? 'Pocas comidas registradas — distribuir mejor las ingestas.' : ''}`);
+    }
+  }
+
+  // Training detail
+  if (exercises.length > 0) {
+    const failedEx = exercises.filter(e => e.accuracy < 85);
+    if (day.trainingAcc >= 95) {
+      summaryLines.push(`💪 Entrenamiento impecable (${day.trainingAcc}%). ${exercises.length} ejercicios completados con alta precisión.`);
+    } else {
+      summaryLines.push(`💪 Entrenamiento al ${day.trainingAcc}%.${failedEx.length > 0 ? ` Ejercicios con baja adherencia: ${failedEx.map(e => `${e.name} (${e.accuracy}%)`).join(', ')}.` : ''}`);
+      failedEx.forEach(ex => {
+        if (ex.sets < ex.targetSets) summaryLines.push(`   ⚠ ${ex.name}: faltan ${ex.targetSets - ex.sets} series. Posible fatiga acumulada.`);
+      });
+    }
+  }
+
+  // Sleep
+  if (day.sleepData) {
+    if (day.sleepAcc >= 95) {
+      summaryLines.push(`😴 Sueño óptimo (${day.sleepAcc}%). Descanso adecuado para la recuperación.`);
+    } else {
+      summaryLines.push(`😴 Sueño al ${day.sleepAcc}%. ${day.sleepData.hoursReal < 6 ? 'Menos de 6h: la recuperación se ve severamente comprometida.' : `${day.sleepData.hoursReal}h de ${day.sleepData.hoursPlanned}h objetivo.`} ${day.sleepData.real > '01:00' ? 'Hora de dormir muy tardía — afecta ritmo circadiano.' : ''}`);
+    }
+  }
+
+  // Supplements
+  if (day.suppLogs.length > 0 || day.suppAcc < 100) {
+    if (day.suppAcc >= 100) {
+      summaryLines.push(`💊 Suplementación completa.`);
+    } else {
+      summaryLines.push(`💊 Suplementación al ${day.suppAcc}%. Faltan suplementos por tomar.`);
+    }
+  }
+
+  const summaryText = summaryLines.join('\n');
 
   return (
     <motion.div
@@ -328,7 +423,7 @@ const DayDetailView = ({ day, goals, onBack }: { day: DayData; goals: any; onBac
       {/* AI Summary */}
       <div className="rounded-xl bg-muted/50 p-4 flex gap-3 items-start">
         <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-        <p className="text-sm text-foreground leading-relaxed">{summaryText}</p>
+        <div className="text-sm text-foreground leading-relaxed whitespace-pre-line">{summaryText}</div>
       </div>
 
       {/* Nutrition */}
@@ -558,9 +653,23 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     ? Math.round(daysWithData.reduce((a, d) => a + d.globalAcc, 0) / daysWithData.length)
     : 0;
 
-  // AI Microcycle summary
-  const microcycleSummary = useMemo(() => {
-    if (daysWithData.length === 0) return 'Aún no hay datos suficientes para generar un análisis del microciclo.';
+  // AI Microcycle summary — exhaustive
+  interface CriticalAlert {
+    id: string;
+    icon: string;
+    title: string;
+    severity: 'critical' | 'warning';
+    detail: string;
+    dayDate?: string;
+  }
+
+  const { microcycleSummary, criticalAlerts } = useMemo(() => {
+    const alerts: CriticalAlert[] = [];
+
+    if (daysWithData.length === 0) return {
+      microcycleSummary: 'Aún no hay datos suficientes para generar un análisis del microciclo.',
+      criticalAlerts: [],
+    };
 
     const avgNut = Math.round(daysWithData.reduce((a, d) => a + d.nutritionAcc, 0) / daysWithData.length);
     const avgTrain = Math.round(daysWithData.reduce((a, d) => a + d.trainingAcc, 0) / daysWithData.length);
@@ -570,35 +679,141 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     const bestDay = [...daysWithData].sort((a, b) => b.globalAcc - a.globalAcc)[0];
     const worstDay = [...daysWithData].sort((a, b) => a.globalAcc - b.globalAcc)[0];
 
-    const positives: string[] = [];
-    const negatives: string[] = [];
+    // Detect trends
+    const accuracies = daysWithData.map(d => d.globalAcc);
+    const isDecline = accuracies.length >= 3 && accuracies[accuracies.length - 1] < accuracies[0] - 10;
+    const isImproving = accuracies.length >= 3 && accuracies[accuracies.length - 1] > accuracies[0] + 5;
+    const variance = accuracies.length >= 2
+      ? Math.round(Math.sqrt(accuracies.reduce((s, v) => s + Math.pow(v - microcycleAvg, 2), 0) / accuracies.length))
+      : 0;
 
-    if (avgNut >= 95) positives.push(`nutrición excelente (${avgNut}%)`);
-    else if (avgNut < 90) negatives.push(`nutrición por debajo del objetivo (${avgNut}%)`);
+    const lines: string[] = [];
 
-    if (avgTrain >= 95) positives.push(`entrenamiento impecable (${avgTrain}%)`);
-    else if (avgTrain < 90) negatives.push(`entrenamiento con desviaciones (${avgTrain}%)`);
+    // ── Header ──
+    lines.push(`📊 **Análisis exhaustivo del microciclo** (${daysWithData.length} días registrados)`);
+    lines.push(`Precisión media: **${microcycleAvg}%** · Variabilidad: ±${variance}% · Mejor: ${bestDay.dateFormatted} (${bestDay.globalAcc}%) · Peor: ${worstDay.dateFormatted} (${worstDay.globalAcc}%)`);
 
-    if (avgSupp >= 95) positives.push(`suplementación perfecta (${avgSupp}%)`);
-    else if (avgSupp < 90) negatives.push(`suplementación inconsistente (${avgSupp}%)`);
-
-    let summary = `Análisis del microciclo (${daysWithData.length} días registrados): Precisión media del ${microcycleAvg}%. `;
-
-    if (positives.length > 0) summary += `Puntos fuertes: ${positives.join(', ')}. `;
-    if (negatives.length > 0) summary += `Áreas de mejora: ${negatives.join(', ')}. `;
-
-    summary += `Mejor día: ${bestDay.dateFormatted} (${bestDay.globalAcc}%). `;
-    if (worstDay.globalAcc !== bestDay.globalAcc) {
-      summary += `Día más bajo: ${worstDay.dateFormatted} (${worstDay.globalAcc}%). `;
+    // ── Trend analysis ──
+    if (isDecline) {
+      lines.push(`📉 **Tendencia descendente detectada.** La adherencia ha caído ${accuracies[0] - accuracies[accuracies.length - 1]} puntos desde el inicio del microciclo. Esto puede indicar fatiga acumulada, estrés externo o pérdida de motivación.`);
+      alerts.push({
+        id: 'trend-decline',
+        icon: '📉',
+        title: 'Tendencia descendente en adherencia',
+        severity: 'warning',
+        detail: `La adherencia global ha pasado de ${accuracies[0]}% a ${accuracies[accuracies.length - 1]}% a lo largo del microciclo. Esto sugiere fatiga acumulada o factores externos. Recomendación: evaluar si es necesario adelantar un deload o simplificar la dieta.`,
+      });
+    } else if (isImproving) {
+      lines.push(`📈 **Tendencia ascendente.** La adherencia ha mejorado progresivamente, lo que indica buena adaptación y consistencia creciente.`);
+    } else if (variance > 15) {
+      lines.push(`🔀 **Alta variabilidad (±${variance}%).** Hay días muy buenos y otros muy malos. La inconsistencia reduce la efectividad global del programa.`);
+      alerts.push({
+        id: 'high-variance',
+        icon: '🔀',
+        title: 'Inconsistencia extrema entre días',
+        severity: 'warning',
+        detail: `La variabilidad de ±${variance}% indica que la adherencia fluctúa demasiado. Los días bajos (${worstDay.dateFormatted}: ${worstDay.globalAcc}%) contrarrestan los días buenos. Busca patrones: ¿son siempre los mismos días de la semana? ¿Coinciden con estrés laboral?`,
+      });
     }
 
-    summary += microcycleAvg >= 95
-      ? '¡Microciclo sobresaliente! Mantén esta consistencia.'
-      : microcycleAvg >= 90
-        ? 'Buen microciclo en general. Ajusta los puntos débiles para el siguiente.'
-        : 'Hay margen de mejora significativo. Revisa los días con menor precisión para identificar patrones.';
+    // ── Nutrition analysis ──
+    if (avgNut >= 95) {
+      lines.push(`🍽️ **Nutrición excelente (${avgNut}%).** Los macros se han mantenido consistentemente cerca del objetivo durante todo el microciclo.`);
+    } else if (avgNut >= 85) {
+      const lowNutDays = daysWithData.filter(d => d.nutritionAcc < 85);
+      lines.push(`🍽️ **Nutrición aceptable (${avgNut}%).** ${lowNutDays.length} día(s) con adherencia baja. La media está cerca del objetivo pero los días inconsistentes frenan el progreso.`);
+    } else {
+      const lowNutDays = daysWithData.filter(d => d.nutritionAcc < 80);
+      lines.push(`🍽️ **Nutrición deficiente (${avgNut}%).** ${lowNutDays.length} día(s) con adherencia por debajo del 80%. Esto puede generar déficits proteicos que comprometan la recuperación y la ganancia muscular.`);
+      alerts.push({
+        id: 'nutrition-low',
+        icon: '🍽️',
+        title: `Nutrición crítica: ${avgNut}% media`,
+        severity: 'critical',
+        dayDate: lowNutDays[0]?.date,
+        detail: `La adherencia nutricional media es del ${avgNut}%. Los días críticos son: ${lowNutDays.map(d => `${d.dateFormatted} (${d.nutritionAcc}%)`).join(', ')}. Esto implica que no se están alcanzando los macros necesarios para sostener el programa de entrenamiento. Un déficit proteico recurrente reduce la síntesis proteica muscular hasta un 30%.`,
+      });
+    }
 
-    return summary;
+    // ── Training analysis ──
+    if (avgTrain >= 95) {
+      lines.push(`💪 **Entrenamiento impecable (${avgTrain}%).** Todas las sesiones se han completado con alta precisión en series y repeticiones.`);
+    } else if (avgTrain >= 85) {
+      const failDays = daysWithData.filter(d => d.trainingAcc < 85);
+      lines.push(`💪 **Entrenamiento bueno (${avgTrain}%).** Hay ${failDays.length} sesión(es) con desviaciones. Revisa si el volumen programado es sostenible o si necesitas ajustar cargas.`);
+    } else {
+      const failDays = daysWithData.filter(d => d.trainingAcc < 80 && d.setLogs.length > 0);
+      lines.push(`💪 **Entrenamiento con problemas (${avgTrain}%).** ${failDays.length} sesión(es) con adherencia baja. Esto puede indicar que el volumen/intensidad programados superan tu capacidad de recuperación actual.`);
+      if (failDays.length > 0) {
+        alerts.push({
+          id: 'training-low',
+          icon: '💪',
+          title: `Entrenamiento: ${failDays.length} sesiones fallidas`,
+          severity: failDays.length >= 3 ? 'critical' : 'warning',
+          dayDate: failDays[0]?.date,
+          detail: `Las sesiones con baja adherencia son: ${failDays.map(d => `${d.dateFormatted} (${d.trainingAcc}%)`).join(', ')}. Esto puede deberse a: (1) fatiga acumulada — considera un deload, (2) cargas demasiado altas — reduce el peso 5-10%, o (3) mal descanso/nutrición previos que reducen el rendimiento.`,
+        });
+      }
+    }
+
+    // ── Sleep analysis ──
+    if (avgSleep >= 95) {
+      lines.push(`😴 **Sueño óptimo (${avgSleep}%).** El descanso ha sido consistente, maximizando la recuperación y la supercompensación.`);
+    } else if (avgSleep >= 80) {
+      lines.push(`😴 **Sueño aceptable (${avgSleep}%).** Pequeñas desviaciones en horario o duración. Mantener un horario fijo de sueño mejora la calidad del descanso a largo plazo.`);
+    } else {
+      const badSleepDays = daysWithData.filter(d => d.sleepAcc < 75);
+      lines.push(`😴 **Sueño deficiente (${avgSleep}%).** ${badSleepDays.length} día(s) con sueño inadecuado. El déficit de sueño reduce la producción de hormona del crecimiento y testosterona, afectando directamente la recuperación.`);
+      alerts.push({
+        id: 'sleep-low',
+        icon: '😴',
+        title: `Sueño insuficiente: ${badSleepDays.length} noches malas`,
+        severity: badSleepDays.length >= 3 ? 'critical' : 'warning',
+        dayDate: badSleepDays[0]?.date,
+        detail: `Las noches con peor descanso: ${badSleepDays.map(d => `${d.dateFormatted} (${d.sleepAcc}%${d.sleepData ? `, ${d.sleepData.hoursReal}h de ${d.sleepData.hoursPlanned}h` : ''})`).join(', ')}. El sueño insuficiente (<7h) aumenta el cortisol un 37%, reduce la síntesis proteica y empeora la toma de decisiones nutricionales al día siguiente.`,
+      });
+    }
+
+    // ── Supplements ──
+    if (avgSupp >= 95) {
+      lines.push(`💊 **Suplementación perfecta (${avgSupp}%).** Todos los suplementos se han tomado consistentemente.`);
+    } else {
+      const missedDays = daysWithData.filter(d => d.suppAcc < 100);
+      lines.push(`💊 **Suplementación al ${avgSupp}%.** ${missedDays.length} día(s) con suplementos faltantes. La creatina requiere toma diaria para mantener la saturación muscular.`);
+    }
+
+    // ── Cross-metric correlations ──
+    const daysBadSleepBadTrain = daysWithData.filter(d => d.sleepAcc < 80 && d.trainingAcc < 85);
+    if (daysBadSleepBadTrain.length > 0) {
+      lines.push(`🔗 **Correlación detectada:** ${daysBadSleepBadTrain.length} día(s) donde el mal sueño coincidió con bajo rendimiento en el entreno. Esto confirma que la calidad del descanso impacta directamente tu capacidad de trabajo.`);
+      alerts.push({
+        id: 'sleep-train-correlation',
+        icon: '🔗',
+        title: 'Mal sueño → bajo rendimiento',
+        severity: 'warning',
+        dayDate: daysBadSleepBadTrain[0]?.date,
+        detail: `En ${daysBadSleepBadTrain.map(d => d.dateFormatted).join(', ')}, el sueño deficiente (<80%) coincidió con entrenamiento por debajo del objetivo (<85%). Patrón claro: priorizar el descanso mejorará automáticamente tu rendimiento en el gym.`,
+      });
+    }
+
+    const daysBadNutBadTrain = daysWithData.filter(d => d.nutritionAcc < 80 && d.trainingAcc < 85);
+    if (daysBadNutBadTrain.length > 0 && daysBadNutBadTrain !== daysBadSleepBadTrain) {
+      lines.push(`🔗 **Correlación nutrición-entreno:** ${daysBadNutBadTrain.length} día(s) con mala nutrición y bajo rendimiento. Asegurar una ingesta adecuada pre-entreno es fundamental.`);
+    }
+
+    // ── Final verdict ──
+    if (microcycleAvg >= 95) {
+      lines.push(`\n✅ **Veredicto final:** Microciclo sobresaliente. Esta consistencia maximiza las adaptaciones del programa. Mantén esta línea y el próximo microciclo puedes considerar un incremento progresivo de volumen.`);
+    } else if (microcycleAvg >= 85) {
+      lines.push(`\n📌 **Veredicto final:** Microciclo aceptable con margen de mejora. Céntrate en las alertas señaladas para escalar al 95%+ en el próximo bloque.`);
+    } else {
+      lines.push(`\n🚨 **Veredicto final:** Microciclo por debajo del estándar. Las desviaciones acumuladas pueden retrasar tu progreso 1-2 semanas. Revisa las alertas críticas y corrige antes del siguiente microciclo.`);
+    }
+
+    return {
+      microcycleSummary: lines.join('\n\n'),
+      criticalAlerts: alerts,
+    };
   }, [daysWithData, microcycleAvg]);
 
   // Custom tooltip
@@ -737,7 +952,27 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
                 <Sparkles className="w-5 h-5 text-primary" />
                 <span className="text-sm font-bold text-foreground">Resumen IA del Microciclo</span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">{microcycleSummary}</p>
+              <div className="text-sm text-foreground leading-relaxed whitespace-pre-line">{microcycleSummary}</div>
+
+              {/* Critical alerts — clickable */}
+              {criticalAlerts.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <p className="text-xs font-bold text-destructive flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {criticalAlerts.length} alerta(s) detectada(s)
+                  </p>
+                  {criticalAlerts.map(alert => (
+                    <CriticalAlertItem
+                      key={alert.id}
+                      alert={alert}
+                      onGoToDay={(date) => {
+                        const day = effectiveData.find(d => d.date === date);
+                        if (day) setSelectedDay(day);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Day list */}

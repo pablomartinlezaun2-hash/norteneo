@@ -381,29 +381,102 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
   const globalScore = calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc);
 
-  /* ── AI Summary Text (structured: positive, negative, positive) ── */
+  /* ── AI Summary Text (exhaustive daily analysis) ── */
   const aiText = useMemo(() => {
-    const positives: string[] = [];
-    const negatives: string[] = [];
+    const lines: string[] = [];
 
-    if (nutritionAcc >= 95) positives.push('los alimentos y macros');
-    else if (nutritionAcc < 90) negatives.push(`la nutrición está al ${nutritionAcc}%`);
+    // ── Opening verdict ──
+    if (globalScore >= 95) {
+      lines.push('📊 **Día sobresaliente.** Tu disciplina hoy ha sido prácticamente perfecta en todas las métricas.');
+    } else if (globalScore >= 90) {
+      lines.push(`📊 **Buen día (${globalScore}%).** Rendimiento sólido con algunos puntos menores que ajustar.`);
+    } else if (globalScore >= 75) {
+      lines.push(`⚠️ **Día irregular (${globalScore}%).** Se detectan desviaciones significativas en varias métricas.`);
+    } else {
+      lines.push(`🔴 **Día crítico (${globalScore}%).** Múltiples áreas presentan desviaciones graves que pueden impactar tu progreso.`);
+    }
 
-    if (trainingAcc >= 95) positives.push('el entrenamiento');
-    else if (trainingAcc < 90) negatives.push(`el entrenamiento marca ${trainingAcc}%`);
+    // ── Nutrition detail ──
+    if (realNutrition) {
+      const { totalProtein, totalCarbs, totalFat, accP, accC, accF, avg } = realNutrition;
+      const diffP = totalProtein - g.daily_protein;
+      const diffC = totalCarbs - g.daily_carbs;
+      const diffF = totalFat - g.daily_fat;
+      if (avg >= 95) {
+        lines.push(`🍽️ **Nutrición excelente (${avg}%).** Macros prácticamente clavados: P ${Math.round(totalProtein)}g, C ${Math.round(totalCarbs)}g, G ${Math.round(totalFat)}g.`);
+      } else {
+        const issues: string[] = [];
+        if (accP < 90) issues.push(`proteína ${diffP > 0 ? '+' : ''}${Math.round(diffP)}g (${accP}%)`);
+        if (accC < 90) issues.push(`carbohidratos ${diffC > 0 ? '+' : ''}${Math.round(diffC)}g (${accC}%)`);
+        if (accF < 90) issues.push(`grasas ${diffF > 0 ? '+' : ''}${Math.round(diffF)}g (${accF}%)`);
+        if (issues.length > 0) {
+          lines.push(`🍽️ **Nutrición al ${avg}%.** Desviaciones en: ${issues.join(', ')}. ${diffP < -20 ? 'El déficit de proteína puede comprometer la recuperación muscular y la síntesis proteica.' : diffP > 30 ? 'El exceso de proteína podría indicar un desbalance de macros.' : ''}`);
+        } else {
+          lines.push(`🍽️ **Nutrición al ${avg}%.** Los macros están cerca del objetivo pero hay margen de mejora en la precisión.`);
+        }
+      }
+      if (mealGroups.length < 3) {
+        lines.push(`   ⚠ Solo ${mealGroups.length} comidas registradas. Distribuir las ingestas en 4-5 tomas mejora la absorción de nutrientes y el control del apetito.`);
+      }
+    } else {
+      lines.push(`🍽️ **Nutrición (mock ${nutritionAcc}%).** Sin datos reales registrados hoy. Recuerda loguear tus comidas para un análisis preciso.`);
+    }
 
-    if (sleepAcc >= 95) positives.push('tu sueño');
-    else if (sleepAcc < 90) negatives.push(`dormiste menos de lo pautado (${sleepAcc}%)`);
+    // ── Training detail ──
+    if (realTraining) {
+      const { exercises, avg } = realTraining;
+      const failedEx = exercises.filter(e => e.accuracy < 85);
+      const perfectEx = exercises.filter(e => e.accuracy >= 98);
+      if (avg >= 95) {
+        lines.push(`💪 **Entrenamiento impecable (${avg}%).** ${exercises.length} ejercicios completados con alta precisión.${perfectEx.length > 0 ? ` Destacan: ${perfectEx.map(e => e.name).join(', ')}.` : ''}`);
+      } else {
+        lines.push(`💪 **Entrenamiento al ${avg}%.** ${exercises.length} ejercicios realizados.`);
+        if (failedEx.length > 0) {
+          failedEx.forEach(ex => {
+            const setsIssue = ex.sets < ex.targetSets ? `faltan ${ex.targetSets - ex.sets} series` : '';
+            const repsBelow = ex.reps.filter((r: number) => r < ex.minR).length;
+            const repsIssue = repsBelow > 0 ? `${repsBelow} series por debajo del rango mínimo (${ex.minR})` : '';
+            const details = [setsIssue, repsIssue].filter(Boolean).join(', ');
+            lines.push(`   ⚠ ${ex.name} (${ex.accuracy}%): ${details || 'precisión baja en repeticiones'}. ${ex.accuracy < 70 ? 'Considera reducir el peso o ajustar el rango de repeticiones si la fatiga persiste.' : 'Pequeño ajuste necesario.'}`);
+          });
+        }
+      }
+    } else {
+      lines.push(`💪 **Entrenamiento (mock ${trainingAcc}%).** Sin series registradas hoy. Si fue día de descanso, perfecto.`);
+    }
 
-    if (suppAcc >= 95) positives.push('la adherencia a los suplementos');
-    else if (suppAcc < 90) negatives.push(`suplementación al ${suppAcc}%`);
+    // ── Sleep ──
+    if (sleepAcc >= 95) {
+      lines.push(`😴 **Sueño óptimo (${sleepAcc}%).** El descanso adecuado maximiza la síntesis proteica nocturna y la recuperación del SNC.`);
+    } else if (sleepAcc >= 80) {
+      lines.push(`😴 **Sueño aceptable (${sleepAcc}%).** Una leve desviación en el horario o duración. Intenta mantener la hora de dormir consistente para regular tu ritmo circadiano.`);
+    } else {
+      lines.push(`😴 **Sueño deficiente (${sleepAcc}%).** El descanso insuficiente reduce hasta un 40% la capacidad de recuperación muscular y aumenta la percepción de fatiga. Prioriza dormir al menos 7h.`);
+    }
 
-    const posText = positives.length > 0 ? `¡Excelente disciplina hoy! Has clavado ${positives.join(' y ')}.` : '¡Buen esfuerzo hoy!';
-    const negText = negatives.length > 0 ? ` Sin embargo, ${negatives.join(', ')}, lo que afecta tu recuperación.` : '';
-    const closeText = ' Aún así, tu esfuerzo general es brutal, ¡sigamos ajustando para mañana!';
+    // ── Supplements ──
+    if (realSupplements) {
+      if (realSupplements.acc >= 100) {
+        lines.push(`💊 **Suplementación perfecta.** Todos los suplementos tomados (${realSupplements.taken}/${realSupplements.total}).`);
+      } else {
+        const missed = realSupplements.total - realSupplements.taken;
+        lines.push(`💊 **Suplementación al ${realSupplements.acc}%.** Faltan ${missed} suplemento(s) por tomar. La consistencia diaria es clave para obtener beneficios acumulativos.`);
+      }
+    } else {
+      lines.push(`💊 **Suplementación (mock ${suppAcc}%).** Sin datos reales de suplementos hoy.`);
+    }
 
-    return posText + negText + closeText;
-  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc]);
+    // ── Closing recommendation ──
+    if (globalScore >= 95) {
+      lines.push('✅ **Conclusión:** Día excelente. Mantener esta consistencia durante todo el microciclo es la clave para maximizar las adaptaciones.');
+    } else if (globalScore >= 85) {
+      lines.push('📌 **Conclusión:** Buen día con margen de mejora. Enfócate mañana en las áreas marcadas con ⚠ para acercarte al 95%+.');
+    } else {
+      lines.push('🚨 **Conclusión:** Hoy se detectan desviaciones que, si se repiten, pueden frenar tu progreso. Revisa las alertas y ajusta para mañana.');
+    }
+
+    return lines.join('\n\n');
+  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, mealGroups, g]);
 
   if (loading) {
     return (
@@ -422,7 +495,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
         <div className="rounded-xl bg-muted/50 p-4 flex gap-3 items-start">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-          <p className="text-sm text-foreground leading-relaxed">{aiText}</p>
+          <div className="text-sm text-foreground leading-relaxed whitespace-pre-line">{aiText}</div>
         </div>
       </div>
 
