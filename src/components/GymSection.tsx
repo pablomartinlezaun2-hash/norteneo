@@ -207,24 +207,24 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
       {/* Header — staggered */}
       <div className="text-center mb-6">
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.06, duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, scale: 0.88, filter: 'blur(5px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={{ delay: 0.06, duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
         >
           <Dumbbell className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-primary">{t('gym.title')}</span>
         </motion.div>
         <motion.h2
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12, duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
+          animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
+          transition={{ delay: 0.2, duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="text-2xl font-bold text-foreground"
         >{t('gym.myRoutines')}</motion.h2>
         <motion.p
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.18, duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, filter: 'blur(0px)' }}
+          transition={{ delay: 0.4, duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="text-sm text-muted-foreground mt-1"
         >
           {t('gym.routinesSubtitle')}
@@ -324,9 +324,9 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                   return (
                     <motion.div
                       key={session.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: (programIndex * 0.1) + (sessionIndex * 0.05) }}
+                      initial={{ opacity: 0, x: -15, filter: 'blur(3px)' }}
+                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                      transition={{ delay: 0.3 + (programIndex * 0.12) + (sessionIndex * 0.1), duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
                       className={cn(
                         "rounded-2xl overflow-hidden transition-all duration-300 apple-shadow",
                         isActive 

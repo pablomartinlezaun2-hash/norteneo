@@ -70,9 +70,9 @@ const Index = () => {
   };
 
   const contentVariants = {
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -6 }
+    initial: { opacity: 0, scale: 0.97, filter: 'blur(4px)' },
+    animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+    exit: { opacity: 0, scale: 0.98, filter: 'blur(3px)' }
   };
 
   if (programLoading) {

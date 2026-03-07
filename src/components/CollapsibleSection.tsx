@@ -1,6 +1,9 @@
+import { useState, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
 interface CollapsibleSectionProps {
   isOpen: boolean;
@@ -13,13 +16,14 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
 }
 
-export const CollapsibleSection = ({
+export const CollapsibleSection = forwardRef<HTMLDivElement, CollapsibleSectionProps>(({
   isOpen, onToggle, icon: Icon, title, subtitle, gradient, delay = 0, children
-}: CollapsibleSectionProps) => (
+}, ref) => (
   <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay }}
+    ref={ref}
+    initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+    transition={{ delay, duration: 0.5, ease: premiumEase }}
     className="rounded-xl border border-border overflow-hidden"
   >
     <motion.button
@@ -30,13 +34,16 @@ export const CollapsibleSection = ({
           ? `bg-gradient-to-r ${gradient} text-white`
           : "bg-card hover:border-primary/50"
       )}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
+      whileTap={{ scale: 0.985 }}
     >
       <div className="flex items-center gap-3">
-        <div className={cn("p-2 rounded-lg", isOpen ? "bg-white/20" : "bg-primary/10")}>
+        <motion.div
+          className={cn("p-2 rounded-lg", isOpen ? "bg-white/20" : "bg-primary/10")}
+          animate={isOpen ? { scale: [1, 1.08, 1] } : {}}
+          transition={{ duration: 0.4, ease: premiumEase }}
+        >
           <Icon className={cn("w-5 h-5", isOpen ? "text-white" : "text-primary")} />
-        </div>
+        </motion.div>
         <div className="text-left">
           <h3 className={cn("font-semibold", isOpen ? "text-white" : "text-foreground")}>
             {title}
@@ -46,7 +53,7 @@ export const CollapsibleSection = ({
           </p>
         </div>
       </div>
-      <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
+      <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.24, ease: premiumEase }}>
         <ChevronDown className={cn("w-5 h-5", isOpen ? "text-white" : "text-muted-foreground")} />
       </motion.div>
     </motion.button>
@@ -57,12 +64,20 @@ export const CollapsibleSection = ({
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.36, ease: premiumEase }}
           className="overflow-hidden"
         >
-          {children}
+          <motion.div
+            initial={{ y: 10, opacity: 0, filter: 'blur(3px)' }}
+            animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+            transition={{ duration: 0.32, delay: 0.1, ease: premiumEase }}
+          >
+            {children}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   </motion.div>
-);
+));
+
+CollapsibleSection.displayName = 'CollapsibleSection';

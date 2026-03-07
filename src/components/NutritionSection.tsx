@@ -15,12 +15,37 @@ import { useTranslation } from 'react-i18next';
 
 type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer';
 
+const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
+
+// Each tab content enters with a unique cinematic style
+const tabTransitions: Record<NutritionTab, { initial: any; animate: any }> = {
+  log: {
+    initial: { opacity: 0, clipPath: 'inset(0 100% 0 0)', filter: 'blur(3px)' },
+    animate: { opacity: 1, clipPath: 'inset(0 0% 0 0)', filter: 'blur(0px)' },
+  },
+  goals: {
+    initial: { opacity: 0, scale: 0.92, filter: 'blur(5px)' },
+    animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+  },
+  supplements: {
+    initial: { opacity: 0, x: 30, filter: 'blur(4px)' },
+    animate: { opacity: 1, x: 0, filter: 'blur(0px)' },
+  },
+  recipes: {
+    initial: { opacity: 0, y: 20, scale: 0.96, filter: 'blur(4px)' },
+    animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
+  },
+  designer: {
+    initial: { opacity: 0, scale: 0.9, filter: 'blur(6px)' },
+    animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+  },
+};
+
 export const NutritionSection = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<NutritionTab>('log');
   const [showDesigner, setShowDesigner] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
-  
   
   const {
     loading, foodCatalog, foodLogs, goals, supplements, supplementLogs, recipes,
@@ -44,32 +69,57 @@ export const NutritionSection = () => {
     );
   }
 
+  const currentTransition = tabTransitions[activeTab];
+
   return (
-    <div className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      {/* Tab bar with layoutId sliding indicator */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4">
         <div className="flex gap-1 p-1 bg-muted rounded-xl">
-          {tabs.map((tab) => {
+          {tabs.map((tab, i) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all duration-200",
-                  isActive ? "gradient-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  "relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-colors duration-200",
+                  isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
+                whileTap={{ scale: 0.96 }}
               >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
+                {isActive && (
+                  <motion.div
+                    layoutId="nutritionTabBg"
+                    className="absolute inset-0 rounded-lg gradient-primary shadow-sm"
+                    transition={{ duration: 0.28, ease: premiumEase }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <Icon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </span>
+              </motion.button>
             );
           })}
         </div>
       </div>
 
+      {/* Content — cinematic transition per tab */}
       <AnimatePresence mode="wait">
-        <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+        <motion.div
+          key={activeTab}
+          initial={currentTransition.initial}
+          animate={currentTransition.animate}
+          exit={{ opacity: 0, filter: 'blur(3px)' }}
+          transition={{ duration: 0.45, ease: premiumEase }}
+        >
           {activeTab === 'log' && (
             <div className="space-y-4">
               <CollapsibleSection
@@ -83,7 +133,13 @@ export const NutritionSection = () => {
               >
                 <NutritionStatusSection goals={goals} onNavigateToGoals={() => setActiveTab('goals')} onNavigateToDay={(date) => { setSelectedDate(date); setStatusOpen(false); }} refreshTrigger={foodLogs.length} />
               </CollapsibleSection>
-              <FoodLogSection foodLogs={foodLogs} foodCatalog={foodCatalog} goals={goals} dailyTotals={dailyTotals} selectedDate={selectedDate} onDateChange={setSelectedDate} onAddFood={addFoodLog} onDeleteLog={deleteFoodLog} />
+              <motion.div
+                initial={{ opacity: 0, y: 10, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ delay: 0.15, duration: 0.4, ease: premiumEase }}
+              >
+                <FoodLogSection foodLogs={foodLogs} foodCatalog={foodCatalog} goals={goals} dailyTotals={dailyTotals} selectedDate={selectedDate} onDateChange={setSelectedDate} onAddFood={addFoodLog} onDeleteLog={deleteFoodLog} />
+              </motion.div>
             </div>
           )}
           {activeTab === 'goals' && <NutritionGoalsSection goals={goals} onUpdateGoals={updateGoals} />}
@@ -103,6 +159,6 @@ export const NutritionSection = () => {
           )}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
