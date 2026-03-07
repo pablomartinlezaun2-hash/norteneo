@@ -44,7 +44,7 @@ const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
-  const [showHero, setShowHero] = useState(() => {
+  const [showHero] = useState(() => {
     return !sessionStorage.getItem('neo-hero-seen');
   });
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
@@ -62,19 +62,9 @@ const Index = () => {
     }
   }, [programLoading, program, hasSeenWelcome]);
 
-  // Mark hero as seen after scroll past
-  useEffect(() => {
-    if (showHero) {
-      const onScroll = () => {
-        if (window.scrollY > window.innerHeight * 1.5) {
-          sessionStorage.setItem('neo-hero-seen', 'true');
-          setShowHero(false);
-        }
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
-      return () => window.removeEventListener('scroll', onScroll);
-    }
-  }, [showHero]);
+  const handleHeroComplete = () => {
+    sessionStorage.setItem('neo-hero-seen', 'true');
+  };
   const handleStartWithAssistant = () => {
     localStorage.setItem('neo-welcome-seen', 'true');
     setShowWelcome(false);
