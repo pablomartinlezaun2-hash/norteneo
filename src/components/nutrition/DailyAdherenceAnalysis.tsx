@@ -21,59 +21,6 @@ import {
 import { MicrocycleAnalysis } from '@/components/performance/MicrocycleAnalysis';
 import { cn } from '@/lib/utils';
 
-/* ───────────────────── MOCK DATA (strict specs) ───────────────────── */
-
-const MOCK_MEALS = [
-  {
-    name: 'Comida 1',
-    scheduledTime: '14:00',
-    realTime: '14:30',
-    food: { planned: '75g Arroz', real: '72g Pasta' },
-    macros: [
-      { label: 'Carbohidratos', planned: 63, real: 61, unit: 'g' },
-      { label: 'Proteínas', planned: 25, real: 25, unit: 'g' },
-      { label: 'Grasas', planned: 10, real: 12, unit: 'g' },
-    ],
-  },
-  {
-    name: 'Comida 2',
-    scheduledTime: '18:00',
-    realTime: '20:30',
-    food: { planned: '200g Pavo', real: '100g Pavo' },
-    macros: [
-      { label: 'Proteína', planned: 60, real: 30, unit: 'g' },
-    ],
-  },
-];
-
-const MOCK_WATER = { planned: 3, real: 2, unit: 'L' };
-
-const MOCK_EXERCISES = [
-  {
-    name: 'Press Inclinado',
-    planned: { sets: 2, repRange: '8-8', minReps: 8, maxReps: 8, rir: '1-2' },
-    real: { sets: 4, reps: [8, 8, 8, 8] as number[], rir: [1, 1, 0, 0] as number[] },
-  },
-];
-
-const MOCK_SLEEP = {
-  plannedTime: '23:00',
-  realTime: '00:30',
-  plannedHours: 8,
-  realHours: 6,
-};
-
-const MOCK_SUPPLEMENTS = [
-  {
-    name: 'Creatina',
-    plannedTime: '09:00',
-    realTime: '10:30',
-    plannedDose: 5,
-    realDose: 5,
-    unit: 'g',
-  },
-];
-
 /* ───────────── Circular Score ───────────── */
 
 const CircularScore = ({ value }: { value: number }) => {
@@ -205,6 +152,13 @@ const MetricRow = ({
   </div>
 );
 
+/* ───────────── Empty State ───────────── */
+const EmptyState = ({ message }: { message: string }) => (
+  <div className="text-center py-6 text-muted-foreground text-sm">
+    {message}
+  </div>
+);
+
 /* ═══════════════════ MAIN COMPONENT ═══════════════════ */
 
 interface DailyAdherenceAnalysisProps {
@@ -266,14 +220,12 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   /* ── Real data: nutrition grouped by meal ── */
   const mealGroups = useMemo(() => {
     if (foodLogs.length === 0) return [];
-    // Group by meal_type
     const grouped: Record<string, any[]> = {};
     foodLogs.forEach((log: any) => {
       const key = log.meal_type || 'Otro';
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(log);
     });
-    // Sort by earliest created_at per group
     const entries = Object.entries(grouped).sort((a, b) => {
       const tA = new Date(a[1][0]?.created_at || 0).getTime();
       const tB = new Date(b[1][0]?.created_at || 0).getTime();
@@ -316,7 +268,6 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       const work = logs.filter((l: any) => !l.is_warmup);
       const setsAccVal = calcGeneralAccuracy(tSets, work.length);
       const setsResult = { accuracy: setsAccVal, colorType: (setsAccVal >= 95 ? 'green' : setsAccVal >= 90 ? 'orange' : 'red') as 'green' | 'orange' | 'red' };
-      // Average reps accuracy across sets
       const repsResults = work.map((l: any) => calcRepsRangeAccuracy(minR || 8, maxR || 12, l.reps));
       const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
       const overallAcc = Math.round((setsResult.accuracy + avgRepsAcc) / 2);
@@ -331,57 +282,32 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     if (supplements.length === 0) return null;
     const taken = supplements.filter((s: any) => supplementLogs.some((l: any) => l.supplement_id === s.id)).length;
     const acc = calcGeneralAccuracy(supplements.length, taken);
-    return { taken, total: supplements.length, acc };
+    const details = supplements.map((s: any) => {
+      const isTaken = supplementLogs.some((l: any) => l.supplement_id === s.id);
+      return { name: s.name, dosage: s.dosage, timing: s.timing, taken: isTaken };
+    });
+    return { taken, total: supplements.length, acc, details };
   }, [supplements, supplementLogs]);
 
-  const hasRealData = foodLogs.length > 0 || setLogs.length > 0 || (supplements.length > 0 && supplementLogs.length > 0);
+  /* ── Section accuracies (real data only, default 100 when no data) ── */
+  const nutritionAcc = realNutrition ? realNutrition.avg : 100;
+  const trainingAcc = realTraining ? realTraining.avg : 100;
+  const sleepAcc = 100; // No sleep table yet
+  const suppAcc = realSupplements ? realSupplements.acc : 100;
 
-  /* ── Mock calculations ── */
-  const mockMealAccuracies = MOCK_MEALS.map(meal => {
-    const macroAcc = calcMealMacroAverage(meal.macros.map(m => ({ planned: m.planned, real: m.real })));
-    const timeAcc = calcTimeAccuracy(meal.scheduledTime, meal.realTime);
-    return { ...meal, macroAcc, timeAcc, overallAcc: Math.round((macroAcc + timeAcc) / 2) };
-  });
-  const mockWaterAcc = calcGeneralAccuracy(MOCK_WATER.planned, MOCK_WATER.real);
-  const mockNutritionAcc = Math.round(
-    (mockMealAccuracies.reduce((a, m) => a + m.overallAcc, 0) + mockWaterAcc) / (mockMealAccuracies.length + 1)
-  );
+  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0;
 
-  const mockExerciseCalcs = MOCK_EXERCISES.map(ex => {
-    const setsAccVal = calcGeneralAccuracy(ex.planned.sets, ex.real.sets);
-    const setsAcc = { accuracy: setsAccVal, colorType: (setsAccVal >= 95 ? 'green' : setsAccVal >= 90 ? 'orange' : 'red') as 'green' | 'orange' | 'red' };
-    const repsResults = ex.real.reps.slice(0, ex.planned.sets).map(r => calcRepsRangeAccuracy(ex.planned.minReps, ex.planned.maxReps, r));
-    const avgRepsAcc = repsResults.length > 0 ? Math.round(repsResults.reduce((a, r) => a + r.accuracy, 0) / repsResults.length) : 100;
-    const overallAcc = Math.round((setsAcc.accuracy + avgRepsAcc) / 2);
-    return { ...ex, setsAcc, repsResults, avgRepsAcc, overallAcc };
-  });
-  const mockTrainingAcc = Math.round(mockExerciseCalcs.reduce((a, e) => a + e.overallAcc, 0) / mockExerciseCalcs.length);
+  const globalScore = hasAnyData
+    ? calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc)
+    : 0;
 
-  const mockSleepTimeAcc = calcTimeAccuracy(MOCK_SLEEP.plannedTime, MOCK_SLEEP.realTime);
-  const mockSleepHoursAcc = calcGeneralAccuracy(MOCK_SLEEP.plannedHours, MOCK_SLEEP.realHours);
-  const mockSleepAcc = Math.round((mockSleepTimeAcc + mockSleepHoursAcc) / 2);
-
-  const mockSuppCalcs = MOCK_SUPPLEMENTS.map(s => {
-    const timeAcc = calcTimeAccuracy(s.plannedTime, s.realTime);
-    const doseAcc = calcGeneralAccuracy(s.plannedDose, s.realDose);
-    const overallAcc = Math.round((timeAcc + doseAcc) / 2);
-    return { ...s, timeAcc, doseAcc, overallAcc };
-  });
-  const mockSuppAcc = Math.round(mockSuppCalcs.reduce((a, s) => a + s.overallAcc, 0) / mockSuppCalcs.length);
-
-  /* ── Section accuracies ── */
-  const nutritionAcc = realNutrition ? realNutrition.avg : mockNutritionAcc;
-  const trainingAcc = realTraining ? realTraining.avg : mockTrainingAcc;
-  const sleepAcc = mockSleepAcc; // No sleep table yet
-  const suppAcc = realSupplements ? realSupplements.acc : mockSuppAcc;
-
-  const globalScore = calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc);
-
-  /* ── AI Summary Text (exhaustive daily analysis) ── */
+  /* ── AI Summary Text ── */
   const aiText = useMemo(() => {
-    const lines: string[] = [];
+    if (!hasAnyData) {
+      return 'No hay datos registrados hoy. Registra tus comidas, entrenos y suplementos para ver tu análisis de adherencia diaria.';
+    }
 
-    lines.push(`Resumen Diario: Buen trabajo en la Comida 1, pero has excedido el volumen de entrenamiento en el Press Inclinado, lo que penaliza tu recuperación. Ajustaremos el descanso.`);
+    const lines: string[] = [];
 
     if (realNutrition) {
       const { totalProtein, totalCarbs, totalFat, accP, accC, accF, avg } = realNutrition;
@@ -402,7 +328,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
         }
       }
     } else {
-      lines.push(`Nutrición (${nutritionAcc}%). Sin datos reales registrados hoy. Recuerda loguear tus comidas.`);
+      lines.push('Sin datos de nutrición registrados hoy. Registra tus comidas para analizar tu adherencia.');
     }
 
     if (realTraining) {
@@ -417,16 +343,10 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
         });
       }
     } else {
-      lines.push(`Entrenamiento (${trainingAcc}%). El Press Inclinado muestra un exceso de series (4 vs 2 pautadas), lo que implica un volumen no planificado que puede comprometer la recuperación.`);
+      lines.push('Sin datos de entrenamiento registrados hoy.');
     }
 
-    if (sleepAcc >= 95) {
-      lines.push(`Sueño óptimo (${sleepAcc}%). Descanso adecuado para la recuperación.`);
-    } else if (sleepAcc >= 80) {
-      lines.push(`Sueño aceptable (${sleepAcc}%). Intenta mantener la hora de dormir consistente.`);
-    } else {
-      lines.push(`Sueño deficiente (${sleepAcc}%). El descanso insuficiente reduce la capacidad de recuperación muscular. Prioriza dormir al menos 7h.`);
-    }
+    lines.push('Sueño: sin datos disponibles. Funcionalidad de registro de sueño pendiente.');
 
     if (realSupplements) {
       if (realSupplements.acc >= 100) {
@@ -436,11 +356,11 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
         lines.push(`Suplementación al ${realSupplements.acc}%. Faltan ${missed} suplemento(s). La consistencia diaria es clave.`);
       }
     } else {
-      lines.push(`Suplementación (${suppAcc}%). Creatina completada correctamente.`);
+      lines.push('Sin suplementos configurados.');
     }
 
     return lines.join('\n\n');
-  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, mealGroups, g]);
+  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, g, hasAnyData]);
 
   if (loading) {
     return (
@@ -463,8 +383,8 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
         </div>
       </div>
 
-      {/* ═══════ 2. NUTRICIÓN E HIDRATACIÓN ═══════ */}
-      <AccordionSection icon={UtensilsCrossed} title="Nutrición e Hidratación" accuracy={nutritionAcc}>
+      {/* ═══════ 2. NUTRICIÓN ═══════ */}
+      <AccordionSection icon={UtensilsCrossed} title="Nutrición" accuracy={nutritionAcc}>
         {mealGroups.length > 0 ? (() => {
           const SCHEDULED_TIMES: Record<string, string> = {
             'Desayuno': '08:00', 'Comida': '14:00', 'Merienda': '17:00',
@@ -512,7 +432,6 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                   transition={{ duration: 0.2 }}
                   className="rounded-xl border border-border/60 bg-muted/30 p-5 space-y-4"
                 >
-                  {/* Header */}
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-base font-bold text-foreground">Comida {safeMealIdx + 1} — {activeMeal.mealType}</p>
@@ -585,72 +504,17 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                   <ProgressBar value={realNutrition.avg} />
                 </div>
               )}
-
-              {/* ── Water ── */}
-              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Droplets className="w-4 h-4 text-foreground" />
-                  <span className="text-sm font-bold text-foreground">Hidratación</span>
-                </div>
-                <MetricRow label="Agua" planned={MOCK_WATER.planned} real={MOCK_WATER.real} unit="L" accuracy={mockWaterAcc} />
-                <ProgressBar value={mockWaterAcc} />
-              </div>
             </div>
           );
         })() : (
-          <div className="space-y-3">
-            {mockMealAccuracies.map((meal, idx) => {
-              const timeAcc = meal.timeAcc;
-              return (
-                <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{meal.name}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-[11px] text-muted-foreground">
-                          Pautada {meal.scheduledTime} | Real {meal.realTime}
-                        </span>
-                        <span className={cn('text-[11px] font-bold ml-1', getAccuracyTextColor(timeAcc))}>
-                          ({timeAcc}%)
-                        </span>
-                      </div>
-                    </div>
-                    <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(meal.overallAcc))}>
-                      {meal.overallAcc}%
-                    </span>
-                  </div>
-                  <div className="text-xs space-y-0.5">
-                    <div className="flex gap-4">
-                      <span className="text-muted-foreground">Pautado: <span className="font-medium">{meal.food.planned}</span></span>
-                      <span className="text-foreground">Real: <span className="font-bold">{meal.food.real}</span></span>
-                    </div>
-                  </div>
-                  {meal.macros.map((m, i) => {
-                    const acc = calcGeneralAccuracy(m.planned, m.real);
-                    return <MetricRow key={i} label={m.label} planned={m.planned} real={m.real} unit={m.unit} accuracy={acc} />;
-                  })}
-                  <ProgressBar value={meal.macroAcc} />
-                </div>
-              );
-            })}
-            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Droplets className="w-4 h-4 text-foreground" />
-                <span className="text-sm font-bold text-foreground">Hidratación</span>
-              </div>
-              <MetricRow label="Agua" planned={MOCK_WATER.planned} real={MOCK_WATER.real} unit="L" accuracy={mockWaterAcc} />
-              <ProgressBar value={mockWaterAcc} />
-            </div>
-          </div>
+          <EmptyState message="No hay comidas registradas hoy. Registra tus ingestas para ver el análisis nutricional." />
         )}
       </AccordionSection>
 
       {/* ═══════ 3. ENTRENAMIENTO ═══════ */}
       <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={trainingAcc}>
-        {(() => {
-          // Unified exercise list (real or mock)
-          const exercises = realTraining ? realTraining.exercises.map((ex: any) => ({
+        {realTraining ? (() => {
+          const exercises = realTraining.exercises.map((ex: any) => ({
             id: ex.name,
             name: ex.name,
             accuracy: ex.accuracy,
@@ -659,16 +523,6 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
             setsAcc: ex.setsResult,
             repRange: `${ex.minR}-${ex.maxR}`,
             reps: ex.reps as number[],
-            repsResults: ex.repsResults,
-          })) : mockExerciseCalcs.map((ex) => ({
-            id: ex.name,
-            name: ex.name,
-            accuracy: ex.overallAcc,
-            targetSets: ex.planned.sets,
-            realSets: ex.real.sets,
-            setsAcc: ex.setsAcc,
-            repRange: ex.planned.repRange,
-            reps: ex.real.reps,
             repsResults: ex.repsResults,
           }));
 
@@ -711,7 +565,6 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                           className="overflow-hidden"
                         >
                           <div className="px-4 pb-4 pt-1 space-y-4 border-t border-border">
-                            {/* Sets accuracy */}
                             <MetricRow
                               label="Series"
                               planned={ex.targetSets}
@@ -719,8 +572,6 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
                               accuracy={ex.setsAcc.accuracy}
                               colorType={ex.setsAcc.colorType}
                             />
-
-                            {/* Per-set reps detail */}
                             {ex.reps.map((r: number, i: number) => {
                               const result = ex.repsResults[i];
                               return (
@@ -754,7 +605,9 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
               })}
             </div>
           );
-        })()}
+        })() : (
+          <EmptyState message="No hay series registradas hoy. Completa tu entreno para ver el análisis." />
+        )}
       </AccordionSection>
 
       {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
@@ -765,24 +618,11 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
             <Moon className="w-4 h-4 text-foreground" />
             <span className="text-sm font-bold text-foreground">Sueño</span>
           </div>
-          <MetricRow
-            label="Horario"
-            planned={MOCK_SLEEP.plannedTime}
-            real={MOCK_SLEEP.realTime}
-            accuracy={mockSleepTimeAcc}
-          />
-          <MetricRow
-            label="Horas"
-            planned={MOCK_SLEEP.plannedHours}
-            real={MOCK_SLEEP.realHours}
-            unit="h"
-            accuracy={mockSleepHoursAcc}
-          />
-          <ProgressBar value={mockSleepAcc} />
+          <p className="text-xs text-muted-foreground">Registro de sueño no disponible aún. Se mostrará cuando se implemente esta funcionalidad.</p>
         </div>
 
         {/* Supplements */}
-        {hasRealData && realSupplements ? (
+        {realSupplements ? (
           <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <Pill className="w-4 h-4 text-foreground" />
@@ -795,31 +635,26 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
               accuracy={realSupplements.acc}
             />
             <ProgressBar value={realSupplements.acc} />
+            {/* Individual supplement status */}
+            <div className="space-y-1 pt-1">
+              {realSupplements.details.map((s: any, i: number) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <span className={cn('w-2 h-2 rounded-full', s.taken ? 'bg-green-500' : 'bg-red-500')} />
+                  <span className="text-foreground">{s.name}{s.dosage ? ` — ${s.dosage}` : ''}</span>
+                  <span className={cn('ml-auto text-[10px] font-bold', s.taken ? 'text-green-500' : 'text-red-500')}>
+                    {s.taken ? 'Tomado' : 'Pendiente'}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {mockSuppCalcs.map((supp, idx) => (
-              <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Pill className="w-4 h-4 text-foreground" />
-                  <span className="text-sm font-bold text-foreground">{supp.name}</span>
-                </div>
-                <MetricRow
-                  label="Horario"
-                  planned={supp.plannedTime}
-                  real={supp.realTime}
-                  accuracy={supp.timeAcc}
-                />
-                <MetricRow
-                  label="Dosis"
-                  planned={supp.plannedDose}
-                  real={supp.realDose}
-                  unit={supp.unit}
-                  accuracy={supp.doseAcc}
-                />
-                <ProgressBar value={supp.overallAcc} />
-              </div>
-            ))}
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <Pill className="w-4 h-4 text-foreground" />
+              <span className="text-sm font-bold text-foreground">Suplementación</span>
+            </div>
+            <p className="text-xs text-muted-foreground">No hay suplementos configurados. Añade suplementos desde la sección de Nutrición.</p>
           </div>
         )}
       </AccordionSection>
