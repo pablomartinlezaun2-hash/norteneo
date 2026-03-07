@@ -16,18 +16,7 @@ import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
-import { WorkoutDesigner } from '@/components/WorkoutDesigner';
-import { WorkoutsHub } from '@/components/WorkoutsHub';
-import { WelcomeScreen } from '@/components/WelcomeScreen';
-import { ProfileSection } from '@/components/profile';
-import { Button } from '@/components/ui/button';
-import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw } from 'lucide-react';
-import { useTimer } from '@/hooks/useTimer';
-import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PeriodizationBadge } from '@/components/PeriodizationBadge';
 
-// Premium easing — iOS-inspired
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
 const Index = () => {
@@ -52,11 +41,6 @@ const Index = () => {
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
 
-  // Active tab indicator ref
-  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const navRef = useRef<HTMLDivElement>(null);
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
-
   const tabs = [
     { key: 'workouts' as const, icon: FolderOpen, labelKey: 'index.workouts' },
     { key: 'progress' as const, icon: TrendingUp, labelKey: 'index.progress' },
@@ -64,20 +48,6 @@ const Index = () => {
     { key: 'design' as const, icon: Pencil, labelKey: 'index.design' },
     { key: 'profile' as const, icon: User, labelKey: 'index.profile' },
   ] as const;
-
-  // Update indicator position on tab change
-  useEffect(() => {
-    const el = tabRefs.current[mainTab];
-    const nav = navRef.current;
-    if (el && nav) {
-      const navRect = nav.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      setIndicatorStyle({
-        left: elRect.left - navRect.left + nav.scrollLeft,
-        width: elRect.width
-      });
-    }
-  }, [mainTab]);
 
   useEffect(() => {
     if (!programLoading && !program && !hasSeenWelcome) {
@@ -99,7 +69,6 @@ const Index = () => {
     setHasSeenWelcome(true);
   };
 
-  // Content transition
   const contentVariants = {
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
@@ -178,7 +147,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Header — staggered entry */}
+      {/* Header */}
       <motion.header
         className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm overflow-visible"
         initial={{ opacity: 0, y: -10 }}
@@ -211,7 +180,7 @@ const Index = () => {
             </motion.div>
           </div>
 
-          {/* Timer in center */}
+          {/* Timer */}
           <div className="absolute left-1/2 -translate-x-1/2">
             <div className="relative flex items-center justify-center">
               <motion.button
@@ -223,7 +192,6 @@ const Index = () => {
                     : "bg-muted/60 hover:bg-muted"
                 )}
                 whileTap={{ scale: 0.92 }}
-                transition={{ duration: 0.18 }}
               >
                 <TimerIcon className={cn("w-5 h-5", isRunning ? "text-primary" : "text-muted-foreground")} />
                 {isRunning && (
@@ -247,18 +215,12 @@ const Index = () => {
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
                     <div className="p-4 space-y-4">
                       <div className="text-center">
-                        <motion.span
-                          key={formattedTime}
-                          initial={{ opacity: 0.7 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.12 }}
-                          className={cn(
-                            "text-4xl font-bold tabular-nums tracking-tight",
-                            isRunning ? "text-primary" : "text-foreground"
-                          )}
-                        >
+                        <span className={cn(
+                          "text-4xl font-bold tabular-nums tracking-tight",
+                          isRunning ? "text-primary" : "text-foreground"
+                        )}>
                           {formattedTime}
-                        </motion.span>
+                        </span>
                         <p className="text-[11px] text-muted-foreground mt-1">
                           {mode === 'stopwatch' ? t('index.stopwatch') : t('index.rest')}
                         </p>
@@ -318,45 +280,45 @@ const Index = () => {
         </div>
       </motion.header>
 
-      {/* Navigation with sliding indicator */}
+      {/* Navigation — layoutId sliding indicator */}
       <motion.nav
         className="sticky top-[65px] z-40 bg-background/95 backdrop-blur-sm border-b border-border"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.28, delay: 0.08 }}
       >
-        <div className="overflow-x-auto scrollbar-hide relative" ref={navRef}>
-          {/* Sliding active background */}
-          <motion.div
-            className="absolute top-2.5 h-[calc(100%-20px)] rounded-xl gradient-primary glow-primary z-0"
-            animate={{
-              left: indicatorStyle.left,
-              width: indicatorStyle.width
-            }}
-            transition={{ duration: 0.28, ease: premiumEase }}
-          />
-          <div className="flex min-w-max px-3 py-2.5 gap-1.5 relative z-10">
-            {tabs.map((tab, i) => (
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex min-w-max px-3 py-2.5 gap-1.5">
+            {tabs.map((tab) => (
               <button
                 key={tab.key}
-                ref={el => { tabRefs.current[tab.key] = el; }}
                 onClick={() => handleMainTabChange(tab.key)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap min-h-[44px]",
+                  "relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap min-h-[44px]",
                   mainTab === tab.key
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <tab.icon className="w-4 h-4" />
-                {t(tab.labelKey)}
+                {/* Sliding background via layoutId */}
+                {mainTab === tab.key && (
+                  <motion.div
+                    layoutId="activeTabBg"
+                    className="absolute inset-0 rounded-xl gradient-primary glow-primary"
+                    transition={{ duration: 0.28, ease: premiumEase }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  <tab.icon className="w-4 h-4" />
+                  {t(tab.labelKey)}
+                </span>
               </button>
             ))}
           </div>
         </div>
       </motion.nav>
 
-      {/* Content — smooth crossfade */}
+      {/* Content */}
       <main className="px-4 py-6 pb-32">
         <AnimatePresence mode="wait">
           <motion.div
