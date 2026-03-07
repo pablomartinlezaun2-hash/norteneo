@@ -240,9 +240,10 @@ interface TextRevealProps {
   className?: string;
   delay?: number;
   as?: 'h1' | 'p';
+  style_color?: string;
 }
 
-export const TextReveal = ({ text, className, delay = 0, as = 'p' }: TextRevealProps) => {
+export const TextReveal = ({ text, className, delay = 0, as = 'p', style_color }: TextRevealProps) => {
   const maskRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
 
