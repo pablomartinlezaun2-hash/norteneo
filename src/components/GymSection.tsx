@@ -199,25 +199,36 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.28 }}
       className="space-y-6"
     >
-      {/* Header */}
+      {/* Header — staggered */}
       <div className="text-center mb-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06, duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
         >
           <Dumbbell className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-primary">{t('gym.title')}</span>
         </motion.div>
-        <h2 className="text-2xl font-bold text-foreground">{t('gym.myRoutines')}</h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <motion.h2
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-2xl font-bold text-foreground"
+        >{t('gym.myRoutines')}</motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-sm text-muted-foreground mt-1"
+        >
           {t('gym.routinesSubtitle')}
-        </p>
+        </motion.p>
       </div>
 
       {/* Stats Toggle */}
@@ -227,17 +238,19 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
         transition={{ delay: 0.2 }}
         className="flex justify-center"
       >
-        <Button
-          variant={showStats ? "default" : "outline"}
-          onClick={() => setShowStats(!showStats)}
-          className={cn(
-            "gap-2 rounded-full",
-            showStats && "gradient-primary text-primary-foreground"
-          )}
-        >
-          <BarChart3 className="w-4 h-4" />
-          {showStats ? t('gym.hideStats') : t('gym.viewStats')}
-        </Button>
+        <motion.div whileTap={{ scale: 0.98 }}>
+          <Button
+            variant={showStats ? "default" : "outline"}
+            onClick={() => setShowStats(!showStats)}
+            className={cn(
+              "gap-2 rounded-full transition-all duration-200",
+              showStats && "gradient-primary text-primary-foreground"
+            )}
+          >
+            <BarChart3 className="w-4 h-4" />
+            {showStats ? t('gym.hideStats') : t('gym.viewStats')}
+          </Button>
+        </motion.div>
       </motion.div>
 
       {/* Stats Section */}
