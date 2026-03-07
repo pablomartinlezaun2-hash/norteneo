@@ -238,18 +238,19 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
         transition={{ delay: 0.2 }}
         className="flex justify-center"
       >
-        <Button
-          variant={showStats ? "default" : "outline"}
-          onClick={() => setShowStats(!showStats)}
-          className={cn(
-            "gap-2 rounded-full",
-            showStats && "gradient-primary text-primary-foreground"
-          )}
-        >
-          <BarChart3 className="w-4 h-4" />
-          {showStats ? t('gym.hideStats') : t('gym.viewStats')}
-        </Button>
-      </motion.div>
+        <motion.div whileTap={{ scale: 0.98 }}>
+          <Button
+            variant={showStats ? "default" : "outline"}
+            onClick={() => setShowStats(!showStats)}
+            className={cn(
+              "gap-2 rounded-full transition-all duration-200",
+              showStats && "gradient-primary text-primary-foreground"
+            )}
+          >
+            <BarChart3 className="w-4 h-4" />
+            {showStats ? t('gym.hideStats') : t('gym.viewStats')}
+          </Button>
+        </motion.div>
 
       {/* Stats Section */}
       <AnimatePresence>
