@@ -14,42 +14,24 @@ const ICONS: Record<string, IconDef> = {
   barbell: {
     viewBox: '0 0 64 64',
     paths: [
-      // Left plate
       'M14 18v28',
       'M10 22v20',
-      // Bar
       'M14 32h36',
-      // Right plate
       'M50 18v28',
       'M54 22v20',
     ],
   },
   network: {
     viewBox: '0 0 64 64',
-    paths: [
-      // Connecting lines first (behind nodes)
-      'M32 14L18 28', 'M32 14L46 28',
-      'M18 28L28 44', 'M46 28L36 44',
-      'M18 28L46 28', 'M28 44L36 44',
-      'M32 14L32 8',
-      'M28 44L24 52', 'M36 44L40 52',
-    ],
+    paths: [],
   },
   utensils: {
     viewBox: '0 0 64 64',
-    paths: [
-      // Fork
-      'M22 12v14c0 3.3 2.7 6 6 6v20',
-      'M22 12v10', 'M28 12v10',
-      // Knife
-      'M42 12c-4 0-8 6-8 14h8v22',
-    ],
+    paths: [],
   },
   chart: {
     viewBox: '0 0 64 64',
-    paths: [
-      'M8 52L20 40L30 44L42 28L56 16',
-    ],
+    paths: [],
   },
 };
 
