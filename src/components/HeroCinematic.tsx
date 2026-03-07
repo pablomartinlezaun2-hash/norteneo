@@ -1,100 +1,115 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import neoMockup from '@/assets/neo-mockup.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export const HeroCinematic = () => {
+interface HeroCinematicProps {
+  onComplete?: () => void;
+}
+
+export const HeroCinematic = ({ onComplete }: HeroCinematicProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLImageElement>(null);
   const secondTextRef = useRef<HTMLDivElement>(null);
+  const ctxRef = useRef<gsap.Context | null>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const section = sectionRef.current;
-      const title = titleRef.current;
-      const mockup = mockupRef.current;
-      const secondText = secondTextRef.current;
+    const section = sectionRef.current;
+    const title = titleRef.current;
+    const mockup = mockupRef.current;
+    const secondText = secondTextRef.current;
 
-      if (!section || !title || !mockup || !secondText) return;
+    if (!section || !title || !mockup || !secondText) return;
 
-      // Entrance animations
-      gsap.fromTo(
-        title.children,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1.2,
-          ease: 'power3.out',
-          stagger: 0.2,
-          delay: 0.3,
-        }
-      );
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      ctxRef.current = gsap.context(() => {
+        // Entrance animations
+        gsap.fromTo(
+          title.children,
+          { opacity: 0, y: 40 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: 'power3.out',
+            stagger: 0.2,
+            delay: 0.3,
+          }
+        );
 
-      gsap.fromTo(
-        mockup,
-        { opacity: 0, y: 60, scale: 0.85 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 0.9,
-          duration: 1.4,
-          ease: 'power3.out',
-          delay: 0.6,
-        }
-      );
+        gsap.fromTo(
+          mockup,
+          { opacity: 0, y: 60, scale: 0.85 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 0.9,
+            duration: 1.4,
+            ease: 'power3.out',
+            delay: 0.6,
+          }
+        );
 
-      // ScrollTrigger: pin hero and animate on scroll
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: '+=100%',
-          scrub: 0.8,
-          pin: true,
-          anticipatePin: 1,
-        },
-      });
+        // ScrollTrigger timeline
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: '+=100%',
+            scrub: 0.8,
+            pin: true,
+            pinSpacing: true,
+            anticipatePin: 1,
+            onLeave: () => {
+              onComplete?.();
+            },
+          },
+        });
 
-      // Mockup scales up
-      tl.to(mockup, {
-        scale: 1.15,
-        y: -20,
-        duration: 1,
-        ease: 'none',
-      });
-
-      // Initial text fades out
-      tl.to(
-        title,
-        {
-          opacity: 0,
-          y: -30,
-          duration: 0.4,
+        tl.to(mockup, {
+          scale: 1.15,
+          y: -20,
+          duration: 1,
           ease: 'none',
-        },
-        0
-      );
+        });
 
-      // Second text fades in
-      tl.fromTo(
-        secondText,
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.4,
-          ease: 'none',
-        },
-        0.5
-      );
-    }, sectionRef);
+        tl.to(
+          title,
+          {
+            opacity: 0,
+            y: -30,
+            duration: 0.4,
+            ease: 'none',
+          },
+          0
+        );
 
-    return () => ctx.revert();
-  }, []);
+        tl.fromTo(
+          secondText,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.4,
+            ease: 'none',
+          },
+          0.5
+        );
+      }, section);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (ctxRef.current) {
+        ctxRef.current.revert();
+        ctxRef.current = null;
+      }
+    };
+  }, [onComplete]);
 
   return (
     <section
@@ -123,7 +138,7 @@ export const HeroCinematic = () => {
         draggable={false}
       />
 
-      {/* Second text (hidden initially, appears on scroll) */}
+      {/* Second text */}
       <div
         ref={secondTextRef}
         className="absolute bottom-[15%] md:bottom-[18%] flex flex-col items-center z-10 pointer-events-none opacity-0"
@@ -136,7 +151,7 @@ export const HeroCinematic = () => {
         </p>
       </div>
 
-      {/* Subtle gradient overlay at bottom for transition */}
+      {/* Bottom gradient transition */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-30 pointer-events-none" />
     </section>
   );
