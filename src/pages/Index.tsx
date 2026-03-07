@@ -44,7 +44,7 @@ const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
-  const [showHero, setShowHero] = useState(() => {
+  const [showHero] = useState(() => {
     return !sessionStorage.getItem('neo-hero-seen');
   });
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
@@ -62,19 +62,9 @@ const Index = () => {
     }
   }, [programLoading, program, hasSeenWelcome]);
 
-  // Mark hero as seen after scroll past
-  useEffect(() => {
-    if (showHero) {
-      const onScroll = () => {
-        if (window.scrollY > window.innerHeight * 1.5) {
-          sessionStorage.setItem('neo-hero-seen', 'true');
-          setShowHero(false);
-        }
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
-      return () => window.removeEventListener('scroll', onScroll);
-    }
-  }, [showHero]);
+  const handleHeroComplete = () => {
+    sessionStorage.setItem('neo-hero-seen', 'true');
+  };
   const handleStartWithAssistant = () => {
     localStorage.setItem('neo-welcome-seen', 'true');
     setShowWelcome(false);
@@ -227,7 +217,7 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Cinematic Hero */}
-      {showHero && <HeroCinematic />}
+      {showHero && <HeroCinematic onComplete={handleHeroComplete} />}
 
       {/* Header */}
       <motion.header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm overflow-visible" initial={{
