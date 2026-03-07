@@ -272,9 +272,9 @@ export const TextReveal = ({ text, className, delay = 0, as = 'p', style_color }
     <div ref={maskRef} style={{ clipPath: 'inset(0 100% 0 0)' }}>
       <div ref={innerRef} style={{ opacity: 0 }}>
         {Tag === 'h1' ? (
-          <h1 className={className}>{text}</h1>
+          <h1 className={className} style={style_color ? { color: style_color } : undefined}>{text}</h1>
         ) : (
-          <p className={className}>{text}</p>
+          <p className={className} style={style_color ? { color: style_color } : undefined}>{text}</p>
         )}
       </div>
     </div>
@@ -307,7 +307,7 @@ export const SubtitleReveal = ({ text, className, delay = 0 }: SubtitleRevealPro
     return () => ctx.revert();
   }, [delay, text]);
 
-  return <p ref={ref} className={className} style={{ opacity: 0 }}>{text}</p>;
+  return <p ref={ref} className={className} style={{ opacity: 0, color: '#8E8E93' }}>{text}</p>;
 };
 
 /* ═══════════════════════════════════════════════════════
