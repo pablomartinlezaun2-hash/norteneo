@@ -809,6 +809,8 @@ export const UnifiedProgressChart = ({
       </motion.div>
         </>
       )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Selected workout detail modal */}
       <AnimatePresence>
