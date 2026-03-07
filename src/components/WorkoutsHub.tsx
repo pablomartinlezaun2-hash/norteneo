@@ -38,7 +38,7 @@ const cardVariants = [
 
 export const WorkoutsHub = () => {
   const { t } = useTranslation();
-  const [expandedSection, setExpandedSection] = useState<AccordionSection>('gym');
+  const [expandedSection, setExpandedSection] = useState<AccordionSection>(null);
 
   const toggleSection = (section: AccordionSection) => {
     setExpandedSection(prev => prev === section ? null : section);
