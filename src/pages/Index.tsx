@@ -61,6 +61,20 @@ const Index = () => {
       }
     }
   }, [programLoading, program, hasSeenWelcome]);
+
+  // Mark hero as seen after scroll past
+  useEffect(() => {
+    if (showHero) {
+      const onScroll = () => {
+        if (window.scrollY > window.innerHeight * 1.5) {
+          sessionStorage.setItem('neo-hero-seen', 'true');
+          setShowHero(false);
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      return () => window.removeEventListener('scroll', onScroll);
+    }
+  }, [showHero]);
   const handleStartWithAssistant = () => {
     localStorage.setItem('neo-welcome-seen', 'true');
     setShowWelcome(false);
