@@ -44,6 +44,9 @@ const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
+  const [showHero, setShowHero] = useState(() => {
+    return !sessionStorage.getItem('neo-hero-seen');
+  });
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
 
