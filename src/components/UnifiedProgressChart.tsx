@@ -65,7 +65,7 @@ export const UnifiedProgressChart = ({
   const [monthlyOpen, setMonthlyOpen] = useState(false);
    const [fatigueOpen, setFatigueOpen] = useState(false);
    const [volumeOpen, setVolumeOpen] = useState(false);
-   const [alertsOpen, setAlertsOpen] = useState(true);
+   const [alertsOpen, setAlertsOpen] = useState(false);
    const [adherenceOpen, setAdherenceOpen] = useState(false);
    const { goals, foodLogs } = useNutritionData();
 
