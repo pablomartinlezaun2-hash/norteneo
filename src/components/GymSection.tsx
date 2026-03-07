@@ -324,9 +324,9 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                   return (
                     <motion.div
                       key={session.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: (programIndex * 0.1) + (sessionIndex * 0.05) }}
+                      initial={{ opacity: 0, x: -15, filter: 'blur(3px)' }}
+                      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                      transition={{ delay: 0.3 + (programIndex * 0.12) + (sessionIndex * 0.1), duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
                       className={cn(
                         "rounded-2xl overflow-hidden transition-all duration-300 apple-shadow",
                         isActive 
