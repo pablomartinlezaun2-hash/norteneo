@@ -691,7 +691,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
               <div>
                 <h3 className="text-lg font-bold text-foreground">Análisis del Microciclo</h3>
                 <p className="text-xs text-muted-foreground">
-                  {showingMock ? '5 días · Datos de ejemplo' : `${dateRange.length} días · ${daysWithData.length} con datos`}
+                  {!hasRealData ? 'Sin datos registrados aún' : `${dateRange.length} días · ${daysWithData.length} con datos`}
                 </p>
               </div>
               <div className="text-right">
