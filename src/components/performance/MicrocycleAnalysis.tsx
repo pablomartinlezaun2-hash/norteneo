@@ -666,8 +666,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     );
   }
 
-  // When no microcycle range, still show mock data as demo
-  const showingMock = daysData.filter(d => d.hasData).length < 3;
+  const hasRealData = daysData.some(d => d.hasData);
 
   return (
     <div className="space-y-5 p-4">
