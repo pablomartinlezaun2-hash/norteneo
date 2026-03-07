@@ -251,6 +251,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
             {showStats ? t('gym.hideStats') : t('gym.viewStats')}
           </Button>
         </motion.div>
+      </motion.div>
 
       {/* Stats Section */}
       <AnimatePresence>
