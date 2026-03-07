@@ -217,7 +217,7 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Cinematic Hero */}
-      {showHero && <HeroCinematic />}
+      {showHero && <HeroCinematic onComplete={handleHeroComplete} />}
 
       {/* Header */}
       <motion.header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm overflow-visible" initial={{
