@@ -461,12 +461,8 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     loadData();
   }, [user, dateRange, goals]);
 
-  // Use mock data when there's insufficient real data (fewer than 3 days with data)
-  const mockData = useMemo(() => createMockMicrocycleData(microcycleStart), [microcycleStart]);
-  const effectiveData = useMemo(() => {
-    const realWithData = daysData.filter(d => d.hasData);
-    return realWithData.length >= 3 ? daysData : mockData;
-  }, [daysData, mockData]);
+  // Always use real data
+  const effectiveData = daysData;
 
   // Chart data
   const chartData = useMemo(() => effectiveData.map(d => ({
