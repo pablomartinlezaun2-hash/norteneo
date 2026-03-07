@@ -75,45 +75,6 @@ export const StrokeIcon = ({ iconKey, glowColor }: StrokeIconProps) => {
   if (iconKey === 'chart') return <ProgressVisual glowColor={glowColor} />;
 
 
-  useEffect(() => {
-    if (!svgRef.current || !containerRef.current) return;
-
-    const ctx = gsap.context(() => {
-      const paths = svgRef.current!.querySelectorAll('path');
-      const glow = containerRef.current!.querySelector('.icon-glow') as HTMLElement;
-
-      paths.forEach(p => {
-        const len = p.getTotalLength();
-        gsap.set(p, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-      });
-      if (glow) gsap.set(glow, { opacity: 0, scale: 0.6 });
-
-      const tl = gsap.timeline({ delay: 0.25 });
-
-      paths.forEach((p, i) => {
-        tl.to(p, {
-          strokeDashoffset: 0,
-          duration: 0.55,
-          ease: 'power2.inOut',
-        }, i * 0.1);
-      });
-
-      if (glow) {
-        tl.to(glow, { opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }, 0.3);
-      }
-
-      tl.to(svgRef.current!, {
-        y: -2.5,
-        duration: 2.4,
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true,
-      }, '>-0.4');
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, [iconKey]);
-
   const icon = ICONS[iconKey];
   if (!icon || icon.paths.length === 0) return null;
 
