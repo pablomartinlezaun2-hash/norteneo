@@ -211,7 +211,24 @@ const Index = () => {
           </motion.div>;
     }
   };
+  // Mark hero as seen after scroll past
+  useEffect(() => {
+    if (showHero) {
+      const onScroll = () => {
+        if (window.scrollY > window.innerHeight * 1.5) {
+          sessionStorage.setItem('neo-hero-seen', 'true');
+          setShowHero(false);
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      return () => window.removeEventListener('scroll', onScroll);
+    }
+  }, [showHero]);
+
   return <div className="min-h-screen bg-background overflow-x-hidden">
+      {/* Cinematic Hero */}
+      {showHero && <HeroCinematic />}
+
       {/* Header */}
       <motion.header className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm overflow-visible" initial={{
       opacity: 0,
