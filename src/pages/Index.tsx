@@ -16,7 +16,7 @@ import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
-import { HeroCinematic } from '@/components/HeroCinematic';
+
 const Index = () => {
   const { t } = useTranslation();
   const {
