@@ -10,6 +10,9 @@ import { MyWorkoutsSection } from './MyWorkoutsSection';
 
 type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | null;
 
+// Premium easing curve — fast out, subtle settle
+const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
+
 export const WorkoutsHub = () => {
   const { t } = useTranslation();
   const [expandedSection, setExpandedSection] = useState<AccordionSection>('gym');
@@ -59,19 +62,32 @@ export const WorkoutsHub = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.32 }}
       className="space-y-4"
     >
-      {/* Header */}
+      {/* Header — staggered entry */}
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-foreground">{t('workoutsHub.title')}</h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <motion.h2
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, ease: premiumEase, delay: 0.06 }}
+          className="text-2xl font-bold text-foreground"
+        >
+          {t('workoutsHub.title')}
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, ease: premiumEase, delay: 0.14 }}
+          className="text-sm text-muted-foreground mt-1"
+        >
           {t('workoutsHub.subtitle')}
-        </p>
+        </motion.p>
       </div>
 
-      {/* Accordion Sections */}
+      {/* Accordion Sections — staggered cards */}
       <div className="space-y-3">
         {sections.map((section, index) => {
           const Icon = section.icon;
@@ -79,44 +95,59 @@ export const WorkoutsHub = () => {
           return (
             <motion.div
               key={section.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.28,
+                ease: premiumEase,
+                delay: 0.2 + index * 0.07
+              }}
               className="overflow-hidden rounded-2xl"
             >
-              {/* Section Header */}
-              <button
+              {/* Section Header — premium tap */}
+              <motion.button
                 onClick={() => toggleSection(section.id)}
+                whileTap={{ scale: 0.985 }}
+                transition={{ duration: 0.18, ease: premiumEase }}
                 className={cn(
-                  "w-full p-4 min-h-[56px] flex items-center justify-between transition-all duration-300",
+                  "w-full p-4 min-h-[56px] flex items-center justify-between transition-colors duration-240",
                   isExpanded
                     ? `bg-gradient-to-r ${section.gradient} text-white rounded-t-2xl`
-                    : "bg-card border border-border hover:border-primary/50 rounded-2xl"
+                    : "bg-card border border-border hover:border-primary/30 rounded-2xl"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <div className={cn("p-3 rounded-xl transition-colors", isExpanded ? "bg-white/20" : section.bgColor)}>
-                    <Icon className={cn("w-6 h-6", isExpanded ? "text-white" : section.textColor)} />
+                  <div className={cn(
+                    "p-3 rounded-xl transition-colors duration-240",
+                    isExpanded ? "bg-white/20" : section.bgColor
+                  )}>
+                    <Icon className={cn("w-6 h-6 transition-colors duration-240", isExpanded ? "text-white" : section.textColor)} />
                   </div>
                   <div className="text-left">
-                    <h3 className={cn("font-semibold text-lg", isExpanded ? "text-white" : "text-foreground")}>
+                    <h3 className={cn(
+                      "font-semibold text-lg transition-colors duration-240",
+                      isExpanded ? "text-white" : "text-foreground"
+                    )}>
                       {t(section.labelKey)}
                     </h3>
                   </div>
                 </div>
-                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                  <ChevronDown className={cn("w-5 h-5", isExpanded ? "text-white" : "text-muted-foreground")} />
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.24, ease: premiumEase }}
+                >
+                  <ChevronDown className={cn("w-5 h-5 transition-colors duration-240", isExpanded ? "text-white" : "text-muted-foreground")} />
                 </motion.div>
-              </button>
+              </motion.button>
 
-              {/* Section Content */}
+              {/* Section Content — smooth expand */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    transition={{ duration: 0.32, ease: premiumEase }}
                     className="overflow-hidden"
                   >
                     <div className="bg-card border border-t-0 border-border rounded-b-2xl p-4">
