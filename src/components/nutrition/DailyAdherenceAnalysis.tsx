@@ -376,7 +376,20 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       lines.push('Sin datos de entrenamiento registrados hoy.');
     }
 
-    lines.push('Sueño: sin datos disponibles. Funcionalidad de registro de sueño pendiente.');
+    if (realSleep) {
+      const { totalHours, quality, awakenings, avg } = realSleep;
+      if (avg >= 95) {
+        lines.push(`Sueño excelente (${avg}%). ${totalHours.toFixed(1)}h de descanso con calidad ${quality}/5.`);
+      } else {
+        const issues: string[] = [];
+        if (realSleep.hoursAcc < 90) issues.push(`duración ${totalHours.toFixed(1)}h vs 8h objetivo`);
+        if (quality && quality < 4) issues.push(`calidad ${quality}/5`);
+        if (awakenings > 2) issues.push(`${awakenings} despertares nocturnos`);
+        lines.push(`Sueño al ${avg}%.${issues.length > 0 ? ' Puntos débiles: ' + issues.join(', ') + '.' : ''}`);
+      }
+    } else {
+      lines.push('Sin datos de sueño registrados hoy. Registra tu sueño desde la pestaña de Nutrición > Sueño.');
+    }
 
     if (realSupplements) {
       if (realSupplements.acc >= 100) {
