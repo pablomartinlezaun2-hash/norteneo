@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3 } from 'lucide-react';
+import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNutritionData } from '@/hooks/useNutritionData';
 import { FoodLogSection } from './nutrition/FoodLogSection';
@@ -9,11 +9,12 @@ import { SupplementsSection } from './nutrition/SupplementsSection';
 import { RecipesSection } from './nutrition/RecipesSection';
 import { NutritionAssistantPro } from './nutrition/NutritionAssistantPro';
 import { NutritionStatusSection } from './nutrition/NutritionStatusSection';
+import { SleepLogSection } from './nutrition/SleepLogSection';
 
 import { CollapsibleSection } from './CollapsibleSection';
 import { useTranslation } from 'react-i18next';
 
-type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer';
+type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer' | 'sleep';
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -39,6 +40,10 @@ const tabTransitions: Record<NutritionTab, { initial: any; animate: any }> = {
     initial: { opacity: 0, scale: 0.9, filter: 'blur(6px)' },
     animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
   },
+  sleep: {
+    initial: { opacity: 0, y: -15, filter: 'blur(4px)' },
+    animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  },
 };
 
 export const NutritionSection = () => {
@@ -58,6 +63,7 @@ export const NutritionSection = () => {
     { id: 'goals' as const, label: t('nutritionTabs.goals'), icon: Target },
     { id: 'supplements' as const, label: t('nutritionTabs.supplements'), icon: Pill },
     { id: 'recipes' as const, label: t('nutritionTabs.recipes'), icon: ChefHat },
+    { id: 'sleep' as const, label: t('nutritionTabs.sleep'), icon: Moon },
     { id: 'designer' as const, label: t('nutritionTabs.designer'), icon: Sparkles }
   ];
 
@@ -145,6 +151,7 @@ export const NutritionSection = () => {
           {activeTab === 'goals' && <NutritionGoalsSection goals={goals} onUpdateGoals={updateGoals} />}
           {activeTab === 'supplements' && <SupplementsSection supplements={supplements} supplementLogs={supplementLogs} onAddSupplement={addSupplement} onDeleteSupplement={deleteSupplement} onToggleTaken={toggleSupplementTaken} />}
           {activeTab === 'recipes' && <RecipesSection recipes={recipes} />}
+          {activeTab === 'sleep' && <SleepLogSection />}
           {activeTab === 'designer' && (
             <NutritionAssistantPro
               onClose={() => setActiveTab('log')}
