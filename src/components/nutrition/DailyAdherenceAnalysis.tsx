@@ -178,6 +178,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const [setLogs, setSetLogs] = useState<any[]>([]);
   const [supplements, setSupplements] = useState<any[]>([]);
   const [supplementLogs, setSupplementLogs] = useState<any[]>([]);
+  const [sleepLog, setSleepLog] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeMealIdx, setActiveMealIdx] = useState(0);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
@@ -188,16 +189,18 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const fetchAll = async () => {
     if (!user) return;
     setLoading(true);
-    const [foodRes, setLogRes, suppRes, suppLogRes] = await Promise.all([
+    const [foodRes, setLogRes, suppRes, suppLogRes, sleepRes] = await Promise.all([
       supabase.from('food_logs').select('*').eq('user_id', user.id).eq('logged_date', today).order('created_at'),
       supabase.from('set_logs').select('*, exercises(name, series, reps, session_id)').eq('user_id', user.id).gte('logged_at', today + 'T00:00:00').lte('logged_at', today + 'T23:59:59'),
       supabase.from('user_supplements').select('*').eq('user_id', user.id).eq('is_active', true),
       supabase.from('supplement_logs').select('*').eq('user_id', user.id).eq('logged_date', today),
+      supabase.from('sleep_logs').select('*').eq('user_id', user.id).eq('logged_date', today).maybeSingle(),
     ]);
     setFoodLogs(foodRes.data || []);
     setSetLogs(setLogRes.data || []);
     setSupplements(suppRes.data || []);
     setSupplementLogs(suppLogRes.data || []);
+    setSleepLog(sleepRes.data || null);
     setLoading(false);
   };
 
