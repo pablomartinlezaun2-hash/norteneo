@@ -151,6 +151,7 @@ export const NutritionSection = () => {
           {activeTab === 'goals' && <NutritionGoalsSection goals={goals} onUpdateGoals={updateGoals} />}
           {activeTab === 'supplements' && <SupplementsSection supplements={supplements} supplementLogs={supplementLogs} onAddSupplement={addSupplement} onDeleteSupplement={deleteSupplement} onToggleTaken={toggleSupplementTaken} />}
           {activeTab === 'recipes' && <RecipesSection recipes={recipes} />}
+          {activeTab === 'sleep' && <SleepLogSection />}
           {activeTab === 'designer' && (
             <NutritionAssistantPro
               onClose={() => setActiveTab('log')}
