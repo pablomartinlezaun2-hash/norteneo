@@ -957,6 +957,57 @@ export type Database = {
           },
         ]
       }
+      sleep_logs: {
+        Row: {
+          awakenings: number | null
+          bedtime: string | null
+          created_at: string
+          deep_sleep_minutes: number | null
+          id: string
+          light_sleep_minutes: number | null
+          logged_date: string
+          notes: string | null
+          quality: number | null
+          rem_sleep_minutes: number | null
+          total_hours: number | null
+          updated_at: string
+          user_id: string
+          wake_time: string | null
+        }
+        Insert: {
+          awakenings?: number | null
+          bedtime?: string | null
+          created_at?: string
+          deep_sleep_minutes?: number | null
+          id?: string
+          light_sleep_minutes?: number | null
+          logged_date?: string
+          notes?: string | null
+          quality?: number | null
+          rem_sleep_minutes?: number | null
+          total_hours?: number | null
+          updated_at?: string
+          user_id: string
+          wake_time?: string | null
+        }
+        Update: {
+          awakenings?: number | null
+          bedtime?: string | null
+          created_at?: string
+          deep_sleep_minutes?: number | null
+          id?: string
+          light_sleep_minutes?: number | null
+          logged_date?: string
+          notes?: string | null
+          quality?: number | null
+          rem_sleep_minutes?: number | null
+          total_hours?: number | null
+          updated_at?: string
+          user_id?: string
+          wake_time?: string | null
+        }
+        Relationships: []
+      }
       supplement_logs: {
         Row: {
           id: string
