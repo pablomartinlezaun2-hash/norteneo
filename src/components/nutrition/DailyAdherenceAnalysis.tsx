@@ -656,13 +656,61 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
       <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={Math.round((sleepAcc + suppAcc) / 2)}>
         {/* Sleep */}
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Moon className="w-4 h-4 text-foreground" />
-            <span className="text-sm font-bold text-foreground">Sueño</span>
+        {realSleep ? (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <Moon className="w-4 h-4 text-foreground" />
+                <span className="text-sm font-bold text-foreground">Sueño</span>
+              </div>
+              <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(realSleep.avg))}>
+                {realSleep.avg}%
+              </span>
+            </div>
+            <MetricRow
+              label="Duración"
+              planned={`${realSleep.targetHours}h`}
+              real={`${realSleep.totalHours.toFixed(1)}h`}
+              accuracy={realSleep.hoursAcc}
+            />
+            {realSleep.quality && (
+              <MetricRow
+                label="Calidad"
+                planned="5/5"
+                real={`${realSleep.quality}/5`}
+                accuracy={realSleep.qualityAcc}
+              />
+            )}
+            <MetricRow
+              label="Despertares"
+              planned="0"
+              real={String(realSleep.awakenings)}
+              accuracy={realSleep.awakeningsPenalty}
+            />
+            {realSleep.bedtime && realSleep.wakeTime && (
+              <div className="flex gap-4 text-xs pt-1">
+                <span className="text-muted-foreground">🌙 {realSleep.bedtime.slice(0, 5)}</span>
+                <span className="text-muted-foreground">☀️ {realSleep.wakeTime.slice(0, 5)}</span>
+              </div>
+            )}
+            {(realSleep.deepMinutes || realSleep.lightMinutes || realSleep.remMinutes) && (
+              <div className="flex gap-2 text-[10px] pt-1">
+                {realSleep.deepMinutes != null && <span className="bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded">Prof. {realSleep.deepMinutes}m</span>}
+                {realSleep.lightMinutes != null && <span className="bg-sky-500/10 text-sky-400 px-1.5 py-0.5 rounded">Lig. {realSleep.lightMinutes}m</span>}
+                {realSleep.remMinutes != null && <span className="bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded">REM {realSleep.remMinutes}m</span>}
+              </div>
+            )}
+            <ProgressBar value={realSleep.avg} />
           </div>
-          <p className="text-xs text-muted-foreground">Registro de sueño no disponible aún. Se mostrará cuando se implemente esta funcionalidad.</p>
-        </div>
+        ) : (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Moon className="w-4 h-4 text-foreground" />
+              <span className="text-sm font-bold text-foreground">Sueño</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Sin registro de sueño hoy. Regístralo desde Nutrición → Sueño.</p>
+          </div>
+        )}
 
         {/* Supplements */}
         {realSupplements ? (
