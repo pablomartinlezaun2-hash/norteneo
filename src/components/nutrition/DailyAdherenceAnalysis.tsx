@@ -178,6 +178,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const [setLogs, setSetLogs] = useState<any[]>([]);
   const [supplements, setSupplements] = useState<any[]>([]);
   const [supplementLogs, setSupplementLogs] = useState<any[]>([]);
+  const [sleepLog, setSleepLog] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeMealIdx, setActiveMealIdx] = useState(0);
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
@@ -188,16 +189,18 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
   const fetchAll = async () => {
     if (!user) return;
     setLoading(true);
-    const [foodRes, setLogRes, suppRes, suppLogRes] = await Promise.all([
+    const [foodRes, setLogRes, suppRes, suppLogRes, sleepRes] = await Promise.all([
       supabase.from('food_logs').select('*').eq('user_id', user.id).eq('logged_date', today).order('created_at'),
       supabase.from('set_logs').select('*, exercises(name, series, reps, session_id)').eq('user_id', user.id).gte('logged_at', today + 'T00:00:00').lte('logged_at', today + 'T23:59:59'),
       supabase.from('user_supplements').select('*').eq('user_id', user.id).eq('is_active', true),
       supabase.from('supplement_logs').select('*').eq('user_id', user.id).eq('logged_date', today),
+      supabase.from('sleep_logs').select('*').eq('user_id', user.id).eq('logged_date', today).maybeSingle(),
     ]);
     setFoodLogs(foodRes.data || []);
     setSetLogs(setLogRes.data || []);
     setSupplements(suppRes.data || []);
     setSupplementLogs(suppLogRes.data || []);
+    setSleepLog(sleepRes.data || null);
     setLoading(false);
   };
 
@@ -213,6 +216,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       .on('postgres_changes', { event: '*', schema: 'public', table: 'food_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'set_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'supplement_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sleep_logs', filter: `user_id=eq.${user.id}` }, () => fetchAll())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
@@ -289,13 +293,39 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     return { taken, total: supplements.length, acc, details };
   }, [supplements, supplementLogs]);
 
+  /* ── Real data: sleep ── */
+  const realSleep = useMemo(() => {
+    if (!sleepLog) return null;
+    const targetHours = 8;
+    const totalH = sleepLog.total_hours || 0;
+    const hoursAcc = calcGeneralAccuracy(targetHours, totalH);
+    const qualityAcc = sleepLog.quality ? (sleepLog.quality / 5) * 100 : 50;
+    const awakeningsPenalty = Math.max(0, 100 - (sleepLog.awakenings || 0) * 15);
+    const avg = Math.round((hoursAcc * 0.45 + qualityAcc * 0.35 + awakeningsPenalty * 0.20));
+    return {
+      totalHours: totalH,
+      targetHours,
+      quality: sleepLog.quality,
+      bedtime: sleepLog.bedtime,
+      wakeTime: sleepLog.wake_time,
+      awakenings: sleepLog.awakenings || 0,
+      deepMinutes: sleepLog.deep_sleep_minutes,
+      lightMinutes: sleepLog.light_sleep_minutes,
+      remMinutes: sleepLog.rem_sleep_minutes,
+      hoursAcc,
+      qualityAcc: Math.round(qualityAcc),
+      awakeningsPenalty: Math.round(awakeningsPenalty),
+      avg,
+    };
+  }, [sleepLog]);
+
   /* ── Section accuracies (real data only, default 100 when no data) ── */
   const nutritionAcc = realNutrition ? realNutrition.avg : 100;
   const trainingAcc = realTraining ? realTraining.avg : 100;
-  const sleepAcc = 100; // No sleep table yet
+  const sleepAcc = realSleep ? realSleep.avg : 100;
   const suppAcc = realSupplements ? realSupplements.acc : 100;
 
-  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0;
+  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0 || sleepLog !== null;
 
   const globalScore = hasAnyData
     ? calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc)
@@ -346,7 +376,20 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       lines.push('Sin datos de entrenamiento registrados hoy.');
     }
 
-    lines.push('Sueño: sin datos disponibles. Funcionalidad de registro de sueño pendiente.');
+    if (realSleep) {
+      const { totalHours, quality, awakenings, avg } = realSleep;
+      if (avg >= 95) {
+        lines.push(`Sueño excelente (${avg}%). ${totalHours.toFixed(1)}h de descanso con calidad ${quality}/5.`);
+      } else {
+        const issues: string[] = [];
+        if (realSleep.hoursAcc < 90) issues.push(`duración ${totalHours.toFixed(1)}h vs 8h objetivo`);
+        if (quality && quality < 4) issues.push(`calidad ${quality}/5`);
+        if (awakenings > 2) issues.push(`${awakenings} despertares nocturnos`);
+        lines.push(`Sueño al ${avg}%.${issues.length > 0 ? ' Puntos débiles: ' + issues.join(', ') + '.' : ''}`);
+      }
+    } else {
+      lines.push('Sin datos de sueño registrados hoy. Registra tu sueño desde la pestaña de Nutrición > Sueño.');
+    }
 
     if (realSupplements) {
       if (realSupplements.acc >= 100) {
@@ -613,13 +656,61 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
       <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={Math.round((sleepAcc + suppAcc) / 2)}>
         {/* Sleep */}
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Moon className="w-4 h-4 text-foreground" />
-            <span className="text-sm font-bold text-foreground">Sueño</span>
+        {realSleep ? (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <Moon className="w-4 h-4 text-foreground" />
+                <span className="text-sm font-bold text-foreground">Sueño</span>
+              </div>
+              <span className={cn('text-lg font-black tabular-nums', getAccuracyTextColor(realSleep.avg))}>
+                {realSleep.avg}%
+              </span>
+            </div>
+            <MetricRow
+              label="Duración"
+              planned={`${realSleep.targetHours}h`}
+              real={`${realSleep.totalHours.toFixed(1)}h`}
+              accuracy={realSleep.hoursAcc}
+            />
+            {realSleep.quality && (
+              <MetricRow
+                label="Calidad"
+                planned="5/5"
+                real={`${realSleep.quality}/5`}
+                accuracy={realSleep.qualityAcc}
+              />
+            )}
+            <MetricRow
+              label="Despertares"
+              planned="0"
+              real={String(realSleep.awakenings)}
+              accuracy={realSleep.awakeningsPenalty}
+            />
+            {realSleep.bedtime && realSleep.wakeTime && (
+              <div className="flex gap-4 text-xs pt-1">
+                <span className="text-muted-foreground">🌙 {realSleep.bedtime.slice(0, 5)}</span>
+                <span className="text-muted-foreground">☀️ {realSleep.wakeTime.slice(0, 5)}</span>
+              </div>
+            )}
+            {(realSleep.deepMinutes || realSleep.lightMinutes || realSleep.remMinutes) && (
+              <div className="flex gap-2 text-[10px] pt-1">
+                {realSleep.deepMinutes != null && <span className="bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded">Prof. {realSleep.deepMinutes}m</span>}
+                {realSleep.lightMinutes != null && <span className="bg-sky-500/10 text-sky-400 px-1.5 py-0.5 rounded">Lig. {realSleep.lightMinutes}m</span>}
+                {realSleep.remMinutes != null && <span className="bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded">REM {realSleep.remMinutes}m</span>}
+              </div>
+            )}
+            <ProgressBar value={realSleep.avg} />
           </div>
-          <p className="text-xs text-muted-foreground">Registro de sueño no disponible aún. Se mostrará cuando se implemente esta funcionalidad.</p>
-        </div>
+        ) : (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Moon className="w-4 h-4 text-foreground" />
+              <span className="text-sm font-bold text-foreground">Sueño</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Sin registro de sueño hoy. Regístralo desde Nutrición → Sueño.</p>
+          </div>
+        )}
 
         {/* Supplements */}
         {realSupplements ? (
