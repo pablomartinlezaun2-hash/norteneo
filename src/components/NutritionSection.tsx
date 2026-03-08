@@ -63,6 +63,7 @@ export const NutritionSection = () => {
     { id: 'goals' as const, label: t('nutritionTabs.goals'), icon: Target },
     { id: 'supplements' as const, label: t('nutritionTabs.supplements'), icon: Pill },
     { id: 'recipes' as const, label: t('nutritionTabs.recipes'), icon: ChefHat },
+    { id: 'sleep' as const, label: t('nutritionTabs.sleep'), icon: Moon },
     { id: 'designer' as const, label: t('nutritionTabs.designer'), icon: Sparkles }
   ];
 
