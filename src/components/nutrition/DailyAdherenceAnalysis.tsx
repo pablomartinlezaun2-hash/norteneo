@@ -293,13 +293,39 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     return { taken, total: supplements.length, acc, details };
   }, [supplements, supplementLogs]);
 
+  /* ── Real data: sleep ── */
+  const realSleep = useMemo(() => {
+    if (!sleepLog) return null;
+    const targetHours = 8;
+    const totalH = sleepLog.total_hours || 0;
+    const hoursAcc = calcGeneralAccuracy(targetHours, totalH);
+    const qualityAcc = sleepLog.quality ? (sleepLog.quality / 5) * 100 : 50;
+    const awakeningsPenalty = Math.max(0, 100 - (sleepLog.awakenings || 0) * 15);
+    const avg = Math.round((hoursAcc * 0.45 + qualityAcc * 0.35 + awakeningsPenalty * 0.20));
+    return {
+      totalHours: totalH,
+      targetHours,
+      quality: sleepLog.quality,
+      bedtime: sleepLog.bedtime,
+      wakeTime: sleepLog.wake_time,
+      awakenings: sleepLog.awakenings || 0,
+      deepMinutes: sleepLog.deep_sleep_minutes,
+      lightMinutes: sleepLog.light_sleep_minutes,
+      remMinutes: sleepLog.rem_sleep_minutes,
+      hoursAcc,
+      qualityAcc: Math.round(qualityAcc),
+      awakeningsPenalty: Math.round(awakeningsPenalty),
+      avg,
+    };
+  }, [sleepLog]);
+
   /* ── Section accuracies (real data only, default 100 when no data) ── */
   const nutritionAcc = realNutrition ? realNutrition.avg : 100;
   const trainingAcc = realTraining ? realTraining.avg : 100;
-  const sleepAcc = 100; // No sleep table yet
+  const sleepAcc = realSleep ? realSleep.avg : 100;
   const suppAcc = realSupplements ? realSupplements.acc : 100;
 
-  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0;
+  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0 || sleepLog !== null;
 
   const globalScore = hasAnyData
     ? calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc)
