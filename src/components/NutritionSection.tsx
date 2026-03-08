@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3 } from 'lucide-react';
+import { UtensilsCrossed, Target, Pill, ChefHat, Sparkles, BarChart3, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNutritionData } from '@/hooks/useNutritionData';
 import { FoodLogSection } from './nutrition/FoodLogSection';
@@ -9,11 +9,12 @@ import { SupplementsSection } from './nutrition/SupplementsSection';
 import { RecipesSection } from './nutrition/RecipesSection';
 import { NutritionAssistantPro } from './nutrition/NutritionAssistantPro';
 import { NutritionStatusSection } from './nutrition/NutritionStatusSection';
+import { SleepLogSection } from './nutrition/SleepLogSection';
 
 import { CollapsibleSection } from './CollapsibleSection';
 import { useTranslation } from 'react-i18next';
 
-type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer';
+type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer' | 'sleep';
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
