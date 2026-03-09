@@ -11,7 +11,7 @@ import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ProfileSection } from '@/components/profile';
 import { CoachPanel } from '@/components/coach/CoachPanel';
-import { COACH_PREVIEW_EMAIL } from '@/components/coach/coachConstants';
+import { COACH_PREVIEW_EMAILS } from '@/components/coach/coachConstants';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield } from 'lucide-react';
 import { useTimer } from '@/hooks/useTimer';
