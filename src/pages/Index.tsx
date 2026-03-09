@@ -30,8 +30,10 @@ const Index = () => {
     getTotalCompleted, getCyclesCompleted, getProgressInCurrentCycle
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile';
+  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile' | 'coach';
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
+
+  const isCoach = user?.email === COACH_PREVIEW_EMAIL;
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
