@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
@@ -10,8 +10,10 @@ import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ProfileSection } from '@/components/profile';
+import { CoachPanel } from '@/components/coach/CoachPanel';
+import { COACH_PREVIEW_EMAIL } from '@/components/coach/coachConstants';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw } from 'lucide-react';
+import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield } from 'lucide-react';
 import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
