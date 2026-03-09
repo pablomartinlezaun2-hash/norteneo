@@ -1,3 +1,6 @@
-// Temporary constant for coach panel preview access.
-// Change this to your actual email to see the Coach tab.
-export const COACH_PREVIEW_EMAIL = 'pablomartinezzaun2@gmail.com';
+// Temporary constants for coach panel preview access.
+// Add your email(s) here to see the Coach tab.
+export const COACH_PREVIEW_EMAILS = [
+  'pablomartinezzaun2@gmail.com',
+  'pablomartinlezaun2@gmail.com',
+];
