@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNeoProfile } from '@/contexts/NeoProfileContext';
 
 interface VB2QuestionnaireProps {
   onComplete: () => void;
