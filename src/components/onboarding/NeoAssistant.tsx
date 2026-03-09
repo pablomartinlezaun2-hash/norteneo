@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { VB1Questionnaire } from './VB1Questionnaire';
 
 interface NeoAssistantProps {
   onComplete: () => void;
@@ -15,6 +16,7 @@ const BULLETS = [
 
 export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
   const [showVB2Modal, setShowVB2Modal] = useState(false);
+  const [showVB1Flow, setShowVB1Flow] = useState(false);
 
   const containerVariants = {
     hidden: {},
@@ -31,6 +33,15 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
       transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as const },
     },
   };
+
+  if (showVB1Flow) {
+    return (
+      <VB1Questionnaire
+        onComplete={onComplete}
+        onBack={() => setShowVB1Flow(false)}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col z-50 overflow-y-auto">
@@ -92,6 +103,7 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
             </p>
             <motion.button
               whileTap={{ scale: 0.985 }}
+              onClick={() => setShowVB1Flow(true)}
               className="w-full h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
             >
               Acceder a VB1
