@@ -18,6 +18,7 @@ import { SupportSection } from './SupportSection';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NeoProfileSummary } from './NeoProfileSummary';
 
 type ProfileView = 'main' | 'subscription' | 'language' | 'health' | 'integrations' | 'privacy';
 
