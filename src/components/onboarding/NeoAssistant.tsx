@@ -45,7 +45,15 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
     );
   }
 
-  return (
+  if (showVB2Flow) {
+    return (
+      <VB2Questionnaire
+        onComplete={onComplete}
+        onBack={() => setShowVB2Flow(false)}
+      />
+    );
+  }
+
     <div className="fixed inset-0 bg-black flex flex-col z-50 overflow-y-auto">
       {/* Skip */}
       <div className="flex justify-end px-6 pt-6 relative z-10">
