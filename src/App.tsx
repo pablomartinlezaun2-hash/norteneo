@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { NeoProfileProvider } from "@/contexts/NeoProfileContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SplashScreen } from "@/components/SplashScreen";
 import { SupplementNotificationToast } from "@/components/nutrition/SupplementNotificationToast";
@@ -89,15 +90,17 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <ThemeInitializer />
-        <Toaster />
-        <Sonner />
-        <SupplementNotificationToast />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
+      <NeoProfileProvider>
+        <TooltipProvider>
+          <ThemeInitializer />
+          <Toaster />
+          <Sonner />
+          <SupplementNotificationToast />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </NeoProfileProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

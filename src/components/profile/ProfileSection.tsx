@@ -18,6 +18,7 @@ import { SupportSection } from './SupportSection';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NeoProfileSummary } from './NeoProfileSummary';
 
 type ProfileView = 'main' | 'subscription' | 'language' | 'health' | 'integrations' | 'privacy';
 
@@ -124,6 +125,9 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
           </div>
         </div>
       </motion.div>
+
+      {/* NEO Profile Summary */}
+      <NeoProfileSummary />
 
       {/* Subscription */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="gradient-card rounded-2xl border border-border overflow-hidden">

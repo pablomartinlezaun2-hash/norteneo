@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNeoProfile } from '@/contexts/NeoProfileContext';
 
 interface VB2QuestionnaireProps {
   onComplete: () => void;
@@ -53,6 +54,7 @@ const TOTAL_SCREENS = STEPS.length + 2; // intro + steps + completion
 const transition = { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const };
 
 export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) => {
+  const { saveProfile } = useNeoProfile();
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [direction, setDirection] = useState(1);
@@ -265,7 +267,7 @@ export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) 
               </p>
               <motion.button
                 whileTap={{ scale: 0.985 }}
-                onClick={onComplete}
+                onClick={() => { saveProfile('vb2', answers); onComplete(); }}
                 className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
               >
                 Continuar
