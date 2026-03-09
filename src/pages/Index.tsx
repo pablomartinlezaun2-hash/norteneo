@@ -23,7 +23,7 @@ const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
 const Index = () => {
   const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { program, loading: programLoading, refetch: refetchProgram } = useTrainingProgram();
   const {
     completedSessions, markSessionComplete,
