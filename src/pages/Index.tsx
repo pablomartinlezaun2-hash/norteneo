@@ -321,7 +321,7 @@ const Index = () => {
                 )}
                 <span className="relative z-10 flex items-center gap-2">
                   <tab.icon className="w-4 h-4" />
-                  {t(tab.labelKey)}
+                  {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
                 </span>
               </button>
             ))}
