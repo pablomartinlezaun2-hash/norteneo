@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTrainingProgram } from '@/hooks/useTrainingProgram';
@@ -10,8 +10,10 @@ import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ProfileSection } from '@/components/profile';
+import { CoachPanel } from '@/components/coach/CoachPanel';
+import { COACH_PREVIEW_EMAIL } from '@/components/coach/coachConstants';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw } from 'lucide-react';
+import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield } from 'lucide-react';
 import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,15 +23,17 @@ const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
 const Index = () => {
   const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { program, loading: programLoading, refetch: refetchProgram } = useTrainingProgram();
   const {
     completedSessions, markSessionComplete,
     getTotalCompleted, getCyclesCompleted, getProgressInCurrentCycle
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile';
+  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile' | 'coach';
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
+
+  const isCoach = user?.email === COACH_PREVIEW_EMAIL;
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -41,13 +45,19 @@ const Index = () => {
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
 
-  const tabs = [
-    { key: 'workouts' as const, icon: FolderOpen, labelKey: 'index.workouts' },
-    { key: 'progress' as const, icon: TrendingUp, labelKey: 'index.progress' },
-    { key: 'nutrition' as const, icon: Apple, labelKey: 'index.nutrition' },
-    { key: 'design' as const, icon: Pencil, labelKey: 'index.design' },
-    { key: 'profile' as const, icon: User, labelKey: 'index.profile' },
-  ] as const;
+  const tabs = useMemo(() => {
+    const base = [
+      { key: 'workouts' as const, icon: FolderOpen, labelKey: 'index.workouts' },
+      { key: 'progress' as const, icon: TrendingUp, labelKey: 'index.progress' },
+      { key: 'nutrition' as const, icon: Apple, labelKey: 'index.nutrition' },
+      { key: 'design' as const, icon: Pencil, labelKey: 'index.design' },
+      { key: 'profile' as const, icon: User, labelKey: 'index.profile' },
+    ] as const;
+    if (isCoach) {
+      return [...base, { key: 'coach' as const, icon: Shield, labelKey: 'Coach' }] as const;
+    }
+    return base;
+  }, [isCoach]);
 
   useEffect(() => {
     if (!programLoading && !program && !hasSeenWelcome) {
@@ -141,6 +151,7 @@ const Index = () => {
         );
       case 'nutrition': return <NutritionSection />;
       case 'profile': return <ProfileSection onRestartTour={handleRestartTour} />;
+      case 'coach': return isCoach ? <CoachPanel /> : <WorkoutsHub />;
       default: return <WorkoutsHub />;
     }
   };
@@ -310,7 +321,7 @@ const Index = () => {
                 )}
                 <span className="relative z-10 flex items-center gap-2">
                   <tab.icon className="w-4 h-4" />
-                  {t(tab.labelKey)}
+                  {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
                 </span>
               </button>
             ))}
