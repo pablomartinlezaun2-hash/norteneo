@@ -147,8 +147,8 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
       <AnimatePresence>
         {showVB2Modal && (
           <VB2WarningModal
-            onContinueVB2={() => setShowVB2Modal(false)}
-            onGoToVB1={() => setShowVB2Modal(false)}
+            onContinueVB2={() => { setShowVB2Modal(false); setShowVB2Flow(true); }}
+            onGoToVB1={() => { setShowVB2Modal(false); setShowVB1Flow(true); }}
             onClose={() => setShowVB2Modal(false)}
           />
         )}
