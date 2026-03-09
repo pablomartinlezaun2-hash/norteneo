@@ -261,6 +261,13 @@ const VB2WarningModal = ({ onContinueVB2, onGoToVB1, onClose }: VB2WarningModalP
               </p>
             </motion.div>
 
+            {/* 1:1 Advisory note */}
+            <motion.div variants={modalItemVariants} className="rounded-xl border border-[#1C1C1E] bg-[#111111] p-4">
+              <p className="text-[12px] font-light leading-[1.7] text-[#8E8E93]">
+                VB2 funciona como una asesoría 1:1 con Pablo. NEO será la herramienta principal para medir métricas, ajustar decisiones y trabajar con un nivel de precisión superior al de un seguimiento 1:1 tradicional.
+              </p>
+            </motion.div>
+
             {/* Bullets */}
             <motion.ul variants={modalItemVariants} className="space-y-3 py-1">
               {BULLETS.map((bullet, i) => (

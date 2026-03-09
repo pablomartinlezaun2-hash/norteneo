@@ -90,15 +90,17 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <ThemeInitializer />
-        <Toaster />
-        <Sonner />
-        <SupplementNotificationToast />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
+      <NeoProfileProvider>
+        <TooltipProvider>
+          <ThemeInitializer />
+          <Toaster />
+          <Sonner />
+          <SupplementNotificationToast />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </NeoProfileProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
