@@ -103,6 +103,7 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
             </p>
             <motion.button
               whileTap={{ scale: 0.985 }}
+              onClick={() => setShowVB1Flow(true)}
               className="w-full h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
             >
               Acceder a VB1
