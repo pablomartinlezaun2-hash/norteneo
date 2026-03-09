@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VB1Questionnaire } from './VB1Questionnaire';
+import { VB2Questionnaire } from './VB2Questionnaire';
 
 interface NeoAssistantProps {
   onComplete: () => void;
@@ -17,6 +18,7 @@ const BULLETS = [
 export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
   const [showVB2Modal, setShowVB2Modal] = useState(false);
   const [showVB1Flow, setShowVB1Flow] = useState(false);
+  const [showVB2Flow, setShowVB2Flow] = useState(false);
 
   const containerVariants = {
     hidden: {},
@@ -39,6 +41,15 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
       <VB1Questionnaire
         onComplete={onComplete}
         onBack={() => setShowVB1Flow(false)}
+      />
+    );
+  }
+
+  if (showVB2Flow) {
+    return (
+      <VB2Questionnaire
+        onComplete={onComplete}
+        onBack={() => setShowVB2Flow(false)}
       />
     );
   }
@@ -137,8 +148,8 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
       <AnimatePresence>
         {showVB2Modal && (
           <VB2WarningModal
-            onContinueVB2={() => setShowVB2Modal(false)}
-            onGoToVB1={() => setShowVB2Modal(false)}
+            onContinueVB2={() => { setShowVB2Modal(false); setShowVB2Flow(true); }}
+            onGoToVB1={() => { setShowVB2Modal(false); setShowVB1Flow(true); }}
             onClose={() => setShowVB2Modal(false)}
           />
         )}
