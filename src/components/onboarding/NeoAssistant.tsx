@@ -34,6 +34,15 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
     },
   };
 
+  if (showVB1Flow) {
+    return (
+      <VB1Questionnaire
+        onComplete={onComplete}
+        onBack={() => setShowVB1Flow(false)}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black flex flex-col z-50 overflow-y-auto">
       {/* Skip */}
