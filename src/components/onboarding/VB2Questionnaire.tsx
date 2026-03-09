@@ -267,7 +267,7 @@ export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) 
               </p>
               <motion.button
                 whileTap={{ scale: 0.985 }}
-                onClick={onComplete}
+                onClick={() => { saveProfile('vb2', answers); onComplete(); }}
                 className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
               >
                 Continuar
