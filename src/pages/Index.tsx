@@ -33,7 +33,7 @@ const Index = () => {
   type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile' | 'coach';
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
 
-  const isCoach = user?.email === COACH_PREVIEW_EMAIL;
+  const isCoach = !!user?.email && COACH_PREVIEW_EMAILS.includes(user.email);
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
