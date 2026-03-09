@@ -54,6 +54,7 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
     );
   }
 
+  return (
     <div className="fixed inset-0 bg-black flex flex-col z-50 overflow-y-auto">
       {/* Skip */}
       <div className="flex justify-end px-6 pt-6 relative z-10">
