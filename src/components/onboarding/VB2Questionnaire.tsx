@@ -54,6 +54,7 @@ const TOTAL_SCREENS = STEPS.length + 2; // intro + steps + completion
 const transition = { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const };
 
 export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) => {
+  const { saveProfile } = useNeoProfile();
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [direction, setDirection] = useState(1);
