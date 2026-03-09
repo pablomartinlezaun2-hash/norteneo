@@ -16,6 +16,7 @@ const BULLETS = [
 
 export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
   const [showVB2Modal, setShowVB2Modal] = useState(false);
+  const [showVB1Flow, setShowVB1Flow] = useState(false);
 
   const containerVariants = {
     hidden: {},
