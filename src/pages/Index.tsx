@@ -151,6 +151,7 @@ const Index = () => {
         );
       case 'nutrition': return <NutritionSection />;
       case 'profile': return <ProfileSection onRestartTour={handleRestartTour} />;
+      case 'coach': return isCoach ? <CoachPanel /> : <WorkoutsHub />;
       default: return <WorkoutsHub />;
     }
   };
