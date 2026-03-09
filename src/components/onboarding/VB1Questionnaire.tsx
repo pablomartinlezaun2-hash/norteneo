@@ -68,10 +68,10 @@ const transition = { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const };
 /* ─── Component ─── */
 
 export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) => {
-  // screen: 0 = intro, 1..STEPS.length = questions, STEPS.length+1 = completion
+  const { saveProfile } = useNeoProfile();
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [direction, setDirection] = useState(1); // 1 forward, -1 back
+  const [direction, setDirection] = useState(1);
 
   const isIntro = screen === 0;
   const isCompletion = screen === STEPS.length + 1;
