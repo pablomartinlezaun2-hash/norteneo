@@ -45,13 +45,19 @@ const Index = () => {
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
 
-  const tabs = [
-    { key: 'workouts' as const, icon: FolderOpen, labelKey: 'index.workouts' },
-    { key: 'progress' as const, icon: TrendingUp, labelKey: 'index.progress' },
-    { key: 'nutrition' as const, icon: Apple, labelKey: 'index.nutrition' },
-    { key: 'design' as const, icon: Pencil, labelKey: 'index.design' },
-    { key: 'profile' as const, icon: User, labelKey: 'index.profile' },
-  ] as const;
+  const tabs = useMemo(() => {
+    const base = [
+      { key: 'workouts' as const, icon: FolderOpen, labelKey: 'index.workouts' },
+      { key: 'progress' as const, icon: TrendingUp, labelKey: 'index.progress' },
+      { key: 'nutrition' as const, icon: Apple, labelKey: 'index.nutrition' },
+      { key: 'design' as const, icon: Pencil, labelKey: 'index.design' },
+      { key: 'profile' as const, icon: User, labelKey: 'index.profile' },
+    ] as const;
+    if (isCoach) {
+      return [...base, { key: 'coach' as const, icon: Shield, labelKey: 'Coach' }] as const;
+    }
+    return base;
+  }, [isCoach]);
 
   useEffect(() => {
     if (!programLoading && !program && !hasSeenWelcome) {
