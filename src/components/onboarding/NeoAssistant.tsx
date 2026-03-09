@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VB1Questionnaire } from './VB1Questionnaire';
+import { VB2Questionnaire } from './VB2Questionnaire';
 
 interface NeoAssistantProps {
   onComplete: () => void;
