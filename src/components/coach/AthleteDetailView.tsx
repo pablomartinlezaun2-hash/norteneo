@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Activity, Moon, Brain, Utensils, Dumbbell, Heart, TrendingUp } from 'lucide-react';
-import { MockAthlete } from './mockAthletes';
+import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { cn } from '@/lib/utils';
 
 interface AthleteDetailViewProps {
-  athlete: MockAthlete;
+  athlete: CoachAthlete;
   onBack: () => void;
 }
 
@@ -20,9 +20,13 @@ const fatiguePillClass = (f: string) =>
     ? 'bg-red-500/15 text-red-400'
     : f === 'Media'
     ? 'bg-yellow-500/15 text-yellow-400'
+    : f === 'Sin datos'
+    ? 'bg-muted text-muted-foreground'
     : 'bg-emerald-500/15 text-emerald-400';
 
 export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) => {
+  const model = athlete.active_model ?? 'VB1';
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -41,18 +45,20 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </motion.button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-foreground truncate">{athlete.name}</h2>
+          <h2 className="text-xl font-bold text-foreground truncate">
+            {athlete.full_name ?? 'Sin nombre'}
+          </h2>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={cn(
               "px-2 py-0.5 rounded-full text-[11px] font-semibold",
-              athlete.model === 'VB2'
+              model === 'VB2'
                 ? 'bg-foreground/10 text-foreground'
                 : 'bg-muted text-muted-foreground'
             )}>
-              {athlete.model}
+              {model}
             </span>
-            <span className={cn("px-2 py-0.5 rounded-full text-[11px] font-semibold", fatiguePillClass(athlete.fatigue))}>
-              Fatiga {athlete.fatigue}
+            <span className={cn("px-2 py-0.5 rounded-full text-[11px] font-semibold", fatiguePillClass(athlete.fatigue_level))}>
+              Fatiga {athlete.fatigue_level}
             </span>
           </div>
         </div>
@@ -61,9 +67,9 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Adherencia', value: `${athlete.adherence}%`, icon: TrendingUp },
-          { label: 'Días/sem', value: `${athlete.trainingDays}`, icon: Dumbbell },
-          { label: 'Fatiga', value: athlete.fatigue, icon: Activity },
+          { label: 'Adherencia', value: athlete.total_adherence != null ? `${Math.round(athlete.total_adherence)}%` : '—', icon: TrendingUp },
+          { label: 'Readiness', value: athlete.latest_metrics?.readiness_score != null ? `${Math.round(athlete.latest_metrics.readiness_score)}` : '—', icon: Dumbbell },
+          { label: 'Fatiga', value: athlete.fatigue_level, icon: Activity },
         ].map((s) => (
           <motion.div
             key={s.label}
@@ -84,11 +90,13 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Base</span>
         </div>
         <div className="px-4">
-          <InfoRow label="Edad" value={`${athlete.age} años`} />
-          <InfoRow label="Peso" value={`${athlete.weight} kg`} />
-          <InfoRow label="Altura" value={`${athlete.height} cm`} />
-          <InfoRow label="Disciplinas" value={athlete.disciplines} />
-          <InfoRow label="Experiencia" value={athlete.experience} />
+          {athlete.age && <InfoRow label="Edad" value={`${athlete.age} años`} />}
+          {athlete.weight && <InfoRow label="Peso" value={`${athlete.weight} kg`} />}
+          {athlete.height && <InfoRow label="Altura" value={`${athlete.height} cm`} />}
+          {athlete.disciplines && athlete.disciplines.length > 0 && (
+            <InfoRow label="Disciplinas" value={athlete.disciplines.join(', ')} />
+          )}
+          {athlete.years_training && <InfoRow label="Experiencia" value={athlete.years_training} />}
         </div>
       </div>
 
@@ -99,20 +107,18 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contexto</span>
         </div>
         <div className="px-4">
-          <InfoRow label="Sueño" value={`${athlete.sleepHours} h`} />
-          <InfoRow label="Estrés" value={athlete.stress} />
-          <InfoRow label="Recuperación" value={athlete.recovery} />
-        </div>
-      </div>
-
-      {/* Section: Nutrición */}
-      <div className="rounded-2xl border border-border/40 bg-card/30 overflow-hidden">
-        <div className="px-4 py-3 border-b border-border/30 flex items-center gap-2">
-          <Utensils className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nutrición</span>
-        </div>
-        <div className="px-4">
-          <InfoRow label="Adherencia nutricional" value={athlete.nutritionAdherence} />
+          <InfoRow
+            label="Sueño"
+            value={athlete.latest_metrics?.sleep_hours != null ? `${athlete.latest_metrics.sleep_hours} h` : '—'}
+          />
+          <InfoRow
+            label="Estrés"
+            value={athlete.latest_metrics?.stress_level ?? '—'}
+          />
+          <InfoRow
+            label="Fatiga global"
+            value={athlete.global_fatigue != null ? `${Math.round(athlete.global_fatigue)}%` : '—'}
+          />
         </div>
       </div>
 
@@ -123,21 +129,21 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Objetivo</span>
         </div>
         <div className="px-4">
-          <InfoRow label="Objetivo principal" value={athlete.objective} />
+          <InfoRow label="Objetivo principal" value={athlete.main_goal ?? '—'} />
         </div>
       </div>
 
       {/* Model card */}
       <div className={cn(
         "rounded-2xl border p-5",
-        athlete.model === 'VB2'
+        model === 'VB2'
           ? 'border-foreground/20 bg-foreground/5'
           : 'border-border/40 bg-card/30'
       )}>
         <p className="text-sm font-bold text-foreground">
-          {athlete.model === 'VB2' ? 'VB2 · Asesoría 1:1 con Pablo' : 'VB1 · Configuración simple'}
+          {model === 'VB2' ? 'VB2 · Asesoría 1:1 con Pablo' : 'VB1 · Configuración simple'}
         </p>
-        {athlete.model === 'VB2' && (
+        {model === 'VB2' && (
           <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
             VB2 funciona como una asesoría 1:1 con Pablo. NEO se utiliza como sistema de medición, control y ajuste para trabajar con mucha más precisión.
           </p>
@@ -146,7 +152,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
 
       {/* Last update */}
       <p className="text-[11px] text-muted-foreground text-center pb-4">
-        Última actualización: {athlete.lastUpdate}
+        Última actividad: {athlete.last_activity_date ?? 'Sin registros'}
       </p>
     </motion.div>
   );
