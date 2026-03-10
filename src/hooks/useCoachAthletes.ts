@@ -75,14 +75,31 @@ export function useCoachAthletes() {
     setError(null);
 
     try {
-      // 1. Get coach's profile id
-      const { data: coachProfiles } = await rpcSelect('profiles', 'id', { user_id: user!.id });
-      const coachProfile = coachProfiles?.[0];
+      // 1. Get or create coach's profile
+      let { data: coachProfiles } = await rpcSelect('profiles', 'id, role', { user_id: user!.id });
+      let coachProfile = coachProfiles?.[0];
 
       if (!coachProfile) {
-        setError('No se encontró el perfil de coach');
-        setLoading(false);
-        return;
+        // Auto-create profile for the coach
+        const { data: created, error: createErr } = await (supabase as any)
+          .from('profiles')
+          .insert({ user_id: user!.id, email: user!.email, role: 'coach' })
+          .select('id, role')
+          .single();
+        if (createErr) {
+          console.error('Failed to create coach profile:', createErr);
+          setError('Error creando perfil de coach');
+          setLoading(false);
+          return;
+        }
+        coachProfile = created;
+      } else if (coachProfile.role !== 'coach') {
+        // Fix role if not coach
+        await (supabase as any)
+          .from('profiles')
+          .update({ role: 'coach' })
+          .eq('user_id', user!.id);
+        coachProfile.role = 'coach';
       }
 
       const coachProfileId = coachProfile.id;
