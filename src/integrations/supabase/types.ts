@@ -41,6 +41,103 @@ export type Database = {
         }
         Relationships: []
       }
+      adherence_logs: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          microcycle_adherence: number | null
+          nutrition_adherence: number | null
+          sleep_adherence: number | null
+          supplement_adherence: number | null
+          total_adherence: number | null
+          training_adherence: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          microcycle_adherence?: number | null
+          nutrition_adherence?: number | null
+          sleep_adherence?: number | null
+          supplement_adherence?: number | null
+          total_adherence?: number | null
+          training_adherence?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          microcycle_adherence?: number | null
+          nutrition_adherence?: number | null
+          sleep_adherence?: number | null
+          supplement_adherence?: number | null
+          total_adherence?: number | null
+          training_adherence?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adherence_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      athlete_metrics: {
+        Row: {
+          created_at: string | null
+          date: string
+          fatigue_subjective: number | null
+          id: string
+          mental_load: string | null
+          readiness_score: number | null
+          sleep_hours: number | null
+          sleep_quality: string | null
+          stress_level: string | null
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          fatigue_subjective?: number | null
+          id?: string
+          mental_load?: string | null
+          readiness_score?: number | null
+          sleep_hours?: number | null
+          sleep_quality?: string | null
+          stress_level?: string | null
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          fatigue_subjective?: number | null
+          id?: string
+          mental_load?: string | null
+          readiness_score?: number | null
+          sleep_hours?: number | null
+          sleep_quality?: string | null
+          stress_level?: string | null
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_metrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cardio_session_intervals: {
         Row: {
           created_at: string
@@ -126,6 +223,139 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      coach_notes: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string | null
+          id: string
+          note: string | null
+          priority: string | null
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          priority?: string | null
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          priority?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_notes_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_notes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_performance_alerts: {
+        Row: {
+          alert_message: string | null
+          alert_title: string | null
+          alert_type: string | null
+          created_at: string | null
+          date: string
+          id: string
+          is_active: boolean | null
+          severity: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_message?: string | null
+          alert_title?: string | null
+          alert_type?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          is_active?: boolean | null
+          severity?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_message?: string | null
+          alert_title?: string | null
+          alert_type?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_active?: boolean | null
+          severity?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_performance_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_training_sessions: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          date: string
+          deviation_score: number | null
+          id: string
+          microcycle_name: string | null
+          notes: string | null
+          planned: boolean | null
+          session_type: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          date: string
+          deviation_score?: number | null
+          id?: string
+          microcycle_name?: string | null
+          notes?: string | null
+          planned?: boolean | null
+          session_type?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          date?: string
+          deviation_score?: number | null
+          id?: string
+          microcycle_name?: string | null
+          notes?: string | null
+          planned?: boolean | null
+          session_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_training_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       completed_sessions: {
         Row: {
@@ -401,6 +631,53 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fatigue_state: {
+        Row: {
+          alert_level: string | null
+          connective_fatigue: number | null
+          created_at: string | null
+          date: string
+          global_fatigue: number | null
+          id: string
+          muscular_fatigue: number | null
+          neuro_fatigue: number | null
+          recovery_trend: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_level?: string | null
+          connective_fatigue?: number | null
+          created_at?: string | null
+          date: string
+          global_fatigue?: number | null
+          id?: string
+          muscular_fatigue?: number | null
+          neuro_fatigue?: number | null
+          recovery_trend?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_level?: string | null
+          connective_fatigue?: number | null
+          created_at?: string | null
+          date?: string
+          global_fatigue?: number | null
+          id?: string
+          muscular_fatigue?: number | null
+          neuro_fatigue?: number | null
+          recovery_trend?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fatigue_state_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -712,6 +989,62 @@ export type Database = {
           },
         ]
       }
+      nutrition_daily: {
+        Row: {
+          calories_actual: number | null
+          calories_target: number | null
+          carbs_actual: number | null
+          carbs_target: number | null
+          created_at: string | null
+          date: string
+          fats_actual: number | null
+          fats_target: number | null
+          hydration_status: string | null
+          id: string
+          protein_actual: number | null
+          protein_target: number | null
+          user_id: string
+        }
+        Insert: {
+          calories_actual?: number | null
+          calories_target?: number | null
+          carbs_actual?: number | null
+          carbs_target?: number | null
+          created_at?: string | null
+          date: string
+          fats_actual?: number | null
+          fats_target?: number | null
+          hydration_status?: string | null
+          id?: string
+          protein_actual?: number | null
+          protein_target?: number | null
+          user_id: string
+        }
+        Update: {
+          calories_actual?: number | null
+          calories_target?: number | null
+          carbs_actual?: number | null
+          carbs_target?: number | null
+          created_at?: string | null
+          date?: string
+          fats_actual?: number | null
+          fats_target?: number | null
+          hydration_status?: string | null
+          id?: string
+          protein_actual?: number | null
+          protein_target?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_daily_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nutrition_goals: {
         Row: {
           created_at: string
@@ -777,30 +1110,74 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_model: string | null
+          age: number | null
           avatar_url: string | null
+          coach_id: string | null
           created_at: string
+          disciplines: string[] | null
           display_name: string | null
+          email: string | null
+          full_name: string | null
+          height: number | null
           id: string
+          main_goal: string | null
+          role: string | null
           updated_at: string
           user_id: string
+          vb2_enabled: boolean | null
+          weight: number | null
+          years_training: string | null
         }
         Insert: {
+          active_model?: string | null
+          age?: number | null
           avatar_url?: string | null
+          coach_id?: string | null
           created_at?: string
+          disciplines?: string[] | null
           display_name?: string | null
+          email?: string | null
+          full_name?: string | null
+          height?: number | null
           id?: string
+          main_goal?: string | null
+          role?: string | null
           updated_at?: string
           user_id: string
+          vb2_enabled?: boolean | null
+          weight?: number | null
+          years_training?: string | null
         }
         Update: {
+          active_model?: string | null
+          age?: number | null
           avatar_url?: string | null
+          coach_id?: string | null
           created_at?: string
+          disciplines?: string[] | null
           display_name?: string | null
+          email?: string | null
+          full_name?: string | null
+          height?: number | null
           id?: string
+          main_goal?: string | null
+          role?: string | null
           updated_at?: string
           user_id?: string
+          vb2_enabled?: boolean | null
+          weight?: number | null
+          years_training?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recipes: {
         Row: {
@@ -1235,7 +1612,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_profile_id: { Args: { _auth_uid: string }; Returns: string }
+      get_user_role: { Args: { _auth_uid: string }; Returns: string }
+      is_coach_of: {
+        Args: { _athlete_profile_id: string; _coach_auth_uid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
