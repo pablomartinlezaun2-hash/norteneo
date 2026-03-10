@@ -16,7 +16,6 @@ export interface CoachAthlete {
   years_training: string | null;
   main_goal: string | null;
   updated_at: string;
-  // Derived from latest records
   fatigue_level: 'Alta' | 'Media' | 'Baja' | 'Sin datos';
   global_fatigue: number | null;
   total_adherence: number | null;
@@ -39,6 +38,23 @@ function classifyFatigue(value: number | null): 'Alta' | 'Media' | 'Baja' | 'Sin
   return 'Baja';
 }
 
+// Helper to query tables not yet in generated types
+async function rpcSelect(table: string, columns: string, filters: Record<string, any> = {}, orderBy?: string) {
+  let query = (supabase as any).from(table).select(columns);
+  for (const [key, value] of Object.entries(filters)) {
+    if (Array.isArray(value)) {
+      query = query.in(key, value);
+    } else {
+      query = query.eq(key, value);
+    }
+  }
+  if (orderBy) {
+    query = query.order(orderBy, { ascending: false });
+  }
+  const { data, error } = await query;
+  return { data: data as any[] | null, error };
+}
+
 export function useCoachAthletes() {
   const { user } = useAuth();
   const [athletes, setAthletes] = useState<CoachAthlete[]>([]);
@@ -51,6 +67,7 @@ export function useCoachAthletes() {
   useEffect(() => {
     if (!user) return;
     fetchAthletes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function fetchAthletes() {
@@ -59,13 +76,10 @@ export function useCoachAthletes() {
 
     try {
       // 1. Get coach's profile id
-      const { data: coachProfile, error: cpErr } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user!.id)
-        .single();
+      const { data: coachProfiles } = await rpcSelect('profiles', 'id', { user_id: user!.id });
+      const coachProfile = coachProfiles?.[0];
 
-      if (cpErr || !coachProfile) {
+      if (!coachProfile) {
         setError('No se encontró el perfil de coach');
         setLoading(false);
         return;
@@ -74,10 +88,7 @@ export function useCoachAthletes() {
       const coachProfileId = coachProfile.id;
 
       // 2. Get athletes assigned to this coach
-      const { data: athleteProfiles, error: apErr } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('coach_id' as any, coachProfileId) as any;
+      const { data: athleteProfiles, error: apErr } = await rpcSelect('profiles', '*', { coach_id: coachProfileId });
 
       if (apErr) {
         setError('Error cargando atletas');
@@ -91,30 +102,14 @@ export function useCoachAthletes() {
         return;
       }
 
-      const profileIds = athleteProfiles.map(p => p.id);
+      const profileIds = athleteProfiles.map((p: any) => p.id);
 
       // 3. Fetch latest data for each athlete in parallel
       const [fatigueRes, adherenceRes, metricsRes, alertsRes] = await Promise.all([
-        supabase
-          .from('fatigue_state')
-          .select('user_id, date, global_fatigue')
-          .in('user_id', profileIds)
-          .order('date', { ascending: false }),
-        supabase
-          .from('adherence_logs')
-          .select('user_id, date, total_adherence')
-          .in('user_id', profileIds)
-          .order('date', { ascending: false }),
-        supabase
-          .from('athlete_metrics')
-          .select('user_id, date, sleep_hours, stress_level, readiness_score')
-          .in('user_id', profileIds)
-          .order('date', { ascending: false }),
-        supabase
-          .from('coach_performance_alerts')
-          .select('user_id')
-          .in('user_id', profileIds)
-          .eq('is_active', true),
+        rpcSelect('fatigue_state', 'user_id, date, global_fatigue', { user_id: profileIds }, 'date'),
+        rpcSelect('adherence_logs', 'user_id, date, total_adherence', { user_id: profileIds }, 'date'),
+        rpcSelect('athlete_metrics', 'user_id, date, sleep_hours, stress_level, readiness_score', { user_id: profileIds }, 'date'),
+        rpcSelect('coach_performance_alerts', 'user_id', { user_id: profileIds, is_active: true }),
       ]);
 
       // Build lookup maps (latest per user)
@@ -149,13 +144,12 @@ export function useCoachAthletes() {
       }
 
       // 4. Build athlete objects
-      const result: CoachAthlete[] = athleteProfiles.map(p => {
+      const result: CoachAthlete[] = athleteProfiles.map((p: any) => {
         const fatigue = latestFatigue.get(p.id);
         const adherence = latestAdherence.get(p.id);
         const metrics = latestMetrics.get(p.id);
         const alertCount = alertCounts.get(p.id) ?? 0;
 
-        // Determine last activity date from the most recent record
         const dates = [fatigue?.date, adherence?.date].filter(Boolean) as string[];
         const lastActivity = dates.length > 0
           ? dates.sort((a, b) => b.localeCompare(a))[0]
@@ -181,7 +175,7 @@ export function useCoachAthletes() {
           last_activity_date: lastActivity,
           active_alerts_count: alertCount,
           latest_metrics: metrics ?? null,
-        };
+        } as CoachAthlete;
       });
 
       setAthletes(result);
@@ -193,11 +187,9 @@ export function useCoachAthletes() {
     }
   }
 
-  // Filtered + sorted list
   const filteredAthletes = useMemo(() => {
     let list = [...athletes];
 
-    // Search
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(a =>
@@ -206,7 +198,6 @@ export function useCoachAthletes() {
       );
     }
 
-    // Filter
     switch (filter) {
       case 'vb1':
         list = list.filter(a => a.active_model === 'VB1');
@@ -222,7 +213,6 @@ export function useCoachAthletes() {
         break;
     }
 
-    // Sort
     switch (sort) {
       case 'adherence':
         list.sort((a, b) => (a.total_adherence ?? 0) - (b.total_adherence ?? 0));
@@ -238,7 +228,6 @@ export function useCoachAthletes() {
     return list;
   }, [athletes, filter, sort, search]);
 
-  // KPIs
   const kpis = useMemo(() => {
     const total = athletes.length;
     const vb1 = athletes.filter(a => a.active_model === 'VB1').length;
