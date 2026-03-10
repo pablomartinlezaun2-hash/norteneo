@@ -77,7 +77,7 @@ export function useCoachAthletes() {
       const { data: athleteProfiles, error: apErr } = await supabase
         .from('profiles')
         .select('*')
-        .eq('coach_id', coachProfileId);
+        .eq('coach_id' as any, coachProfileId) as any;
 
       if (apErr) {
         setError('Error cargando atletas');
