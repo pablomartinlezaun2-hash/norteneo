@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { NeoProfileSummary } from './NeoProfileSummary';
+import { VB2FollowUpSection } from './VB2FollowUpSection';
 
 type ProfileView = 'main' | 'subscription' | 'language' | 'health' | 'integrations' | 'privacy';
 
