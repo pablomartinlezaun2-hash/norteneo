@@ -265,6 +265,20 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           priority: n.priority,
           created_at: n.created_at,
         })),
+        setLogs: (setLogsRes.data ?? []).map((s: any) => ({
+          id: s.id,
+          user_id: s.user_id,
+          exercise_id: s.exercise_id,
+          set_number: s.set_number,
+          weight: s.weight,
+          reps: s.reps,
+          partial_reps: s.partial_reps ?? 0,
+          rir: s.rir ?? null,
+          is_warmup: s.is_warmup ?? false,
+          logged_at: s.logged_at,
+          created_at: s.created_at,
+        })),
+        exercises: exercisesRes.data ?? [],
       });
     } catch (err) {
       console.error('Athlete detail fetch error:', err);
