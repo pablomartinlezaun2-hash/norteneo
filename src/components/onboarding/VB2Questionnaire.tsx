@@ -373,7 +373,7 @@ const CompletionScreen = ({
           </p>
           <motion.button
             whileTap={{ scale: 0.985 }}
-            onClick={handleRetry}
+            onClick={doActivation}
             className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
           >
             Reintentar
