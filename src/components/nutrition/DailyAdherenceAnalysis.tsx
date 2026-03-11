@@ -320,17 +320,32 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     };
   }, [sleepLog]);
 
-  /* ── Section accuracies (real data only, default 100 when no data) ── */
-  const nutritionAcc = realNutrition ? realNutrition.avg : 100;
-  const trainingAcc = realTraining ? realTraining.avg : 100;
-  const sleepAcc = realSleep ? realSleep.avg : 100;
-  const suppAcc = realSupplements ? realSupplements.acc : 100;
+  /* ── Adherence settings ── */
+  const { settings: adherenceSettings, updateSettings: updateAdherenceSettings } = useAdherenceSettings();
+  const [showAdherenceSettings, setShowAdherenceSettings] = useState(false);
 
-  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0 || sleepLog !== null;
+  /* ── Section accuracies (real data only — NO defaults to 100) ── */
+  const hasNutritionData = foodLogs.length > 0;
+  const hasTrainingData = setLogs.length > 0;
+  const hasSleepData = sleepLog !== null;
+  const hasSupplementData = supplements.length > 0;
 
-  const globalScore = hasAnyData
-    ? calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc)
-    : 0;
+  const nutritionAcc = realNutrition ? realNutrition.avg : 0;
+  const trainingAcc = realTraining ? realTraining.avg : 0;
+  const sleepAcc = realSleep ? realSleep.avg : 0;
+  const suppAcc = realSupplements ? realSupplements.acc : 0;
+
+  const hasAnyData = hasNutritionData || hasTrainingData || hasSleepData || hasSupplementData;
+
+  const globalScore = calcDynamicAdherence(
+    {
+      nutrition: { acc: nutritionAcc, hasData: hasNutritionData },
+      training: { acc: trainingAcc, hasData: hasTrainingData },
+      sleep: { acc: sleepAcc, hasData: hasSleepData },
+      supplements: { acc: suppAcc, hasData: hasSupplementData },
+    },
+    adherenceSettings
+  );
 
   /* ── AI Summary Text ── */
   const aiText = useMemo(() => {
