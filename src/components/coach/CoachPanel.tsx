@@ -57,6 +57,7 @@ export const CoachPanel = () => {
     setSearch,
   } = useCoachAthletes();
 
+  const { unreadByAthlete } = useUnreadMessages();
   const [selectedAthlete, setSelectedAthlete] = useState<CoachAthlete | null>(null);
   const [showSort, setShowSort] = useState(false);
 
