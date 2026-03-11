@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Loader2, ChevronRight } from 'lucide-react';
 import { useAthleteChatInfo } from '@/hooks/useCoachChat';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { ChatView } from './ChatView';
 import { cn } from '@/lib/utils';
 
