@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
-  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle, TrendingUp,
+  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle, TrendingUp, Settings2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ import {
   getAdherenceColor,
   DEFAULT_WEIGHTS,
 } from './adherenceCalculations';
+import { useAdherenceSettings, calcDynamicAdherence } from '@/hooks/useAdherenceSettings';
 import { MicrocycleAnalysis } from '@/components/performance/MicrocycleAnalysis';
 import { cn } from '@/lib/utils';
 
