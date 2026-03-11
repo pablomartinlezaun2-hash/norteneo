@@ -181,6 +181,7 @@ const Index = () => {
       case 'nutrition': return <NutritionSection />;
       case 'profile': return <ProfileSection onRestartTour={handleRestartTour} />;
       case 'coach': return isCoach ? <CoachPanel /> : <WorkoutsHub />;
+      case 'messages': return hasCoach ? <AthleteChatSection /> : <WorkoutsHub />;
       default: return <WorkoutsHub />;
     }
   };
