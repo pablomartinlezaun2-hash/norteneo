@@ -53,6 +53,7 @@ export interface AthleteDetailData {
     fatigue_subjective: number | null;
     readiness_score: number | null;
     mental_load: string | null;
+    injuries_or_discomfort: string | null;
     date: string | null;
   } | null;
   // Training sessions
