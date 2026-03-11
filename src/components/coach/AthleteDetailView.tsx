@@ -491,6 +491,35 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
                 <SectionIcon icon={MessageCircle} label="Comunicación" />
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-2">
+                {/* Context header */}
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {[
+                    {
+                      label: 'Fatiga',
+                      value: detail?.fatigue?.global_fatigue != null ? `${Math.round(detail.fatigue.global_fatigue)}%` : '—',
+                    },
+                    {
+                      label: 'Adherencia',
+                      value: detail?.adherence?.total_adherence != null ? `${Math.round(detail.adherence.total_adherence)}%` : '—',
+                    },
+                    {
+                      label: 'Readiness',
+                      value: detail?.metrics?.readiness_score != null ? `${Math.round(detail.metrics.readiness_score)}` : '—',
+                    },
+                    {
+                      label: 'Último entreno',
+                      value: detail?.trainingSessions?.[0]?.date
+                        ? new Date(detail.trainingSessions[0].date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                        : '—',
+                    },
+                  ].map((m) => (
+                    <div key={m.label} className="rounded-xl border border-border/20 bg-foreground/[0.03] p-2 text-center">
+                      <p className="text-[13px] font-semibold text-foreground leading-none">{m.value}</p>
+                      <p className="text-[9px] text-muted-foreground/50 mt-1 uppercase tracking-wider">{m.label}</p>
+                    </div>
+                  ))}
+                </div>
+
                 <ChatView
                   athleteProfileId={athlete.id}
                   coachProfileId={athlete.coach_id}
