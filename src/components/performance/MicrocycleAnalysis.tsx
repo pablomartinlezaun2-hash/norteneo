@@ -353,6 +353,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
   const [supplements, setSupplements] = useState<any[]>([]);
+  const { settings: adherenceSettings } = useAdherenceSettings();
 
   const g = goals || { daily_calories: 2000, daily_protein: 150, daily_carbs: 250, daily_fat: 70 } as any;
 
