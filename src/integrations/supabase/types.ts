@@ -94,6 +94,7 @@ export type Database = {
           date: string
           fatigue_subjective: number | null
           id: string
+          injuries_or_discomfort: string | null
           mental_load: string | null
           readiness_score: number | null
           sleep_hours: number | null
@@ -107,6 +108,7 @@ export type Database = {
           date: string
           fatigue_subjective?: number | null
           id?: string
+          injuries_or_discomfort?: string | null
           mental_load?: string | null
           readiness_score?: number | null
           sleep_hours?: number | null
@@ -120,6 +122,7 @@ export type Database = {
           date?: string
           fatigue_subjective?: number | null
           id?: string
+          injuries_or_discomfort?: string | null
           mental_load?: string | null
           readiness_score?: number | null
           sleep_hours?: number | null
