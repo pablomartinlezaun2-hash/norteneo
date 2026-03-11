@@ -11,13 +11,15 @@ import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ProfileSection } from '@/components/profile';
 import { CoachPanel } from '@/components/coach/CoachPanel';
+import { AthleteChatSection } from '@/components/coach/AthleteChatSection';
 import { COACH_PREVIEW_EMAILS } from '@/components/coach/coachConstants';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield } from 'lucide-react';
+import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield, MessageCircle } from 'lucide-react';
 import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
+import { supabase } from '@/integrations/supabase/client';
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
