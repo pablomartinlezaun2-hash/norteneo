@@ -110,10 +110,10 @@ const CategoryRow = ({ icon: Icon, label, value, onClick }: {
 /* ── Day Detail Drawer ── */
 const DayDetailSheet = ({ day, onClose }: { day: AdherenceDayData; onClose: () => void }) => {
   const metrics = [
-    { key: 'nutrition_adherence' as const, label: 'Nutrición', icon: Utensils },
-    { key: 'training_adherence' as const, label: 'Entrenamiento', icon: Dumbbell },
-    { key: 'sleep_adherence' as const, label: 'Sueño', icon: Moon },
-    { key: 'supplement_adherence' as const, label: 'Suplementación', icon: Pill },
+    { key: 'nutrition_adherence' as const, reasonKey: 'nutrition' as const, label: 'Nutrición', icon: Utensils },
+    { key: 'training_adherence' as const, reasonKey: 'training' as const, label: 'Entrenamiento', icon: Dumbbell },
+    { key: 'sleep_adherence' as const, reasonKey: 'sleep' as const, label: 'Sueño', icon: Moon },
+    { key: 'supplement_adherence' as const, reasonKey: 'supplements' as const, label: 'Suplementación', icon: Pill },
   ];
 
   const active = metrics.filter(m => day[m.key] != null);
