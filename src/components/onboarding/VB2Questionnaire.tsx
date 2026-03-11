@@ -290,34 +290,12 @@ const CompletionScreen = ({
 }: CompletionScreenProps) => {
   const didRun = useRef(false);
 
-  useEffect(() => {
-    if (didRun.current || activated || activating) return;
-    didRun.current = true;
-
-    (async () => {
-      setActivating(true);
-      setActivationError(null);
-      try {
-        const result = await activateVB2();
-        if (result.success) {
-          saveProfile('vb2', answers);
-          setActivated(true);
-        } else {
-          setActivationError(result.error || 'Error al activar VB2');
-        }
-      } catch (err: any) {
-        setActivationError(err?.message || 'Error inesperado');
-      } finally {
-        setActivating(false);
-      }
-    })();
-  }, []); // runs once on mount
-
-  const handleRetry = async () => {
+  const doActivation = async () => {
     setActivating(true);
     setActivationError(null);
     try {
-      const result = await activateVB2();
+      const profileData = mapVB2AnswersToProfile(answers);
+      const result = await activateVB2(profileData);
       if (result.success) {
         saveProfile('vb2', answers);
         setActivated(true);
@@ -330,6 +308,12 @@ const CompletionScreen = ({
       setActivating(false);
     }
   };
+
+  useEffect(() => {
+    if (didRun.current || activated || activating) return;
+    didRun.current = true;
+    doActivation();
+  }, []); // runs once on mount
 
   return (
     <motion.div
