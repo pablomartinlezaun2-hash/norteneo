@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { NeoProfileSummary } from './NeoProfileSummary';
 import { VB2FollowUpSection } from './VB2FollowUpSection';
+import { VB2ActivationCTA } from './VB2ActivationCTA';
 
 type ProfileView = 'main' | 'subscription' | 'language' | 'health' | 'integrations' | 'privacy';
 
