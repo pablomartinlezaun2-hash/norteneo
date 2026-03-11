@@ -151,6 +151,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
+  const [convStatus, setConvStatus] = useState<string>(athlete.conversation_status ?? 'stable');
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
@@ -160,6 +161,16 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
     setNotePriority('stable');
     setSaving(false);
   };
+
+  const updateConversationStatus = useCallback(async (newStatus: string) => {
+    setConvStatus(newStatus);
+    // Update the conversation status
+    await (supabase as any)
+      .from('coach_conversations')
+      .update({ status: newStatus })
+      .eq('athlete_id', athlete.id)
+      .eq('coach_id', athlete.coach_id);
+  }, [athlete.id, athlete.coach_id]);
 
   return (
     <motion.div
