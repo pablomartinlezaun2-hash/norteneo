@@ -34,7 +34,7 @@ export interface CoachAthlete {
 }
 
 export type CoachFilter = 'all' | 'vb1' | 'vb2' | 'high_fatigue' | 'low_adherence';
-export type CoachSort = 'adherence' | 'fatigue' | 'last_activity';
+export type CoachSort = 'adherence' | 'fatigue' | 'last_activity' | 'last_message' | 'status';
 
 function classifyFatigue(value: number | null): 'Alta' | 'Media' | 'Baja' | 'Sin datos' {
   if (value == null) return 'Sin datos';
