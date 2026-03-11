@@ -235,6 +235,7 @@ export type Database = {
           id: string
           last_message_at: string | null
           last_message_preview: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -244,6 +245,7 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           last_message_preview?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -253,6 +255,7 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           last_message_preview?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [

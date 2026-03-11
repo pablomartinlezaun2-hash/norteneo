@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Activity, Moon, Brain, Utensils, Dumbbell, Heart, TrendingUp,
@@ -10,6 +10,7 @@ import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChatView } from './ChatView';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AthleteDetailViewProps {
   athlete: CoachAthlete;
@@ -117,6 +118,14 @@ const severityClass = (s: string | null) =>
 const severityDot = (s: string | null) =>
   s === 'high' ? 'bg-red-400' : s === 'medium' ? 'bg-yellow-400' : 'bg-emerald-400';
 
+const conversationStatusConfig: Record<string, { label: string; className: string }> = {
+  stable: { label: 'Estable', className: 'bg-emerald-500/15 text-emerald-400' },
+  review_today: { label: 'Revisar hoy', className: 'bg-yellow-500/15 text-yellow-400' },
+  waiting_response: { label: 'Esperando respuesta', className: 'bg-sky-500/15 text-sky-400' },
+  action_pending: { label: 'Acción pendiente', className: 'bg-red-500/15 text-red-400' },
+  followup_1on1: { label: 'Seguimiento 1:1', className: 'bg-foreground/10 text-foreground' },
+};
+
 const priorityConfig: Record<string, { label: string; className: string }> = {
   high: { label: 'Prioridad alta', className: 'bg-red-500/15 text-red-400' },
   review: { label: 'Revisar', className: 'bg-yellow-500/15 text-yellow-400' },
@@ -142,6 +151,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
+  const [convStatus, setConvStatus] = useState<string>(athlete.conversation_status ?? 'stable');
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
@@ -151,6 +161,16 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
     setNotePriority('stable');
     setSaving(false);
   };
+
+  const updateConversationStatus = useCallback(async (newStatus: string) => {
+    setConvStatus(newStatus);
+    // Update the conversation status
+    await (supabase as any)
+      .from('coach_conversations')
+      .update({ status: newStatus })
+      .eq('athlete_id', athlete.id)
+      .eq('coach_id', athlete.coach_id);
+  }, [athlete.id, athlete.coach_id]);
 
   return (
     <motion.div
@@ -191,6 +211,24 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               Última actividad: {athlete.last_activity_date}
             </p>
           )}
+
+          {/* Conversation status selector */}
+          <div className="flex gap-1.5 mt-2.5 flex-wrap">
+            {Object.entries(conversationStatusConfig).map(([key, cfg]) => (
+              <button
+                key={key}
+                onClick={() => updateConversationStatus(key)}
+                className={cn(
+                  "px-2 py-0.5 rounded-lg text-[9px] font-semibold transition-all",
+                  convStatus === key
+                    ? cfg.className + ' ring-1 ring-foreground/10'
+                    : 'bg-foreground/[0.03] text-muted-foreground/40 hover:text-muted-foreground'
+                )}
+              >
+                {cfg.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
