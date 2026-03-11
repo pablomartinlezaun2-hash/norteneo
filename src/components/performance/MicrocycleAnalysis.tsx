@@ -22,6 +22,7 @@ import {
   getAccuracyBgColor,
   getAdherenceColor,
 } from '../nutrition/adherenceCalculations';
+import { useAdherenceSettings, calcDynamicAdherence } from '@/hooks/useAdherenceSettings';
 import { cn } from '@/lib/utils';
 
 /* No mock data — all data comes from the database */
