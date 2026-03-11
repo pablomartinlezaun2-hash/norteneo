@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { saveProfileToSupabase } from '@/lib/activateVB2';
 import { saveInitialMetrics } from '@/lib/saveInitialMetrics';
-import { mapVB1AnswersToProfile } from '@/lib/questionnaireMapper';
+import { mapVB1AnswersToProfile, mapVB1AnswersToMetrics } from '@/lib/questionnaireMapper';
 
 /* ─── Types ─── */
 
