@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { CompletedSession } from '@/types/database';
 import { syncTrainingToCoach } from '@/lib/syncTrainingToCoach';
-import { CompletedSession } from '@/types/database';
 
 export const useCompletedSessions = () => {
   const { user } = useAuth();
