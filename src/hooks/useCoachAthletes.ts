@@ -181,6 +181,7 @@ export function useCoachAthletes() {
         const adherence = latestAdherence.get(p.id);
         const metrics = latestMetrics.get(p.id);
         const alertCount = alertCounts.get(p.id) ?? 0;
+        const conv = convByAthlete.get(p.id);
 
         const dates = [fatigue?.date, adherence?.date].filter(Boolean) as string[];
         const lastActivity = dates.length > 0
@@ -208,6 +209,9 @@ export function useCoachAthletes() {
           last_activity_date: lastActivity,
           active_alerts_count: alertCount,
           latest_metrics: metrics ?? null,
+          conversation_status: conv?.status ?? null,
+          last_message_preview: conv?.last_message_preview ?? null,
+          last_message_at: conv?.last_message_at ?? null,
         } as CoachAthlete;
       });
 
