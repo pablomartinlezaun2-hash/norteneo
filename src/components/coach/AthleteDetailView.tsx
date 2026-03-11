@@ -118,6 +118,14 @@ const severityClass = (s: string | null) =>
 const severityDot = (s: string | null) =>
   s === 'high' ? 'bg-red-400' : s === 'medium' ? 'bg-yellow-400' : 'bg-emerald-400';
 
+const conversationStatusConfig: Record<string, { label: string; className: string }> = {
+  stable: { label: 'Estable', className: 'bg-emerald-500/15 text-emerald-400' },
+  review_today: { label: 'Revisar hoy', className: 'bg-yellow-500/15 text-yellow-400' },
+  waiting_response: { label: 'Esperando respuesta', className: 'bg-sky-500/15 text-sky-400' },
+  action_pending: { label: 'Acción pendiente', className: 'bg-red-500/15 text-red-400' },
+  followup_1on1: { label: 'Seguimiento 1:1', className: 'bg-foreground/10 text-foreground' },
+};
+
 const priorityConfig: Record<string, { label: string; className: string }> = {
   high: { label: 'Prioridad alta', className: 'bg-red-500/15 text-red-400' },
   review: { label: 'Revisar', className: 'bg-yellow-500/15 text-yellow-400' },
