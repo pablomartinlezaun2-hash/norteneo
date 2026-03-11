@@ -166,6 +166,15 @@ export function useCoachAthletes() {
         alertCounts.set(row.user_id, (alertCounts.get(row.user_id) ?? 0) + 1);
       }
 
+      const convByAthlete = new Map<string, { status: string | null; last_message_preview: string | null; last_message_at: string | null }>();
+      for (const row of conversationsRes.data ?? []) {
+        convByAthlete.set(row.athlete_id, {
+          status: row.status,
+          last_message_preview: row.last_message_preview,
+          last_message_at: row.last_message_at,
+        });
+      }
+
       // 4. Build athlete objects
       const result: CoachAthlete[] = athleteProfiles.map((p: any) => {
         const fatigue = latestFatigue.get(p.id);
