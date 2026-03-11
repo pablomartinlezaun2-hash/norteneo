@@ -297,9 +297,12 @@ const CompletionScreen = ({
     setActivationError(null);
     try {
       const profileData = mapVB2AnswersToProfile(answers);
+      const metricsData = mapVB2AnswersToMetrics(answers);
       const result = await activateVB2(profileData);
       if (result.success) {
         saveProfile('vb2', answers);
+        // Save context metrics (sleep, stress, injuries, etc.)
+        await saveInitialMetrics(metricsData);
         setActivated(true);
       } else {
         setActivationError(result.error || 'Error al activar VB2');
