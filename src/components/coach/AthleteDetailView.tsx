@@ -142,6 +142,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
