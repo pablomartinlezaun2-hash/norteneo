@@ -27,6 +27,10 @@ export interface CoachAthlete {
     stress_level: string | null;
     readiness_score: number | null;
   } | null;
+  // Conversation metadata
+  conversation_status: string | null;
+  last_message_preview: string | null;
+  last_message_at: string | null;
 }
 
 export type CoachFilter = 'all' | 'vb1' | 'vb2' | 'high_fatigue' | 'low_adherence';
