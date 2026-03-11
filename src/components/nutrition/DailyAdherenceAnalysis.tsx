@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
-  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle, TrendingUp,
+  UtensilsCrossed, Dumbbell, Moon, Pill, Droplets, ChevronDown, Sparkles, Clock, AlertTriangle, TrendingUp, Settings2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ import {
   getAdherenceColor,
   DEFAULT_WEIGHTS,
 } from './adherenceCalculations';
+import { useAdherenceSettings, calcDynamicAdherence } from '@/hooks/useAdherenceSettings';
 import { MicrocycleAnalysis } from '@/components/performance/MicrocycleAnalysis';
 import { cn } from '@/lib/utils';
 
@@ -319,22 +320,37 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     };
   }, [sleepLog]);
 
-  /* ── Section accuracies (real data only, default 100 when no data) ── */
-  const nutritionAcc = realNutrition ? realNutrition.avg : 100;
-  const trainingAcc = realTraining ? realTraining.avg : 100;
-  const sleepAcc = realSleep ? realSleep.avg : 100;
-  const suppAcc = realSupplements ? realSupplements.acc : 100;
+  /* ── Adherence settings ── */
+  const { settings: adherenceSettings, updateSettings: updateAdherenceSettings } = useAdherenceSettings();
+  const [showAdherenceSettings, setShowAdherenceSettings] = useState(false);
 
-  const hasAnyData = foodLogs.length > 0 || setLogs.length > 0 || supplements.length > 0 || sleepLog !== null;
+  /* ── Section accuracies (real data only — NO defaults to 100) ── */
+  const hasNutritionData = foodLogs.length > 0;
+  const hasTrainingData = setLogs.length > 0;
+  const hasSleepData = sleepLog !== null;
+  const hasSupplementData = supplements.length > 0;
 
-  const globalScore = hasAnyData
-    ? calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc)
-    : 0;
+  const nutritionAcc = realNutrition ? realNutrition.avg : 0;
+  const trainingAcc = realTraining ? realTraining.avg : 0;
+  const sleepAcc = realSleep ? realSleep.avg : 0;
+  const suppAcc = realSupplements ? realSupplements.acc : 0;
+
+  const hasAnyData = hasNutritionData || hasTrainingData || hasSleepData || hasSupplementData;
+
+  const globalScore = calcDynamicAdherence(
+    {
+      nutrition: { acc: nutritionAcc, hasData: hasNutritionData },
+      training: { acc: trainingAcc, hasData: hasTrainingData },
+      sleep: { acc: sleepAcc, hasData: hasSleepData },
+      supplements: { acc: suppAcc, hasData: hasSupplementData },
+    },
+    adherenceSettings
+  );
 
   /* ── AI Summary Text ── */
   const aiText = useMemo(() => {
-    if (!hasAnyData) {
-      return 'No hay datos registrados hoy. Registra tus comidas, entrenos y suplementos para ver tu análisis de adherencia diaria.';
+    if (globalScore === null || !hasAnyData) {
+      return 'Sin datos registrados hoy. Registra tus comidas, entrenos y suplementos para ver tu análisis de adherencia diaria.';
     }
 
     const lines: string[] = [];
@@ -403,7 +419,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     }
 
     return lines.join('\n\n');
-  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, g, hasAnyData]);
+  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, g, hasAnyData, adherenceSettings]);
 
   if (loading) {
     return (
@@ -418,15 +434,75 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
       {/* ═══════ 1. GLOBAL SCORE + AI SUMMARY ═══════ */}
       <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-        <CircularScore value={globalScore} />
+        {globalScore !== null ? (
+          <CircularScore value={globalScore} />
+        ) : (
+          <div className="text-center py-6">
+            <span className="text-3xl font-black text-muted-foreground">—</span>
+            <p className="text-xs text-muted-foreground font-semibold mt-1">Sin datos registrados hoy</p>
+          </div>
+        )}
 
         <div className="rounded-xl bg-muted/50 p-4 flex gap-3 items-start">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="text-sm text-foreground leading-relaxed whitespace-pre-line">{aiText}</div>
         </div>
+
+        {/* Settings toggle */}
+        <button
+          onClick={() => setShowAdherenceSettings(!showAdherenceSettings)}
+          className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-1"
+        >
+          <Settings2 className="w-3.5 h-3.5" />
+          Configurar métricas de adherencia
+          <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showAdherenceSettings && 'rotate-180')} />
+        </button>
+
+        <AnimatePresence>
+          {showAdherenceSettings && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">Selecciona qué métricas participan en el cálculo de adherencia:</p>
+                {([
+                  { key: 'nutritionEnabled' as const, label: 'Nutrición', icon: UtensilsCrossed },
+                  { key: 'trainingEnabled' as const, label: 'Entrenamiento', icon: Dumbbell },
+                  { key: 'sleepEnabled' as const, label: 'Sueño', icon: Moon },
+                  { key: 'supplementsEnabled' as const, label: 'Suplementación', icon: Pill },
+                ]).map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => updateAdherenceSettings({ [key]: !adherenceSettings[key] })}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all text-left',
+                      adherenceSettings[key]
+                        ? 'border-primary/40 bg-primary/5'
+                        : 'border-border bg-background opacity-60'
+                    )}
+                  >
+                    <Icon className="w-4 h-4 text-foreground" />
+                    <span className="text-sm font-semibold text-foreground flex-1">{label}</span>
+                    <div className={cn(
+                      'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                      adherenceSettings[key] ? 'border-primary bg-primary' : 'border-muted-foreground'
+                    )}>
+                      {adherenceSettings[key] && <span className="w-2 h-2 rounded-full bg-primary-foreground" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ═══════ 2. NUTRICIÓN ═══════ */}
+      {adherenceSettings.nutritionEnabled && (
       <AccordionSection icon={UtensilsCrossed} title="Nutrición" accuracy={nutritionAcc}>
         {mealGroups.length > 0 ? (() => {
           const SCHEDULED_TIMES: Record<string, string> = {
@@ -553,9 +629,11 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
           <EmptyState message="No hay comidas registradas hoy. Registra tus ingestas para ver el análisis nutricional." />
         )}
       </AccordionSection>
+      )}
 
       {/* ═══════ 3. ENTRENAMIENTO ═══════ */}
-      <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={trainingAcc}>
+      {adherenceSettings.trainingEnabled && (
+      <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={hasTrainingData ? trainingAcc : 0} hideAccuracy={!hasTrainingData}>
         {realTraining ? (() => {
           const exercises = realTraining.exercises.map((ex: any) => ({
             id: ex.name,
@@ -652,10 +730,19 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
           <EmptyState message="No hay series registradas hoy. Completa tu entreno para ver el análisis." />
         )}
       </AccordionSection>
+      )}
 
       {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
-      <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={Math.round((sleepAcc + suppAcc) / 2)}>
+      {(adherenceSettings.sleepEnabled || adherenceSettings.supplementsEnabled) && (
+      <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={(() => {
+        const parts: number[] = [];
+        if (adherenceSettings.sleepEnabled && hasSleepData) parts.push(sleepAcc);
+        if (adherenceSettings.supplementsEnabled && hasSupplementData) parts.push(suppAcc);
+        return parts.length > 0 ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : 0;
+      })()} hideAccuracy={!hasSleepData && !hasSupplementData}>
         {/* Sleep */}
+        {adherenceSettings.sleepEnabled && (
+          <>
         {realSleep ? (
           <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
             <div className="flex items-center justify-between mb-1">
@@ -711,8 +798,12 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
             <p className="text-xs text-muted-foreground">Sin registro de sueño hoy. Regístralo desde Nutrición → Sueño.</p>
           </div>
         )}
+          </>
+        )}
 
         {/* Supplements */}
+        {adherenceSettings.supplementsEnabled && (
+          <>
         {realSupplements ? (
           <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
             <div className="flex items-center gap-2 mb-1">
@@ -748,7 +839,10 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
             <p className="text-xs text-muted-foreground">No hay suplementos configurados. Añade suplementos desde la sección de Nutrición.</p>
           </div>
         )}
+          </>
+        )}
       </AccordionSection>
+      )}
 
       {/* ═══════ 5. ANÁLISIS DEL MICROCICLO ═══════ */}
       <AccordionSection icon={TrendingUp} title="Análisis del Microciclo" accuracy={0} hideAccuracy defaultOpen={false}>
