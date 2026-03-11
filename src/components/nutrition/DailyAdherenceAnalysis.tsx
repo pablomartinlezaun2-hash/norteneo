@@ -419,7 +419,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
     }
 
     return lines.join('\n\n');
-  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, g, hasAnyData]);
+  }, [nutritionAcc, trainingAcc, sleepAcc, suppAcc, globalScore, realNutrition, realTraining, realSupplements, g, hasAnyData, adherenceSettings]);
 
   if (loading) {
     return (
