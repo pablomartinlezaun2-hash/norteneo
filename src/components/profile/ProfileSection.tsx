@@ -131,8 +131,9 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       {/* NEO Profile Summary */}
       <NeoProfileSummary />
 
-      {/* VB2 Follow-up — only renders if vb2_enabled */}
+      {/* VB2 Follow-up (shown if vb2_enabled) or Activation CTA (shown if not) */}
       <VB2FollowUpSection />
+      <VB2ActivationCTA />
 
       {/* Subscription */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="gradient-card rounded-2xl border border-border overflow-hidden">
