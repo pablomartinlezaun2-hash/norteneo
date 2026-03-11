@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Activity, Moon, Brain, Utensils, Dumbbell, Heart, TrendingUp,
   AlertTriangle, FileText, Shield, Loader2, ChevronDown, Zap, Droplets,
-  MessageSquarePlus, Clock
+  MessageSquarePlus, Clock, MessageCircle
 } from 'lucide-react';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ChatView } from './ChatView';
 import { cn } from '@/lib/utils';
 
 interface AthleteDetailViewProps {
