@@ -169,7 +169,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </motion.button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-foreground truncate">{athlete.full_name ?? 'Sin nombre'}</h2>
+          <h2 className="text-xl font-bold text-foreground truncate">{athlete.full_name ?? athlete.email ?? 'Sin nombre'}</h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={cn(
               "px-2 py-0.5 rounded-full text-[11px] font-semibold",

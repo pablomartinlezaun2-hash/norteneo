@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { activateVB2 } from '@/lib/activateVB2';
+import { mapVB2AnswersToProfile } from '@/lib/questionnaireMapper';
 
 interface VB2QuestionnaireProps {
   onComplete: () => void;
@@ -290,34 +291,12 @@ const CompletionScreen = ({
 }: CompletionScreenProps) => {
   const didRun = useRef(false);
 
-  useEffect(() => {
-    if (didRun.current || activated || activating) return;
-    didRun.current = true;
-
-    (async () => {
-      setActivating(true);
-      setActivationError(null);
-      try {
-        const result = await activateVB2();
-        if (result.success) {
-          saveProfile('vb2', answers);
-          setActivated(true);
-        } else {
-          setActivationError(result.error || 'Error al activar VB2');
-        }
-      } catch (err: any) {
-        setActivationError(err?.message || 'Error inesperado');
-      } finally {
-        setActivating(false);
-      }
-    })();
-  }, []); // runs once on mount
-
-  const handleRetry = async () => {
+  const doActivation = async () => {
     setActivating(true);
     setActivationError(null);
     try {
-      const result = await activateVB2();
+      const profileData = mapVB2AnswersToProfile(answers);
+      const result = await activateVB2(profileData);
       if (result.success) {
         saveProfile('vb2', answers);
         setActivated(true);
@@ -330,6 +309,12 @@ const CompletionScreen = ({
       setActivating(false);
     }
   };
+
+  useEffect(() => {
+    if (didRun.current || activated || activating) return;
+    didRun.current = true;
+    doActivation();
+  }, []); // runs once on mount
 
   return (
     <motion.div
@@ -388,7 +373,7 @@ const CompletionScreen = ({
           </p>
           <motion.button
             whileTap={{ scale: 0.985 }}
-            onClick={handleRetry}
+            onClick={doActivation}
             className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
           >
             Reintentar

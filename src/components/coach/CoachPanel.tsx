@@ -211,11 +211,11 @@ export const CoachPanel = () => {
                         {/* Avatar */}
                         <div className="w-10 h-10 rounded-full bg-foreground/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-foreground/70">
-                            {(athlete.full_name ?? '?')
-                              .split(' ')
+                            {((athlete.full_name ?? athlete.email ?? '?')
+                              .split(/[\s@]/)
                               .map((n) => n[0])
                               .join('')
-                              .slice(0, 2)}
+                              .slice(0, 2)).toUpperCase()}
                           </span>
                         </div>
 
@@ -223,7 +223,7 @@ export const CoachPanel = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-foreground truncate">
-                              {athlete.full_name ?? 'Sin nombre'}
+                              {athlete.full_name ?? athlete.email ?? 'Sin nombre'}
                             </p>
                             {athlete.active_model && (
                               <span
@@ -285,9 +285,9 @@ export const CoachPanel = () => {
                       {kpis.highFatigue} atleta{kpis.highFatigue > 1 ? 's' : ''} con fatiga alta
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {allAthletes
+                    {allAthletes
                         .filter((a) => a.fatigue_level === 'Alta')
-                        .map((a) => a.full_name ?? 'Sin nombre')
+                        .map((a) => a.full_name ?? a.email ?? 'Sin nombre')
                         .join(', ')}
                     </p>
                   </div>
