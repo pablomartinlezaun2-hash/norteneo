@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncTrainingToCoach } from '@/lib/syncTrainingToCoach';
 
 export interface Mesocycle {
   id: string;
