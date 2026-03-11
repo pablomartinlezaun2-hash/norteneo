@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft, Activity, Moon, Brain, Utensils, Dumbbell, Heart, TrendingUp,
   AlertTriangle, FileText, Shield, Loader2, ChevronDown, Zap, Droplets,
