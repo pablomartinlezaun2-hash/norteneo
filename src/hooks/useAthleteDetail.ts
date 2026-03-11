@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { format, subDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { buildAdherenceAnalytics } from '@/lib/adherenceAnalytics';
+import type { AdherenceMetricSettings } from './useAdherenceSettings';
 
 // Helper to query tables not yet in generated types
 async function rpcSelect(table: string, columns: string, filters: Record<string, any> = {}, orderBy?: string, limit?: number) {
@@ -23,6 +26,18 @@ async function rpcInsert(table: string, row: Record<string, any>) {
   return { data: data as any[] | null, error };
 }
 
+const DEFAULT_ADHERENCE_SETTINGS: AdherenceMetricSettings = {
+  nutritionEnabled: true,
+  trainingEnabled: true,
+  sleepEnabled: true,
+  supplementsEnabled: true,
+};
+
+const buildLast14Days = (): string[] => {
+  const end = new Date();
+  return Array.from({ length: 14 }, (_, index) => format(subDays(end, 13 - index), 'yyyy-MM-dd'));
+};
+
 export interface AthleteDetailData {
   // Fatigue state
   fatigue: {
@@ -43,6 +58,12 @@ export interface AthleteDetailData {
     total_adherence: number | null;
     microcycle_adherence: number | null;
     date: string | null;
+    exclusion_reasons?: {
+      nutrition?: string;
+      training?: string;
+      sleep?: string;
+      supplements?: string;
+    };
   } | null;
   // Metrics
   metrics: {
@@ -99,6 +120,12 @@ export interface AthleteDetailData {
     nutrition_adherence: number | null;
     sleep_adherence: number | null;
     supplement_adherence: number | null;
+    exclusion_reasons?: {
+      nutrition?: string;
+      training?: string;
+      sleep?: string;
+      supplements?: string;
+    };
   }[];
   weightHistory: { date: string; weight: number | null }[];
   // Coach notes
@@ -139,11 +166,15 @@ export function useAthleteDetail(athleteProfileId: string | null) {
       const { data: coachProfiles } = await rpcSelect('profiles', 'id', { user_id: user.id });
       const coachProfileId = coachProfiles?.[0]?.id;
 
-      // Fetch all data in parallel
       // Get athlete's auth user_id from profile
       const { data: athleteProfile } = await rpcSelect('profiles', 'user_id', { id: athleteProfileId });
-      const athleteUserId = athleteProfile?.[0]?.user_id;
+      const athleteUserId = athleteProfile?.[0]?.user_id as string | undefined;
 
+      const last14Days = buildLast14Days();
+      const fromDate = last14Days[0];
+      const toDate = last14Days[last14Days.length - 1];
+
+      // Fetch all data in parallel
       const [
         fatigueRes,
         adherenceRes,
@@ -157,6 +188,13 @@ export function useAthleteDetail(athleteProfileId: string | null) {
         notesRes,
         setLogsRes,
         exercisesRes,
+        foodLogsRes,
+        setLogsAdherenceRes,
+        sleepLogsRes,
+        supplementLogsRes,
+        activeSupplementsRes,
+        nutritionGoalsRes,
+        adherenceSettingsRes,
       ] = await Promise.all([
         rpcSelect('fatigue_state', '*', { user_id: athleteProfileId }, 'date', 1),
         rpcSelect('adherence_logs', '*', { user_id: athleteProfileId }, 'date', 1),
@@ -195,12 +233,112 @@ export function useAthleteDetail(athleteProfileId: string | null) {
               };
             })()
           : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('food_logs')
+              .select('logged_date, protein, carbs, fat')
+              .eq('user_id', athleteUserId)
+              .gte('logged_date', fromDate)
+              .lte('logged_date', toDate)
+          : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('set_logs')
+              .select('logged_at, exercise_id, reps, is_warmup, exercises(series, reps)')
+              .eq('user_id', athleteUserId)
+              .gte('logged_at', `${fromDate}T00:00:00`)
+              .lte('logged_at', `${toDate}T23:59:59`)
+          : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('sleep_logs')
+              .select('logged_date, total_hours, quality, awakenings')
+              .eq('user_id', athleteUserId)
+              .gte('logged_date', fromDate)
+              .lte('logged_date', toDate)
+          : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('supplement_logs')
+              .select('logged_date, supplement_id')
+              .eq('user_id', athleteUserId)
+              .gte('logged_date', fromDate)
+              .lte('logged_date', toDate)
+          : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('user_supplements')
+              .select('id')
+              .eq('user_id', athleteUserId)
+              .eq('is_active', true)
+          : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('nutrition_goals')
+              .select('daily_protein, daily_carbs, daily_fat, updated_at')
+              .eq('user_id', athleteUserId)
+              .order('updated_at', { ascending: false })
+              .limit(1)
+          : Promise.resolve({ data: [], error: null }),
+        athleteUserId
+          ? (supabase as any)
+              .from('adherence_metric_settings')
+              .select('nutrition_enabled, training_enabled, sleep_enabled, supplements_enabled')
+              .eq('user_id', athleteUserId)
+              .limit(1)
+          : Promise.resolve({ data: [], error: null }),
       ]);
 
       const f = fatigueRes.data?.[0];
       const a = adherenceRes.data?.[0];
       const m = metricsRes.data?.[0];
       const n = nutritionRes.data?.[0];
+
+      const settingsRow = adherenceSettingsRes.data?.[0];
+      const settings: AdherenceMetricSettings = settingsRow
+        ? {
+            nutritionEnabled: settingsRow.nutrition_enabled ?? true,
+            trainingEnabled: settingsRow.training_enabled ?? true,
+            sleepEnabled: settingsRow.sleep_enabled ?? true,
+            supplementsEnabled: settingsRow.supplements_enabled ?? true,
+          }
+        : DEFAULT_ADHERENCE_SETTINGS;
+
+      const computedHistory = athleteUserId
+        ? buildAdherenceAnalytics({
+            dates: last14Days,
+            settings,
+            nutritionGoals: nutritionGoalsRes.data?.[0] ?? null,
+            foodLogs: (foodLogsRes.data ?? []) as any[],
+            setLogs: (setLogsAdherenceRes.data ?? []) as any[],
+            sleepLogs: (sleepLogsRes.data ?? []) as any[],
+            supplementLogs: (supplementLogsRes.data ?? []) as any[],
+            activeSupplements: (activeSupplementsRes.data ?? []) as any[],
+          })
+        : [];
+
+      const fallbackAdherenceHistory = (adherenceHistRes.data ?? []).map((r: any) => ({
+        date: r.date,
+        total_adherence: r.total_adherence,
+        training_adherence: r.training_adherence,
+        nutrition_adherence: r.nutrition_adherence,
+        sleep_adherence: r.sleep_adherence,
+        supplement_adherence: r.supplement_adherence,
+        exclusion_reasons: undefined as { nutrition?: string; training?: string; sleep?: string; supplements?: string } | undefined,
+      })).reverse();
+
+      const adherenceHistory = computedHistory.length > 0
+        ? computedHistory
+        : fallbackAdherenceHistory;
+
+      const latestAdherence = adherenceHistory.length > 0
+        ? adherenceHistory[adherenceHistory.length - 1]
+        : null;
+
+      const validDays = adherenceHistory.filter((d) => d.total_adherence != null);
+      const microcycleAverage = validDays.length > 0
+        ? Math.round(validDays.reduce((sum, d) => sum + (d.total_adherence ?? 0), 0) / validDays.length)
+        : null;
 
       setData({
         fatigue: f ? {
@@ -212,7 +350,16 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           recovery_trend: f.recovery_trend,
           date: f.date,
         } : null,
-        adherence: a ? {
+        adherence: latestAdherence ? {
+          training_adherence: latestAdherence.training_adherence,
+          nutrition_adherence: latestAdherence.nutrition_adherence,
+          sleep_adherence: latestAdherence.sleep_adherence,
+          supplement_adherence: latestAdherence.supplement_adherence,
+          total_adherence: latestAdherence.total_adherence,
+          microcycle_adherence: microcycleAverage,
+          date: latestAdherence.date,
+          exclusion_reasons: latestAdherence.exclusion_reasons,
+        } : (a ? {
           training_adherence: a.training_adherence,
           nutrition_adherence: a.nutrition_adherence,
           sleep_adherence: a.sleep_adherence,
@@ -220,7 +367,7 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           total_adherence: a.total_adherence,
           microcycle_adherence: a.microcycle_adherence,
           date: a.date,
-        } : null,
+        } : null),
         metrics: m ? {
           weight: m.weight,
           sleep_hours: m.sleep_hours,
@@ -264,20 +411,13 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           is_active: al.is_active,
         })),
         fatigueHistory: (fatigueHistRes.data ?? []).map((r: any) => ({ date: r.date, global_fatigue: r.global_fatigue })).reverse(),
-        adherenceHistory: (adherenceHistRes.data ?? []).map((r: any) => ({
-          date: r.date,
-          total_adherence: r.total_adherence,
-          training_adherence: r.training_adherence,
-          nutrition_adherence: r.nutrition_adherence,
-          sleep_adherence: r.sleep_adherence,
-          supplement_adherence: r.supplement_adherence,
-        })).reverse(),
+        adherenceHistory,
         weightHistory: (weightHistRes.data ?? []).map((r: any) => ({ date: r.date, weight: r.weight })).reverse(),
-        coachNotes: (notesRes.data ?? []).map((n: any) => ({
-          id: n.id,
-          note: n.note,
-          priority: n.priority,
-          created_at: n.created_at,
+        coachNotes: (notesRes.data ?? []).map((noteRow: any) => ({
+          id: noteRow.id,
+          note: noteRow.note,
+          priority: noteRow.priority,
+          created_at: noteRow.created_at,
         })),
         setLogs: (setLogsRes.data ?? []).map((s: any) => ({
           id: s.id,

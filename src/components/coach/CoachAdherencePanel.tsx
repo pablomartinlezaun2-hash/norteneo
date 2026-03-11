@@ -12,6 +12,12 @@ export interface AdherenceDayData {
   sleep_adherence: number | null;
   supplement_adherence: number | null;
   total_adherence: number | null;
+  exclusion_reasons?: {
+    nutrition?: string;
+    training?: string;
+    sleep?: string;
+    supplements?: string;
+  };
 }
 
 interface Props {
@@ -104,10 +110,10 @@ const CategoryRow = ({ icon: Icon, label, value, onClick }: {
 /* ── Day Detail Drawer ── */
 const DayDetailSheet = ({ day, onClose }: { day: AdherenceDayData; onClose: () => void }) => {
   const metrics = [
-    { key: 'nutrition_adherence' as const, label: 'Nutrición', icon: Utensils },
-    { key: 'training_adherence' as const, label: 'Entrenamiento', icon: Dumbbell },
-    { key: 'sleep_adherence' as const, label: 'Sueño', icon: Moon },
-    { key: 'supplement_adherence' as const, label: 'Suplementación', icon: Pill },
+    { key: 'nutrition_adherence' as const, reasonKey: 'nutrition' as const, label: 'Nutrición', icon: Utensils },
+    { key: 'training_adherence' as const, reasonKey: 'training' as const, label: 'Entrenamiento', icon: Dumbbell },
+    { key: 'sleep_adherence' as const, reasonKey: 'sleep' as const, label: 'Sueño', icon: Moon },
+    { key: 'supplement_adherence' as const, reasonKey: 'supplements' as const, label: 'Suplementación', icon: Pill },
   ];
 
   const active = metrics.filter(m => day[m.key] != null);
@@ -183,15 +189,18 @@ const DayDetailSheet = ({ day, onClose }: { day: AdherenceDayData; onClose: () =
         {excluded.length > 0 && (
           <div className="space-y-1">
             <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest mb-1">Excluidas</p>
-            {excluded.map(m => (
-              <div key={m.key} className="flex items-center justify-between py-1.5 px-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <m.icon className="w-3 h-3 text-muted-foreground/20" />
-                  <span className="text-[11px] text-muted-foreground/30">{m.label}</span>
+            {excluded.map(m => {
+              const exclusionReason = day.exclusion_reasons?.[m.reasonKey] ?? 'Sin registro';
+              return (
+                <div key={m.key} className="flex items-center justify-between py-1.5 px-3 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <m.icon className="w-3 h-3 text-muted-foreground/20" />
+                    <span className="text-[11px] text-muted-foreground/30">{m.label}</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground/30">{exclusionReason}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground/20">No registrado</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </motion.div>
