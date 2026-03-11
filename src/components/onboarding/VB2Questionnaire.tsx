@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { activateVB2 } from '@/lib/activateVB2';
-import { mapVB2AnswersToProfile } from '@/lib/questionnaireMapper';
+import { mapVB2AnswersToProfile, mapVB2AnswersToMetrics } from '@/lib/questionnaireMapper';
+import { saveInitialMetrics } from '@/lib/saveInitialMetrics';
 
 interface VB2QuestionnaireProps {
   onComplete: () => void;
