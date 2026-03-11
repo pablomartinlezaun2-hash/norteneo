@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Loader2, ChevronRight } from 'lucide-react';
 import { useAthleteChatInfo } from '@/hooks/useCoachChat';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { ChatView } from './ChatView';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
  */
 export const AthleteChatSection = () => {
   const { coachId, myProfileId, loading, hasCoach } = useAthleteChatInfo();
+  const { totalUnread } = useUnreadMessages();
   const [chatOpen, setChatOpen] = useState(false);
 
   if (loading) {
@@ -54,7 +56,14 @@ export const AthleteChatSection = () => {
           <MessageCircle className="w-5 h-5 text-foreground/50" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground">Seguimiento</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-foreground">Seguimiento</p>
+            {totalUnread > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 text-[10px] font-bold tabular-nums min-w-[18px] text-center">
+                {totalUnread}
+              </span>
+            )}
+          </div>
           <p className="text-[11px] text-muted-foreground/60 mt-0.5 leading-relaxed">
             Chat directo con tu coach
           </p>
