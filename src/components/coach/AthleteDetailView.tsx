@@ -303,7 +303,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
                   <SectionRow icon={User} label="Modelo NEO" />
                 </AccordionTrigger>
                 <AccordionContent className="px-1 pb-2">
-                  <NeoModelSection
+                  <Neo2DAnatomyModel
                     setLogs={detail?.setLogs ?? []}
                     exercises={detail?.exercises ?? []}
                   />
