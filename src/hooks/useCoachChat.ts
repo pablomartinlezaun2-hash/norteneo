@@ -2,6 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export type MessageContextType = 'training' | 'alert' | 'nutrition' | 'adherence' | 'fatigue' | 'review' | null;
+
+export interface ReviewData {
+  estado: string;
+  mantener: string;
+  corregir: string;
+  proximo_paso: string;
+}
+
 export interface ChatMessage {
   id: string;
   conversation_id: string;
@@ -11,6 +20,8 @@ export interface ChatMessage {
   created_at: string;
   read_at: string | null;
   is_system_message: boolean;
+  context_type: MessageContextType;
+  metadata: ReviewData | Record<string, any> | null;
 }
 
 export interface Conversation {
