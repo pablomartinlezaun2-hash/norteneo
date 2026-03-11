@@ -264,7 +264,14 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           is_active: al.is_active,
         })),
         fatigueHistory: (fatigueHistRes.data ?? []).map((r: any) => ({ date: r.date, global_fatigue: r.global_fatigue })).reverse(),
-        adherenceHistory: (adherenceHistRes.data ?? []).map((r: any) => ({ date: r.date, total_adherence: r.total_adherence })).reverse(),
+        adherenceHistory: (adherenceHistRes.data ?? []).map((r: any) => ({
+          date: r.date,
+          total_adherence: r.total_adherence,
+          training_adherence: r.training_adherence,
+          nutrition_adherence: r.nutrition_adherence,
+          sleep_adherence: r.sleep_adherence,
+          supplement_adherence: r.supplement_adherence,
+        })).reverse(),
         weightHistory: (weightHistRes.data ?? []).map((r: any) => ({ date: r.date, weight: r.weight })).reverse(),
         coachNotes: (notesRes.data ?? []).map((n: any) => ({
           id: n.id,
