@@ -240,7 +240,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               <MetricRow label="Estrés" value={detail?.metrics?.stress_level ?? '—'} />
               <MetricRow label="Adh. nutricional" value={detail?.adherence?.nutrition_adherence != null ? `${Math.round(detail.adherence.nutrition_adherence)}%` : '—'} />
               <MetricRow label="Carga mental" value={detail?.metrics?.mental_load ?? '—'} />
-              <MetricRow label="Lesiones / molestias" value="—" sub="placeholder" />
+              <MetricRow label="Lesiones / molestias" value={detail?.metrics?.injuries_or_discomfort ?? '—'} />
             </AccordionContent>
           </AccordionItem>
 
