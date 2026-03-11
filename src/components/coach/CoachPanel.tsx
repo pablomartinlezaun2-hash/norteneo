@@ -266,6 +266,13 @@ export const CoachPanel = () => {
                           </div>
                         </div>
 
+                        {/* Unread badge */}
+                        {(unreadByAthlete.get(athlete.id) ?? 0) > 0 && (
+                          <div className="flex items-center gap-1.5 flex-shrink-0 mr-1">
+                            <div className="w-2 h-2 rounded-full bg-sky-400/80 animate-pulse" />
+                          </div>
+                        )}
+
                         <ChevronRight className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
                       </motion.button>
                     ))}
