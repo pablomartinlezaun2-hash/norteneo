@@ -502,6 +502,7 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
       </div>
 
       {/* ═══════ 2. NUTRICIÓN ═══════ */}
+      {adherenceSettings.nutritionEnabled && (
       <AccordionSection icon={UtensilsCrossed} title="Nutrición" accuracy={nutritionAcc}>
         {mealGroups.length > 0 ? (() => {
           const SCHEDULED_TIMES: Record<string, string> = {
