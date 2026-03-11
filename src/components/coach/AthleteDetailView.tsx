@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeft, Activity, Utensils, Dumbbell, Heart, TrendingUp,
   AlertTriangle, FileText, Shield, Loader2, Zap,
-  MessageSquarePlus, Clock, MessageCircle, ChevronRight
+  MessageSquarePlus, Clock, MessageCircle, ChevronRight, Flame, User
 } from 'lucide-react';
+import { NeoFatigueMap } from '@/components/neo/NeoFatigueMap';
+import { NeoModelSection } from '@/components/neo/NeoModelSection';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
