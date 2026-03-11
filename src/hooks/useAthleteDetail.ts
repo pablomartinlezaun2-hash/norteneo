@@ -101,6 +101,9 @@ export interface AthleteDetailData {
     priority: string | null;
     created_at: string;
   }[];
+  // Set logs & exercises for NEO components
+  setLogs: import('@/types/database').SetLog[];
+  exercises: { id: string; name: string; sessionName: string }[];
 }
 
 export function useAthleteDetail(athleteProfileId: string | null) {
@@ -130,6 +133,10 @@ export function useAthleteDetail(athleteProfileId: string | null) {
       const coachProfileId = coachProfiles?.[0]?.id;
 
       // Fetch all data in parallel
+      // Get athlete's auth user_id from profile
+      const { data: athleteProfile } = await rpcSelect('profiles', 'user_id', { id: athleteProfileId });
+      const athleteUserId = athleteProfile?.[0]?.user_id;
+
       const [
         fatigueRes,
         adherenceRes,
@@ -141,6 +148,8 @@ export function useAthleteDetail(athleteProfileId: string | null) {
         adherenceHistRes,
         weightHistRes,
         notesRes,
+        setLogsRes,
+        exercisesRes,
       ] = await Promise.all([
         rpcSelect('fatigue_state', '*', { user_id: athleteProfileId }, 'date', 1),
         rpcSelect('adherence_logs', '*', { user_id: athleteProfileId }, 'date', 1),
@@ -153,6 +162,31 @@ export function useAthleteDetail(athleteProfileId: string | null) {
         rpcSelect('athlete_metrics', 'date, weight', { user_id: athleteProfileId }, 'date', 14),
         coachProfileId
           ? rpcSelect('coach_notes', '*', { athlete_id: athleteProfileId, coach_id: coachProfileId }, 'created_at')
+          : Promise.resolve({ data: [], error: null }),
+        // Fetch athlete's set_logs (last 90 days for NEO components)
+        athleteUserId
+          ? rpcSelect('set_logs', '*', { user_id: athleteUserId }, 'logged_at', 500)
+          : Promise.resolve({ data: [], error: null }),
+        // Fetch athlete's exercises via their training program
+        athleteUserId
+          ? (async () => {
+              const { data: programs } = await rpcSelect('training_programs', 'id', { user_id: athleteUserId, is_active: true });
+              if (!programs?.length) return { data: [], error: null };
+              const programIds = programs.map((p: any) => p.id);
+              const { data: sessions } = await rpcSelect('workout_sessions', 'id, name', { program_id: programIds });
+              if (!sessions?.length) return { data: [], error: null };
+              const sessionIds = sessions.map((s: any) => s.id);
+              const sessionMap = new Map(sessions.map((s: any) => [s.id, s.name]));
+              const { data: exercises } = await rpcSelect('exercises', 'id, name, session_id', { session_id: sessionIds });
+              return {
+                data: (exercises ?? []).map((e: any) => ({
+                  id: e.id,
+                  name: e.name,
+                  sessionName: sessionMap.get(e.session_id) ?? '',
+                })),
+                error: null,
+              };
+            })()
           : Promise.resolve({ data: [], error: null }),
       ]);
 
@@ -231,6 +265,20 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           priority: n.priority,
           created_at: n.created_at,
         })),
+        setLogs: (setLogsRes.data ?? []).map((s: any) => ({
+          id: s.id,
+          user_id: s.user_id,
+          exercise_id: s.exercise_id,
+          set_number: s.set_number,
+          weight: s.weight,
+          reps: s.reps,
+          partial_reps: s.partial_reps ?? 0,
+          rir: s.rir ?? null,
+          is_warmup: s.is_warmup ?? false,
+          logged_at: s.logged_at,
+          created_at: s.created_at,
+        })),
+        exercises: exercisesRes.data ?? [],
       });
     } catch (err) {
       console.error('Athlete detail fetch error:', err);

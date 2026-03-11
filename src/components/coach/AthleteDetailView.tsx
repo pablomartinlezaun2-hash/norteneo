@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeft, Activity, Utensils, Dumbbell, Heart, TrendingUp,
   AlertTriangle, FileText, Shield, Loader2, Zap,
-  MessageSquarePlus, Clock, MessageCircle, ChevronRight
+  MessageSquarePlus, Clock, MessageCircle, ChevronRight, Flame, User
 } from 'lucide-react';
+import { NeoFatigueMap } from '@/components/neo/NeoFatigueMap';
+import { NeoModelSection } from '@/components/neo/NeoModelSection';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -279,21 +281,35 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
             )}
           </SlimAccordionItem>
 
-          {/* 2. Estado NEO */}
+          {/* 2. Estado NEO — nested accordions with real athlete components */}
           <SlimAccordionItem value="neo-state" icon={Activity} label="Estado NEO">
-            {detail?.fatigue ? (
-              <>
-                <MetricRow label="Fatiga muscular" value={detail.fatigue.muscular_fatigue != null ? `${Math.round(detail.fatigue.muscular_fatigue)}%` : '—'} />
-                <MetricRow label="Fatiga neuro" value={detail.fatigue.neuro_fatigue != null ? `${Math.round(detail.fatigue.neuro_fatigue)}%` : '—'} />
-                <MetricRow label="Fatiga conectiva" value={detail.fatigue.connective_fatigue != null ? `${Math.round(detail.fatigue.connective_fatigue)}%` : '—'} />
-                <MetricRow label="Global" value={detail.fatigue.global_fatigue != null ? `${Math.round(detail.fatigue.global_fatigue)}%` : '—'} />
-                <MetricRow label="Readiness" value={detail.metrics?.readiness_score != null ? `${Math.round(detail.metrics.readiness_score)}` : '—'} />
-                <MetricRow label="Recuperación" value={detail.fatigue.recovery_trend ?? '—'} />
-                <MetricRow label="Nivel alerta" value={detail.fatigue.alert_level ?? '—'} />
-              </>
-            ) : (
-              <p className="text-[11px] text-muted-foreground py-2">Sin datos de estado</p>
-            )}
+            <Accordion type="multiple" className="space-y-1.5">
+              {/* NEO Fatigue */}
+              <AccordionItem value="neo-fatigue" className="rounded-lg border border-border/15 bg-foreground/[0.02] overflow-hidden border-b-0">
+                <AccordionTrigger className="px-3 py-2 hover:no-underline [&>svg]:w-3 [&>svg]:h-3 [&>svg]:text-muted-foreground/30">
+                  <SectionRow icon={Flame} label="NEO Fatigue" />
+                </AccordionTrigger>
+                <AccordionContent className="px-1 pb-2">
+                  <NeoFatigueMap
+                    setLogs={detail?.setLogs ?? []}
+                    exercises={(detail?.exercises ?? []).map(e => ({ id: e.id, name: e.name }))}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Modelo NEO */}
+              <AccordionItem value="neo-model" className="rounded-lg border border-border/15 bg-foreground/[0.02] overflow-hidden border-b-0">
+                <AccordionTrigger className="px-3 py-2 hover:no-underline [&>svg]:w-3 [&>svg]:h-3 [&>svg]:text-muted-foreground/30">
+                  <SectionRow icon={User} label="Modelo NEO" />
+                </AccordionTrigger>
+                <AccordionContent className="px-1 pb-2">
+                  <NeoModelSection
+                    setLogs={detail?.setLogs ?? []}
+                    exercises={detail?.exercises ?? []}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </SlimAccordionItem>
 
           {/* 3. Adherencia */}
