@@ -184,11 +184,11 @@ export function useCoachChat(athleteProfileId: string, coachProfileId: string) {
       .is('read_at', null);
   }, [myProfileId]);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, contextType?: MessageContextType, metadata?: Record<string, any>) => {
     if (!conversation || !myProfileId || !myRole || !text.trim()) return;
     setSending(true);
 
-    const msgRow = {
+    const msgRow: Record<string, any> = {
       conversation_id: conversation.id,
       athlete_id: athleteProfileId,
       coach_id: coachProfileId,
@@ -197,6 +197,8 @@ export function useCoachChat(athleteProfileId: string, coachProfileId: string) {
       message: text.trim(),
       is_system_message: false,
     };
+    if (contextType) msgRow.context_type = contextType;
+    if (metadata) msgRow.metadata = metadata;
 
     const { data: inserted, error } = await (supabase as any)
       .from('coach_messages')
@@ -205,7 +207,6 @@ export function useCoachChat(athleteProfileId: string, coachProfileId: string) {
       .single();
 
     if (!error && inserted) {
-      // Update conversation metadata
       await (supabase as any)
         .from('coach_conversations')
         .update({
@@ -219,6 +220,11 @@ export function useCoachChat(athleteProfileId: string, coachProfileId: string) {
     setSending(false);
     return { error: error?.message ?? null };
   }, [conversation, myProfileId, myRole, athleteProfileId, coachProfileId]);
+
+  const sendReview = useCallback(async (review: ReviewData) => {
+    const summary = `📋 Revisión:\n• Estado: ${review.estado}\n• Mantener: ${review.mantener}\n• Corregir: ${review.corregir}\n• Próximo paso: ${review.proximo_paso}`;
+    return sendMessage(summary, 'review', review);
+  }, [sendMessage]);
 
   return {
     messages,
