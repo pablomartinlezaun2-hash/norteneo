@@ -6,6 +6,7 @@ import {
   MessageSquarePlus, Clock, MessageCircle, ChevronRight, Flame, User
 } from 'lucide-react';
 import { NeoFatigueMap } from '@/components/neo/NeoFatigueMap';
+import { CoachAdherencePanel } from './CoachAdherencePanel';
 import { Neo2DAnatomyModel } from '@/components/neo/Neo2DAnatomyModel';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
@@ -314,18 +315,10 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
 
           {/* 3. Adherencia */}
           <SlimAccordionItem value="adherence" icon={TrendingUp} label="Adherencia">
-            {detail?.adherence ? (
-              <>
-                <AdherenceBar label="Entrenamiento" value={detail.adherence.training_adherence} />
-                <AdherenceBar label="Nutrición" value={detail.adherence.nutrition_adherence} />
-                <AdherenceBar label="Sueño" value={detail.adherence.sleep_adherence} />
-                <AdherenceBar label="Suplementos" value={detail.adherence.supplement_adherence} />
-                <AdherenceBar label="Total" value={detail.adherence.total_adherence} />
-                <AdherenceBar label="Microciclo" value={detail.adherence.microcycle_adherence} />
-              </>
-            ) : (
-              <p className="text-[11px] text-muted-foreground py-2">Sin datos</p>
-            )}
+            <CoachAdherencePanel
+              history={detail?.adherenceHistory ?? []}
+              latest={detail?.adherence ?? null}
+            />
           </SlimAccordionItem>
 
           {/* 4. Entrenamiento */}

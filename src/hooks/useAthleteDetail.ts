@@ -92,7 +92,14 @@ export interface AthleteDetailData {
   }[];
   // History (last 14 days)
   fatigueHistory: { date: string; global_fatigue: number | null }[];
-  adherenceHistory: { date: string; total_adherence: number | null }[];
+  adherenceHistory: {
+    date: string;
+    total_adherence: number | null;
+    training_adherence: number | null;
+    nutrition_adherence: number | null;
+    sleep_adherence: number | null;
+    supplement_adherence: number | null;
+  }[];
   weightHistory: { date: string; weight: number | null }[];
   // Coach notes
   coachNotes: {
@@ -158,7 +165,7 @@ export function useAthleteDetail(athleteProfileId: string | null) {
         rpcSelect('nutrition_daily', '*', { user_id: athleteProfileId }, 'date', 1),
         rpcSelect('coach_performance_alerts', '*', { user_id: athleteProfileId, is_active: true }, 'date'),
         rpcSelect('fatigue_state', 'date, global_fatigue', { user_id: athleteProfileId }, 'date', 14),
-        rpcSelect('adherence_logs', 'date, total_adherence', { user_id: athleteProfileId }, 'date', 14),
+        rpcSelect('adherence_logs', 'date, total_adherence, training_adherence, nutrition_adherence, sleep_adherence, supplement_adherence', { user_id: athleteProfileId }, 'date', 14),
         rpcSelect('athlete_metrics', 'date, weight', { user_id: athleteProfileId }, 'date', 14),
         coachProfileId
           ? rpcSelect('coach_notes', '*', { athlete_id: athleteProfileId, coach_id: coachProfileId }, 'created_at')
@@ -257,7 +264,14 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           is_active: al.is_active,
         })),
         fatigueHistory: (fatigueHistRes.data ?? []).map((r: any) => ({ date: r.date, global_fatigue: r.global_fatigue })).reverse(),
-        adherenceHistory: (adherenceHistRes.data ?? []).map((r: any) => ({ date: r.date, total_adherence: r.total_adherence })).reverse(),
+        adherenceHistory: (adherenceHistRes.data ?? []).map((r: any) => ({
+          date: r.date,
+          total_adherence: r.total_adherence,
+          training_adherence: r.training_adherence,
+          nutrition_adherence: r.nutrition_adherence,
+          sleep_adherence: r.sleep_adherence,
+          supplement_adherence: r.supplement_adherence,
+        })).reverse(),
         weightHistory: (weightHistRes.data ?? []).map((r: any) => ({ date: r.date, weight: r.weight })).reverse(),
         coachNotes: (notesRes.data ?? []).map((n: any) => ({
           id: n.id,
