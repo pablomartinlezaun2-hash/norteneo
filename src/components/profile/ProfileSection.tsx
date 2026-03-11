@@ -136,6 +136,9 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       <VB2FollowUpSection />
       <VB2ActivationCTA />
 
+      {/* Coach Chat (shown if athlete has a coach) */}
+      <AthleteChatSection />
+
       {/* Subscription */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="gradient-card rounded-2xl border border-border overflow-hidden">
         <button onClick={() => setCurrentView('subscription')} className="w-full flex items-center gap-3 px-4 py-4 hover:bg-muted/50 transition-colors">
