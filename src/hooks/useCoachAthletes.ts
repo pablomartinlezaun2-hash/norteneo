@@ -34,7 +34,7 @@ export interface CoachAthlete {
 }
 
 export type CoachFilter = 'all' | 'vb1' | 'vb2' | 'high_fatigue' | 'low_adherence';
-export type CoachSort = 'adherence' | 'fatigue' | 'last_activity';
+export type CoachSort = 'adherence' | 'fatigue' | 'last_activity' | 'last_message' | 'status';
 
 function classifyFatigue(value: number | null): 'Alta' | 'Media' | 'Baja' | 'Sin datos' {
   if (value == null) return 'Sin datos';
@@ -260,6 +260,14 @@ export function useCoachAthletes() {
       case 'last_activity':
         list.sort((a, b) => (b.last_activity_date ?? '').localeCompare(a.last_activity_date ?? ''));
         break;
+      case 'last_message':
+        list.sort((a, b) => (b.last_message_at ?? '').localeCompare(a.last_message_at ?? ''));
+        break;
+      case 'status': {
+        const statusOrder: Record<string, number> = { action_pending: 0, review_today: 1, waiting_response: 2, followup_1on1: 3, stable: 4 };
+        list.sort((a, b) => (statusOrder[a.conversation_status ?? 'stable'] ?? 5) - (statusOrder[b.conversation_status ?? 'stable'] ?? 5));
+        break;
+      }
     }
 
     return list;

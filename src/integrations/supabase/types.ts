@@ -279,11 +279,13 @@ export type Database = {
         Row: {
           athlete_id: string
           coach_id: string
+          context_type: string | null
           conversation_id: string
           created_at: string
           id: string
           is_system_message: boolean
           message: string
+          metadata: Json | null
           read_at: string | null
           sender_id: string
           sender_role: string
@@ -291,11 +293,13 @@ export type Database = {
         Insert: {
           athlete_id: string
           coach_id: string
+          context_type?: string | null
           conversation_id: string
           created_at?: string
           id?: string
           is_system_message?: boolean
           message: string
+          metadata?: Json | null
           read_at?: string | null
           sender_id: string
           sender_role: string
@@ -303,11 +307,13 @@ export type Database = {
         Update: {
           athlete_id?: string
           coach_id?: string
+          context_type?: string | null
           conversation_id?: string
           created_at?: string
           id?: string
           is_system_message?: boolean
           message?: string
+          metadata?: Json | null
           read_at?: string | null
           sender_id?: string
           sender_role?: string

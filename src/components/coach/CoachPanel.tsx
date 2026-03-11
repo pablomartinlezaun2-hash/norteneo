@@ -37,6 +37,8 @@ const filters: { key: CoachFilter; label: string }[] = [
 ];
 
 const sorts: { key: CoachSort; label: string }[] = [
+  { key: 'status', label: 'Estado' },
+  { key: 'last_message', label: 'Último mensaje' },
   { key: 'adherence', label: 'Adherencia' },
   { key: 'fatigue', label: 'Fatiga' },
   { key: 'last_activity', label: 'Última actividad' },
