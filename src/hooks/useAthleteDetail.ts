@@ -92,7 +92,14 @@ export interface AthleteDetailData {
   }[];
   // History (last 14 days)
   fatigueHistory: { date: string; global_fatigue: number | null }[];
-  adherenceHistory: { date: string; total_adherence: number | null }[];
+  adherenceHistory: {
+    date: string;
+    total_adherence: number | null;
+    training_adherence: number | null;
+    nutrition_adherence: number | null;
+    sleep_adherence: number | null;
+    supplement_adherence: number | null;
+  }[];
   weightHistory: { date: string; weight: number | null }[];
   // Coach notes
   coachNotes: {
