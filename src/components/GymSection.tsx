@@ -181,6 +181,15 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
       if (!error) {
         toast.success(t('gym.workoutRegistered'));
         setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
+
+        // Sync to coach_training_sessions
+        const { syncTrainingToCoach } = await import('@/lib/syncTrainingToCoach');
+        const session = activePrograms.flatMap(p => p.sessions).find(s => s.id === sessionId);
+        syncTrainingToCoach({
+          sessionName: session?.name,
+          sessionType: 'Gimnasio',
+          completed: true,
+        });
       } else {
         toast.error(t('gym.errorRegistering'));
       }
