@@ -203,6 +203,14 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
             </p>
           )}
         </div>
+        {/* Chat button */}
+        <motion.button
+          onClick={() => setShowChat(true)}
+          className="w-9 h-9 rounded-xl bg-muted/40 flex items-center justify-center mt-0.5 flex-shrink-0"
+          whileTap={{ scale: 0.92 }}
+        >
+          <MessageCircle className="w-4 h-4 text-foreground" />
+        </motion.button>
       </div>
 
       {/* ── Quick Stats ── */}
