@@ -142,6 +142,17 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  if (showChat) {
+    return (
+      <CoachChatView
+        counterpartProfileId={athlete.id}
+        counterpartName={athlete.full_name ?? athlete.email ?? 'Atleta'}
+        onBack={() => setShowChat(false)}
+      />
+    );
+  }
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
