@@ -14,6 +14,7 @@ const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
  */
 export const AthleteChatSection = () => {
   const { coachId, myProfileId, loading, hasCoach } = useAthleteChatInfo();
+  const { totalUnread } = useUnreadMessages();
   const [chatOpen, setChatOpen] = useState(false);
 
   if (loading) {
