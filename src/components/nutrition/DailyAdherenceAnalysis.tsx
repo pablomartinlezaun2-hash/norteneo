@@ -434,12 +434,71 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
       {/* ═══════ 1. GLOBAL SCORE + AI SUMMARY ═══════ */}
       <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-        <CircularScore value={globalScore} />
+        {globalScore !== null ? (
+          <CircularScore value={globalScore} />
+        ) : (
+          <div className="text-center py-6">
+            <span className="text-3xl font-black text-muted-foreground">—</span>
+            <p className="text-xs text-muted-foreground font-semibold mt-1">Sin datos registrados hoy</p>
+          </div>
+        )}
 
         <div className="rounded-xl bg-muted/50 p-4 flex gap-3 items-start">
           <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="text-sm text-foreground leading-relaxed whitespace-pre-line">{aiText}</div>
         </div>
+
+        {/* Settings toggle */}
+        <button
+          onClick={() => setShowAdherenceSettings(!showAdherenceSettings)}
+          className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-1"
+        >
+          <Settings2 className="w-3.5 h-3.5" />
+          Configurar métricas de adherencia
+          <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showAdherenceSettings && 'rotate-180')} />
+        </button>
+
+        <AnimatePresence>
+          {showAdherenceSettings && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">Selecciona qué métricas participan en el cálculo de adherencia:</p>
+                {([
+                  { key: 'nutritionEnabled' as const, label: 'Nutrición', icon: UtensilsCrossed },
+                  { key: 'trainingEnabled' as const, label: 'Entrenamiento', icon: Dumbbell },
+                  { key: 'sleepEnabled' as const, label: 'Sueño', icon: Moon },
+                  { key: 'supplementsEnabled' as const, label: 'Suplementación', icon: Pill },
+                ]).map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => updateAdherenceSettings({ [key]: !adherenceSettings[key] })}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all text-left',
+                      adherenceSettings[key]
+                        ? 'border-primary/40 bg-primary/5'
+                        : 'border-border bg-background opacity-60'
+                    )}
+                  >
+                    <Icon className="w-4 h-4 text-foreground" />
+                    <span className="text-sm font-semibold text-foreground flex-1">{label}</span>
+                    <div className={cn(
+                      'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                      adherenceSettings[key] ? 'border-primary bg-primary' : 'border-muted-foreground'
+                    )}>
+                      {adherenceSettings[key] && <span className="w-2 h-2 rounded-full bg-primary-foreground" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ═══════ 2. NUTRICIÓN ═══════ */}
