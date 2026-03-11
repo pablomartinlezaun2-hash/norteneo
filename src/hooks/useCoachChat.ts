@@ -232,6 +232,7 @@ export function useCoachChat(athleteProfileId: string, coachProfileId: string) {
     loading,
     sending,
     sendMessage,
+    sendReview,
     myProfileId,
     myRole,
   };
