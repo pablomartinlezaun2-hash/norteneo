@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { activateVB2 } from '@/lib/activateVB2';
@@ -245,80 +245,156 @@ export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) 
             </motion.div>
           )}
 
-          {/* COMPLETION */}
+          {/* COMPLETION — auto-activate on mount */}
           {isCompletion && (
-            <motion.div
-              key="vb2-completion"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={transition}
-              className="w-full max-w-[340px] flex flex-col items-center text-center"
-            >
-              <div className="bg-[#F5F5F7] rounded-2xl px-5 py-2.5 mb-10">
-                <span className="text-xl font-bold tracking-[0.25em] text-black">NEO</span>
-              </div>
-
-              {activated ? (
-                <>
-                  <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-2">
-                    VB2 activado
-                  </h1>
-                  <p className="text-[13px] font-medium text-[#8E8E93] mb-6">
-                    Seguimiento asignado
-                  </p>
-                  <div className="rounded-xl border border-[#1C1C1E] bg-[#111111] px-5 py-4 mb-10 w-full">
-                    <p className="text-[12px] font-light leading-[1.7] text-[#8E8E93]">
-                      Tu perfil VB2 está activo. Asesoría 1:1 con Pablo asignada automáticamente.
-                    </p>
-                  </div>
-                  <motion.button
-                    whileTap={{ scale: 0.985 }}
-                    onClick={() => { saveProfile('vb2', answers); onComplete(); }}
-                    className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
-                  >
-                    Continuar
-                  </motion.button>
-                </>
-              ) : (
-                <>
-                  <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-4">
-                    VB2 configurado
-                  </h1>
-                  <p className="text-[13px] font-light leading-[1.7] text-[#636366] mb-4 max-w-[300px]">
-                    Ya tenemos una base mucho más completa para trabajar con mayor precisión dentro de NEO.
-                  </p>
-                  {activationError && (
-                    <p className="text-[12px] font-medium text-red-400 mb-4">
-                      {activationError}
-                    </p>
-                  )}
-                  <motion.button
-                    whileTap={{ scale: 0.985 }}
-                    disabled={activating}
-                    onClick={async () => {
-                      setActivating(true);
-                      setActivationError(null);
-                      const result = await activateVB2();
-                      if (result.success) {
-                        setActivated(true);
-                      } else {
-                        setActivationError(result.error || 'Error al activar VB2');
-                      }
-                      setActivating(false);
-                    }}
-                    className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em] disabled:opacity-50"
-                  >
-                    {activating ? 'Activando...' : 'Activar VB2'}
-                  </motion.button>
-                </>
-              )}
-            </motion.div>
+            <CompletionScreen
+              direction={direction}
+              slideVariants={slideVariants}
+              answers={answers}
+              saveProfile={saveProfile}
+              onComplete={onComplete}
+              activating={activating}
+              setActivating={setActivating}
+              activated={activated}
+              setActivated={setActivated}
+              activationError={activationError}
+              setActivationError={setActivationError}
+            />
           )}
         </AnimatePresence>
       </div>
     </div>
+  );
+};
+
+/* ── Completion sub-component that auto-triggers activation ── */
+
+interface CompletionScreenProps {
+  direction: number;
+  slideVariants: any;
+  answers: Record<number, string>;
+  saveProfile: (model: 'vb1' | 'vb2', answers: Record<number, string>) => void;
+  onComplete: () => void;
+  activating: boolean;
+  setActivating: (v: boolean) => void;
+  activated: boolean;
+  setActivated: (v: boolean) => void;
+  activationError: string | null;
+  setActivationError: (v: string | null) => void;
+}
+
+const CompletionScreen = ({
+  direction, slideVariants, answers, saveProfile, onComplete,
+  activating, setActivating, activated, setActivated,
+  activationError, setActivationError,
+}: CompletionScreenProps) => {
+  const didRun = useRef(false);
+
+  useEffect(() => {
+    if (didRun.current || activated || activating) return;
+    didRun.current = true;
+
+    (async () => {
+      setActivating(true);
+      setActivationError(null);
+      try {
+        const result = await activateVB2();
+        if (result.success) {
+          saveProfile('vb2', answers);
+          setActivated(true);
+        } else {
+          setActivationError(result.error || 'Error al activar VB2');
+        }
+      } catch (err: any) {
+        setActivationError(err?.message || 'Error inesperado');
+      } finally {
+        setActivating(false);
+      }
+    })();
+  }, []); // runs once on mount
+
+  const handleRetry = async () => {
+    setActivating(true);
+    setActivationError(null);
+    try {
+      const result = await activateVB2();
+      if (result.success) {
+        saveProfile('vb2', answers);
+        setActivated(true);
+      } else {
+        setActivationError(result.error || 'Error al activar VB2');
+      }
+    } catch (err: any) {
+      setActivationError(err?.message || 'Error inesperado');
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  return (
+    <motion.div
+      key="vb2-completion"
+      custom={direction}
+      variants={slideVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="w-full max-w-[340px] flex flex-col items-center text-center"
+    >
+      <div className="bg-[#F5F5F7] rounded-2xl px-5 py-2.5 mb-10">
+        <span className="text-xl font-bold tracking-[0.25em] text-black">NEO</span>
+      </div>
+
+      {activating && (
+        <>
+          <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-4">
+            Activando VB2…
+          </h1>
+          <div className="w-8 h-8 border-2 border-[#F5F5F7] border-t-transparent rounded-full animate-spin" />
+        </>
+      )}
+
+      {activated && (
+        <>
+          <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-2">
+            VB2 activado
+          </h1>
+          <p className="text-[13px] font-medium text-[#8E8E93] mb-6">
+            Seguimiento asignado
+          </p>
+          <div className="rounded-xl border border-[#1C1C1E] bg-[#111111] px-5 py-4 mb-10 w-full">
+            <p className="text-[12px] font-light leading-[1.7] text-[#8E8E93]">
+              Tu perfil VB2 está activo. Asesoría 1:1 con Pablo asignada automáticamente.
+            </p>
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.985 }}
+            onClick={onComplete}
+            className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
+          >
+            Continuar
+          </motion.button>
+        </>
+      )}
+
+      {!activating && !activated && activationError && (
+        <>
+          <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-4">
+            Error al activar
+          </h1>
+          <p className="text-[12px] font-medium text-red-400 mb-6">
+            {activationError}
+          </p>
+          <motion.button
+            whileTap={{ scale: 0.985 }}
+            onClick={handleRetry}
+            className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
+          >
+            Reintentar
+          </motion.button>
+        </>
+      )}
+    </motion.div>
   );
 };
