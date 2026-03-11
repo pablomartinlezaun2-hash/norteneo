@@ -142,7 +142,6 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
-  const [showChat, setShowChat] = useState(false);
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
@@ -152,17 +151,6 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
     setNotePriority('stable');
     setSaving(false);
   };
-
-  if (showChat && athlete.coach_id) {
-    return (
-      <ChatView
-        athleteProfileId={athlete.id}
-        coachProfileId={athlete.coach_id}
-        athleteName={athlete.full_name ?? athlete.email ?? 'Atleta'}
-        onBack={() => setShowChat(false)}
-      />
-    );
-  }
 
   return (
     <motion.div
