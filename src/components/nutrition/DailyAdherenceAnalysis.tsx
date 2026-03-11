@@ -349,8 +349,8 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
 
   /* ── AI Summary Text ── */
   const aiText = useMemo(() => {
-    if (!hasAnyData) {
-      return 'No hay datos registrados hoy. Registra tus comidas, entrenos y suplementos para ver tu análisis de adherencia diaria.';
+    if (globalScore === null || !hasAnyData) {
+      return 'Sin datos registrados hoy. Registra tus comidas, entrenos y suplementos para ver tu análisis de adherencia diaria.';
     }
 
     const lines: string[] = [];
