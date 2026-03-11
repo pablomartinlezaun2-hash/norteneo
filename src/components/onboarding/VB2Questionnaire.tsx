@@ -59,6 +59,9 @@ export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) 
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [direction, setDirection] = useState(1);
+  const [activating, setActivating] = useState(false);
+  const [activated, setActivated] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
 
   const isIntro = screen === 0;
   const isCompletion = screen === STEPS.length + 1;
