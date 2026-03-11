@@ -88,6 +88,39 @@ export type Database = {
           },
         ]
       }
+      adherence_metric_settings: {
+        Row: {
+          created_at: string
+          id: string
+          nutrition_enabled: boolean
+          sleep_enabled: boolean
+          supplements_enabled: boolean
+          training_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nutrition_enabled?: boolean
+          sleep_enabled?: boolean
+          supplements_enabled?: boolean
+          training_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nutrition_enabled?: boolean
+          sleep_enabled?: boolean
+          supplements_enabled?: boolean
+          training_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       athlete_metrics: {
         Row: {
           created_at: string | null
