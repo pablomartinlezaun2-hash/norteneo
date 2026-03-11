@@ -12,6 +12,12 @@ export interface AdherenceDayData {
   sleep_adherence: number | null;
   supplement_adherence: number | null;
   total_adherence: number | null;
+  exclusion_reasons?: {
+    nutrition?: string;
+    training?: string;
+    sleep?: string;
+    supplements?: string;
+  };
 }
 
 interface Props {
