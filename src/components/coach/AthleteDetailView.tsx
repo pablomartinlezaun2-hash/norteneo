@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft, Activity, Moon, Brain, Utensils, Dumbbell, Heart, TrendingUp,
   AlertTriangle, FileText, Shield, Loader2, ChevronDown, Zap, Droplets,
@@ -142,7 +142,6 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
-  const [showChat, setShowChat] = useState(false);
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
@@ -152,17 +151,6 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
     setNotePriority('stable');
     setSaving(false);
   };
-
-  if (showChat && athlete.coach_id) {
-    return (
-      <ChatView
-        athleteProfileId={athlete.id}
-        coachProfileId={athlete.coach_id}
-        athleteName={athlete.full_name ?? athlete.email ?? 'Atleta'}
-        onBack={() => setShowChat(false)}
-      />
-    );
-  }
 
   return (
     <motion.div
@@ -204,17 +192,6 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
             </p>
           )}
         </div>
-        {/* Chat button */}
-        {athlete.coach_id && (
-          <motion.button
-            onClick={() => setShowChat(true)}
-            className="w-9 h-9 rounded-xl bg-foreground/10 flex items-center justify-center mt-0.5 flex-shrink-0"
-            whileTap={{ scale: 0.92 }}
-            title="Abrir chat"
-          >
-            <MessageCircle className="w-4 h-4 text-foreground" />
-          </motion.button>
-        )}
       </div>
 
       {/* ── Quick Stats ── */}
@@ -506,6 +483,23 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               </div>
             </AccordionContent>
           </AccordionItem>
+
+          {/* ── 10. Comunicación ── */}
+          {athlete.coach_id && (
+            <AccordionItem value="chat" className="rounded-2xl border border-border/40 bg-card/30 overflow-hidden border-b-0">
+              <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                <SectionIcon icon={MessageCircle} label="Comunicación" />
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-2">
+                <ChatView
+                  athleteProfileId={athlete.id}
+                  coachProfileId={athlete.coach_id}
+                  athleteName={athlete.full_name ?? athlete.email ?? 'Atleta'}
+                  embedded
+                />
+              </AccordionContent>
+            </AccordionItem>
+          )}
         </Accordion>
       )}
 
