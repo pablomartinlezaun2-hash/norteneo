@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Activity, AlertTriangle, ChevronRight, Search, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Users, Activity, AlertTriangle, ChevronRight, Search, SlidersHorizontal, Loader2, MessageCircle } from 'lucide-react';
 import { useCoachAthletes, CoachAthlete, CoachFilter, CoachSort } from '@/hooks/useCoachAthletes';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { AthleteDetailView } from './AthleteDetailView';
 import { cn } from '@/lib/utils';
 
