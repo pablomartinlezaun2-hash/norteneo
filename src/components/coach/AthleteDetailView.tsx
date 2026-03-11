@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Activity, Moon, Brain, Utensils, Dumbbell, Heart, TrendingUp,
   AlertTriangle, FileText, Shield, Loader2, ChevronDown, Zap, Droplets,
-  MessageSquarePlus, Clock
+  MessageSquarePlus, Clock, MessageCircle
 } from 'lucide-react';
+import { CoachChatView } from './CoachChatView';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -141,6 +142,17 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
   const [noteText, setNoteText] = useState('');
   const [notePriority, setNotePriority] = useState('stable');
   const [saving, setSaving] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  if (showChat) {
+    return (
+      <CoachChatView
+        counterpartProfileId={athlete.id}
+        counterpartName={athlete.full_name ?? athlete.email ?? 'Atleta'}
+        onBack={() => setShowChat(false)}
+      />
+    );
+  }
 
   const handleAddNote = async () => {
     if (!noteText.trim()) return;
@@ -191,6 +203,14 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
             </p>
           )}
         </div>
+        {/* Chat button */}
+        <motion.button
+          onClick={() => setShowChat(true)}
+          className="w-9 h-9 rounded-xl bg-muted/40 flex items-center justify-center mt-0.5 flex-shrink-0"
+          whileTap={{ scale: 0.92 }}
+        >
+          <MessageCircle className="w-4 h-4 text-foreground" />
+        </motion.button>
       </div>
 
       {/* ── Quick Stats ── */}

@@ -11,13 +11,15 @@ import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { ProfileSection } from '@/components/profile';
 import { CoachPanel } from '@/components/coach/CoachPanel';
+import { AthleteChatSection } from '@/components/coach/AthleteChatSection';
 import { COACH_PREVIEW_EMAILS } from '@/components/coach/coachConstants';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield } from 'lucide-react';
+import { TrendingUp, Apple, Loader2, Pencil, FolderOpen, User, Timer as TimerIcon, Play, Pause, RotateCcw, Shield, MessageCircle } from 'lucide-react';
 import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
+import { supabase } from '@/integrations/supabase/client';
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -30,10 +32,11 @@ const Index = () => {
     getTotalCompleted, getCyclesCompleted, getProgressInCurrentCycle
   } = useCompletedSessions();
 
-  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile' | 'coach';
+  type MainTab = 'workouts' | 'progress' | 'nutrition' | 'exercises' | 'design' | 'profile' | 'coach' | 'messages';
   const [mainTab, setMainTab] = useState<MainTab>('workouts');
 
   const isCoach = !!user?.email && COACH_PREVIEW_EMAILS.includes(user.email);
+  const [hasCoach, setHasCoach] = useState(false);
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -44,6 +47,29 @@ const Index = () => {
   const [timerOpen, setTimerOpen] = useState(false);
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
+
+  // Check if athlete has a coach assigned (for messages tab)
+  useEffect(() => {
+    if (!user || isCoach) return;
+    (supabase as any)
+      .from('profiles')
+      .select('coach_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        setHasCoach(!!data?.coach_id);
+      });
+  }, [user, isCoach]);
+
+  // Listen for nav events from chat back button
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) setMainTab(detail as MainTab);
+    };
+    window.addEventListener('neo-nav', handler);
+    return () => window.removeEventListener('neo-nav', handler);
+  }, []);
 
   const tabs = useMemo(() => {
     const base = [
@@ -56,8 +82,11 @@ const Index = () => {
     if (isCoach) {
       return [...base, { key: 'coach' as const, icon: Shield, labelKey: 'Coach' }] as const;
     }
+    if (hasCoach) {
+      return [...base, { key: 'messages' as const, icon: MessageCircle, labelKey: 'Chat' }] as const;
+    }
     return base;
-  }, [isCoach]);
+  }, [isCoach, hasCoach]);
 
   useEffect(() => {
     if (!programLoading && !program && !hasSeenWelcome) {
@@ -152,6 +181,7 @@ const Index = () => {
       case 'nutrition': return <NutritionSection />;
       case 'profile': return <ProfileSection onRestartTour={handleRestartTour} />;
       case 'coach': return isCoach ? <CoachPanel /> : <WorkoutsHub />;
+      case 'messages': return hasCoach ? <AthleteChatSection /> : <WorkoutsHub />;
       default: return <WorkoutsHub />;
     }
   };
