@@ -127,11 +127,12 @@ export function useCoachAthletes() {
       const profileIds = athleteProfiles.map((p: any) => p.id);
 
       // 3. Fetch latest data for each athlete in parallel
-      const [fatigueRes, adherenceRes, metricsRes, alertsRes] = await Promise.all([
+      const [fatigueRes, adherenceRes, metricsRes, alertsRes, conversationsRes] = await Promise.all([
         rpcSelect('fatigue_state', 'user_id, date, global_fatigue', { user_id: profileIds }, 'date'),
         rpcSelect('adherence_logs', 'user_id, date, total_adherence', { user_id: profileIds }, 'date'),
         rpcSelect('athlete_metrics', 'user_id, date, sleep_hours, stress_level, readiness_score', { user_id: profileIds }, 'date'),
         rpcSelect('coach_performance_alerts', 'user_id', { user_id: profileIds, is_active: true }),
+        rpcSelect('coach_conversations', 'athlete_id, status, last_message_preview, last_message_at', { coach_id: coachProfileId }),
       ]);
 
       // Build lookup maps (latest per user)
