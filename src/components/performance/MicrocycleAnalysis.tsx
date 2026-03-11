@@ -403,12 +403,14 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
         const totalF = dayFood.reduce((s, l) => s + (Number(l.fat) || 0), 0);
         const nutritionAcc = dayFood.length > 0
           ? Math.round((calcGeneralAccuracy(g.daily_protein, totalP) + calcGeneralAccuracy(g.daily_carbs, totalC) + calcGeneralAccuracy(g.daily_fat, totalF)) / 3)
-          : 100;
+          : 0;
+        const hasNutritionData = dayFood.length > 0;
 
         // Set logs for this day
         const daySets = allSets.filter((s: any) => s.logged_at && s.logged_at.startsWith(dateStr));
-        let trainingAcc = 100;
-        if (daySets.length > 0) {
+        let trainingAcc = 0;
+        const hasTrainingData = daySets.length > 0;
+        if (hasTrainingData) {
           const byEx: Record<string, any[]> = {};
           daySets.forEach((log: any) => { const id = log.exercise_id; if (!byEx[id]) byEx[id] = []; byEx[id].push(log); });
           const exScores = Object.values(byEx).map(logs => {
@@ -431,15 +433,27 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
           const supp = supps.find((s: any) => s.id === sl.supplement_id);
           return { ...sl, name: supp?.name || 'Suplemento' };
         });
-        const suppAcc = supps.length > 0
+        const hasSupplementData = supps.length > 0;
+        const suppAcc = hasSupplementData
           ? calcGeneralAccuracy(supps.length, daySuppLogs.length)
-          : 100;
+          : 0;
 
-        // Sleep (no table yet — default 100)
-        const sleepAcc = 100;
+        // Sleep — no data source in microcycle yet
+        const sleepAcc = 0;
+        const hasSleepData = false;
 
-        const globalAcc = calcGlobalAccuracy(nutritionAcc, trainingAcc, sleepAcc, suppAcc);
-        const hasData = dayFood.length > 0 || daySets.length > 0 || daySuppLogs.length > 0;
+        // Dynamic adherence: only count enabled metrics with real data
+        const globalAcc = calcDynamicAdherence(
+          {
+            nutrition: { acc: nutritionAcc, hasData: hasNutritionData },
+            training: { acc: trainingAcc, hasData: hasTrainingData },
+            sleep: { acc: sleepAcc, hasData: hasSleepData },
+            supplements: { acc: suppAcc, hasData: hasSupplementData },
+          },
+          adherenceSettings
+        ) ?? 0;
+
+        const hasData = hasNutritionData || hasTrainingData || daySuppLogs.length > 0;
 
         return {
           date: dateStr,
