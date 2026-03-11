@@ -187,6 +187,7 @@ export function useCoachAthletes() {
           years_training: p.years_training,
           main_goal: p.main_goal,
           updated_at: p.updated_at,
+          coach_id: p.coach_id,
           fatigue_level: classifyFatigue(fatigue?.global_fatigue ?? null),
           global_fatigue: fatigue?.global_fatigue ?? null,
           total_adherence: adherence?.total_adherence ?? null,
