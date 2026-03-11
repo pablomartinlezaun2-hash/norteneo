@@ -324,6 +324,7 @@ export function useAthleteDetail(athleteProfileId: string | null) {
         nutrition_adherence: r.nutrition_adherence,
         sleep_adherence: r.sleep_adherence,
         supplement_adherence: r.supplement_adherence,
+        exclusion_reasons: undefined as { nutrition?: string; training?: string; sleep?: string; supplements?: string } | undefined,
       })).reverse();
 
       const adherenceHistory = computedHistory.length > 0
