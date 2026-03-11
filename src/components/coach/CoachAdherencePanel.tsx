@@ -189,15 +189,18 @@ const DayDetailSheet = ({ day, onClose }: { day: AdherenceDayData; onClose: () =
         {excluded.length > 0 && (
           <div className="space-y-1">
             <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest mb-1">Excluidas</p>
-            {excluded.map(m => (
-              <div key={m.key} className="flex items-center justify-between py-1.5 px-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <m.icon className="w-3 h-3 text-muted-foreground/20" />
-                  <span className="text-[11px] text-muted-foreground/30">{m.label}</span>
+            {excluded.map(m => {
+              const exclusionReason = day.exclusion_reasons?.[m.reasonKey] ?? 'Sin registro';
+              return (
+                <div key={m.key} className="flex items-center justify-between py-1.5 px-3 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <m.icon className="w-3 h-3 text-muted-foreground/20" />
+                    <span className="text-[11px] text-muted-foreground/30">{m.label}</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground/30">{exclusionReason}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground/20">No registrado</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </motion.div>
