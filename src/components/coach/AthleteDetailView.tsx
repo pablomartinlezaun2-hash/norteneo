@@ -6,7 +6,7 @@ import {
   MessageSquarePlus, Clock, MessageCircle, ChevronRight, Flame, User
 } from 'lucide-react';
 import { NeoFatigueMap } from '@/components/neo/NeoFatigueMap';
-import { NeoModelSection } from '@/components/neo/NeoModelSection';
+import { Neo2DAnatomyModel } from '@/components/neo/Neo2DAnatomyModel';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
