@@ -211,6 +211,24 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               Última actividad: {athlete.last_activity_date}
             </p>
           )}
+
+          {/* Conversation status selector */}
+          <div className="flex gap-1.5 mt-2.5 flex-wrap">
+            {Object.entries(conversationStatusConfig).map(([key, cfg]) => (
+              <button
+                key={key}
+                onClick={() => updateConversationStatus(key)}
+                className={cn(
+                  "px-2 py-0.5 rounded-lg text-[9px] font-semibold transition-all",
+                  convStatus === key
+                    ? cfg.className + ' ring-1 ring-foreground/10'
+                    : 'bg-foreground/[0.03] text-muted-foreground/40 hover:text-muted-foreground'
+                )}
+              >
+                {cfg.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
