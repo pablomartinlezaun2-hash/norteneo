@@ -16,6 +16,7 @@ export interface CoachAthlete {
   years_training: string | null;
   main_goal: string | null;
   updated_at: string;
+  coach_id: string | null;
   fatigue_level: 'Alta' | 'Media' | 'Baja' | 'Sin datos';
   global_fatigue: number | null;
   total_adherence: number | null;
