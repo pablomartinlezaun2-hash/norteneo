@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncTrainingToCoach } from '@/lib/syncTrainingToCoach';
 
 export interface Mesocycle {
   id: string;
@@ -232,6 +233,24 @@ export const usePeriodization = (programId?: string) => {
         });
 
       if (insertErr) throw insertErr;
+
+      // Sync to coach_training_sessions for Coach Panel visibility
+      const { data: wsData } = await supabase
+        .from('workout_sessions')
+        .select('name')
+        .eq('id', sessionId)
+        .maybeSingle();
+
+      const microName = state.activeMicrocycle
+        ? `Micro ${state.activeMicrocycle.microcycle_number}`
+        : undefined;
+
+      syncTrainingToCoach({
+        sessionName: wsData?.name ?? undefined,
+        sessionType: 'Gimnasio',
+        microcycleName: microName,
+        completed: true,
+      });
 
       // 3. Check if all sessions are now completed for this microcycle
       const { data: programSessions } = await supabase

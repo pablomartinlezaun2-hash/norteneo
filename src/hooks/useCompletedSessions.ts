@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { CompletedSession } from '@/types/database';
+import { syncTrainingToCoach } from '@/lib/syncTrainingToCoach';
 
 export const useCompletedSessions = () => {
   const { user } = useAuth();
@@ -34,7 +35,7 @@ export const useCompletedSessions = () => {
     fetchCompletedSessions();
   }, [fetchCompletedSessions]);
 
-  const markSessionComplete = async (sessionId: string) => {
+  const markSessionComplete = async (sessionId: string, opts?: { sessionName?: string; sessionType?: string; microcycleName?: string }) => {
     if (!user) return { error: 'No autenticado' };
 
     try {
@@ -49,6 +50,31 @@ export const useCompletedSessions = () => {
 
       if (error) throw error;
       setCompletedSessions(prev => [data, ...prev]);
+
+      // Sync to coach_training_sessions (fire and forget)
+      const sessionName = opts?.sessionName;
+      if (!sessionName) {
+        // Try to get session name from DB
+        const { data: ws } = await supabase
+          .from('workout_sessions')
+          .select('name')
+          .eq('id', sessionId)
+          .maybeSingle();
+        syncTrainingToCoach({
+          sessionName: ws?.name ?? undefined,
+          sessionType: opts?.sessionType ?? 'Gimnasio',
+          microcycleName: opts?.microcycleName,
+          completed: true,
+        });
+      } else {
+        syncTrainingToCoach({
+          sessionName,
+          sessionType: opts?.sessionType ?? 'Gimnasio',
+          microcycleName: opts?.microcycleName,
+          completed: true,
+        });
+      }
+
       return { data, error: null };
     } catch (err) {
       return { error: err instanceof Error ? err.message : 'Error al marcar sesión' };

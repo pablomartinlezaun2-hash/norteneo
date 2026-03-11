@@ -340,7 +340,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
                   <p className="text-[10px] text-muted-foreground/50 pt-1 italic">Ajuste sugerido: placeholder</p>
                 </div>
               ) : (
-                <p className="text-[12px] text-muted-foreground py-3">Sin sesiones registradas</p>
+                <p className="text-[12px] text-muted-foreground py-3">Aún no hay entrenamientos registrados</p>
               )}
             </AccordionContent>
           </AccordionItem>

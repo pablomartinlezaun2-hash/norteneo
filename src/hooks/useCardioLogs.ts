@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncTrainingToCoach } from '@/lib/syncTrainingToCoach';
 
 export interface CardioInterval {
   id?: string;
@@ -101,6 +102,14 @@ export const useCardioLogs = (activityType: 'running' | 'swimming') => {
 
         if (ivError) throw ivError;
       }
+
+      // Sync to coach_training_sessions
+      const typeLabel = activityType === 'running' ? 'Running' : activityType === 'swimming' ? 'Natación' : activityType;
+      syncTrainingToCoach({
+        sessionName: sessionData.session_name ?? `Sesión ${typeLabel}`,
+        sessionType: typeLabel,
+        completed: true,
+      });
 
       await fetchSessions();
       return { error: null };
