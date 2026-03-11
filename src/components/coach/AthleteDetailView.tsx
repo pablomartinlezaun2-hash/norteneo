@@ -6,6 +6,7 @@ import {
   MessageSquarePlus, Clock, MessageCircle, ChevronRight, Flame, User
 } from 'lucide-react';
 import { NeoFatigueMap } from '@/components/neo/NeoFatigueMap';
+import { CoachAdherencePanel } from './CoachAdherencePanel';
 import { Neo2DAnatomyModel } from '@/components/neo/Neo2DAnatomyModel';
 import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
