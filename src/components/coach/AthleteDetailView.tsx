@@ -506,6 +506,23 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               </div>
             </AccordionContent>
           </AccordionItem>
+
+          {/* ── 10. Comunicación ── */}
+          {athlete.coach_id && (
+            <AccordionItem value="chat" className="rounded-2xl border border-border/40 bg-card/30 overflow-hidden border-b-0">
+              <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                <SectionIcon icon={MessageCircle} label="Comunicación" />
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-2">
+                <ChatView
+                  athleteProfileId={athlete.id}
+                  coachProfileId={athlete.coach_id}
+                  athleteName={athlete.full_name ?? athlete.email ?? 'Atleta'}
+                  embedded
+                />
+              </AccordionContent>
+            </AccordionItem>
+          )}
         </Accordion>
       )}
 
