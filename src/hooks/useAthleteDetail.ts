@@ -101,6 +101,9 @@ export interface AthleteDetailData {
     priority: string | null;
     created_at: string;
   }[];
+  // Set logs & exercises for NEO components
+  setLogs: import('@/types/database').SetLog[];
+  exercises: { id: string; name: string; sessionName: string }[];
 }
 
 export function useAthleteDetail(athleteProfileId: string | null) {
