@@ -22,6 +22,8 @@ const COACH_QUICK_ACTIONS = [
   'Baja volumen hoy',
   'Sube carbohidratos',
   'Actualiza métricas',
+  'Dame feedback del entreno',
+  '¿Cómo has dormido?',
 ];
 
 export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack, embedded = false }: ChatViewProps) => {
