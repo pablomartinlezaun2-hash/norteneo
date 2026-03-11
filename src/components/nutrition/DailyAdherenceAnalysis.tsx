@@ -629,9 +629,11 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
           <EmptyState message="No hay comidas registradas hoy. Registra tus ingestas para ver el análisis nutricional." />
         )}
       </AccordionSection>
+      )}
 
       {/* ═══════ 3. ENTRENAMIENTO ═══════ */}
-      <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={trainingAcc}>
+      {adherenceSettings.trainingEnabled && (
+      <AccordionSection icon={Dumbbell} title="Entrenamiento" accuracy={hasTrainingData ? trainingAcc : 0} hideAccuracy={!hasTrainingData}>
         {realTraining ? (() => {
           const exercises = realTraining.exercises.map((ex: any) => ({
             id: ex.name,
@@ -728,10 +730,19 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
           <EmptyState message="No hay series registradas hoy. Completa tu entreno para ver el análisis." />
         )}
       </AccordionSection>
+      )}
 
       {/* ═══════ 4. RECUPERACIÓN Y SUPLEMENTOS ═══════ */}
-      <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={Math.round((sleepAcc + suppAcc) / 2)}>
+      {(adherenceSettings.sleepEnabled || adherenceSettings.supplementsEnabled) && (
+      <AccordionSection icon={Moon} title="Recuperación y Suplementos" accuracy={(() => {
+        const parts: number[] = [];
+        if (adherenceSettings.sleepEnabled && hasSleepData) parts.push(sleepAcc);
+        if (adherenceSettings.supplementsEnabled && hasSupplementData) parts.push(suppAcc);
+        return parts.length > 0 ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : 0;
+      })()} hideAccuracy={!hasSleepData && !hasSupplementData}>
         {/* Sleep */}
+        {adherenceSettings.sleepEnabled && (
+          <>
         {realSleep ? (
           <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
             <div className="flex items-center justify-between mb-1">
@@ -787,8 +798,12 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
             <p className="text-xs text-muted-foreground">Sin registro de sueño hoy. Regístralo desde Nutrición → Sueño.</p>
           </div>
         )}
+          </>
+        )}
 
         {/* Supplements */}
+        {adherenceSettings.supplementsEnabled && (
+          <>
         {realSupplements ? (
           <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3">
             <div className="flex items-center gap-2 mb-1">
@@ -824,7 +839,10 @@ export const DailyAdherenceAnalysis = ({ goals, refreshTrigger = 0, microcycleId
             <p className="text-xs text-muted-foreground">No hay suplementos configurados. Añade suplementos desde la sección de Nutrición.</p>
           </div>
         )}
+          </>
+        )}
       </AccordionSection>
+      )}
 
       {/* ═══════ 5. ANÁLISIS DEL MICROCICLO ═══════ */}
       <AccordionSection icon={TrendingUp} title="Análisis del Microciclo" accuracy={0} hideAccuracy defaultOpen={false}>
