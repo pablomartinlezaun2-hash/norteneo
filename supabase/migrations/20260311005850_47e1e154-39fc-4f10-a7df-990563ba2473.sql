@@ -1,0 +1,1 @@
+ALTER TABLE public.athlete_metrics ADD COLUMN IF NOT EXISTS injuries_or_discomfort text;

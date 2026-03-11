@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { activateVB2 } from '@/lib/activateVB2';
-import { mapVB2AnswersToProfile } from '@/lib/questionnaireMapper';
+import { mapVB2AnswersToProfile, mapVB2AnswersToMetrics } from '@/lib/questionnaireMapper';
+import { saveInitialMetrics } from '@/lib/saveInitialMetrics';
 
 interface VB2QuestionnaireProps {
   onComplete: () => void;
@@ -296,9 +297,12 @@ const CompletionScreen = ({
     setActivationError(null);
     try {
       const profileData = mapVB2AnswersToProfile(answers);
+      const metricsData = mapVB2AnswersToMetrics(answers);
       const result = await activateVB2(profileData);
       if (result.success) {
         saveProfile('vb2', answers);
+        // Save context metrics (sleep, stress, injuries, etc.)
+        await saveInitialMetrics(metricsData);
         setActivated(true);
       } else {
         setActivationError(result.error || 'Error al activar VB2');

@@ -53,6 +53,7 @@ export interface AthleteDetailData {
     fatigue_subjective: number | null;
     readiness_score: number | null;
     mental_load: string | null;
+    injuries_or_discomfort: string | null;
     date: string | null;
   } | null;
   // Training sessions
@@ -187,6 +188,7 @@ export function useAthleteDetail(athleteProfileId: string | null) {
           fatigue_subjective: m.fatigue_subjective,
           readiness_score: m.readiness_score,
           mental_load: m.mental_load,
+          injuries_or_discomfort: m.injuries_or_discomfort ?? null,
           date: m.date,
         } : null,
         trainingSessions: (trainingRes.data ?? []).map((t: any) => ({

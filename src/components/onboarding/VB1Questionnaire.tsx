@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { saveProfileToSupabase } from '@/lib/activateVB2';
-import { mapVB1AnswersToProfile } from '@/lib/questionnaireMapper';
+import { saveInitialMetrics } from '@/lib/saveInitialMetrics';
+import { mapVB1AnswersToProfile, mapVB1AnswersToMetrics } from '@/lib/questionnaireMapper';
 
 /* ─── Types ─── */
 
@@ -282,7 +283,9 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 onClick={async () => {
                   saveProfile('vb1', answers);
                   const profileData = mapVB1AnswersToProfile(answers);
+                  const metricsData = mapVB1AnswersToMetrics(answers);
                   await saveProfileToSupabase('VB1', profileData);
+                  await saveInitialMetrics(metricsData);
                   onComplete();
                 }}
                 className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"

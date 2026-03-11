@@ -220,12 +220,18 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               <SectionIcon icon={Heart} label="Perfil base" />
             </AccordionTrigger>
             <AccordionContent className="px-4">
-              {athlete.age != null && <MetricRow label="Edad" value={`${athlete.age} años`} />}
-              {athlete.weight != null && <MetricRow label="Peso" value={`${athlete.weight} kg`} />}
-              {athlete.height != null && <MetricRow label="Altura" value={`${athlete.height} cm`} />}
-              {athlete.disciplines?.length ? <MetricRow label="Disciplinas" value={athlete.disciplines.join(', ')} /> : null}
-              {athlete.years_training && <MetricRow label="Experiencia" value={athlete.years_training} />}
-              {athlete.main_goal && <MetricRow label="Objetivo" value={athlete.main_goal} />}
+              {(athlete.age != null || athlete.weight != null || athlete.height != null || athlete.disciplines?.length || athlete.years_training || athlete.main_goal) ? (
+                <>
+                  <MetricRow label="Edad" value={athlete.age != null ? `${athlete.age} años` : '—'} />
+                  <MetricRow label="Peso" value={athlete.weight != null ? `${athlete.weight} kg` : '—'} />
+                  <MetricRow label="Altura" value={athlete.height != null ? `${athlete.height} cm` : '—'} />
+                  <MetricRow label="Disciplinas" value={athlete.disciplines?.length ? athlete.disciplines.join(', ') : '—'} />
+                  <MetricRow label="Experiencia" value={athlete.years_training ?? '—'} />
+                  <MetricRow label="Objetivo" value={athlete.main_goal ?? '—'} />
+                </>
+              ) : (
+                <p className="text-[12px] text-muted-foreground py-3">Pendiente de registro</p>
+              )}
             </AccordionContent>
           </AccordionItem>
 
@@ -240,7 +246,7 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
               <MetricRow label="Estrés" value={detail?.metrics?.stress_level ?? '—'} />
               <MetricRow label="Adh. nutricional" value={detail?.adherence?.nutrition_adherence != null ? `${Math.round(detail.adherence.nutrition_adherence)}%` : '—'} />
               <MetricRow label="Carga mental" value={detail?.metrics?.mental_load ?? '—'} />
-              <MetricRow label="Lesiones / molestias" value="—" sub="placeholder" />
+              <MetricRow label="Lesiones / molestias" value={detail?.metrics?.injuries_or_discomfort ?? '—'} />
             </AccordionContent>
           </AccordionItem>
 
