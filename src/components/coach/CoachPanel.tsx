@@ -285,9 +285,9 @@ export const CoachPanel = () => {
                       {kpis.highFatigue} atleta{kpis.highFatigue > 1 ? 's' : ''} con fatiga alta
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {allAthletes
+                    {allAthletes
                         .filter((a) => a.fatigue_level === 'Alta')
-                        .map((a) => a.full_name ?? 'Sin nombre')
+                        .map((a) => a.full_name ?? a.email ?? 'Sin nombre')
                         .join(', ')}
                     </p>
                   </div>
