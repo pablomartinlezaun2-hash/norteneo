@@ -165,7 +165,7 @@ export function useAthleteDetail(athleteProfileId: string | null) {
         rpcSelect('nutrition_daily', '*', { user_id: athleteProfileId }, 'date', 1),
         rpcSelect('coach_performance_alerts', '*', { user_id: athleteProfileId, is_active: true }, 'date'),
         rpcSelect('fatigue_state', 'date, global_fatigue', { user_id: athleteProfileId }, 'date', 14),
-        rpcSelect('adherence_logs', 'date, total_adherence', { user_id: athleteProfileId }, 'date', 14),
+        rpcSelect('adherence_logs', 'date, total_adherence, training_adherence, nutrition_adherence, sleep_adherence, supplement_adherence', { user_id: athleteProfileId }, 'date', 14),
         rpcSelect('athlete_metrics', 'date, weight', { user_id: athleteProfileId }, 'date', 14),
         coachProfileId
           ? rpcSelect('coach_notes', '*', { athlete_id: athleteProfileId, coach_id: coachProfileId }, 'created_at')
