@@ -223,7 +223,7 @@ export const CoachPanel = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold text-foreground truncate">
-                              {athlete.full_name ?? 'Sin nombre'}
+                              {athlete.full_name ?? athlete.email ?? 'Sin nombre'}
                             </p>
                             {athlete.active_model && (
                               <span
