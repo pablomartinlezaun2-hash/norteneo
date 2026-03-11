@@ -260,22 +260,61 @@ export const VB2Questionnaire = ({ onComplete, onBack }: VB2QuestionnaireProps) 
               <div className="bg-[#F5F5F7] rounded-2xl px-5 py-2.5 mb-10">
                 <span className="text-xl font-bold tracking-[0.25em] text-black">NEO</span>
               </div>
-              <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-4">
-                VB2 configurado
-              </h1>
-              <p className="text-[13px] font-light leading-[1.7] text-[#636366] mb-4 max-w-[300px]">
-                Ya tenemos una base mucho más completa para trabajar con mayor precisión dentro de NEO.
-              </p>
-              <p className="text-[12px] font-light text-[#48484A] mb-10 max-w-[280px]">
-                En el siguiente paso, este perfil podrá utilizarse para construir una experiencia mucho más precisa y avanzada.
-              </p>
-              <motion.button
-                whileTap={{ scale: 0.985 }}
-                onClick={() => { saveProfile('vb2', answers); onComplete(); }}
-                className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
-              >
-                Continuar
-              </motion.button>
+
+              {activated ? (
+                <>
+                  <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-2">
+                    VB2 activado
+                  </h1>
+                  <p className="text-[13px] font-medium text-[#8E8E93] mb-6">
+                    Seguimiento asignado
+                  </p>
+                  <div className="rounded-xl border border-[#1C1C1E] bg-[#111111] px-5 py-4 mb-10 w-full">
+                    <p className="text-[12px] font-light leading-[1.7] text-[#8E8E93]">
+                      Tu perfil VB2 está activo. Asesoría 1:1 con Pablo asignada automáticamente.
+                    </p>
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.985 }}
+                    onClick={() => { saveProfile('vb2', answers); onComplete(); }}
+                    className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em]"
+                  >
+                    Continuar
+                  </motion.button>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-[24px] font-semibold text-[#F5F5F7] tracking-[-0.01em] mb-4">
+                    VB2 configurado
+                  </h1>
+                  <p className="text-[13px] font-light leading-[1.7] text-[#636366] mb-4 max-w-[300px]">
+                    Ya tenemos una base mucho más completa para trabajar con mayor precisión dentro de NEO.
+                  </p>
+                  {activationError && (
+                    <p className="text-[12px] font-medium text-red-400 mb-4">
+                      {activationError}
+                    </p>
+                  )}
+                  <motion.button
+                    whileTap={{ scale: 0.985 }}
+                    disabled={activating}
+                    onClick={async () => {
+                      setActivating(true);
+                      setActivationError(null);
+                      const result = await activateVB2();
+                      if (result.success) {
+                        setActivated(true);
+                      } else {
+                        setActivationError(result.error || 'Error al activar VB2');
+                      }
+                      setActivating(false);
+                    }}
+                    className="w-full max-w-[280px] h-[48px] rounded-xl bg-[#F5F5F7] text-black text-[14px] font-medium tracking-[0.01em] disabled:opacity-50"
+                  >
+                    {activating ? 'Activando...' : 'Activar VB2'}
+                  </motion.button>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
