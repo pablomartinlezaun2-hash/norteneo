@@ -252,9 +252,20 @@ export const CoachPanel = () => {
                             <span className="text-[11px] text-muted-foreground">
                               {athlete.total_adherence != null ? `${Math.round(athlete.total_adherence)}%` : '—'}
                             </span>
-                            {athlete.last_activity_date && (
-                              <span className="text-[10px] text-muted-foreground/50">
-                                {athlete.last_activity_date}
+                            {athlete.conversation_status && athlete.conversation_status !== 'stable' && (
+                              <span className={cn(
+                                'px-1.5 py-0.5 rounded text-[9px] font-semibold',
+                                athlete.conversation_status === 'review_today' ? 'bg-yellow-500/15 text-yellow-400'
+                                  : athlete.conversation_status === 'waiting_response' ? 'bg-sky-500/15 text-sky-400'
+                                  : athlete.conversation_status === 'action_pending' ? 'bg-red-500/15 text-red-400'
+                                  : athlete.conversation_status === 'followup_1on1' ? 'bg-foreground/10 text-foreground'
+                                  : 'bg-muted text-muted-foreground'
+                              )}>
+                                {athlete.conversation_status === 'review_today' ? 'Revisar'
+                                  : athlete.conversation_status === 'waiting_response' ? 'Esperando'
+                                  : athlete.conversation_status === 'action_pending' ? 'Acción'
+                                  : athlete.conversation_status === 'followup_1on1' ? '1:1'
+                                  : athlete.conversation_status}
                               </span>
                             )}
                             {athlete.active_alerts_count > 0 && (
@@ -264,6 +275,11 @@ export const CoachPanel = () => {
                               </span>
                             )}
                           </div>
+                          {athlete.last_message_preview && (
+                            <p className="text-[10px] text-muted-foreground/40 mt-1 truncate max-w-[200px]">
+                              {athlete.last_message_preview}
+                            </p>
+                          )}
                         </div>
 
                         {/* Unread badge */}
