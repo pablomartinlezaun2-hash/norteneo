@@ -169,14 +169,34 @@ const Index = () => {
           {/* Logo with subtle glow */}
           <div className="flex items-center gap-3">
             <motion.div
-              className="bg-foreground rounded-xl px-3 py-2"
+              className="relative rounded-xl px-4 py-2.5 overflow-hidden"
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.32, ease: premiumEase, delay: 0.04 }}
               whileTap={{ scale: 0.96 }}
-              style={{ boxShadow: '0 0 16px hsla(0, 0%, 100%, 0.06)' }}
+              style={{ background: '#000', boxShadow: '0 0 20px hsla(0, 0%, 100%, 0.08)' }}
             >
-              <span className="font-bold tracking-tight text-background text-xl text-center">NEO</span>
+              {/* Starfield */}
+              {Array.from({ length: 12 }).map((_, i) => (
+                <motion.span
+                  key={i}
+                  className="absolute rounded-full bg-white"
+                  style={{
+                    width: Math.random() > 0.5 ? 2 : 1.5,
+                    height: Math.random() > 0.5 ? 2 : 1.5,
+                    top: `${10 + Math.random() * 80}%`,
+                    left: `${5 + Math.random() * 90}%`,
+                  }}
+                  animate={{ opacity: [0.15, 0.8, 0.15] }}
+                  transition={{
+                    duration: 1.6 + Math.random() * 1.4,
+                    repeat: Infinity,
+                    delay: Math.random() * 2,
+                    ease: 'easeInOut',
+                  }}
+                />
+              ))}
+              <span className="relative z-10 font-bold tracking-tight text-white text-xl text-center">NEO</span>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: -6 }}
