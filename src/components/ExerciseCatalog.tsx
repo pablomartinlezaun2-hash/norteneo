@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Dumbbell, ChevronRight, ArrowLeft, Play, Lightbulb, Zap, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseSVGAnimation } from './exercise-animations';
+import { LazyVimeoEmbed } from './LazyVimeoEmbed';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from 'react-i18next';
 
@@ -63,17 +64,7 @@ export const ExerciseCatalog = () => {
         </Button>
         <div className="gradient-card rounded-xl p-6 border border-border space-y-6">
           {selectedExercise.video_url ? (
-            <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-              <iframe
-                src={selectedExercise.video_url}
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
+            <LazyVimeoEmbed videoUrl={selectedExercise.video_url} />
           ) : (
             <ExerciseSVGAnimation exerciseName={selectedExercise.name} className="w-full rounded-xl" />
           )}
