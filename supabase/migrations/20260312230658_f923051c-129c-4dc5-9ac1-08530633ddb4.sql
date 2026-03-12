@@ -1,0 +1,1 @@
+UPDATE exercises SET video_url = 'https://player.vimeo.com/video/1173096238?autoplay=1&loop=1&muted=1&background=1' WHERE name ILIKE '%cruces de polea%';
