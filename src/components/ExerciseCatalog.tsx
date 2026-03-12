@@ -62,7 +62,21 @@ export const ExerciseCatalog = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />{t('catalog.back')}
         </Button>
         <div className="gradient-card rounded-xl p-6 border border-border space-y-6">
-          <ExerciseSVGAnimation exerciseName={selectedExercise.name} className="w-full rounded-xl" />
+          {selectedExercise.video_url ? (
+            <div className="aspect-video rounded-xl overflow-hidden bg-muted">
+              <iframe
+                src={selectedExercise.video_url}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          ) : (
+            <ExerciseSVGAnimation exerciseName={selectedExercise.name} className="w-full rounded-xl" />
+          )}
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">{selectedExercise.name}</h2>
