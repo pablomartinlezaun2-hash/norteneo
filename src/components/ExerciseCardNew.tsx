@@ -5,6 +5,7 @@ import { useExerciseNotes } from '@/hooks/useExerciseNotes';
 import { SetProgressChart } from './SetProgressChart';
 import { SetForm } from './SetForm';
 import { SetLogList } from './SetLogList';
+import { LazyVimeoEmbed } from './LazyVimeoEmbed';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { 
