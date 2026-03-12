@@ -563,41 +563,6 @@ export const UnifiedProgressChart = ({
         </motion.div>
       </div>
 
-      {/* Gym cycle progress */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="gradient-card rounded-2xl p-5 border border-border apple-shadow"
-      >
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Ciclo de gimnasio</span>
-          </div>
-          <span className="text-primary font-bold">{progressInCycle}/4</span>
-        </div>
-        <div className="flex gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <motion.div
-              key={i}
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.4 + i * 0.1 }}
-              className={cn(
-                "flex-1 h-4 rounded-full transition-all duration-500 origin-left",
-                i < progressInCycle ? 'gradient-primary glow-primary' : 'bg-muted'
-              )}
-            />
-          ))}
-        </div>
-        <p className="text-xs text-muted-foreground mt-3 text-center">
-          {progressInCycle === 4 
-            ? '🎉 ¡Ciclo completado!' 
-            : `${4 - progressInCycle} entreno${4 - progressInCycle > 1 ? 's' : ''} para completar`
-          }
-        </p>
-      </motion.div>
 
       {/* Weekly Stacked Bar Chart */}
       <motion.div 
