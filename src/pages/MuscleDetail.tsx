@@ -318,27 +318,6 @@ const MuscleDetail = () => {
           </div>
         )}
 
-        {/* Fatigue indicator — Neo Fatigue 2.0 exponential model */}
-        <div className="rounded-xl p-3 border border-border/30 bg-card/60 backdrop-blur-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4" style={{ color: fatigue.color }} />
-            <span className="text-xs font-semibold text-foreground">Estado de recuperación</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium ml-auto" style={{ background: `${fatigue.color}20`, color: fatigue.color }}>
-              {fatigue.label}
-            </span>
-          </div>
-          <div className="w-full h-2.5 rounded-full bg-secondary/50 overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${fatigue.recovery_pct}%`, background: fatigue.color }} />
-          </div>
-          <p className="text-[11px] text-muted-foreground mt-1.5">
-            {fatigue.recovery_pct}% recuperado · {fatigue.hours_since_last < 999 ? `Hace ${fatigue.hours_since_last}h` : 'Sin datos'}
-            {fatigue.hours_remaining > 0 && ` · ~${fatigue.hours_remaining}h restantes`}
-          </p>
-          <p className="text-[9px] text-muted-foreground/60 mt-1">
-            Modelo: decaimiento exponencial (k={fatigue.recovery_group})
-          </p>
-        </div>
-
         {/* Stats cards */}
         <div className="grid grid-cols-3 gap-3">
           {[
