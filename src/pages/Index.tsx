@@ -187,7 +187,7 @@ const Index = () => {
               <p className="text-[10px] text-muted-foreground">
                 {getTotalCompleted()} {t('index.sessions')} • {getCyclesCompleted()} {t('index.cycles')}
               </p>
-              <PeriodizationBadge programId={program?.id} variant="compact" />
+              
             </motion.div>
           </div>
 
