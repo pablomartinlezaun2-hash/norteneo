@@ -333,21 +333,6 @@ const MuscleDetail = () => {
           ))}
         </div>
 
-        {/* Exercise list */}
-        <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3">
-            Ejercicios realizados ({musclePerf.exercises.length})
-          </h2>
-          <div className="space-y-3">
-            {musclePerf.exercises.map(ex => (
-              <ExerciseItem
-                key={ex.exerciseId}
-                ex={ex}
-                chartPoints={getExerciseChartPoints(ex.exerciseId, dateRange.start, dateRange.end)}
-              />
-            ))}
-          </div>
-        </div>
 
         {musclePerf.exercises.length === 0 && (
           <div className="text-center py-8">
