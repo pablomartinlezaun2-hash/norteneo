@@ -184,9 +184,6 @@ const Index = () => {
               transition={{ duration: 0.28, ease: premiumEase, delay: 0.12 }}
               className="flex items-center gap-2"
             >
-              <p className="text-[10px] text-muted-foreground">
-                {getTotalCompleted()} {t('index.sessions')} • {getCyclesCompleted()} {t('index.cycles')}
-              </p>
               
             </motion.div>
           </div>
