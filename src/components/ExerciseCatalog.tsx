@@ -64,17 +64,7 @@ export const ExerciseCatalog = () => {
         </Button>
         <div className="gradient-card rounded-xl p-6 border border-border space-y-6">
           {selectedExercise.video_url ? (
-            <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-              <iframe
-                src={selectedExercise.video_url}
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
+            <LazyVimeoEmbed videoUrl={selectedExercise.video_url} />
           ) : (
             <ExerciseSVGAnimation exerciseName={selectedExercise.name} className="w-full rounded-xl" />
           )}
