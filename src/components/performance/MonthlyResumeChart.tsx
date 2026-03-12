@@ -171,43 +171,6 @@ export const MonthlyResumeChart = ({ setLogs, completedSessions }: MonthlyResume
         </div>
       </div>
 
-      {/* Monthly Chart */}
-      <div className="gradient-card rounded-2xl p-5 border border-border apple-shadow">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Evolución (últimos 6 meses)</h3>
-        
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke="hsl(var(--border))" 
-                opacity={0.3} 
-                vertical={false}
-              />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 500 }}
-                tickLine={false}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                dy={8}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 500 }}
-                tickLine={false}
-                axisLine={false}
-                allowDecimals={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar 
-                dataKey="workouts" 
-                fill="hsl(var(--primary))" 
-                radius={[4, 4, 0, 0]}
-                name="Entrenos"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
     </motion.div>
   );
 };
