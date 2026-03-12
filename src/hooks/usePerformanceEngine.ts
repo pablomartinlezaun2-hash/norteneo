@@ -401,16 +401,18 @@ export const usePerformanceEngine = (config: PerformanceConfig = DEFAULT_CONFIG)
   ): Map<string, MusclePerformance> => {
     const exercisePerfs = computeExercisePerformances(startDate, endDate);
     const muscles = new Map<string, MusclePerformance>();
+    // Track the most recent training date per muscle across ALL exercises
+    const muscleLatestDate = new Map<string, string>();
 
-    // 1. Strength contributions
+    // 1. Strength contributions — accumulate exercises, track latest date
     for (const [exId, exPerf] of exercisePerfs) {
       const mapping = catalogMap.get(exId);
       if (!mapping) continue;
 
       if (!muscles.has(mapping.muscleId)) {
-        const lastDate = exPerf.lastDate || null;
-        const fatigue = calculateFatigue(mapping.muscleName, lastDate, 50, config);
-        fatigue.muscleId = mapping.muscleId;
+        // Placeholder fatigue — will be recalculated after all exercises are processed
+        const placeholderFatigue = calculateFatigue(mapping.muscleName, null, 50, config);
+        placeholderFatigue.muscleId = mapping.muscleId;
 
         muscles.set(mapping.muscleId, {
           muscleId: mapping.muscleId,
@@ -419,7 +421,7 @@ export const usePerformanceEngine = (config: PerformanceConfig = DEFAULT_CONFIG)
           totalIEM: 0,
           cardioLoad: 0,
           exercises: [],
-          fatigue,
+          fatigue: placeholderFatigue,
         });
       }
 
@@ -428,12 +430,22 @@ export const usePerformanceEngine = (config: PerformanceConfig = DEFAULT_CONFIG)
       muscle.totalIEM += exPerf.sessions.reduce((a, s) => a + s.session_iem, 0);
       muscle.exercises.push(exPerf);
 
+      // Track the most recent lastDate for this muscle across all its exercises
       const latestDate = exPerf.lastDate;
-      if (latestDate && latestDate > (muscle.fatigue.hours_since_last === 999 ? '' : '')) {
-        const newFatigue = calculateFatigue(mapping.muscleName, latestDate, 50, config);
-        newFatigue.muscleId = mapping.muscleId;
-        muscle.fatigue = newFatigue;
+      if (latestDate) {
+        const current = muscleLatestDate.get(mapping.muscleId);
+        if (!current || latestDate > current) {
+          muscleLatestDate.set(mapping.muscleId, latestDate);
+        }
       }
+    }
+
+    // Recalculate fatigue using the MOST RECENT date across all exercises per muscle
+    for (const [muscleId, muscle] of muscles) {
+      const latestDate = muscleLatestDate.get(muscleId) || null;
+      const fatigue = calculateFatigue(muscle.muscleName, latestDate, 50, config);
+      fatigue.muscleId = muscleId;
+      muscle.fatigue = fatigue;
     }
 
     // 2. Cardio contributions — distribute muscle loads from TRIMP/swim_load
