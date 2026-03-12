@@ -107,7 +107,15 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
         <div className="border-t border-border">
           {exercise.video_url && (
             <div className="p-4 border-b border-border">
-              <iframe width="100%" height="300" src={exercise.video_url} frameBorder="0" allowFullScreen className="rounded-lg" />
+              <iframe
+                width="100%"
+                height="300"
+                src={exercise.video_url}
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                className="rounded-lg"
+              />
             </div>
           )}
 
