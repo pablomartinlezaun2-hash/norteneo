@@ -519,7 +519,7 @@ export const usePerformanceEngine = (config: PerformanceConfig = DEFAULT_CONFIG)
     }
 
     return muscles;
-  }, [computeExercisePerformances, catalogMap, config, computeCardioLoads]);
+  }, [computeExercisePerformances, catalogMap, config, computeCardioLoads, absoluteLatestDatePerMuscle]);
 
   // Build chart points for a specific exercise
   const getExerciseChartPoints = useCallback((
