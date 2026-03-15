@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -111,7 +111,28 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 overflow-hidden relative" style={{ background: '#000' }}>
+      {/* Starfield */}
+      {useMemo(() => (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          {Array.from({ length: 60 }).map((_, i) => {
+            const size = Math.random() > 0.7 ? 2 : 1.5;
+            const top = `${Math.random() * 100}%`;
+            const left = `${Math.random() * 100}%`;
+            const duration = 2.5 + Math.random() * 3;
+            const delay = Math.random() * 4;
+            return (
+              <motion.span
+                key={i}
+                className="absolute rounded-full bg-white"
+                style={{ width: size, height: size, top, left }}
+                animate={{ opacity: [0, 0.6, 0] }}
+                transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
+              />
+            );
+          })}
+        </div>
+      ), [])}
       <motion.div 
         className="w-full max-w-sm"
         initial={{ opacity: 0, y: 40 }}
