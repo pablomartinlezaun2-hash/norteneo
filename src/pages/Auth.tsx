@@ -126,7 +126,7 @@ const Auth = () => {
                 key={i}
                 className="absolute rounded-full bg-white"
                 style={{ width: size, height: size, top, left }}
-                animate={{ opacity: [0, 0.6, 0] }}
+                animate={{ opacity: [0, 0.72, 0] }}
                 transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
               />
             );
