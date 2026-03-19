@@ -155,7 +155,7 @@ export const ExerciseCatalog = () => {
           <span className="text-sm text-muted-foreground">{t('catalog.filteringBy')}</span>
           <Badge variant="secondary" className="gap-1">
             {muscleGroups.find(m => m.id === selectedMuscle)?.name}
-            <button onClick={() => setSelectedMuscle(null)}><X className="w-3 h-3" /></button>
+            <button onClick={() => handleMuscleFilter(null)}><X className="w-3 h-3" /></button>
           </Badge>
         </div>
       )}
