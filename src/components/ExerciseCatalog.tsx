@@ -10,6 +10,52 @@ import { LazyVimeoEmbed } from './LazyVimeoEmbed';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from 'react-i18next';
 
+const DescripcionCollapsible = ({ description, tips, t }: { description: string | null; tips: string[] | null; t: (key: string) => string }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+      >
+        <h3 className="font-semibold text-foreground text-sm">Descripción</h3>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        </motion.div>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 space-y-3">
+              {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
+              {tips && tips.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-warning" />Tips
+                  </h4>
+                  <ul className="space-y-1">
+                    {tips.map((tip, i) => (
+                      <li key={i} className="flex items-start gap-2 text-muted-foreground text-sm">
+                        <span className="text-primary mt-0.5">•</span>{tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export const ExerciseCatalog = () => {
   const { t } = useTranslation();
   const { muscleGroups, exercises, loading, searchExercises, filterByMuscle } = useExerciseCatalog();
