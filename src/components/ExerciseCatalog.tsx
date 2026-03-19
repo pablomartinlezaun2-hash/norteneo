@@ -3,12 +3,13 @@ import { useExerciseCatalog, CatalogExercise } from '@/hooks/useExerciseCatalog'
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Dumbbell, ChevronRight, ArrowLeft, Play, Lightbulb, Zap, Loader2, X } from 'lucide-react';
+import { Search, Filter, Dumbbell, ChevronRight, ArrowLeft, Play, Lightbulb, Zap, Loader2, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseSVGAnimation } from './exercise-animations';
 import { LazyVimeoEmbed } from './LazyVimeoEmbed';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const DescripcionCollapsible = ({ description, tips, t }: { description: string | null; tips: string[] | null; t: (key: string) => string }) => {
   const [open, setOpen] = useState(false);
