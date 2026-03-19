@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,20 +13,32 @@ const extractVimeoId = (url: string): string | null => {
 };
 
 export const LazyVimeoEmbed = ({ videoUrl, className }: LazyVimeoEmbedProps) => {
-  const [loaded, setLoaded] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const [iframeReady, setIframeReady] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const videoId = extractVimeoId(videoUrl);
-  const thumbnailUrl = videoId
-    ? `https://vumbnail.com/${videoId}.jpg`
-    : null;
+  const thumbnailUrl = videoId ? `https://vumbnail.com/${videoId}.jpg` : null;
 
-  // Load iframe when component mounts (i.e. exercise view opens)
+  // IntersectionObserver: only load when visible, unload when off-screen
   useEffect(() => {
-    const timer = setTimeout(() => setLoaded(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting && !shouldLoad) {
+          setShouldLoad(true);
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
 
   const embedUrl = videoUrl.includes('player.vimeo.com')
     ? videoUrl
@@ -40,27 +52,23 @@ export const LazyVimeoEmbed = ({ videoUrl, className }: LazyVimeoEmbedProps) => 
       {/* Thumbnail placeholder */}
       {thumbnailUrl && !iframeReady && (
         <div className="absolute inset-0 z-10">
-          <img
-            src={thumbnailUrl}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-          />
-          <div className="absolute inset-0 bg-background/30 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          </div>
+          <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+          {shouldLoad && (
+            <div className="absolute inset-0 bg-background/30 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Fallback if no thumbnail */}
       {!thumbnailUrl && !iframeReady && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted">
           <Play className="w-10 h-10 text-muted-foreground" />
         </div>
       )}
 
-      {/* Lazy iframe */}
-      {loaded && (
+      {/* Only mount iframe when visible; unmount when scrolled far away to free memory */}
+      {shouldLoad && isVisible && (
         <iframe
           src={embedUrl}
           width="100%"
