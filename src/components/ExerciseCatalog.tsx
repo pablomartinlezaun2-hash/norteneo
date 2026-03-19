@@ -93,20 +93,18 @@ export const ExerciseCatalog = () => {
               </div>
             </div>
           </div>
-          {selectedExercise.description && (
-            <div><h3 className="font-semibold text-foreground mb-2">{t('catalog.description')}</h3><p className="text-muted-foreground leading-relaxed">{selectedExercise.description}</p></div>
+          {(selectedExercise.description || (selectedExercise.tips && selectedExercise.tips.length > 0)) && (
+            <DescripcionCollapsible
+              description={selectedExercise.description}
+              tips={selectedExercise.tips}
+              t={t}
+            />
           )}
           {selectedExercise.execution && (
             <div><h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Play className="w-4 h-4 text-primary" />{t('catalog.execution')}</h3><p className="text-muted-foreground leading-relaxed">{selectedExercise.execution}</p></div>
           )}
           {selectedExercise.resistance_profile && (
             <div><h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-primary" />{t('catalog.resistanceProfile')}</h3><Badge variant="outline" className="text-sm">{resistanceLabels[selectedExercise.resistance_profile] || selectedExercise.resistance_profile}</Badge></div>
-          )}
-          {selectedExercise.tips && selectedExercise.tips.length > 0 && (
-            <div>
-              <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Lightbulb className="w-4 h-4 text-warning" />{t('catalog.keyTips')}</h3>
-              <ul className="space-y-2">{selectedExercise.tips.map((tip, i) => (<li key={i} className="flex items-start gap-2 text-muted-foreground"><span className="text-primary mt-1">•</span>{tip}</li>))}</ul>
-            </div>
           )}
           {selectedExercise.variants && selectedExercise.variants.length > 0 && (
             <div><h3 className="font-semibold text-foreground mb-2">{t('catalog.variants')}</h3><div className="flex flex-wrap gap-2">{selectedExercise.variants.map((v, i) => <Badge key={i} variant="secondary">{v}</Badge>)}</div></div>
