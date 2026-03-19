@@ -164,21 +164,28 @@ export const ExerciseCatalog = () => {
         {filteredExercises.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">{t('catalog.noResults')}</div>
         ) : (
-          filteredExercises.map((exercise) => (
-            <button key={exercise.id} onClick={() => setSelectedExercise(exercise)} className="w-full gradient-card rounded-xl p-4 border border-border text-left hover:border-primary/50 transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <ExerciseSVGAnimation exerciseName={exercise.name} compact className="flex-shrink-0 rounded-lg" />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">{exercise.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    {exercise.primary_muscle && <span className="text-xs text-muted-foreground">{exercise.primary_muscle.name}</span>}
-                    {exercise.difficulty && <Badge className={cn("text-[10px] px-1.5 py-0", difficultyColors[exercise.difficulty])}>{difficultyLabels[exercise.difficulty]}</Badge>}
+          <>
+            {visibleExercises.map((exercise) => (
+              <button key={exercise.id} onClick={() => setSelectedExercise(exercise)} className="w-full gradient-card rounded-xl p-4 border border-border text-left hover:border-primary/50 transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <ExerciseSVGAnimation exerciseName={exercise.name} compact className="flex-shrink-0 rounded-lg" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">{exercise.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {exercise.primary_muscle && <span className="text-xs text-muted-foreground">{exercise.primary_muscle.name}</span>}
+                      {exercise.difficulty && <Badge className={cn("text-[10px] px-1.5 py-0", difficultyColors[exercise.difficulty])}>{difficultyLabels[exercise.difficulty]}</Badge>}
+                    </div>
                   </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
-            </button>
-          ))
+              </button>
+            ))}
+            {hasMore && (
+              <Button variant="outline" className="w-full" onClick={handleLoadMore}>
+                {t('catalog.loadMore', { defaultValue: 'Load more' })} ({filteredExercises.length - visibleCount} {t('catalog.remaining', { defaultValue: 'remaining' })})
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>
