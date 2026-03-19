@@ -3,12 +3,59 @@ import { useExerciseCatalog, CatalogExercise } from '@/hooks/useExerciseCatalog'
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Dumbbell, ChevronRight, ArrowLeft, Play, Lightbulb, Zap, Loader2, X } from 'lucide-react';
+import { Search, Filter, Dumbbell, ChevronRight, ArrowLeft, Play, Lightbulb, Zap, Loader2, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseSVGAnimation } from './exercise-animations';
 import { LazyVimeoEmbed } from './LazyVimeoEmbed';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const DescripcionCollapsible = ({ description, tips, t }: { description: string | null; tips: string[] | null; t: (key: string) => string }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+      >
+        <h3 className="font-semibold text-foreground text-sm">Descripción</h3>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        </motion.div>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 space-y-3">
+              {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
+              {tips && tips.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-warning" />Tips
+                  </h4>
+                  <ul className="space-y-1">
+                    {tips.map((tip, i) => (
+                      <li key={i} className="flex items-start gap-2 text-muted-foreground text-sm">
+                        <span className="text-primary mt-0.5">•</span>{tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export const ExerciseCatalog = () => {
   const { t } = useTranslation();
@@ -93,20 +140,18 @@ export const ExerciseCatalog = () => {
               </div>
             </div>
           </div>
-          {selectedExercise.description && (
-            <div><h3 className="font-semibold text-foreground mb-2">{t('catalog.description')}</h3><p className="text-muted-foreground leading-relaxed">{selectedExercise.description}</p></div>
+          {(selectedExercise.description || (selectedExercise.tips && selectedExercise.tips.length > 0)) && (
+            <DescripcionCollapsible
+              description={selectedExercise.description}
+              tips={selectedExercise.tips}
+              t={t}
+            />
           )}
           {selectedExercise.execution && (
             <div><h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Play className="w-4 h-4 text-primary" />{t('catalog.execution')}</h3><p className="text-muted-foreground leading-relaxed">{selectedExercise.execution}</p></div>
           )}
           {selectedExercise.resistance_profile && (
             <div><h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-primary" />{t('catalog.resistanceProfile')}</h3><Badge variant="outline" className="text-sm">{resistanceLabels[selectedExercise.resistance_profile] || selectedExercise.resistance_profile}</Badge></div>
-          )}
-          {selectedExercise.tips && selectedExercise.tips.length > 0 && (
-            <div>
-              <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Lightbulb className="w-4 h-4 text-warning" />{t('catalog.keyTips')}</h3>
-              <ul className="space-y-2">{selectedExercise.tips.map((tip, i) => (<li key={i} className="flex items-start gap-2 text-muted-foreground"><span className="text-primary mt-1">•</span>{tip}</li>))}</ul>
-            </div>
           )}
           {selectedExercise.variants && selectedExercise.variants.length > 0 && (
             <div><h3 className="font-semibold text-foreground mb-2">{t('catalog.variants')}</h3><div className="flex flex-wrap gap-2">{selectedExercise.variants.map((v, i) => <Badge key={i} variant="secondary">{v}</Badge>)}</div></div>

@@ -45,8 +45,19 @@ export const useExerciseCatalog = () => {
         setMuscleGroups(muscles);
       }
 
-      // Exercises hidden - pending manual load
-      setExercises([]);
+      // Fetch exercises
+      const { data: exercisesData } = await supabase
+        .from('exercise_catalog')
+        .select('*')
+        .order('name');
+
+      if (exercisesData) {
+        const exercisesWithMuscles = exercisesData.map(ex => ({
+          ...ex,
+          primary_muscle: muscles?.find(m => m.id === ex.primary_muscle_id)
+        }));
+        setExercises(exercisesWithMuscles);
+      }
 
       setLoading(false);
     };
