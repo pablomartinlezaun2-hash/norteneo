@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useExerciseCatalog, CatalogExercise } from '@/hooks/useExerciseCatalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
