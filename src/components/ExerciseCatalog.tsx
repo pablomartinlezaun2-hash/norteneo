@@ -134,7 +134,7 @@ export const ExerciseCatalog = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder={t('catalog.searchPlaceholder')} value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={selectedMuscle || 'all'} onValueChange={(v) => setSelectedMuscle(v === 'all' ? null : v)}>
+        <Select value={selectedMuscle || 'all'} onValueChange={(v) => handleMuscleFilter(v === 'all' ? null : v)}>
           <SelectTrigger className="w-[180px]">
             <Filter className="w-4 h-4 mr-2" /><SelectValue placeholder={t('catalog.muscle')} />
           </SelectTrigger>
