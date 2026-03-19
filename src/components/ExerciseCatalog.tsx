@@ -42,15 +42,30 @@ export const ExerciseCatalog = () => {
     core: t('catalog.core'),
   };
 
-  const filteredExercises = selectedMuscle 
-    ? filterByMuscle(selectedMuscle).filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : searchExercises(searchQuery);
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const groupedMuscles = muscleGroups.reduce((acc, muscle) => {
+  const filteredExercises = useMemo(() => {
+    const base = selectedMuscle 
+      ? filterByMuscle(selectedMuscle).filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : searchExercises(searchQuery);
+    return base;
+  }, [selectedMuscle, searchQuery, exercises]);
+
+  const visibleExercises = useMemo(() => filteredExercises.slice(0, visibleCount), [filteredExercises, visibleCount]);
+  const hasMore = visibleCount < filteredExercises.length;
+
+  const handleLoadMore = useCallback(() => setVisibleCount(prev => prev + PAGE_SIZE), []);
+
+  // Reset pagination when filters change
+  const handleSearch = useCallback((value: string) => { setSearchQuery(value); setVisibleCount(PAGE_SIZE); }, []);
+  const handleMuscleFilter = useCallback((value: string | null) => { setSelectedMuscle(value); setVisibleCount(PAGE_SIZE); }, []);
+
+  const groupedMuscles = useMemo(() => muscleGroups.reduce((acc, muscle) => {
     if (!acc[muscle.category]) acc[muscle.category] = [];
     acc[muscle.category].push(muscle);
     return acc;
-  }, {} as Record<string, typeof muscleGroups>);
+  }, {} as Record<string, typeof muscleGroups>), [muscleGroups]);
 
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
