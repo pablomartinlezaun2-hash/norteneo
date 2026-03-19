@@ -6,22 +6,23 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Dumbbell, ChevronRight, ArrowLeft, Play, Lightbulb, Zap, Loader2, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExerciseSVGAnimation } from './exercise-animations';
-import { LazyVimeoEmbed } from './LazyVimeoEmbed';
+import { LazyVimeoEmbed, VimeoThumbnail } from './LazyVimeoEmbed';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DescripcionCollapsible = ({ description, tips, t }: { description: string | null; tips: string[] | null; t: (key: string) => string }) => {
   const [open, setOpen] = useState(false);
+
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-border">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+        className="flex w-full items-center justify-between p-3 transition-colors hover:bg-muted/50"
       >
-        <h3 className="font-semibold text-foreground text-sm">Descripción</h3>
+        <h3 className="text-sm font-semibold text-foreground">Descripción</h3>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </motion.div>
       </button>
       <AnimatePresence>
@@ -33,17 +34,18 @@ const DescripcionCollapsible = ({ description, tips, t }: { description: string 
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="overflow-hidden"
           >
-            <div className="px-3 pb-3 space-y-3">
-              {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
+            <div className="space-y-3 px-3 pb-3">
+              {description && <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>}
               {tips && tips.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
-                    <Lightbulb className="w-3.5 h-3.5 text-warning" />Tips
+                  <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                    <Lightbulb className="h-3.5 w-3.5 text-warning" />Tips
                   </h4>
                   <ul className="space-y-1">
                     {tips.map((tip, i) => (
-                      <li key={i} className="flex items-start gap-2 text-muted-foreground text-sm">
-                        <span className="text-primary mt-0.5">•</span>{tip}
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <span className="mt-0.5 text-primary">•</span>
+                        {tip}
                       </li>
                     ))}
                   </ul>
@@ -59,7 +61,7 @@ const DescripcionCollapsible = ({ description, tips, t }: { description: string 
 
 export const ExerciseCatalog = () => {
   const { t } = useTranslation();
-  const { muscleGroups, exercises, loading, searchExercises, filterByMuscle } = useExerciseCatalog();
+  const { muscleGroups, exercises, loading } = useExerciseCatalog();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<CatalogExercise | null>(null);
@@ -89,24 +91,33 @@ export const ExerciseCatalog = () => {
     core: t('catalog.core'),
   };
 
-  const PAGE_SIZE = 20;
+  const PAGE_SIZE = 12;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const filteredExercises = useMemo(() => {
-    const base = selectedMuscle 
-      ? filterByMuscle(selectedMuscle).filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      : searchExercises(searchQuery);
-    return base;
-  }, [selectedMuscle, searchQuery, exercises]);
+    return exercises.filter((exercise) => {
+      const matchesMuscle = !selectedMuscle || exercise.primary_muscle_id === selectedMuscle;
+      if (!matchesMuscle) return false;
+      if (!normalizedQuery) return true;
+
+      return [exercise.name, exercise.description ?? '', exercise.primary_muscle?.name ?? '']
+        .some((value) => value.toLowerCase().includes(normalizedQuery));
+    });
+  }, [exercises, normalizedQuery, selectedMuscle]);
 
   const visibleExercises = useMemo(() => filteredExercises.slice(0, visibleCount), [filteredExercises, visibleCount]);
   const hasMore = visibleCount < filteredExercises.length;
 
-  const handleLoadMore = useCallback(() => setVisibleCount(prev => prev + PAGE_SIZE), []);
-
-  // Reset pagination when filters change
-  const handleSearch = useCallback((value: string) => { setSearchQuery(value); setVisibleCount(PAGE_SIZE); }, []);
-  const handleMuscleFilter = useCallback((value: string | null) => { setSelectedMuscle(value); setVisibleCount(PAGE_SIZE); }, []);
+  const handleLoadMore = useCallback(() => setVisibleCount((prev) => prev + PAGE_SIZE), []);
+  const handleSearch = useCallback((value: string) => {
+    setSearchQuery(value);
+    setVisibleCount(PAGE_SIZE);
+  }, []);
+  const handleMuscleFilter = useCallback((value: string | null) => {
+    setSelectedMuscle(value);
+    setVisibleCount(PAGE_SIZE);
+  }, []);
 
   const groupedMuscles = useMemo(() => muscleGroups.reduce((acc, muscle) => {
     if (!acc[muscle.category]) acc[muscle.category] = [];
@@ -115,25 +126,30 @@ export const ExerciseCatalog = () => {
   }, {} as Record<string, typeof muscleGroups>), [muscleGroups]);
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+    return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   if (selectedExercise) {
     return (
       <div className="space-y-4">
         <Button variant="ghost" size="sm" onClick={() => setSelectedExercise(null)}>
-          <ArrowLeft className="w-4 h-4 mr-2" />{t('catalog.back')}
+          <ArrowLeft className="mr-2 h-4 w-4" />{t('catalog.back')}
         </Button>
-        <div className="gradient-card rounded-xl p-6 border border-border space-y-6">
+        <div className="gradient-card space-y-6 rounded-xl border border-border p-6">
           {selectedExercise.video_url ? (
-            <LazyVimeoEmbed videoUrl={selectedExercise.video_url} />
+            <LazyVimeoEmbed
+              key={selectedExercise.id}
+              videoUrl={selectedExercise.video_url}
+              title={selectedExercise.name}
+              className="shadow-sm"
+            />
           ) : (
             <ExerciseSVGAnimation exerciseName={selectedExercise.name} className="w-full rounded-xl" />
           )}
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">{selectedExercise.name}</h2>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 {selectedExercise.primary_muscle && <Badge variant="outline">{selectedExercise.primary_muscle.name}</Badge>}
                 {selectedExercise.difficulty && <Badge className={difficultyColors[selectedExercise.difficulty]}>{difficultyLabels[selectedExercise.difficulty]}</Badge>}
                 {selectedExercise.is_compound && <Badge variant="secondary">{t('catalog.compound')}</Badge>}
@@ -148,16 +164,38 @@ export const ExerciseCatalog = () => {
             />
           )}
           {selectedExercise.execution && (
-            <div><h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Play className="w-4 h-4 text-primary" />{t('catalog.execution')}</h3><p className="text-muted-foreground leading-relaxed">{selectedExercise.execution}</p></div>
+            <div>
+              <h3 className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+                <Play className="h-4 w-4 text-primary" />
+                {t('catalog.execution')}
+              </h3>
+              <p className="leading-relaxed text-muted-foreground">{selectedExercise.execution}</p>
+            </div>
           )}
           {selectedExercise.resistance_profile && (
-            <div><h3 className="font-semibold text-foreground mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-primary" />{t('catalog.resistanceProfile')}</h3><Badge variant="outline" className="text-sm">{resistanceLabels[selectedExercise.resistance_profile] || selectedExercise.resistance_profile}</Badge></div>
+            <div>
+              <h3 className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+                <Zap className="h-4 w-4 text-primary" />
+                {t('catalog.resistanceProfile')}
+              </h3>
+              <Badge variant="outline" className="text-sm">{resistanceLabels[selectedExercise.resistance_profile] || selectedExercise.resistance_profile}</Badge>
+            </div>
           )}
           {selectedExercise.variants && selectedExercise.variants.length > 0 && (
-            <div><h3 className="font-semibold text-foreground mb-2">{t('catalog.variants')}</h3><div className="flex flex-wrap gap-2">{selectedExercise.variants.map((v, i) => <Badge key={i} variant="secondary">{v}</Badge>)}</div></div>
+            <div>
+              <h3 className="mb-2 font-semibold text-foreground">{t('catalog.variants')}</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedExercise.variants.map((variant, i) => <Badge key={i} variant="secondary">{variant}</Badge>)}
+              </div>
+            </div>
           )}
           {selectedExercise.equipment && selectedExercise.equipment.length > 0 && (
-            <div><h3 className="font-semibold text-foreground mb-2">{t('catalog.equipment')}</h3><div className="flex flex-wrap gap-2">{selectedExercise.equipment.map((eq, i) => <Badge key={i} variant="outline" className="capitalize">{eq}</Badge>)}</div></div>
+            <div>
+              <h3 className="mb-2 font-semibold text-foreground">{t('catalog.equipment')}</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedExercise.equipment.map((equipment, i) => <Badge key={i} variant="outline" className="capitalize">{equipment}</Badge>)}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -166,8 +204,8 @@ export const ExerciseCatalog = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="gradient-primary rounded-xl p-2.5"><Dumbbell className="w-5 h-5 text-primary-foreground" /></div>
+      <div className="mb-6 flex items-center gap-3">
+        <div className="gradient-primary rounded-xl p-2.5"><Dumbbell className="h-5 w-5 text-primary-foreground" /></div>
         <div>
           <h2 className="text-xl font-bold text-foreground">{t('catalog.title')}</h2>
           <p className="text-sm text-muted-foreground">{t('catalog.available', { count: exercises.length })}</p>
@@ -176,12 +214,12 @@ export const ExerciseCatalog = () => {
 
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder={t('catalog.searchPlaceholder')} value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={selectedMuscle || 'all'} onValueChange={(v) => handleMuscleFilter(v === 'all' ? null : v)}>
+        <Select value={selectedMuscle || 'all'} onValueChange={(value) => handleMuscleFilter(value === 'all' ? null : value)}>
           <SelectTrigger className="w-[180px]">
-            <Filter className="w-4 h-4 mr-2" /><SelectValue placeholder={t('catalog.muscle')} />
+            <Filter className="mr-2 h-4 w-4" /><SelectValue placeholder={t('catalog.muscle')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('catalog.all')}</SelectItem>
@@ -199,29 +237,43 @@ export const ExerciseCatalog = () => {
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">{t('catalog.filteringBy')}</span>
           <Badge variant="secondary" className="gap-1">
-            {muscleGroups.find(m => m.id === selectedMuscle)?.name}
-            <button onClick={() => handleMuscleFilter(null)}><X className="w-3 h-3" /></button>
+            {muscleGroups.find((muscle) => muscle.id === selectedMuscle)?.name}
+            <button onClick={() => handleMuscleFilter(null)}><X className="h-3 w-3" /></button>
           </Badge>
         </div>
       )}
 
       <div className="space-y-3">
         {filteredExercises.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">{t('catalog.noResults')}</div>
+          <div className="py-8 text-center text-muted-foreground">{t('catalog.noResults')}</div>
         ) : (
           <>
             {visibleExercises.map((exercise) => (
-              <button key={exercise.id} onClick={() => setSelectedExercise(exercise)} className="w-full gradient-card rounded-xl p-4 border border-border text-left hover:border-primary/50 transition-all duration-200">
-                <div className="flex items-center gap-3">
-                  <ExerciseSVGAnimation exerciseName={exercise.name} compact className="flex-shrink-0 rounded-lg" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">{exercise.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
+              <button
+                key={exercise.id}
+                onClick={() => setSelectedExercise(exercise)}
+                className="w-full rounded-xl border border-border bg-card text-left transition-all duration-200 hover:border-primary/50"
+              >
+                <div className="flex items-center gap-3 p-3 sm:p-4">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg sm:h-20 sm:w-20">
+                    {exercise.video_url ? (
+                      <VimeoThumbnail
+                        videoUrl={exercise.video_url}
+                        alt={`Vista previa de ${exercise.name}`}
+                        className="h-full w-full rounded-lg"
+                      />
+                    ) : (
+                      <ExerciseSVGAnimation exerciseName={exercise.name} compact className="h-full w-full rounded-lg" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-semibold text-foreground">{exercise.name}</h3>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
                       {exercise.primary_muscle && <span className="text-xs text-muted-foreground">{exercise.primary_muscle.name}</span>}
-                      {exercise.difficulty && <Badge className={cn("text-[10px] px-1.5 py-0", difficultyColors[exercise.difficulty])}>{difficultyLabels[exercise.difficulty]}</Badge>}
+                      {exercise.difficulty && <Badge className={cn('px-1.5 py-0 text-[10px]', difficultyColors[exercise.difficulty])}>{difficultyLabels[exercise.difficulty]}</Badge>}
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                 </div>
               </button>
             ))}
