@@ -31,7 +31,9 @@ const notifyActivePlayerChange = (playerId: string | null) => {
 
 const subscribeToActivePlayer = (listener: (playerId: string | null) => void) => {
   activePlayerListeners.add(listener);
-  return () => activePlayerListeners.delete(listener);
+  return () => {
+    activePlayerListeners.delete(listener);
+  };
 };
 
 const ensurePreconnect = (origin: string) => {
