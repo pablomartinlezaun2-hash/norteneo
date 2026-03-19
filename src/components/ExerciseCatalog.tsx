@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useExerciseCatalog, CatalogExercise } from '@/hooks/useExerciseCatalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -42,15 +42,30 @@ export const ExerciseCatalog = () => {
     core: t('catalog.core'),
   };
 
-  const filteredExercises = selectedMuscle 
-    ? filterByMuscle(selectedMuscle).filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : searchExercises(searchQuery);
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const groupedMuscles = muscleGroups.reduce((acc, muscle) => {
+  const filteredExercises = useMemo(() => {
+    const base = selectedMuscle 
+      ? filterByMuscle(selectedMuscle).filter(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : searchExercises(searchQuery);
+    return base;
+  }, [selectedMuscle, searchQuery, exercises]);
+
+  const visibleExercises = useMemo(() => filteredExercises.slice(0, visibleCount), [filteredExercises, visibleCount]);
+  const hasMore = visibleCount < filteredExercises.length;
+
+  const handleLoadMore = useCallback(() => setVisibleCount(prev => prev + PAGE_SIZE), []);
+
+  // Reset pagination when filters change
+  const handleSearch = useCallback((value: string) => { setSearchQuery(value); setVisibleCount(PAGE_SIZE); }, []);
+  const handleMuscleFilter = useCallback((value: string | null) => { setSelectedMuscle(value); setVisibleCount(PAGE_SIZE); }, []);
+
+  const groupedMuscles = useMemo(() => muscleGroups.reduce((acc, muscle) => {
     if (!acc[muscle.category]) acc[muscle.category] = [];
     acc[muscle.category].push(muscle);
     return acc;
-  }, {} as Record<string, typeof muscleGroups>);
+  }, {} as Record<string, typeof muscleGroups>), [muscleGroups]);
 
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
@@ -117,9 +132,9 @@ export const ExerciseCatalog = () => {
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder={t('catalog.searchPlaceholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+          <Input placeholder={t('catalog.searchPlaceholder')} value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={selectedMuscle || 'all'} onValueChange={(v) => setSelectedMuscle(v === 'all' ? null : v)}>
+        <Select value={selectedMuscle || 'all'} onValueChange={(v) => handleMuscleFilter(v === 'all' ? null : v)}>
           <SelectTrigger className="w-[180px]">
             <Filter className="w-4 h-4 mr-2" /><SelectValue placeholder={t('catalog.muscle')} />
           </SelectTrigger>
@@ -140,7 +155,7 @@ export const ExerciseCatalog = () => {
           <span className="text-sm text-muted-foreground">{t('catalog.filteringBy')}</span>
           <Badge variant="secondary" className="gap-1">
             {muscleGroups.find(m => m.id === selectedMuscle)?.name}
-            <button onClick={() => setSelectedMuscle(null)}><X className="w-3 h-3" /></button>
+            <button onClick={() => handleMuscleFilter(null)}><X className="w-3 h-3" /></button>
           </Badge>
         </div>
       )}
@@ -149,21 +164,28 @@ export const ExerciseCatalog = () => {
         {filteredExercises.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">{t('catalog.noResults')}</div>
         ) : (
-          filteredExercises.map((exercise) => (
-            <button key={exercise.id} onClick={() => setSelectedExercise(exercise)} className="w-full gradient-card rounded-xl p-4 border border-border text-left hover:border-primary/50 transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <ExerciseSVGAnimation exerciseName={exercise.name} compact className="flex-shrink-0 rounded-lg" />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">{exercise.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    {exercise.primary_muscle && <span className="text-xs text-muted-foreground">{exercise.primary_muscle.name}</span>}
-                    {exercise.difficulty && <Badge className={cn("text-[10px] px-1.5 py-0", difficultyColors[exercise.difficulty])}>{difficultyLabels[exercise.difficulty]}</Badge>}
+          <>
+            {visibleExercises.map((exercise) => (
+              <button key={exercise.id} onClick={() => setSelectedExercise(exercise)} className="w-full gradient-card rounded-xl p-4 border border-border text-left hover:border-primary/50 transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <ExerciseSVGAnimation exerciseName={exercise.name} compact className="flex-shrink-0 rounded-lg" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">{exercise.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {exercise.primary_muscle && <span className="text-xs text-muted-foreground">{exercise.primary_muscle.name}</span>}
+                      {exercise.difficulty && <Badge className={cn("text-[10px] px-1.5 py-0", difficultyColors[exercise.difficulty])}>{difficultyLabels[exercise.difficulty]}</Badge>}
+                    </div>
                   </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              </div>
-            </button>
-          ))
+              </button>
+            ))}
+            {hasMore && (
+              <Button variant="outline" className="w-full" onClick={handleLoadMore}>
+                {t('catalog.loadMore', { defaultValue: 'Load more' })} ({filteredExercises.length - visibleCount} {t('catalog.remaining', { defaultValue: 'remaining' })})
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>
