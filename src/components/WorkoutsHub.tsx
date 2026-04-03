@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Dumbbell, Waves, Footprints, ChevronDown, Bookmark } from 'lucide-react';
+import { Dumbbell, Waves, Footprints, ChevronDown, Bookmark, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GymSection } from './GymSection';
 import { SwimmingSection } from './SwimmingSection';
