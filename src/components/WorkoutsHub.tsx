@@ -35,6 +35,11 @@ const cardVariants = [
     initial: { opacity: 0, y: 20, scale: 0.95, filter: 'blur(3px)' },
     animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
   },
+  // Microciclos: diagonal slide
+  {
+    initial: { opacity: 0, x: -30, y: 15, filter: 'blur(4px)' },
+    animate: { opacity: 1, x: 0, y: 0, filter: 'blur(0px)' },
+  },
 ];
 
 export const WorkoutsHub = () => {
