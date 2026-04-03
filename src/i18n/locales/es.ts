@@ -116,6 +116,7 @@ export const es = {
     swimming: 'Natación',
     running: 'Running',
     saved: 'Mis Entrenamientos',
+    microcycles: 'Microciclos',
   },
 
   // Gym Section
