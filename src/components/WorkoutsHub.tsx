@@ -9,7 +9,7 @@ import { RunningSection } from './RunningSection';
 import { MyWorkoutsSection } from './MyWorkoutsSection';
 import { MicrocyclesSection } from './microcycles';
 
-type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | null;
+type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | 'microcycles' | null;
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
