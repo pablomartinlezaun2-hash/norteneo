@@ -557,6 +557,78 @@ export type Database = {
           },
         ]
       }
+      custom_microcycle_exercises: {
+        Row: {
+          created_at: string
+          exercise_catalog_id: string
+          id: string
+          microcycle_id: string
+          order_index: number
+          rep_range_max: number
+          rep_range_min: number
+          sets: number
+        }
+        Insert: {
+          created_at?: string
+          exercise_catalog_id: string
+          id?: string
+          microcycle_id: string
+          order_index?: number
+          rep_range_max?: number
+          rep_range_min?: number
+          sets?: number
+        }
+        Update: {
+          created_at?: string
+          exercise_catalog_id?: string
+          id?: string
+          microcycle_id?: string
+          order_index?: number
+          rep_range_max?: number
+          rep_range_min?: number
+          sets?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_microcycle_exercises_exercise_catalog_id_fkey"
+            columns: ["exercise_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_microcycle_exercises_microcycle_id_fkey"
+            columns: ["microcycle_id"]
+            isOneToOne: false
+            referencedRelation: "custom_microcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_microcycles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       educational_articles: {
         Row: {
           category_id: string

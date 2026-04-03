@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Dumbbell, Waves, Footprints, ChevronDown, Bookmark } from 'lucide-react';
+import { Dumbbell, Waves, Footprints, ChevronDown, Bookmark, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GymSection } from './GymSection';
 import { SwimmingSection } from './SwimmingSection';
 import { RunningSection } from './RunningSection';
 import { MyWorkoutsSection } from './MyWorkoutsSection';
+import { MicrocyclesSection } from './microcycles';
 
-type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | null;
+type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | 'microcycles' | null;
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -33,6 +34,11 @@ const cardVariants = [
   {
     initial: { opacity: 0, y: 20, scale: 0.95, filter: 'blur(3px)' },
     animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
+  },
+  // Microciclos: diagonal slide
+  {
+    initial: { opacity: 0, x: -30, y: 15, filter: 'blur(4px)' },
+    animate: { opacity: 1, x: 0, y: 0, filter: 'blur(0px)' },
   },
 ];
 
@@ -80,6 +86,15 @@ export const WorkoutsHub = () => {
       bgColor: 'bg-violet-500/10',
       textColor: 'text-violet-500',
       component: <MyWorkoutsSection />
+    },
+    {
+      id: 'microcycles' as const,
+      labelKey: 'workoutsHub.microcycles',
+      icon: Layers,
+      gradient: 'from-amber-500 to-orange-400',
+      bgColor: 'bg-amber-500/10',
+      textColor: 'text-amber-500',
+      component: <MicrocyclesSection />
     },
   ];
 

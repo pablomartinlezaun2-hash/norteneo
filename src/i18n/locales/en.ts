@@ -111,6 +111,7 @@ export const en = {
     swimming: 'Swimming',
     running: 'Running',
     saved: 'My Workouts',
+    microcycles: 'Microcycles',
   },
 
   gym: {
