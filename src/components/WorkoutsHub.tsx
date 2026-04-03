@@ -87,6 +87,15 @@ export const WorkoutsHub = () => {
       textColor: 'text-violet-500',
       component: <MyWorkoutsSection />
     },
+    {
+      id: 'microcycles' as const,
+      labelKey: 'workoutsHub.microcycles',
+      icon: Layers,
+      gradient: 'from-amber-500 to-orange-400',
+      bgColor: 'bg-amber-500/10',
+      textColor: 'text-amber-500',
+      component: <MicrocyclesSection />
+    },
   ];
 
   return (
