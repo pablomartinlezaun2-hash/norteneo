@@ -97,10 +97,9 @@ export const HealthProfileForm = ({ profile, onSave }: HealthProfileFormProps) =
           </div>
           <Label className="text-sm font-medium">{t('health.age')}</Label>
         </div>
-        <Input
-          type="number"
+        <NumericInput
           value={formData.age}
-          onChange={(e) => handleChange('age', parseInt(e.target.value) || 0)}
+          onValueChange={(v) => handleChange('age', v)}
           className="text-lg font-semibold"
         />
       </div>

@@ -390,10 +390,10 @@ const ManualBuilder = ({
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="text-[10px] text-muted-foreground">Series</label>
-                            <Input
-                              type="number"
+                            <NumericInput
                               value={exercise.series}
-                              onChange={(e) => updateExercise(exercise.id, 'series', parseInt(e.target.value) || 0)}
+                              onValueChange={(v) => updateExercise(exercise.id, 'series', v)}
+                              min={1}
                               className="h-8 text-xs"
                             />
                           </div>

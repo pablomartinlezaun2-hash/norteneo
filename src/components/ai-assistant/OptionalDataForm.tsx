@@ -76,11 +76,12 @@ export const OptionalDataForm = ({ onSubmit, onSkip }: OptionalDataFormProps) =>
             <label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Ruler className="w-3 h-3" /> Altura (cm)
             </label>
-            <Input
-              type="number"
+            <NumericInput
               placeholder="175"
               className="h-9 text-sm"
-              onChange={(e) => setData(prev => ({ ...prev, height: parseInt(e.target.value) || undefined }))}
+              value={data.height || ''}
+              onValueChange={(v) => setData(prev => ({ ...prev, height: v }))}
+              allowEmpty
             />
           </div>
         </div>
