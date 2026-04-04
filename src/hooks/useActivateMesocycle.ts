@@ -8,7 +8,7 @@ export const useActivateMesocycle = () => {
   const { user } = useAuth();
   const [activating, setActivating] = useState(false);
 
-  const activateMicrocycle = async (mesocycle: PlanningMesocycle, microcycle: PlanningMicrocycle) => {
+  const activateMicrocycle = async (mesocycle: PlanningMesocycle, microcycle: PlanningMicrocycle): Promise<boolean> => {
     if (!user) return false;
     if (microcycle.sessions.length === 0) {
       toast.error('Este microciclo no tiene sesiones configuradas');
