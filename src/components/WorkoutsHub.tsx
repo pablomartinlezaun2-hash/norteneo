@@ -94,7 +94,7 @@ export const WorkoutsHub = () => {
       gradient: 'from-amber-500 to-orange-400',
       bgColor: 'bg-amber-500/10',
       textColor: 'text-amber-500',
-      component: <MicrocyclesSection />
+      component: <MesocycleList />
     },
   ];
 
