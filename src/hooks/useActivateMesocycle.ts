@@ -33,7 +33,8 @@ export const useActivateMesocycle = () => {
           name: programName,
           description: mesocycle.goal || `Microciclo activado desde planificación`,
           is_active: true,
-        })
+          source_planning_mesocycle_id: mesocycle.id,
+        } as any)
         .select()
         .single();
       if (progErr) throw progErr;
