@@ -273,14 +273,10 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                   </div>
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-muted-foreground whitespace-nowrap">Sesiones:</label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={7}
+                    <NumericInput
                       value={mc.sessions.length}
-                      onChange={e => updateSessionCount(mi, Math.max(1, parseInt(e.target.value) || 1))}
-                      className="h-8 text-xs w-16 text-center"
+                      onCommit={v => updateSessionCount(mi, Math.min(7, v))}
+                      min={1}
                     />
                     <div className="flex flex-wrap gap-1 flex-1">
                       {mc.sessions.map((s, si) => (
