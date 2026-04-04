@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePlanningMesocycles, PlanningMicrocycle, PlanningSession, PlanningExercise } from '@/hooks/usePlanningMesocycles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,30 @@ import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, GripVertical } fro
 import { ExerciseSelectorModal } from '@/components/microcycles/ExerciseSelectorModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+/** Small controlled numeric input that allows free typing and commits on blur */
+const NumericInput = ({ value, onCommit, min = 1 }: { value: number; onCommit: (v: number) => void; min?: number }) => {
+  const [raw, setRaw] = useState(value.toString());
+  useEffect(() => { setRaw(value.toString()); }, [value]);
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={raw}
+      onChange={e => {
+        const v = e.target.value.replace(/[^0-9]/g, '');
+        setRaw(v);
+      }}
+      onBlur={() => {
+        const n = parseInt(raw, 10);
+        const clamped = isNaN(n) || n < min ? min : n;
+        setRaw(clamped.toString());
+        onCommit(clamped);
+      }}
+      className="h-8 text-xs text-center"
+    />
+  );
+};
 
 interface MesocycleWizardProps {
   onComplete: () => void;
@@ -353,35 +377,23 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Series</label>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              min={1}
+                            <NumericInput
                               value={ex.sets}
-                              onChange={e => updateExercise(activeMicro, activeSession, ei, 'sets', parseInt(e.target.value) || 1)}
-                              className="h-8 text-xs text-center"
+                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'sets', v)}
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps mín</label>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              min={1}
+                            <NumericInput
                               value={ex.repRangeMin}
-                              onChange={e => updateExercise(activeMicro, activeSession, ei, 'repRangeMin', parseInt(e.target.value) || 1)}
-                              className="h-8 text-xs text-center"
+                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMin', v)}
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps máx</label>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              min={1}
+                            <NumericInput
                               value={ex.repRangeMax}
-                              onChange={e => updateExercise(activeMicro, activeSession, ei, 'repRangeMax', parseInt(e.target.value) || 1)}
-                              className="h-8 text-xs text-center"
+                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMax', v)}
                             />
                           </div>
                         </div>
