@@ -142,33 +142,15 @@ export const MicrocycleEditor = ({ initialName = '', initialExercises = [], onSa
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Series</label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={ex.sets}
-                      onChange={e => updateExercise(index, 'sets', parseInt(e.target.value) || 1)}
-                      className="h-8 text-xs text-center"
-                    />
+                    <NumericInput value={ex.sets} onCommit={v => updateExercise(index, 'sets', v)} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps mín</label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={ex.repRangeMin}
-                      onChange={e => updateExercise(index, 'repRangeMin', parseInt(e.target.value) || 1)}
-                      className="h-8 text-xs text-center"
-                    />
+                    <NumericInput value={ex.repRangeMin} onCommit={v => updateExercise(index, 'repRangeMin', v)} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps máx</label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={ex.repRangeMax}
-                      onChange={e => updateExercise(index, 'repRangeMax', parseInt(e.target.value) || 1)}
-                      className="h-8 text-xs text-center"
-                    />
+                    <NumericInput value={ex.repRangeMax} onCommit={v => updateExercise(index, 'repRangeMax', v)} />
                   </div>
                 </div>
               </motion.div>

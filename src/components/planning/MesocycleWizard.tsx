@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePlanningMesocycles, PlanningMicrocycle, PlanningSession, PlanningExercise } from '@/hooks/usePlanningMesocycles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,30 @@ import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, GripVertical } fro
 import { ExerciseSelectorModal } from '@/components/microcycles/ExerciseSelectorModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+/** Small controlled numeric input that allows free typing and commits on blur */
+const NumericInput = ({ value, onCommit, min = 1 }: { value: number; onCommit: (v: number) => void; min?: number }) => {
+  const [raw, setRaw] = useState(value.toString());
+  useEffect(() => { setRaw(value.toString()); }, [value]);
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={raw}
+      onChange={e => {
+        const v = e.target.value.replace(/[^0-9]/g, '');
+        setRaw(v);
+      }}
+      onBlur={() => {
+        const n = parseInt(raw, 10);
+        const clamped = isNaN(n) || n < min ? min : n;
+        setRaw(clamped.toString());
+        onCommit(clamped);
+      }}
+      className="h-8 text-xs text-center"
+    />
+  );
+};
 
 interface MesocycleWizardProps {
   onComplete: () => void;
