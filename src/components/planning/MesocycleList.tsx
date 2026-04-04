@@ -106,17 +106,20 @@ export const MesocycleList = () => {
                         Actualizado {format(new Date(meso.updatedAt), 'dd MMM yyyy', { locale: es })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="secondary"
                         onClick={() => setSelectorMeso(meso)}
-                        className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
-                        title="Activar como entrenamiento"
+                        className="h-9 px-3 text-xs font-medium"
                       >
-                        <Play className="h-4 w-4" />
-                      </button>
+                        <Play className="mr-1.5 h-3.5 w-3.5" />
+                        Activar
+                      </Button>
                       <button
                         onClick={() => deleteMesocycle(meso.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        title="Eliminar mesociclo"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
