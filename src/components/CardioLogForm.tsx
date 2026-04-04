@@ -123,7 +123,7 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">{t('cardioLog.distance')} ({isRunning ? 'km' : 'm'})</label>
-              <Input type="number" step="0.01" placeholder={isRunning ? '5.0' : '2000'} value={distance} onChange={e => setDistance(e.target.value)} className="bg-background/50" />
+              <Input type="text" inputMode="decimal" placeholder={isRunning ? '5.0' : '2000'} value={distance} onChange={e => setDistance(e.target.value.replace(/[^0-9.]/g, ''))} className="bg-background/50" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">{t('cardioLog.pace')} (min:seg/{isRunning ? 'km' : '100m'})</label>
