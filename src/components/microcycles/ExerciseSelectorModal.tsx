@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Check, Loader2, ChevronDown, Lightbulb } from 'lucide-react';
+import { Search, Filter, Check, Loader2, ChevronDown, Lightbulb, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { VimeoThumbnail } from '@/components/LazyVimeoEmbed';
+import { extractVimeoId } from '@/components/LazyVimeoEmbed';
 import { ExerciseSVGAnimation } from '@/components/exercise-animations';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -192,14 +192,22 @@ export const ExerciseSelectorModal = ({ open, onClose, onSelect, excludeIds = []
                     )}>
                       {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                     </div>
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg sm:h-16 sm:w-16">
-                      {ex.video_url ? (
-                        <VimeoThumbnail
-                          videoUrl={ex.video_url}
-                          alt={ex.name}
-                          className="h-full w-full rounded-lg"
-                        />
-                      ) : (
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-16">
+                      {ex.video_url ? (() => {
+                        const videoId = extractVimeoId(ex.video_url!);
+                        return videoId ? (
+                          <img
+                            src={`https://vumbnail.com/${videoId}.jpg`}
+                            alt={ex.name}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <Play className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        );
+                      })() : (
                         <ExerciseSVGAnimation exerciseName={ex.name} compact className="h-full w-full rounded-lg" />
                       )}
                     </div>
