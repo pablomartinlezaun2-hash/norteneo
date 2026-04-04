@@ -119,13 +119,12 @@ export const DurationInput = ({
         <div className="relative flex-1">
           <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={inputValue}
             onChange={handleInputChange}
             onFocus={() => setIsFocused(true)}
             onBlur={handleBlur}
-            min={min}
-            max={max}
             className="pl-10 pr-14 text-center font-bold text-lg h-10"
           />
           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">

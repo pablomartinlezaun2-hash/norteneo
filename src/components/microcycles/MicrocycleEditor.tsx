@@ -1,31 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { MicrocycleExercise } from '@/hooks/useCustomMicrocycles';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, GripVertical, Trash2, Save, Loader2 } from 'lucide-react';
 import { ExerciseSelectorModal } from './ExerciseSelectorModal';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const NumericInput = ({ value, onCommit, min = 1 }: { value: number; onCommit: (v: number) => void; min?: number }) => {
-  const [raw, setRaw] = useState(value.toString());
-  useEffect(() => { setRaw(value.toString()); }, [value]);
-  return (
-    <Input
-      type="text"
-      inputMode="numeric"
-      value={raw}
-      onChange={e => setRaw(e.target.value.replace(/[^0-9]/g, ''))}
-      onBlur={() => {
-        const n = parseInt(raw, 10);
-        const clamped = isNaN(n) || n < min ? min : n;
-        setRaw(clamped.toString());
-        onCommit(clamped);
-      }}
-      className="h-8 text-xs text-center"
-    />
-  );
-};
 
 interface MicrocycleEditorProps {
   initialName?: string;
@@ -142,15 +123,15 @@ export const MicrocycleEditor = ({ initialName = '', initialExercises = [], onSa
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Series</label>
-                    <NumericInput value={ex.sets} onCommit={v => updateExercise(index, 'sets', v)} />
+                    <NumericInput value={ex.sets} onValueChange={v => updateExercise(index, 'sets', v)} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps mín</label>
-                    <NumericInput value={ex.repRangeMin} onCommit={v => updateExercise(index, 'repRangeMin', v)} />
+                    <NumericInput value={ex.repRangeMin} onValueChange={v => updateExercise(index, 'repRangeMin', v)} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps máx</label>
-                    <NumericInput value={ex.repRangeMax} onCommit={v => updateExercise(index, 'repRangeMax', v)} />
+                    <NumericInput value={ex.repRangeMax} onValueChange={v => updateExercise(index, 'repRangeMax', v)} />
                   </div>
                 </div>
               </motion.div>

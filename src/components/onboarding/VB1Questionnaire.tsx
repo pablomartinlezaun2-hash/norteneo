@@ -229,7 +229,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <input
-                      type="number"
+                      type="text"
                       inputMode="decimal"
                       placeholder={currentStep.placeholder}
                       value={answers[stepIndex] || ''}

@@ -102,25 +102,25 @@ export const SetForm = ({ setNumber, onSubmit, lastLog }: SetFormProps) => {
           <Label htmlFor={`weight-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.weightKg')}
           </Label>
-          <Input id={`weight-${setNumber}`} type="number" step="0.5" placeholder="80" value={weight} onChange={(e) => setWeight(e.target.value)} className="h-11 text-center text-lg font-bold bg-background border-2 focus:border-primary" />
+          <Input id={`weight-${setNumber}`} type="text" inputMode="decimal" placeholder="80" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^0-9.]/g, ''))} className="h-11 text-center text-lg font-bold bg-background border-2 focus:border-primary" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`reps-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.repetitions')}
           </Label>
-          <Input id={`reps-${setNumber}`} type="number" placeholder="10" value={reps} onChange={(e) => setReps(e.target.value)} className="h-11 text-center text-lg font-bold bg-background border-2 focus:border-primary" />
+          <Input id={`reps-${setNumber}`} type="text" inputMode="numeric" placeholder="10" value={reps} onChange={(e) => setReps(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center text-lg font-bold bg-background border-2 focus:border-primary" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`partial-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.partialReps')}
           </Label>
-          <Input id={`partial-${setNumber}`} type="number" placeholder="0" value={partialReps} onChange={(e) => setPartialReps(e.target.value)} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
+          <Input id={`partial-${setNumber}`} type="text" inputMode="numeric" placeholder="0" value={partialReps} onChange={(e) => setPartialReps(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`rir-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.rir')}
           </Label>
-          <Input id={`rir-${setNumber}`} type="number" min="0" max="5" placeholder="2" value={rir} onChange={(e) => setRir(e.target.value)} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
+          <Input id={`rir-${setNumber}`} type="text" inputMode="numeric" placeholder="2" value={rir} onChange={(e) => setRir(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
         </div>
       </div>
 

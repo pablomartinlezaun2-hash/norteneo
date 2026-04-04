@@ -123,7 +123,7 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">{t('cardioLog.distance')} ({isRunning ? 'km' : 'm'})</label>
-              <Input type="number" step="0.01" placeholder={isRunning ? '5.0' : '2000'} value={distance} onChange={e => setDistance(e.target.value)} className="bg-background/50" />
+              <Input type="text" inputMode="decimal" placeholder={isRunning ? '5.0' : '2000'} value={distance} onChange={e => setDistance(e.target.value.replace(/[^0-9.]/g, ''))} className="bg-background/50" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">{t('cardioLog.pace')} (min:seg/{isRunning ? 'km' : '100m'})</label>
@@ -133,9 +133,9 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">{t('cardioLog.duration')}</label>
             <div className="flex gap-2 items-center">
-              <Input type="number" placeholder="Min" value={durationMin} onChange={e => setDurationMin(e.target.value)} className="bg-background/50 w-20" />
+              <Input type="text" inputMode="numeric" placeholder="Min" value={durationMin} onChange={e => setDurationMin(e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/50 w-20" />
               <span className="text-xs text-muted-foreground">{t('cardioLog.min')}</span>
-              <Input type="number" placeholder="Seg" value={durationSec} onChange={e => setDurationSec(e.target.value)} className="bg-background/50 w-20" />
+              <Input type="text" inputMode="numeric" placeholder="Seg" value={durationSec} onChange={e => setDurationSec(e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/50 w-20" />
               <span className="text-xs text-muted-foreground">{t('cardioLog.sec')}</span>
             </div>
             {autoPaceContinuous !== undefined && (
@@ -163,26 +163,26 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-muted-foreground">{t('cardioLog.distanceLabel')} (m)</label>
-                    <Input type="number" placeholder={isRunning ? '400' : '100'} value={iv.distance} onChange={e => updateInterval(idx, 'distance', e.target.value)} className="bg-background/80 h-8 text-sm" />
+                    <Input type="text" inputMode="numeric" placeholder={isRunning ? '400' : '100'} value={iv.distance} onChange={e => updateInterval(idx, 'distance', e.target.value.replace(/[^0-9.]/g, ''))} className="bg-background/80 h-8 text-sm" />
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground">{t('cardioLog.pacePerUnit', { unit: iv.paceUnit })}</label>
                     <div className="flex gap-1">
-                      <Input type="number" placeholder="min" value={iv.paceMin} onChange={e => updateInterval(idx, 'paceMin', e.target.value)} className="bg-background/80 h-8 text-sm w-14" />
+                      <Input type="text" inputMode="numeric" placeholder="min" value={iv.paceMin} onChange={e => updateInterval(idx, 'paceMin', e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/80 h-8 text-sm w-14" />
                       <span className="text-muted-foreground self-center text-xs">:</span>
-                      <Input type="number" placeholder="seg" value={iv.paceSec} onChange={e => updateInterval(idx, 'paceSec', e.target.value)} className="bg-background/80 h-8 text-sm w-14" />
+                      <Input type="text" inputMode="numeric" placeholder="seg" value={iv.paceSec} onChange={e => updateInterval(idx, 'paceSec', e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/80 h-8 text-sm w-14" />
                     </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-muted-foreground">{t('cardioLog.restSec')}</label>
-                    <Input type="number" placeholder="60" value={iv.restSec} onChange={e => updateInterval(idx, 'restSec', e.target.value)} className="bg-background/80 h-8 text-sm" />
+                    <Input type="text" inputMode="numeric" placeholder="60" value={iv.restSec} onChange={e => updateInterval(idx, 'restSec', e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/80 h-8 text-sm" />
                   </div>
                   {!isRunning && (
                     <div>
                       <label className="text-[10px] text-muted-foreground">{t('cardioLog.paceEvery')}</label>
-                      <Input type="number" placeholder="100" value={iv.paceUnit} onChange={e => updateInterval(idx, 'paceUnit', e.target.value)} className="bg-background/80 h-8 text-sm" />
+                      <Input type="text" inputMode="numeric" placeholder="100" value={iv.paceUnit} onChange={e => updateInterval(idx, 'paceUnit', e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/80 h-8 text-sm" />
                     </div>
                   )}
                 </div>

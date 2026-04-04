@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePerformanceEngine } from '@/hooks/usePerformanceEngine';
+import { NumericInput } from '@/components/ui/numeric-input';
 
 /* ── Types ── */
 interface ChartItem {
@@ -352,7 +353,7 @@ export const ProgressChart = (_props: ProgressChartProps) => {
           >
             <div className="flex items-center gap-2">
               <label className="text-xs text-muted-foreground">{t('volumeChart.days')}:</label>
-              <input type="number" min={1} max={365} value={customDays} onChange={handleCustomDaysChange}
+              <NumericInput min={1} max={365} value={customDays} onValueChange={(v) => setCustomDays(v)}
                 className="w-16 h-8 rounded-xl border border-border/30 bg-secondary/40 text-center text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
             </div>
           </motion.div>

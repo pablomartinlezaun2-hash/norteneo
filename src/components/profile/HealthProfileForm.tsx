@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Scale, Ruler, Calendar, AlertTriangle, Pill, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
 import { Label } from '@/components/ui/label';
 import { HealthProfile } from '@/hooks/useUserSettings';
 import { cn } from '@/lib/utils';
@@ -66,10 +67,9 @@ export const HealthProfileForm = ({ profile, onSave }: HealthProfileFormProps) =
             {formData.unit}
           </Button>
         </div>
-        <Input
-          type="number"
+        <NumericInput
           value={formData.weight}
-          onChange={(e) => handleChange('weight', parseFloat(e.target.value) || 0)}
+          onValueChange={(v) => handleChange('weight', v)}
           className="text-lg font-semibold"
         />
       </div>
@@ -82,10 +82,9 @@ export const HealthProfileForm = ({ profile, onSave }: HealthProfileFormProps) =
           </div>
           <Label className="text-sm font-medium">{t('health.height')} (cm)</Label>
         </div>
-        <Input
-          type="number"
+        <NumericInput
           value={formData.height}
-          onChange={(e) => handleChange('height', parseFloat(e.target.value) || 0)}
+          onValueChange={(v) => handleChange('height', v)}
           className="text-lg font-semibold"
         />
       </div>
@@ -98,10 +97,9 @@ export const HealthProfileForm = ({ profile, onSave }: HealthProfileFormProps) =
           </div>
           <Label className="text-sm font-medium">{t('health.age')}</Label>
         </div>
-        <Input
-          type="number"
+        <NumericInput
           value={formData.age}
-          onChange={(e) => handleChange('age', parseInt(e.target.value) || 0)}
+          onValueChange={(v) => handleChange('age', v)}
           className="text-lg font-semibold"
         />
       </div>

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
 import { NutritionGoals } from '@/hooks/useNutritionData';
 
 interface NutritionGoalsSectionProps {
@@ -188,10 +189,9 @@ export const NutritionGoalsSection = ({ goals, onUpdateGoals }: NutritionGoalsSe
                 className="flex-1"
               />
               <div className="flex items-center gap-1 min-w-[100px]">
-                <Input
-                  type="number"
+                <NumericInput
                   value={item.value}
-                  onChange={(e) => item.setValue(Number(e.target.value))}
+                  onValueChange={(v) => item.setValue(v)}
                   className="w-20 text-center h-9"
                   min={item.min}
                   max={item.max}

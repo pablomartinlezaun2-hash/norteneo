@@ -267,10 +267,10 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
                 Distancia ({isRunning ? 'km' : 'm'})
               </label>
               <Input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={editDistance}
-                onChange={e => setEditDistance(e.target.value)}
+                onChange={e => setEditDistance(e.target.value.replace(/[^0-9.]/g, ''))}
                 className="bg-slate-800 border-slate-700 text-white"
               />
             </div>
@@ -278,18 +278,20 @@ export const SessionDetailView = ({ session, activityType, onClose, onDelete, on
               <label className="text-xs text-slate-400 mb-1 block">Duración</label>
               <div className="flex gap-1 items-center">
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Min"
                   value={editDurMin}
-                  onChange={e => setEditDurMin(e.target.value)}
+                  onChange={e => setEditDurMin(e.target.value.replace(/[^0-9]/g, ''))}
                   className="bg-slate-800 border-slate-700 text-white w-16 h-9"
                 />
                 <span className="text-xs text-slate-400">:</span>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Seg"
                   value={editDurSec}
-                  onChange={e => setEditDurSec(e.target.value)}
+                  onChange={e => setEditDurSec(e.target.value.replace(/[^0-9]/g, ''))}
                   className="bg-slate-800 border-slate-700 text-white w-16 h-9"
                 />
               </div>

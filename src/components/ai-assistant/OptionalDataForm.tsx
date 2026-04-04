@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, Scale, Ruler, Calendar, AlertTriangle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { UserProfile } from './types';
@@ -52,33 +52,36 @@ export const OptionalDataForm = ({ onSubmit, onSkip }: OptionalDataFormProps) =>
             <label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Calendar className="w-3 h-3" /> Edad
             </label>
-            <Input
-              type="number"
+            <NumericInput
               placeholder="25"
               className="h-9 text-sm"
-              onChange={(e) => setData(prev => ({ ...prev, age: parseInt(e.target.value) || undefined }))}
+              value={data.age || ''}
+              onValueChange={(v) => setData(prev => ({ ...prev, age: v }))}
+              allowEmpty
             />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Scale className="w-3 h-3" /> Peso (kg)
             </label>
-            <Input
-              type="number"
+            <NumericInput
               placeholder="70"
               className="h-9 text-sm"
-              onChange={(e) => setData(prev => ({ ...prev, weight: parseInt(e.target.value) || undefined }))}
+              value={data.weight || ''}
+              onValueChange={(v) => setData(prev => ({ ...prev, weight: v }))}
+              allowEmpty
             />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Ruler className="w-3 h-3" /> Altura (cm)
             </label>
-            <Input
-              type="number"
+            <NumericInput
               placeholder="175"
               className="h-9 text-sm"
-              onChange={(e) => setData(prev => ({ ...prev, height: parseInt(e.target.value) || undefined }))}
+              value={data.height || ''}
+              onValueChange={(v) => setData(prev => ({ ...prev, height: v }))}
+              allowEmpty
             />
           </div>
         </div>
