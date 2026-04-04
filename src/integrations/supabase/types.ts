@@ -1891,6 +1891,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          source_planning_mesocycle_id: string | null
           updated_at: string
           user_id: string
         }
@@ -1900,6 +1901,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          source_planning_mesocycle_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1909,10 +1911,19 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          source_planning_mesocycle_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "training_programs_source_planning_mesocycle_id_fkey"
+            columns: ["source_planning_mesocycle_id"]
+            isOneToOne: false
+            referencedRelation: "planning_mesocycles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_supplements: {
         Row: {
