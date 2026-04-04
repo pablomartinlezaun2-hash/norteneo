@@ -340,9 +340,9 @@ export const SleepLogSection = () => {
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1"><Brain className="w-3.5 h-3.5" /> {t('sleep.phases')} <span className="text-muted-foreground/60">({t('sleep.optional')})</span></Label>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="space-y-1"><span className="text-[10px] text-muted-foreground">{t('sleep.deep')}</span><Input type="number" placeholder="min" value={deepMinutes} onChange={(e) => setDeepMinutes(e.target.value ? Number(e.target.value) : '')} min={0} className="h-9 text-sm" /></div>
-                    <div className="space-y-1"><span className="text-[10px] text-muted-foreground">{t('sleep.light')}</span><Input type="number" placeholder="min" value={lightMinutes} onChange={(e) => setLightMinutes(e.target.value ? Number(e.target.value) : '')} min={0} className="h-9 text-sm" /></div>
-                    <div className="space-y-1"><span className="text-[10px] text-muted-foreground">REM</span><Input type="number" placeholder="min" value={remMinutes} onChange={(e) => setRemMinutes(e.target.value ? Number(e.target.value) : '')} min={0} className="h-9 text-sm" /></div>
+                    <div className="space-y-1"><span className="text-[10px] text-muted-foreground">{t('sleep.deep')}</span><NumericInput placeholder="min" value={deepMinutes} onValueChange={(v) => setDeepMinutes(v)} allowEmpty onEmptyValue={() => setDeepMinutes('')} min={0} className="h-9 text-sm" /></div>
+                    <div className="space-y-1"><span className="text-[10px] text-muted-foreground">{t('sleep.light')}</span><NumericInput placeholder="min" value={lightMinutes} onValueChange={(v) => setLightMinutes(v)} allowEmpty onEmptyValue={() => setLightMinutes('')} min={0} className="h-9 text-sm" /></div>
+                    <div className="space-y-1"><span className="text-[10px] text-muted-foreground">REM</span><NumericInput placeholder="min" value={remMinutes} onValueChange={(v) => setRemMinutes(v)} allowEmpty onEmptyValue={() => setRemMinutes('')} min={0} className="h-9 text-sm" /></div>
                   </div>
                 </div>
                 <div className="space-y-1.5">

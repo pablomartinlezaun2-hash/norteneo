@@ -52,13 +52,11 @@ export const PaceUnitSelector = ({ activityType, value, onChange }: PaceUnitSele
       </Select>
       {(customMode || !isPreset) && (
         <div className="flex items-center gap-1">
-          <Input
-            type="number"
+          <NumericInput
             placeholder="metros"
-            value={customValue || (!isPreset ? String(value) : '')}
-            onChange={e => setCustomValue(e.target.value)}
-            onBlur={handleCustomConfirm}
-            onKeyDown={e => e.key === 'Enter' && handleCustomConfirm()}
+            value={customValue ? Number(customValue) : (!isPreset ? value : '')}
+            onValueChange={v => { setCustomValue(String(v)); onChange(v); }}
+            min={1}
             className="h-8 w-20 text-xs bg-background"
           />
           <span className="text-xs text-muted-foreground">m</span>
