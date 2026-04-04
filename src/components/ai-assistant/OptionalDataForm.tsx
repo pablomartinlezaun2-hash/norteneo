@@ -64,11 +64,12 @@ export const OptionalDataForm = ({ onSubmit, onSkip }: OptionalDataFormProps) =>
             <label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Scale className="w-3 h-3" /> Peso (kg)
             </label>
-            <Input
-              type="number"
+            <NumericInput
               placeholder="70"
               className="h-9 text-sm"
-              onChange={(e) => setData(prev => ({ ...prev, weight: parseInt(e.target.value) || undefined }))}
+              value={data.weight || ''}
+              onValueChange={(v) => setData(prev => ({ ...prev, weight: v }))}
+              allowEmpty
             />
           </div>
           <div className="space-y-1">
