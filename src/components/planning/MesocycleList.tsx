@@ -1,16 +1,31 @@
 import { useState } from 'react';
-import { usePlanningMesocycles } from '@/hooks/usePlanningMesocycles';
+import { usePlanningMesocycles, PlanningMesocycle, PlanningMicrocycle } from '@/hooks/usePlanningMesocycles';
+import { useActivateMesocycle } from '@/hooks/useActivateMesocycle';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit2, Trash2, Loader2, Calendar, Layers, Target } from 'lucide-react';
+import { Plus, Trash2, Loader2, Calendar, Layers, Target, Play, ChevronRight } from 'lucide-react';
 import { MesocycleWizard } from './MesocycleWizard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export const MesocycleList = () => {
   const { mesocycles, loading, deleteMesocycle } = usePlanningMesocycles();
+  const { activateMicrocycle, activating } = useActivateMesocycle();
   const [view, setView] = useState<'list' | 'create'>('list');
+  const [selectorMeso, setSelectorMeso] = useState<PlanningMesocycle | null>(null);
+
+  const handleActivate = async (meso: PlanningMesocycle, micro: PlanningMicrocycle) => {
+    const ok = await activateMicrocycle(meso, micro);
+    if (ok) setSelectorMeso(null);
+  };
 
   if (loading) {
     return (
@@ -66,7 +81,7 @@ export const MesocycleList = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.25, delay: index * 0.05 }}
-                  className="rounded-xl border border-border bg-card p-4 space-y-2"
+                  className="rounded-xl border border-border bg-card p-4 space-y-3"
                 >
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
@@ -93,6 +108,13 @@ export const MesocycleList = () => {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
+                        onClick={() => setSelectorMeso(meso)}
+                        className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                        title="Activar como entrenamiento"
+                      >
+                        <Play className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => deleteMesocycle(meso.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
@@ -106,6 +128,44 @@ export const MesocycleList = () => {
           </AnimatePresence>
         </div>
       )}
+
+      {/* Microcycle selector dialog */}
+      <Dialog open={!!selectorMeso} onOpenChange={(open) => !open && setSelectorMeso(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Activar microciclo</DialogTitle>
+            <DialogDescription>
+              Selecciona qué microciclo de <span className="font-medium">{selectorMeso?.name}</span> quieres usar como entrenamiento activo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-2">
+            {selectorMeso?.microcycles.map((mc) => {
+              const sessCount = mc.sessions.length;
+              const exCount = mc.sessions.reduce((s, sess) => s + sess.exercises.length, 0);
+              return (
+                <button
+                  key={mc.id || mc.orderIndex}
+                  disabled={activating || sessCount === 0}
+                  onClick={() => handleActivate(selectorMeso!, mc)}
+                  className="w-full flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-foreground">{mc.name || `Microciclo ${mc.orderIndex + 1}`}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {sessCount} sesiones · {exCount} ejercicios
+                    </p>
+                  </div>
+                  {activating ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
