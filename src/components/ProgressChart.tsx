@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePerformanceEngine } from '@/hooks/usePerformanceEngine';
+import { NumericInput } from '@/components/ui/numeric-input';
 
 /* ── Types ── */
 interface ChartItem {
