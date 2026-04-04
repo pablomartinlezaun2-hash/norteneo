@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
-import { useExerciseCatalog } from '@/hooks/useExerciseCatalog';
+import { useExerciseCatalog, CatalogExercise } from '@/hooks/useExerciseCatalog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Check, Loader2 } from 'lucide-react';
+import { Search, Filter, Check, Loader2, ChevronDown, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VimeoThumbnail } from '@/components/LazyVimeoEmbed';
+import { ExerciseSVGAnimation } from '@/components/exercise-animations';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ExerciseSelectorModalProps {
   open: boolean;
@@ -14,6 +17,66 @@ interface ExerciseSelectorModalProps {
   onSelect: (exercises: { id: string; name: string; group: string; videoUrl: string | null; description: string | null }[]) => void;
   excludeIds?: string[];
 }
+
+const difficultyColors: Record<string, string> = {
+  beginner: 'bg-success/20 text-success',
+  intermediate: 'bg-warning/20 text-warning',
+  advanced: 'bg-destructive/20 text-destructive',
+};
+
+const difficultyLabels: Record<string, string> = {
+  beginner: 'Principiante',
+  intermediate: 'Intermedio',
+  advanced: 'Avanzado',
+};
+
+const ExerciseDescription = ({ exercise }: { exercise: CatalogExercise }) => {
+  const [open, setOpen] = useState(false);
+  if (!exercise.description && (!exercise.tips || exercise.tips.length === 0)) return null;
+
+  return (
+    <div className="mt-1.5 overflow-hidden rounded-lg border border-border">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        className="flex w-full items-center justify-between px-2.5 py-1.5 transition-colors hover:bg-muted/50"
+      >
+        <span className="text-xs font-semibold text-foreground">Descripción</span>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        </motion.div>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-2 px-2.5 pb-2.5">
+              {exercise.description && <p className="text-xs leading-relaxed text-muted-foreground">{exercise.description}</p>}
+              {exercise.tips && exercise.tips.length > 0 && (
+                <div>
+                  <h4 className="mb-1 flex items-center gap-1 text-[11px] font-semibold text-foreground">
+                    <Lightbulb className="h-3 w-3 text-warning" />Tips
+                  </h4>
+                  <ul className="space-y-0.5">
+                    {exercise.tips.map((tip, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                        <span className="mt-0.5 text-primary">•</span>{tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export const ExerciseSelectorModal = ({ open, onClose, onSelect, excludeIds = [] }: ExerciseSelectorModalProps) => {
   const { muscleGroups, exercises, loading } = useExerciseCatalog();
@@ -101,7 +164,7 @@ export const ExerciseSelectorModal = ({ open, onClose, onSelect, excludeIds = []
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1.5">
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
@@ -110,29 +173,57 @@ export const ExerciseSelectorModal = ({ open, onClose, onSelect, excludeIds = []
             filtered.map(ex => {
               const isSelected = selected.has(ex.id);
               return (
-                <button
+                <div
                   key={ex.id}
-                  onClick={() => toggleSelect(ex.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                    "w-full rounded-xl border transition-all",
                     isSelected
                       ? "border-primary bg-primary/5"
                       : "border-border bg-card hover:border-primary/30"
                   )}
                 >
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-                    isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
-                  )}>
-                    {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                  <button
+                    onClick={() => toggleSelect(ex.id)}
+                    className="w-full flex items-center gap-3 p-3 text-left"
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
+                    )}>
+                      {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg sm:h-16 sm:w-16">
+                      {ex.video_url ? (
+                        <VimeoThumbnail
+                          videoUrl={ex.video_url}
+                          alt={ex.name}
+                          className="h-full w-full rounded-lg"
+                        />
+                      ) : (
+                        <ExerciseSVGAnimation exerciseName={ex.name} compact className="h-full w-full rounded-lg" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm text-foreground truncate">{ex.name}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {ex.primary_muscle && (
+                          <span className="text-xs text-muted-foreground">{ex.primary_muscle.name}</span>
+                        )}
+                        {ex.difficulty && (
+                          <Badge className={cn('px-1.5 py-0 text-[10px]', difficultyColors[ex.difficulty])}>
+                            {difficultyLabels[ex.difficulty] || ex.difficulty}
+                          </Badge>
+                        )}
+                        {ex.is_compound && (
+                          <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">Compuesto</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                  <div className="px-3 pb-3">
+                    <ExerciseDescription exercise={ex} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm text-foreground truncate">{ex.name}</p>
-                    {ex.primary_muscle && (
-                      <span className="text-xs text-muted-foreground">{ex.primary_muscle.name}</span>
-                    )}
-                  </div>
-                </button>
+                </div>
               );
             })
           )}
