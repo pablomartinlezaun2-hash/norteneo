@@ -1,101 +1,35 @@
+## Mesocycle Planning System Rebuild
 
-# Plan: Mostrar Programas Predefinidos en "Mis Entrenamientos"
+### Phase 1: Database Migration
+Create new tables for the proper hierarchy:
+- `planning_mesocycles` — name, duration_weeks, microcycle_count, user_id
+- `planning_microcycles` — mesocycle_id, name, order_index
+- `planning_sessions` — microcycle_id, name, order_index
+- `planning_session_exercises` — session_id, exercise_catalog_id, sets, rep_range_min, rep_range_max, order_index
+- All with proper RLS policies
 
-## Resumen
+### Phase 2: Data Hook
+- `usePlanningMesocycles` hook with full CRUD for the hierarchy
+- Load mesocycle with nested microcycles → sessions → exercises
+- Save entire mesocycle tree in one operation
 
-Se integraran los programas predefinidos (Push-Legs-Pull-Legs 2 y Rutina Torso-Pierna) en la seccion "Entrenamientos guardados" del desplegable de Gimnasio dentro de "Mis Entrenamientos". Los usuarios podran ver y cargar estos programas desde esa ubicacion.
+### Phase 3: UI Components
+1. **MesocycleList** — list of existing mesocycles with cards
+2. **MesocycleWizard** — step-by-step creation flow:
+   - Step 1: Name + duration + microcycle count
+   - Step 2: Define sessions per microcycle (name each day)
+   - Step 3: Add exercises to each session from library
+   - Step 4: Review and save
+3. **MesocycleEditor** — edit existing mesocycle (reuses wizard steps)
+4. **SessionEditor** — add/configure exercises within a session
+5. Reuse existing `ExerciseSelectorModal` for picking exercises
 
----
+### Phase 4: Integration
+- Replace current MicrocyclesSection in WorkoutsHub with new MesocycleList
+- Fix numeric inputs to accept single digits properly
 
-## Cambios a Realizar
-
-### 1. Modificar MyWorkoutsSection.tsx
-
-**Objetivo:** Reemplazar el mensaje de "Proximamente" en la seccion de "Entrenamientos guardados" por los programas predefinidos importables.
-
-**Cambios especificos:**
-
-- Importar el hook `useProgramImport` y `ALL_PROGRAMS` de los archivos existentes
-- Agregar estado para manejar la importacion (loading, exito)
-- En la seccion "Entrenamientos guardados" de Gimnasio, mostrar los dos programas predefinidos:
-  - Push-Legs-Pull-Legs 2
-  - Rutina Torso-Pierna
-- Cada programa mostrara:
-  - Nombre del programa
-  - Descripcion
-  - Numero de sesiones y ejercicios
-  - Boton "Cargar" para importar el programa
-
-**Flujo de carga:**
-1. Usuario expande "Mis Entrenamientos"
-2. Expande la categoria "Gimnasio"
-3. Expande "Entrenamientos guardados"
-4. Ve los 2 programas predefinidos con boton "Cargar"
-5. Al pulsar "Cargar", se importa el programa usando `useProgramImport`
-6. Se muestra feedback de exito y se refresca la lista
-
----
-
-## Detalles Tecnicos
-
-```text
-src/components/MyWorkoutsSection.tsx
-+--------------------------------------------+
-|  - Import useProgramImport                 |
-|  - Import ALL_PROGRAMS, ProgramTemplate    |
-|  - Add importing state                     |
-|  - Replace "Proximamente" placeholder      |
-|  - Add program cards with:                 |
-|    * Program name                          |
-|    * Description                           |
-|    * Sessions/exercises count              |
-|    * "Cargar" button                       |
-|  - Handle import with toast feedback       |
-|  - Refresh workouts after import           |
-+--------------------------------------------+
-```
-
-### Estructura Visual
-
-```text
-Mis Entrenamientos
-|
-+-- Gimnasio (desplegable)
-|   |
-|   +-- Entrenamientos guardados (desplegable)
-|   |   |
-|   |   +-- [Push-Legs-Pull-Legs 2] [Cargar]
-|   |   |   "4 sesiones - 24 ejercicios"
-|   |   |
-|   |   +-- [Rutina Torso-Pierna] [Cargar]
-|   |       "5 sesiones - 37 ejercicios"
-|   |
-|   +-- Entrenamientos disenados (desplegable)
-|       |
-|       +-- (rutinas creadas por el usuario)
-|
-+-- Natacion (desplegable)
-|   +-- (proximamente)
-|
-+-- Running (desplegable)
-    +-- (proximamente)
-```
-
----
-
-## Archivos a Modificar
-
-| Archivo | Accion |
-|---------|--------|
-| `src/components/MyWorkoutsSection.tsx` | Modificar para agregar programas predefinidos |
-
----
-
-## Resultado Esperado
-
-- Los usuarios veran "Push-Legs-Pull-Legs 2" y "Rutina Torso-Pierna" en Gimnasio > Entrenamientos guardados
-- Al pulsar "Cargar", el programa se importa a la base de datos del usuario
-- Se muestra mensaje de confirmacion
-- El programa aparece automaticamente en "Entrenamientos disenados" como activo
-- La lista se actualiza para reflejar el nuevo programa
-
+### Key Decisions
+- Keep existing `custom_microcycles` tables untouched (different feature)
+- New `planning_*` tables for the mesocycle hierarchy
+- Wizard uses local state, saves to DB only on final step
+- Numeric inputs use proper `inputMode="numeric"` with no min-length constraints
