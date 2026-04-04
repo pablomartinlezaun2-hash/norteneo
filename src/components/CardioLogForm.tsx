@@ -133,9 +133,9 @@ export const CardioLogForm = ({ activityType, onSave, onClose }: CardioLogFormPr
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">{t('cardioLog.duration')}</label>
             <div className="flex gap-2 items-center">
-              <Input type="number" placeholder="Min" value={durationMin} onChange={e => setDurationMin(e.target.value)} className="bg-background/50 w-20" />
+              <Input type="text" inputMode="numeric" placeholder="Min" value={durationMin} onChange={e => setDurationMin(e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/50 w-20" />
               <span className="text-xs text-muted-foreground">{t('cardioLog.min')}</span>
-              <Input type="number" placeholder="Seg" value={durationSec} onChange={e => setDurationSec(e.target.value)} className="bg-background/50 w-20" />
+              <Input type="text" inputMode="numeric" placeholder="Seg" value={durationSec} onChange={e => setDurationSec(e.target.value.replace(/[^0-9]/g, ''))} className="bg-background/50 w-20" />
               <span className="text-xs text-muted-foreground">{t('cardioLog.sec')}</span>
             </div>
             {autoPaceContinuous !== undefined && (
