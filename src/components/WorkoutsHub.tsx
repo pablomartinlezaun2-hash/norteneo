@@ -7,7 +7,7 @@ import { GymSection } from './GymSection';
 import { SwimmingSection } from './SwimmingSection';
 import { RunningSection } from './RunningSection';
 import { MyWorkoutsSection } from './MyWorkoutsSection';
-import { MicrocyclesSection } from './microcycles';
+import { MesocycleList } from './planning';
 
 type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | 'microcycles' | null;
 
@@ -94,7 +94,7 @@ export const WorkoutsHub = () => {
       gradient: 'from-amber-500 to-orange-400',
       bgColor: 'bg-amber-500/10',
       textColor: 'text-amber-500',
-      component: <MicrocyclesSection />
+      component: <MesocycleList />
     },
   ];
 

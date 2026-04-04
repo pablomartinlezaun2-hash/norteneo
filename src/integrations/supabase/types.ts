@@ -1338,6 +1338,154 @@ export type Database = {
         }
         Relationships: []
       }
+      planning_mesocycles: {
+        Row: {
+          created_at: string
+          duration_weeks: number
+          goal: string | null
+          id: string
+          microcycle_count: number
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_weeks?: number
+          goal?: string | null
+          id?: string
+          microcycle_count?: number
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_weeks?: number
+          goal?: string | null
+          id?: string
+          microcycle_count?: number
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      planning_microcycles: {
+        Row: {
+          created_at: string
+          id: string
+          mesocycle_id: string
+          name: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mesocycle_id: string
+          name?: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mesocycle_id?: string
+          name?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_microcycles_mesocycle_id_fkey"
+            columns: ["mesocycle_id"]
+            isOneToOne: false
+            referencedRelation: "planning_mesocycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_session_exercises: {
+        Row: {
+          created_at: string
+          exercise_catalog_id: string
+          id: string
+          notes: string | null
+          order_index: number
+          rep_range_max: number
+          rep_range_min: number
+          session_id: string
+          sets: number
+        }
+        Insert: {
+          created_at?: string
+          exercise_catalog_id: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          rep_range_max?: number
+          rep_range_min?: number
+          session_id: string
+          sets?: number
+        }
+        Update: {
+          created_at?: string
+          exercise_catalog_id?: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          rep_range_max?: number
+          rep_range_min?: number
+          session_id?: string
+          sets?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_session_exercises_exercise_catalog_id_fkey"
+            columns: ["exercise_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planning_session_exercises_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "planning_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          microcycle_id: string
+          name: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          microcycle_id: string
+          name?: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          microcycle_id?: string
+          name?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_sessions_microcycle_id_fkey"
+            columns: ["microcycle_id"]
+            isOneToOne: false
+            referencedRelation: "planning_microcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_model: string | null
