@@ -214,6 +214,18 @@ export const usePlanningMesocycles = () => {
     try {
       const { error } = await supabase.from('planning_mesocycles').delete().eq('id', id);
       if (error) throw error;
+
+      if (user) {
+        const { error: deactivateError } = await supabase
+          .from('training_programs')
+          .update({ is_active: false })
+          .eq('user_id', user.id)
+          .eq('source_planning_mesocycle_id', id)
+          .eq('is_active', true);
+
+        if (deactivateError) throw deactivateError;
+      }
+
       toast.success('Mesociclo eliminado');
       setMesocycles(prev => prev.filter(m => m.id !== id));
     } catch (err) {

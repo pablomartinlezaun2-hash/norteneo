@@ -26,7 +26,7 @@ export const useTrainingProgram = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .limit(1);
+        .order('updated_at', { ascending: false });
 
       if (programError) throw programError;
 
@@ -36,7 +36,46 @@ export const useTrainingProgram = () => {
         return;
       }
 
-      const activeProgram = programs[0];
+      const sourceMesocycleIds = programs
+        .map((program) => program.source_planning_mesocycle_id)
+        .filter((id): id is string => Boolean(id));
+
+      let existingSourceIds = new Set<string>();
+      if (sourceMesocycleIds.length > 0) {
+        const { data: sourceMesocycles, error: sourceError } = await supabase
+          .from('planning_mesocycles')
+          .select('id')
+          .eq('user_id', user.id)
+          .in('id', sourceMesocycleIds);
+
+        if (sourceError) throw sourceError;
+        existingSourceIds = new Set((sourceMesocycles || []).map((mesocycle) => mesocycle.id));
+      }
+
+      const staleProgramIds = programs
+        .filter(
+          (program) =>
+            program.source_planning_mesocycle_id && !existingSourceIds.has(program.source_planning_mesocycle_id)
+        )
+        .map((program) => program.id);
+
+      if (staleProgramIds.length > 0) {
+        const { error: deactivateError } = await supabase
+          .from('training_programs')
+          .update({ is_active: false })
+          .eq('user_id', user.id)
+          .in('id', staleProgramIds);
+
+        if (deactivateError) throw deactivateError;
+      }
+
+      const activeProgram = programs.find((program) => !staleProgramIds.includes(program.id));
+
+      if (!activeProgram) {
+        setProgram(null);
+        setLoading(false);
+        return;
+      }
 
       // Get sessions for this program
       const { data: sessions, error: sessionsError } = await supabase
