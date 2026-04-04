@@ -353,35 +353,23 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Series</label>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              min={1}
+                            <NumericInput
                               value={ex.sets}
-                              onChange={e => updateExercise(activeMicro, activeSession, ei, 'sets', parseInt(e.target.value) || 1)}
-                              className="h-8 text-xs text-center"
+                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'sets', v)}
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps mín</label>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              min={1}
+                            <NumericInput
                               value={ex.repRangeMin}
-                              onChange={e => updateExercise(activeMicro, activeSession, ei, 'repRangeMin', parseInt(e.target.value) || 1)}
-                              className="h-8 text-xs text-center"
+                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMin', v)}
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps máx</label>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              min={1}
+                            <NumericInput
                               value={ex.repRangeMax}
-                              onChange={e => updateExercise(activeMicro, activeSession, ei, 'repRangeMax', parseInt(e.target.value) || 1)}
-                              className="h-8 text-xs text-center"
+                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMax', v)}
                             />
                           </div>
                         </div>
