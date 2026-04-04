@@ -183,11 +183,14 @@ export const MuscleLoadChart = ({ setLogs, exercises }: MuscleLoadChartProps) =>
             <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40">
               <span className="text-xs text-muted-foreground">Últimos</span>
               <input
-                type="number"
-                min={1}
-                max={365}
+                type="text"
+                inputMode="numeric"
                 value={customDays}
-                onChange={(e) => setCustomDays(Math.max(1, Math.min(365, Number(e.target.value))))}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9]/g, '');
+                  const n = parseInt(v) || 1;
+                  setCustomDays(Math.max(1, Math.min(365, n)));
+                }}
                 className="w-16 px-2 py-1 rounded-md bg-background border border-border text-sm text-foreground text-center font-medium"
               />
               <span className="text-xs text-muted-foreground">días</span>

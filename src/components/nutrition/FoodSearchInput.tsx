@@ -78,10 +78,9 @@ export const FoodSearchInput = ({ foods, onSelect, placeholder = 'Buscar aliment
             animate={{ opacity: 1, x: 0 }}
             className="flex gap-2 items-center"
           >
-            <Input
-              type="number"
+            <NumericInput
               value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              onValueChange={(v) => setQuantity(v)}
               className="w-20 text-center"
               min={1}
             />
