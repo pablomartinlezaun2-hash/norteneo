@@ -1,35 +1,41 @@
-## Mesocycle Planning System Rebuild
 
-### Phase 1: Database Migration
-Create new tables for the proper hierarchy:
-- `planning_mesocycles` — name, duration_weeks, microcycle_count, user_id
-- `planning_microcycles` — mesocycle_id, name, order_index
-- `planning_sessions` — microcycle_id, name, order_index
-- `planning_session_exercises` — session_id, exercise_catalog_id, sets, rep_range_min, rep_range_max, order_index
-- All with proper RLS policies
+## Activar sesiones de microciclos como entrenamientos reales
 
-### Phase 2: Data Hook
-- `usePlanningMesocycles` hook with full CRUD for the hierarchy
-- Load mesocycle with nested microcycles → sessions → exercises
-- Save entire mesocycle tree in one operation
+### Problema
+Los microciclos creados en la planificación no se pueden usar como entrenamientos activos. Solo existen como "plan" pero no se conectan con el sistema de ejecución (registro de series, peso, reps, RIR).
 
-### Phase 3: UI Components
-1. **MesocycleList** — list of existing mesocycles with cards
-2. **MesocycleWizard** — step-by-step creation flow:
-   - Step 1: Name + duration + microcycle count
-   - Step 2: Define sessions per microcycle (name each day)
-   - Step 3: Add exercises to each session from library
-   - Step 4: Review and save
-3. **MesocycleEditor** — edit existing mesocycle (reuses wizard steps)
-4. **SessionEditor** — add/configure exercises within a session
-5. Reuse existing `ExerciseSelectorModal` for picking exercises
+### Solución
+Permitir que el usuario "active" un mesociclo/microciclo, lo que convertirá sus sesiones en un programa de entrenamiento real que aparecerá en la sección Gym para ejecutar.
 
-### Phase 4: Integration
-- Replace current MicrocyclesSection in WorkoutsHub with new MesocycleList
-- Fix numeric inputs to accept single digits properly
+### Implementación
 
-### Key Decisions
-- Keep existing `custom_microcycles` tables untouched (different feature)
-- New `planning_*` tables for the mesocycle hierarchy
-- Wizard uses local state, saves to DB only on final step
-- Numeric inputs use proper `inputMode="numeric"` with no min-length constraints
+**1. Botón "Activar" en cada mesociclo**
+- Añadir botón en `MesocycleList` para activar un mesociclo
+- Al activar, se crea un `training_program` + `workout_sessions` + `exercises` a partir de la estructura planificada
+- El programa se marca como activo automáticamente
+
+**2. Conversión de datos**
+- Cada sesión del microciclo seleccionado → `workout_session`
+- Cada ejercicio de la sesión → `exercise` (con series, reps del plan)
+- Se vincula al `exercise_catalog` para obtener nombre, video, etc.
+
+**3. Flujo del usuario**
+1. Va a Entrenamientos → Microciclos
+2. Ve sus mesociclos creados
+3. Pulsa "Activar" en uno
+4. Se genera el programa de entrenamiento
+5. Aparece en la sección Gym listo para ejecutar
+6. El usuario registra series, peso, reps como cualquier otro programa
+
+**4. Lógica de activación**
+- Hook `useActivateMesocycle` que:
+  - Lee el mesociclo con sus microciclos/sesiones/ejercicios
+  - Crea un `training_program` con nombre del mesociclo
+  - Crea `workout_sessions` por cada sesión
+  - Crea `exercises` por cada ejercicio planificado
+  - Activa el programa y desactiva los demás
+- Mostrar toast de confirmación
+
+**5. UX adicional**
+- Badge "Activo" en el mesociclo que está en uso
+- Selector de qué microciclo activar si hay varios
