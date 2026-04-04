@@ -114,7 +114,7 @@ export const SetForm = ({ setNumber, onSubmit, lastLog }: SetFormProps) => {
           <Label htmlFor={`partial-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.partialReps')}
           </Label>
-          <Input id={`partial-${setNumber}`} type="number" placeholder="0" value={partialReps} onChange={(e) => setPartialReps(e.target.value)} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
+          <Input id={`partial-${setNumber}`} type="text" inputMode="numeric" placeholder="0" value={partialReps} onChange={(e) => setPartialReps(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`rir-${setNumber}`} className="text-xs font-semibold text-foreground">
