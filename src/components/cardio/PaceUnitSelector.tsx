@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
 import { RUNNING_PACE_UNITS, SWIMMING_PACE_UNITS, formatUnitLabel } from './paceUtils';
 
 interface PaceUnitSelectorProps {
