@@ -235,24 +235,18 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1">Duración (semanas)</label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={52}
+                  <NumericInput
                     value={durationWeeks}
-                    onChange={e => setDurationWeeks(parseInt(e.target.value) || 1)}
+                    onCommit={v => setDurationWeeks(Math.min(52, v))}
+                    min={1}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1">Nº de microciclos</label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={20}
+                  <NumericInput
                     value={microcycleCount}
-                    onChange={e => setMicrocycleCount(parseInt(e.target.value) || 1)}
+                    onCommit={v => setMicrocycleCount(Math.min(20, v))}
+                    min={1}
                   />
                 </div>
               </div>
