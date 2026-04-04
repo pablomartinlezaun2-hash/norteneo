@@ -52,11 +52,12 @@ export const OptionalDataForm = ({ onSubmit, onSkip }: OptionalDataFormProps) =>
             <label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Calendar className="w-3 h-3" /> Edad
             </label>
-            <Input
-              type="number"
+            <NumericInput
               placeholder="25"
               className="h-9 text-sm"
-              onChange={(e) => setData(prev => ({ ...prev, age: parseInt(e.target.value) || undefined }))}
+              value={data.age || ''}
+              onValueChange={(v) => setData(prev => ({ ...prev, age: v }))}
+              allowEmpty
             />
           </div>
           <div className="space-y-1">
