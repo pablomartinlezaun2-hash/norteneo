@@ -7,7 +7,7 @@ import { GymSection } from './GymSection';
 import { SwimmingSection } from './SwimmingSection';
 import { RunningSection } from './RunningSection';
 import { MyWorkoutsSection } from './MyWorkoutsSection';
-import { MicrocyclesSection } from './microcycles';
+import { MesocycleList } from './planning';
 
 type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | 'microcycles' | null;
 
