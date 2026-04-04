@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Check, Loader2, ChevronDown, Lightbulb } from 'lucide-react';
+import { Search, Filter, Check, Loader2, ChevronDown, Lightbulb, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { VimeoThumbnail } from '@/components/LazyVimeoEmbed';
+import { extractVimeoId } from '@/components/LazyVimeoEmbed';
 import { ExerciseSVGAnimation } from '@/components/exercise-animations';
 import { motion, AnimatePresence } from 'framer-motion';
 
