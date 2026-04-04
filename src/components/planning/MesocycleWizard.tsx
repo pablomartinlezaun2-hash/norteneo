@@ -235,24 +235,18 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1">Duración (semanas)</label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={52}
+                  <NumericInput
                     value={durationWeeks}
-                    onChange={e => setDurationWeeks(parseInt(e.target.value) || 1)}
+                    onCommit={v => setDurationWeeks(Math.min(52, v))}
+                    min={1}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1">Nº de microciclos</label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={20}
+                  <NumericInput
                     value={microcycleCount}
-                    onChange={e => setMicrocycleCount(parseInt(e.target.value) || 1)}
+                    onCommit={v => setMicrocycleCount(Math.min(20, v))}
+                    min={1}
                   />
                 </div>
               </div>
@@ -279,14 +273,10 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                   </div>
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-muted-foreground whitespace-nowrap">Sesiones:</label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={7}
+                    <NumericInput
                       value={mc.sessions.length}
-                      onChange={e => updateSessionCount(mi, Math.max(1, parseInt(e.target.value) || 1))}
-                      className="h-8 text-xs w-16 text-center"
+                      onCommit={v => updateSessionCount(mi, Math.min(7, v))}
+                      min={1}
                     />
                     <div className="flex flex-wrap gap-1 flex-1">
                       {mc.sessions.map((s, si) => (
