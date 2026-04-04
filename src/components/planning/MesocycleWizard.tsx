@@ -214,7 +214,7 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                   <label className="text-sm font-medium text-foreground block mb-1">Duración (semanas)</label>
                   <NumericInput
                     value={durationWeeks}
-                    onCommit={v => setDurationWeeks(Math.min(52, v))}
+                    onValueChange={v => setDurationWeeks(Math.min(52, v))}
                     min={1}
                   />
                 </div>
@@ -222,7 +222,7 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                   <label className="text-sm font-medium text-foreground block mb-1">Nº de microciclos</label>
                   <NumericInput
                     value={microcycleCount}
-                    onCommit={v => setMicrocycleCount(Math.min(20, v))}
+                    onValueChange={v => setMicrocycleCount(Math.min(20, v))}
                     min={1}
                   />
                 </div>
@@ -252,7 +252,7 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                     <label className="text-xs text-muted-foreground whitespace-nowrap">Sesiones:</label>
                     <NumericInput
                       value={mc.sessions.length}
-                      onCommit={v => updateSessionCount(mi, Math.min(7, v))}
+                      onValueChange={v => updateSessionCount(mi, Math.min(7, v))}
                       min={1}
                     />
                     <div className="flex flex-wrap gap-1 flex-1">
@@ -346,21 +346,21 @@ export const MesocycleWizard = ({ onComplete, onCancel }: MesocycleWizardProps) 
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Series</label>
                             <NumericInput
                               value={ex.sets}
-                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'sets', v)}
+                              onValueChange={v => updateExercise(activeMicro, activeSession, ei, 'sets', v)}
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps mín</label>
                             <NumericInput
                               value={ex.repRangeMin}
-                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMin', v)}
+                              onValueChange={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMin', v)}
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps máx</label>
                             <NumericInput
                               value={ex.repRangeMax}
-                              onCommit={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMax', v)}
+                              onValueChange={v => updateExercise(activeMicro, activeSession, ei, 'repRangeMax', v)}
                             />
                           </div>
                         </div>

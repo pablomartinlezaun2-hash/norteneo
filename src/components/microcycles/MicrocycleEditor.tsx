@@ -123,15 +123,15 @@ export const MicrocycleEditor = ({ initialName = '', initialExercises = [], onSa
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Series</label>
-                    <NumericInput value={ex.sets} onCommit={v => updateExercise(index, 'sets', v)} />
+                    <NumericInput value={ex.sets} onValueChange={v => updateExercise(index, 'sets', v)} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps mín</label>
-                    <NumericInput value={ex.repRangeMin} onCommit={v => updateExercise(index, 'repRangeMin', v)} />
+                    <NumericInput value={ex.repRangeMin} onValueChange={v => updateExercise(index, 'repRangeMin', v)} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium text-muted-foreground block mb-0.5">Reps máx</label>
-                    <NumericInput value={ex.repRangeMax} onCommit={v => updateExercise(index, 'repRangeMax', v)} />
+                    <NumericInput value={ex.repRangeMax} onValueChange={v => updateExercise(index, 'repRangeMax', v)} />
                   </div>
                 </div>
               </motion.div>
