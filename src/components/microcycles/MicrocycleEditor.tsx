@@ -1,31 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { MicrocycleExercise } from '@/hooks/useCustomMicrocycles';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, GripVertical, Trash2, Save, Loader2 } from 'lucide-react';
 import { ExerciseSelectorModal } from './ExerciseSelectorModal';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const NumericInput = ({ value, onCommit, min = 1 }: { value: number; onCommit: (v: number) => void; min?: number }) => {
-  const [raw, setRaw] = useState(value.toString());
-  useEffect(() => { setRaw(value.toString()); }, [value]);
-  return (
-    <Input
-      type="text"
-      inputMode="numeric"
-      value={raw}
-      onChange={e => setRaw(e.target.value.replace(/[^0-9]/g, ''))}
-      onBlur={() => {
-        const n = parseInt(raw, 10);
-        const clamped = isNaN(n) || n < min ? min : n;
-        setRaw(clamped.toString());
-        onCommit(clamped);
-      }}
-      className="h-8 text-xs text-center"
-    />
-  );
-};
 
 interface MicrocycleEditorProps {
   initialName?: string;
