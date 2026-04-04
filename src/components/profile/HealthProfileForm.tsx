@@ -67,10 +67,9 @@ export const HealthProfileForm = ({ profile, onSave }: HealthProfileFormProps) =
             {formData.unit}
           </Button>
         </div>
-        <Input
-          type="number"
+        <NumericInput
           value={formData.weight}
-          onChange={(e) => handleChange('weight', parseFloat(e.target.value) || 0)}
+          onValueChange={(v) => handleChange('weight', v)}
           className="text-lg font-semibold"
         />
       </div>
