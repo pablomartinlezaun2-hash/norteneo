@@ -59,7 +59,14 @@ export const useSetLogs = (exerciseId: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42501') {
+          // RLS violation - session likely expired
+          await supabase.auth.refreshSession();
+          return { error: 'Sesión expirada. Inténtalo de nuevo.' };
+        }
+        throw error;
+      }
       setLogs(prev => [data, ...prev]);
       return { data, error: null };
     } catch (err) {
