@@ -38,6 +38,12 @@ export const useSetLogs = (exerciseId: string) => {
     if (!user) return { error: 'No autenticado' };
 
     try {
+      // Refresh session to ensure valid JWT
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        return { error: 'Sesión expirada. Recarga la página para continuar.' };
+      }
+
       const { data, error } = await supabase
         .from('set_logs')
         .insert({
