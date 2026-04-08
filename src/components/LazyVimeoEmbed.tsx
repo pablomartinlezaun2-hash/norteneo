@@ -82,7 +82,7 @@ const buildEmbedUrl = ({
     pip: '0',
     dnt: '1',
     transparent: '0',
-    quality: 'auto',
+    quality: '360p',
   });
 
   return `https://player.vimeo.com/video/${videoId}?${params.toString()}`;
