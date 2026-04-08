@@ -38,6 +38,12 @@ export const useSetLogs = (exerciseId: string) => {
     if (!user) return { error: 'No autenticado' };
 
     try {
+      // Refresh session to ensure valid JWT
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        return { error: 'Sesión expirada. Recarga la página para continuar.' };
+      }
+
       const { data, error } = await supabase
         .from('set_logs')
         .insert({
@@ -53,7 +59,14 @@ export const useSetLogs = (exerciseId: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42501') {
+          // RLS violation - session likely expired
+          await supabase.auth.refreshSession();
+          return { error: 'Sesión expirada. Inténtalo de nuevo.' };
+        }
+        throw error;
+      }
       setLogs(prev => [data, ...prev]);
       return { data, error: null };
     } catch (err) {
