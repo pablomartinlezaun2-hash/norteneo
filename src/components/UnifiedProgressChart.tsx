@@ -14,7 +14,7 @@ import { useTrainingProgram } from '@/hooks/useTrainingProgram';
 import { usePeriodization } from '@/hooks/usePeriodization';
 import { MuscleRadarChart } from './performance/MuscleRadarChart';
 import { MuscleLoadChart } from './performance/MuscleLoadChart';
-import { MonthlyResumeChart } from './performance/MonthlyResumeChart';
+
 import { KeyExercisesSection } from './performance/KeyExercisesSection';
 import { PerformanceAlertsPanel } from './performance/PerformanceAlertsPanel';
 import { Neo2DAnatomyModel, NeoFatigueMap } from './neo';
@@ -62,7 +62,7 @@ export const UnifiedProgressChart = ({
   const [selectedWorkout, setSelectedWorkout] = useState<UnifiedWorkout | null>(null);
   const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
   const [neoOpen, setNeoOpen] = useState(false);
-  const [monthlyOpen, setMonthlyOpen] = useState(false);
+  
    const [fatigueOpen, setFatigueOpen] = useState(false);
    const [volumeOpen, setVolumeOpen] = useState(false);
    const [alertsOpen, setAlertsOpen] = useState(false);
