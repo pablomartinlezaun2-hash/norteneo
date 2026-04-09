@@ -493,20 +493,6 @@ export const UnifiedProgressChart = ({
             </div>
           </CollapsibleSection>
 
-          {/* Monthly Collapsible */}
-          <CollapsibleSection
-            isOpen={monthlyOpen}
-            onToggle={() => setMonthlyOpen(!monthlyOpen)}
-            icon={Calendar}
-            title="Mensual"
-            subtitle="Resumen de volumen y entrenos por mes"
-            gradient="from-emerald-600 to-teal-600"
-            delay={0.15}
-          >
-            <div className="p-4">
-              <MonthlyResumeChart setLogs={allSetLogs} completedSessions={completedSessions} />
-            </div>
-          </CollapsibleSection>
 
           {/* Stats Cards - All activities */}
       <div className="grid grid-cols-4 gap-2">
