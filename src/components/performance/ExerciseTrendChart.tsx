@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Dot } from 'recharts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { X, TrendingUp, TrendingDown, Minus, Dumbbell, Zap, Target, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePerformanceEngine } from '@/hooks/usePerformanceEngine';
 import { useExerciseSummary } from '@/hooks/useExerciseSummary';
+import { PremiumTrendChart } from './PremiumTrendChart';
 import type { ChartPointData } from '@/lib/performanceEngine';
 
 interface ExerciseTrendChartProps {
@@ -15,51 +15,6 @@ interface ExerciseTrendChartProps {
   onClose: () => void;
 }
 
-/** Custom dot that colors green/red/gray based on pct_change */
-const TrendDot = (props: any) => {
-  const { cx, cy, payload } = props;
-  if (!cx || !cy) return null;
-  const color = payload?.color || 'hsl(var(--primary))';
-  return (
-    <circle cx={cx} cy={cy} r={2.5} fill={color} stroke="hsl(var(--background))" strokeWidth={1.5} />
-  );
-};
-
-const ChartTooltip = ({ active, payload }: any) => {
-  if (!active || !payload?.length) return null;
-  const d = payload[0].payload as ChartPointData & { isInflection?: boolean; inflectionLabel?: string };
-  const pctStr = d.pct_change != null ? `${d.pct_change > 0 ? '+' : ''}${(d.pct_change * 100).toFixed(1)}%` : '';
-  return (
-    <div className="bg-foreground/95 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 max-w-[200px]">
-      <p className="text-primary-foreground font-bold text-xs mb-1.5">
-        {format(new Date(d.date), 'dd MMM yyyy', { locale: es })}
-      </p>
-      <div className="space-y-1 text-[11px]">
-        <div className="flex justify-between gap-3">
-          <span className="text-primary-foreground/60">est 1RM</span>
-          <span className="text-primary-foreground font-semibold">{d.est_1rm_set.toFixed(1)} kg</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span className="text-primary-foreground/60">Baseline</span>
-          <span className="text-primary-foreground font-semibold">{d.baseline.toFixed(1)} kg</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span className="text-primary-foreground/60">Cambio</span>
-          <span className="font-semibold" style={{ color: d.color }}>{pctStr}</span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span className="text-primary-foreground/60">Peso × Reps</span>
-          <span className="text-primary-foreground font-semibold">{d.best_weight}kg × {d.best_reps}</span>
-        </div>
-        {d.isInflection && (
-          <div className="pt-1 mt-1 border-t border-white/10">
-            <span className="text-primary font-semibold text-[10px]">⚡ {d.inflectionLabel}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: ExerciseTrendChartProps) => {
   const { getExerciseChartPoints, computeExercisePerformances } = usePerformanceEngine();
@@ -203,83 +158,12 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
               <p className="text-xs">Se necesitan al menos 2 sesiones</p>
             </div>
           ) : (
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--muted-foreground))"
-                    strokeOpacity={0.08}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(d) => format(new Date(d), 'dd/MM', { locale: es })}
-                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fillOpacity: 0.5 }}
-                    axisLine={false}
-                    tickLine={false}
-                    dy={4}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fillOpacity: 0.5 }}
-                    axisLine={false}
-                    tickLine={false}
-                    domain={['auto', 'auto']}
-                    tickFormatter={(v) => `${v}`}
-                    width={30}
-                  />
-                  <Tooltip content={<ChartTooltip />} />
-
-                  {/* Baseline – very subtle */}
-                  {exPerf && exPerf.currentBaseline > 0 && (
-                    <ReferenceLine
-                      y={exPerf.currentBaseline}
-                      stroke="hsl(var(--muted-foreground))"
-                      strokeDasharray="2 6"
-                      strokeOpacity={0.2}
-                      strokeWidth={1}
-                    />
-                  )}
-
-                  {/* Trend line – barely visible */}
-                  {trendLine && (
-                    <Line
-                      type="linear"
-                      dataKey="trend"
-                      stroke="hsl(var(--muted-foreground))"
-                      strokeDasharray="4 6"
-                      strokeWidth={1}
-                      strokeOpacity={0.15}
-                      dot={false}
-                      activeDot={false}
-                    />
-                  )}
-
-                  {/* Main line */}
-                  <Line
-                    type="monotone"
-                    dataKey="est_1rm_set"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={<TrendDot />}
-                    activeDot={{ r: 5, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <PremiumTrendChart
+              chartData={chartData}
+              baseline={exPerf?.currentBaseline}
+              latestPct={latestPct}
+            />
           )}
-
-          {/* Minimal legend */}
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <span className="flex items-center gap-1.5 text-[9px] text-muted-foreground/50 uppercase tracking-wider">
-              <span className="w-2.5 h-[1.5px] bg-primary rounded-full inline-block" />
-              1RM
-            </span>
-            <span className="flex items-center gap-1.5 text-[9px] text-muted-foreground/30 uppercase tracking-wider">
-              <span className="w-2.5 h-[1px] bg-muted-foreground/30 rounded-full inline-block" style={{ borderTop: '1px dashed' }} />
-              Tendencia
-            </span>
-          </div>
 
           {/* AI Summary collapsible */}
           <div className="mt-5 mx-0">
