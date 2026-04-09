@@ -11,17 +11,14 @@ export const PerformanceAlertSummaryCards = ({ alerts }: Props) => {
   const positives = alerts.filter(a => a.alertLevel.includes('positive'));
   const negatives = alerts.filter(a => a.alertLevel.includes('negative') || a.alertLevel === 'outlier');
 
-  // Best improvement
   const best = positives.length > 0
     ? positives.reduce((a, b) => (a.deltaPercent ?? 0) > (b.deltaPercent ?? 0) ? a : b)
     : null;
 
-  // Worst decline
   const worst = negatives.length > 0
     ? negatives.reduce((a, b) => (a.deltaPercent ?? 0) < (b.deltaPercent ?? 0) ? a : b)
     : null;
 
-  // Overall balance
   const avgDelta = alerts.length > 0
     ? alerts.reduce((sum, a) => sum + (a.deltaPercent ?? 0), 0) / alerts.length
     : 0;
@@ -31,13 +28,15 @@ export const PerformanceAlertSummaryCards = ({ alerts }: Props) => {
       label: 'Activas',
       value: `${alerts.length}`,
       icon: Activity,
-      color: 'text-foreground',
+      color: 'text-foreground/80',
+      iconColor: 'text-muted-foreground/50',
     },
     {
       label: 'Balance',
       value: `${avgDelta >= 0 ? '+' : ''}${avgDelta.toFixed(1)}%`,
       icon: avgDelta >= 0 ? TrendingUp : TrendingDown,
       color: avgDelta >= 0 ? 'text-emerald-400' : 'text-red-400',
+      iconColor: avgDelta >= 0 ? 'text-emerald-400/40' : 'text-red-400/40',
     },
     {
       label: 'Mejor',
@@ -45,6 +44,7 @@ export const PerformanceAlertSummaryCards = ({ alerts }: Props) => {
       subLabel: best?.exerciseName,
       icon: TrendingUp,
       color: 'text-emerald-400',
+      iconColor: 'text-emerald-400/40',
     },
     {
       label: 'En riesgo',
@@ -52,30 +52,37 @@ export const PerformanceAlertSummaryCards = ({ alerts }: Props) => {
       subLabel: worst?.exerciseName,
       icon: worst ? AlertTriangle : TrendingDown,
       color: 'text-red-400',
+      iconColor: 'text-red-400/40',
     },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2">
-      {cards.map((card, i) => (
-        <motion.div
-          key={card.label}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05, duration: 0.3 }}
-          className="relative rounded-xl bg-secondary/40 border border-border/20 p-2.5 overflow-hidden"
-        >
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">{card.label}</p>
-          <p className={cn('text-sm font-bold tabular-nums tracking-tight font-mono', card.color)}>
-            {card.value}
-          </p>
-          {card.subLabel && (
-            <p className="text-[9px] text-muted-foreground/60 truncate mt-0.5 leading-tight">
-              {card.subLabel}
+    <div className="grid grid-cols-4 gap-1.5">
+      {cards.map((card, i) => {
+        const Icon = card.icon;
+        return (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.25 }}
+            className="rounded-lg bg-muted/15 border border-border/8 p-2 relative overflow-hidden"
+          >
+            <div className="flex items-center gap-1 mb-1">
+              <Icon className={cn('w-2.5 h-2.5', card.iconColor)} />
+              <p className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">{card.label}</p>
+            </div>
+            <p className={cn('text-[13px] font-bold tabular-nums tracking-tight font-mono leading-none', card.color)}>
+              {card.value}
             </p>
-          )}
-        </motion.div>
-      ))}
+            {card.subLabel && (
+              <p className="text-[8px] text-muted-foreground/40 truncate mt-1 leading-none">
+                {card.subLabel}
+              </p>
+            )}
+          </motion.div>
+        );
+      })}
     </div>
   );
 };

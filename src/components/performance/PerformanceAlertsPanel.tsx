@@ -42,9 +42,9 @@ export const PerformanceAlertsPanel = () => {
 
   if (loading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 rounded-2xl bg-secondary/20 animate-pulse" />
+          <div key={i} className="h-12 rounded-xl bg-muted/8 animate-pulse" />
         ))}
       </div>
     );
@@ -52,39 +52,30 @@ export const PerformanceAlertsPanel = () => {
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Header */}
+      <div className="space-y-3">
         <PerformanceAlertHeader alerts={sortedAlerts} />
 
-        {/* Empty state */}
         {sortedAlerts.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-12"
+            className="text-center py-10"
           >
-            <div className="w-10 h-10 rounded-2xl bg-secondary/40 border border-border/20 flex items-center justify-center mx-auto mb-3">
-              <Activity className="w-5 h-5 text-muted-foreground/30" />
+            <div className="w-9 h-9 rounded-xl bg-muted/10 border border-border/8 flex items-center justify-center mx-auto mb-2.5">
+              <Activity className="w-4 h-4 text-muted-foreground/20" />
             </div>
-            <p className="text-sm text-muted-foreground/50 font-medium">Sin alertas</p>
-            <p className="text-[11px] text-muted-foreground/30 mt-1 max-w-[240px] mx-auto leading-relaxed">
-              Se necesitan al menos 3 sesiones por ejercicio con peso, reps y RIR registrados
+            <p className="text-[12px] text-muted-foreground/40 font-medium">Sin alertas</p>
+            <p className="text-[10px] text-muted-foreground/25 mt-1 max-w-[220px] mx-auto leading-relaxed">
+              Se necesitan al menos 3 sesiones con peso, reps y RIR
             </p>
           </motion.div>
         ) : (
           <>
-            {/* Summary KPIs */}
             <PerformanceAlertSummaryCards alerts={sortedAlerts} />
 
-            {/* Filters */}
-            <PerformanceAlertFilters
-              value={filter}
-              onChange={setFilter}
-              counts={counts}
-            />
+            <PerformanceAlertFilters value={filter} onChange={setFilter} counts={counts} />
 
-            {/* Alert cards */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <AnimatePresence mode="popLayout">
                 {filteredAlerts.map((alert, i) => (
                   <PerformanceAlertCard
@@ -100,7 +91,7 @@ export const PerformanceAlertsPanel = () => {
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center text-xs text-muted-foreground/40 py-6"
+                  className="text-center text-[11px] text-muted-foreground/30 py-5"
                 >
                   Sin alertas en esta categoría
                 </motion.p>
@@ -110,7 +101,6 @@ export const PerformanceAlertsPanel = () => {
         )}
       </div>
 
-      {/* Trend chart modal */}
       <AnimatePresence>
         {selectedAlert?.exerciseId && (
           <ExerciseTrendChart

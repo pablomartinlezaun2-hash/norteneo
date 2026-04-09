@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Activity } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { ExerciseSessionAlert } from '@/lib/performanceAlertEngine';
 
 interface Props {
@@ -20,30 +19,29 @@ export const PerformanceAlertHeader = ({ alerts }: Props) => {
       transition={{ duration: 0.3 }}
       className="flex items-center justify-between"
     >
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-secondary/60 border border-border/20 flex items-center justify-center">
-          <Activity className="w-4 h-4 text-foreground/60" />
+      <div className="flex items-center gap-2.5">
+        <div className="w-7 h-7 rounded-lg bg-primary/8 border border-primary/10 flex items-center justify-center">
+          <Activity className="w-3.5 h-3.5 text-primary/70" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-foreground tracking-tight">
+          <h3 className="text-[13px] font-semibold text-foreground tracking-tight leading-none">
             Alertas de Rendimiento
           </h3>
-          <p className="text-[11px] text-muted-foreground/50">
-            Cambios detectados en tu programa activo
+          <p className="text-[10px] text-muted-foreground/40 mt-0.5 leading-none">
+            Programa activo
           </p>
         </div>
       </div>
 
-      {/* Right badge summary */}
       {alerts.length > 0 && (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {positives > 0 && (
-            <span className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400">
+            <span className="text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md bg-emerald-500/8 text-emerald-400/80 border border-emerald-500/10">
               {positives}↑
             </span>
           )}
           {negatives > 0 && (
-            <span className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-md bg-red-500/10 text-red-400">
+            <span className="text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md bg-red-500/8 text-red-400/80 border border-red-500/10">
               {negatives}↓
             </span>
           )}
