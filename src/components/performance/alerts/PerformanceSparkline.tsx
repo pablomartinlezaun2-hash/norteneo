@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 interface PerformanceSparklineProps {
+  /** Array of numeric values to plot */
   values: number[];
   width?: number;
   height?: number;
@@ -9,8 +10,8 @@ interface PerformanceSparklineProps {
 
 export const PerformanceSparkline = ({
   values,
-  width = 44,
-  height = 16,
+  width = 48,
+  height = 20,
   positive,
 }: PerformanceSparklineProps) => {
   const path = useMemo(() => {
@@ -18,7 +19,7 @@ export const PerformanceSparkline = ({
     const min = Math.min(...values);
     const max = Math.max(...values);
     const range = max - min || 1;
-    const pad = 1.5;
+    const pad = 2;
     const w = width - pad * 2;
     const h = height - pad * 2;
     const step = w / (values.length - 1);
@@ -35,27 +36,21 @@ export const PerformanceSparkline = ({
   if (values.length < 2) return null;
 
   const color = positive === true
-    ? 'hsl(152 60% 42%)'
+    ? 'hsl(142 76% 36%)'
     : positive === false
-    ? 'hsl(0 55% 55%)'
+    ? 'hsl(0 62% 50%)'
     : 'hsl(var(--muted-foreground))';
 
   return (
-    <svg width={width} height={height} className="shrink-0 opacity-60" style={{ overflow: 'visible' }}>
+    <svg width={width} height={height} className="shrink-0" style={{ overflow: 'visible' }}>
       <path
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={1.2}
+        strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      {/* End dot */}
-      <circle
-        cx={width - 1.5}
-        cy={parseFloat(path.split(',').pop() || '0')}
-        r={1.5}
-        fill={color}
+        opacity={0.7}
       />
     </svg>
   );
