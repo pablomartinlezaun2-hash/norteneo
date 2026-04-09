@@ -19,15 +19,9 @@ interface ExerciseTrendChartProps {
 const TrendDot = (props: any) => {
   const { cx, cy, payload } = props;
   if (!cx || !cy) return null;
-  const color = payload?.color || '#6B7280';
-  const isInflection = payload?.isInflection;
+  const color = payload?.color || 'hsl(var(--primary))';
   return (
-    <g>
-      {isInflection && (
-        <circle cx={cx} cy={cy} r={10} fill={color} fillOpacity={0.15} stroke={color} strokeWidth={1.5} strokeOpacity={0.4} />
-      )}
-      <circle cx={cx} cy={cy} r={isInflection ? 5 : 3.5} fill={color} stroke="hsl(var(--background))" strokeWidth={2} />
-    </g>
+    <circle cx={cx} cy={cy} r={2.5} fill={color} stroke="hsl(var(--background))" strokeWidth={1.5} />
   );
 };
 
@@ -202,95 +196,89 @@ export const ExerciseTrendChart = ({ exerciseId, exerciseName, onClose }: Exerci
         </div>
 
         {/* Chart */}
-        <div className="px-3 pb-6">
+        <div className="px-3 pb-5">
           {points.length < 2 ? (
-            <div className="text-center py-12 text-muted-foreground text-sm">
-              <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p>Se necesitan al menos 2 sesiones para generar la gráfica</p>
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              <Target className="w-8 h-8 mx-auto mb-2 opacity-20" />
+              <p className="text-xs">Se necesitan al menos 2 sesiones</p>
             </div>
           ) : (
-            <div className="h-[280px]">
+            <div className="h-[180px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <LineChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--muted-foreground))"
+                    strokeOpacity={0.08}
+                    vertical={false}
+                  />
                   <XAxis
                     dataKey="date"
                     tickFormatter={(d) => format(new Date(d), 'dd/MM', { locale: es })}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fillOpacity: 0.5 }}
                     axisLine={false}
                     tickLine={false}
+                    dy={4}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fillOpacity: 0.5 }}
                     axisLine={false}
                     tickLine={false}
                     domain={['auto', 'auto']}
                     tickFormatter={(v) => `${v}`}
+                    width={30}
                   />
                   <Tooltip content={<ChartTooltip />} />
 
-                  {/* Baseline reference */}
+                  {/* Baseline – very subtle */}
                   {exPerf && exPerf.currentBaseline > 0 && (
                     <ReferenceLine
                       y={exPerf.currentBaseline}
-                      stroke="hsl(var(--primary))"
-                      strokeDasharray="6 4"
-                      strokeOpacity={0.5}
-                      label={{
-                        value: `Baseline ${exPerf.currentBaseline.toFixed(0)}`,
-                        position: 'right',
-                        fontSize: 9,
-                        fill: 'hsl(var(--primary))',
-                      }}
+                      stroke="hsl(var(--muted-foreground))"
+                      strokeDasharray="2 6"
+                      strokeOpacity={0.2}
+                      strokeWidth={1}
                     />
                   )}
 
-                  {/* Trend line (dashed) */}
+                  {/* Trend line – barely visible */}
                   {trendLine && (
                     <Line
                       type="linear"
                       dataKey="trend"
                       stroke="hsl(var(--muted-foreground))"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.5}
-                      strokeOpacity={0.5}
+                      strokeDasharray="4 6"
+                      strokeWidth={1}
+                      strokeOpacity={0.15}
                       dot={false}
                       activeDot={false}
                     />
                   )}
 
-                  {/* Main est_1RM line */}
+                  {/* Main line */}
                   <Line
                     type="monotone"
                     dataKey="est_1rm_set"
                     stroke="hsl(var(--primary))"
-                    strokeWidth={2.5}
+                    strokeWidth={2}
                     dot={<TrendDot />}
-                    activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
+                    activeDot={{ r: 5, strokeWidth: 2, stroke: 'hsl(var(--background))' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           )}
 
-          {/* Legend */}
-          <div className="flex flex-wrap gap-3 justify-center mt-3">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <div className="w-3 h-0.5 bg-primary rounded" />
-              est 1RM
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <div className="w-3 h-0.5 bg-muted-foreground/50 rounded" style={{ borderTop: '1px dashed' }} />
+          {/* Minimal legend */}
+          <div className="flex items-center justify-center gap-4 mt-2">
+            <span className="flex items-center gap-1.5 text-[9px] text-muted-foreground/50 uppercase tracking-wider">
+              <span className="w-2.5 h-[1.5px] bg-primary rounded-full inline-block" />
+              1RM
+            </span>
+            <span className="flex items-center gap-1.5 text-[9px] text-muted-foreground/30 uppercase tracking-wider">
+              <span className="w-2.5 h-[1px] bg-muted-foreground/30 rounded-full inline-block" style={{ borderTop: '1px dashed' }} />
               Tendencia
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary/20 border border-primary/40" />
-              Baseline
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/40" />
-              Inflexión
-            </div>
+            </span>
           </div>
 
           {/* AI Summary collapsible */}
