@@ -19,15 +19,9 @@ interface ExerciseTrendChartProps {
 const TrendDot = (props: any) => {
   const { cx, cy, payload } = props;
   if (!cx || !cy) return null;
-  const color = payload?.color || '#6B7280';
-  const isInflection = payload?.isInflection;
+  const color = payload?.color || 'hsl(var(--primary))';
   return (
-    <g>
-      {isInflection && (
-        <circle cx={cx} cy={cy} r={10} fill={color} fillOpacity={0.15} stroke={color} strokeWidth={1.5} strokeOpacity={0.4} />
-      )}
-      <circle cx={cx} cy={cy} r={isInflection ? 5 : 3.5} fill={color} stroke="hsl(var(--background))" strokeWidth={2} />
-    </g>
+    <circle cx={cx} cy={cy} r={2.5} fill={color} stroke="hsl(var(--background))" strokeWidth={1.5} />
   );
 };
 
