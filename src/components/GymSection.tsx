@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Dumbbell, ChevronRight, Loader2, CheckCircle2, 
-  BarChart3, Play, Calendar
+  BarChart3, Play, Calendar, Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { GymStatsSection } from './GymStatsSection';
 import { PeriodizationBadge } from './PeriodizationBadge';
+import { DailyCheckIn } from './autoregulation/DailyCheckIn';
+import { PreWorkoutCheckIn } from './autoregulation/PreWorkoutCheckIn';
+import { RecommendationOverlay } from './autoregulation/RecommendationOverlay';
+import { ActivePlanView } from './autoregulation/ActivePlanView';
+import { RecommendationHistory } from './autoregulation/RecommendationHistory';
+import { useAutoregulation } from '@/hooks/useAutoregulation';
+import { useSessionPlan } from '@/hooks/useSessionPlan';
+import { Badge } from '@/components/ui/badge';
+import type { SessionContext, ExerciseContext } from '@/lib/autoregulation/recommendationEngine';
 import { format } from 'date-fns';
 import { es, enUS, fr, de, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +57,24 @@ interface GymSectionProps {
   onSessionExpanded?: () => void;
 }
 
+/** Convert a gym session to the autoregulation SessionContext */
+function toSessionContext(session: ActiveProgram['sessions'][0]): SessionContext {
+  return {
+    session_id: session.id,
+    planned_duration_minutes: Math.max(30, session.exercises.length * 12),
+    exercises: session.exercises.map(ex => ({
+      exercise_id: ex.id,
+      exercise_name: ex.name,
+      planned_sets: ex.series,
+      planned_rir: 0,
+      planned_rep_range: ex.reps,
+      target_muscle_group: 'general',
+      fatigue_cost: 60,
+      has_substitute_available: false,
+    })),
+  };
+}
+
 export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSectionProps) => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
@@ -65,16 +92,18 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
   const [completing, setCompleting] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
 
-  // We'll use periodization for the first active program
+  // ── Autoregulation state ──
+  const [autoregSessionId, setAutoregSessionId] = useState<string | null>(null);
+  const [autoregContext, setAutoregContext] = useState<SessionContext | null>(null);
+  const autoreg = useAutoregulation(autoregContext);
+  const sessionPlan = useSessionPlan();
+
   const firstProgramId = activePrograms[0]?.id;
   const periodization = usePeriodization(firstProgramId);
-
   const dateLoc = dateLocales[i18n.language] || es;
 
   useEffect(() => {
-    if (user) {
-      fetchActivePrograms();
-    }
+    if (user) fetchActivePrograms();
   }, [user]);
 
   useEffect(() => {
@@ -86,7 +115,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
   const fetchActivePrograms = async () => {
     if (!user) return;
-    
     setLoading(true);
     try {
       const { data: programs, error } = await supabase
@@ -106,7 +134,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
       });
 
       const programsWithDetails: ActiveProgram[] = [];
-      
       for (const program of gymPrograms) {
         const { data: sessions } = await supabase
           .from('workout_sessions')
@@ -121,19 +148,10 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
             .select('id, name, series, reps, rest, technique, execution, video_url, order_index')
             .eq('session_id', session.id)
             .order('order_index');
-          
-          sessionsWithExercises.push({
-            ...session,
-            exercises: exercises || []
-          });
+          sessionsWithExercises.push({ ...session, exercises: exercises || [] });
         }
-
-        programsWithDetails.push({
-          ...program,
-          sessions: sessionsWithExercises
-        });
+        programsWithDetails.push({ ...program, sessions: sessionsWithExercises });
       }
-
       setActivePrograms(programsWithDetails);
     } catch (error) {
       console.error('Error fetching active programs:', error);
@@ -149,53 +167,121 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
     return session ? new Date(session.completed_at) : null;
   };
 
+  // ── Autoregulation handlers ──
+  const handleStartAutoregulation = useCallback((session: ActiveProgram['sessions'][0]) => {
+    const ctx = toSessionContext(session);
+    setAutoregContext(ctx);
+    setAutoregSessionId(session.id);
+    sessionPlan.initPlan(ctx);
+    autoreg.startFlow();
+  }, []);
+
+  const handleAutoregComplete = useCallback(() => {
+    if (autoreg.engineOutput) {
+      sessionPlan.setRecommendations(
+        autoreg.engineOutput.recommendations,
+        autoreg.engineOutput.readinessScore,
+        'pre_session'
+      );
+    }
+    autoreg.proceedToSession();
+  }, [autoreg.engineOutput]);
+
+  const handleSkipAutoreg = useCallback(() => {
+    setAutoregSessionId(null);
+    setAutoregContext(null);
+    autoreg.reset();
+  }, []);
+
+  const isInAutoregFlow = autoregSessionId !== null && autoreg.phase !== 'idle' && autoreg.phase !== 'session_active';
+  const hasAutoregResults = autoregSessionId !== null && autoreg.phase === 'session_active';
+
   const handleCompleteSession = async (sessionId: string) => {
     if (!sessionCompleteCheck[sessionId]) return;
-    
     setCompleting(sessionId);
 
-    // Use periodization-aware completion if active
     if (periodization.activeMicrocycle) {
       const result = await periodization.completeSessionWithPeriodization(sessionId);
-      
       if (!result.error) {
         if (result.microcycleCompleted) {
-          toast.success('¡Microciclo completado!', {
-            description: 'Se ha avanzado automáticamente al siguiente microciclo.'
-          });
+          toast.success('¡Microciclo completado!', { description: 'Se ha avanzado automáticamente al siguiente microciclo.' });
         } else {
-          toast.success(t('gym.workoutRegistered'), {
-            description: t('gym.progressUpdated')
-          });
+          toast.success(t('gym.workoutRegistered'), { description: t('gym.progressUpdated') });
         }
         setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
+        // Save autoreg summary
+        if (hasAutoregResults && sessionPlan.summary.total_recommendations > 0) {
+          saveAutoregHistory(sessionId);
+        }
+        // Reset autoreg
+        if (autoregSessionId === sessionId) {
+          setAutoregSessionId(null);
+          setAutoregContext(null);
+          autoreg.reset();
+        }
       } else {
         toast.error(result.error);
       }
     } else {
-      // Fallback: just mark as completed without periodization
       const { error } = await supabase
         .from('completed_sessions')
         .insert({ user_id: user!.id, session_id: sessionId });
-      
       if (!error) {
         toast.success(t('gym.workoutRegistered'));
         setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
-
-        // Sync to coach_training_sessions
         const { syncTrainingToCoach } = await import('@/lib/syncTrainingToCoach');
         const session = activePrograms.flatMap(p => p.sessions).find(s => s.id === sessionId);
-        syncTrainingToCoach({
-          sessionName: session?.name,
-          sessionType: 'Gimnasio',
-          completed: true,
-        });
+        syncTrainingToCoach({ sessionName: session?.name, sessionType: 'Gimnasio', completed: true });
+        if (autoregSessionId === sessionId) {
+          setAutoregSessionId(null);
+          setAutoregContext(null);
+          autoreg.reset();
+        }
       } else {
         toast.error(t('gym.errorRegistering'));
       }
     }
-    
     setCompleting(null);
+  };
+
+  const saveAutoregHistory = async (sessionId: string) => {
+    if (!user) return;
+    try {
+      // Save session autoregulation state
+      const { data: stateRow } = await supabase
+        .from('session_autoregulation_state')
+        .insert({
+          user_id: user.id,
+          session_id: sessionId,
+          readiness_score: autoreg.engineOutput?.readinessScore ?? null,
+          readiness_state: autoreg.engineOutput?.readinessState ?? null,
+          daily_score: autoreg.engineOutput?.dailyScore ?? null,
+          pre_workout_score: autoreg.engineOutput?.preWorkoutScore ?? null,
+          performance_score: autoreg.engineOutput?.performanceScore ?? null,
+          fatigue_score: autoreg.engineOutput?.fatigueScore ?? null,
+        })
+        .select('id')
+        .single();
+
+      if (stateRow) {
+        // Save each recommendation
+        const inserts = sessionPlan.history.map(h => ({
+          session_autoregulation_id: stateRow.id,
+          user_id: user.id,
+          recommendation_type: h.recommendation.recommendation_type,
+          recommendation_reason: h.recommendation.recommendation_reason,
+          exercise_id: h.recommendation.exercise_id ?? null,
+          recommendation_payload: h.recommendation.recommendation_payload,
+          status: h.status,
+          responded_at: h.responded_at,
+        }));
+        if (inserts.length > 0) {
+          await supabase.from('autoregulation_recommendations').insert(inserts);
+        }
+      }
+    } catch (e) {
+      console.error('Error saving autoreg history:', e);
+    }
   };
 
   if (loading) {
@@ -213,7 +299,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
       transition={{ duration: 0.28 }}
       className="space-y-6"
     >
-      {/* Header — staggered */}
+      {/* Header */}
       <div className="text-center mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.88, filter: 'blur(5px)' }}
@@ -304,10 +390,8 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
               transition={{ delay: programIndex * 0.1 }}
               className="space-y-3"
             >
-              {/* Periodization indicator */}
               <PeriodizationBadge programId={program.id} variant="full" />
 
-              {/* Program Header */}
               <div className="flex items-center gap-3 px-1">
                 <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
                   <Play className="w-5 h-5 text-primary-foreground" />
@@ -320,15 +404,16 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                 </div>
               </div>
 
-              {/* Sessions */}
               <div className="space-y-3">
                 {program.sessions.map((session, sessionIndex) => {
                   const isActive = activeSession === session.id;
-                  // Use microcycle-aware completion check
                   const isCompletedInMicrocycle = periodization.isSessionCompletedInMicrocycle(session.id);
                   const isChecked = sessionCompleteCheck[session.id] || false;
                   const isCompletingThis = completing === session.id;
                   const lastCompleted = getLastCompletedDate(session.id);
+                  const isThisSessionInAutoreg = autoregSessionId === session.id;
+                  const showAutoregFlow = isThisSessionInAutoreg && isInAutoregFlow;
+                  const showAutoregResults = isThisSessionInAutoreg && hasAutoregResults;
 
                   return (
                     <motion.div
@@ -396,69 +481,161 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                             className="overflow-hidden"
                           >
                             <div className="px-4 pb-4 space-y-4">
-                              <div className="space-y-3">
-                                {session.exercises.map((exercise, index) => (
-                                  <ExerciseCardNew 
-                                    key={exercise.id} 
-                                    exercise={{
-                                      ...exercise,
-                                      session_id: session.id,
-                                      approach_sets: null,
-                                      created_at: new Date().toISOString()
-                                    }} 
-                                    index={index} 
-                                  />
-                                ))}
-                              </div>
 
-                              {!isCompletedInMicrocycle && (
-                                <div className="gradient-card rounded-xl p-4 border border-border mt-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <Checkbox 
-                                      id={`gym-session-complete-${session.id}`}
-                                      checked={isChecked}
-                                      onCheckedChange={(checked) => 
-                                        setSessionCompleteCheck(prev => ({ 
-                                          ...prev, 
-                                          [session.id]: checked === true 
-                                        }))
-                                      }
-                                      className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              {/* ── Autoregulation Flow ── */}
+                              {showAutoregFlow && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                >
+                                  {autoreg.phase === 'daily_checkin' && (
+                                    <DailyCheckIn
+                                      onSubmit={autoreg.submitDailyCheckIn}
+                                      onSkip={autoreg.skipDailyCheckIn}
                                     />
-                                    <label 
-                                      htmlFor={`gym-session-complete-${session.id}`}
-                                      className="text-sm font-medium text-foreground cursor-pointer"
-                                    >
-                                      {t('gym.completedSessionConfirm')}
-                                    </label>
-                                  </div>
-                                  
-                                  <Button 
-                                    onClick={() => handleCompleteSession(session.id)}
-                                    disabled={!isChecked || isCompletingThis}
-                                    className="w-full gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                                  >
-                                    {isCompletingThis ? (
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    )}
-                                    {t('gym.registerWorkout')}
-                                  </Button>
-                                </div>
+                                  )}
+                                  {autoreg.phase === 'pre_workout_checkin' && (
+                                    <PreWorkoutCheckIn
+                                      plannedMinutes={autoregContext?.planned_duration_minutes ?? 60}
+                                      onSubmit={autoreg.submitPreWorkoutCheckIn}
+                                      onSkip={autoreg.skipPreWorkoutCheckIn}
+                                    />
+                                  )}
+                                  {autoreg.phase === 'recommendations' && autoreg.engineOutput && (
+                                    <RecommendationOverlay
+                                      engineOutput={autoreg.engineOutput}
+                                      responses={autoreg.responses}
+                                      onAccept={(i) => autoreg.respondToRecommendation(i, 'accepted')}
+                                      onReject={(i) => autoreg.respondToRecommendation(i, 'rejected')}
+                                      onProceed={handleAutoregComplete}
+                                      allResponded={autoreg.allResponded}
+                                    />
+                                  )}
+                                </motion.div>
                               )}
 
-                              {isCompletedInMicrocycle && (
-                                <motion.div 
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center"
-                                >
-                                  <CheckCircle2 className="w-8 h-8 text-primary mx-auto mb-2" />
-                                  <p className="text-sm font-medium text-primary">
-                                    Sesión completada en este microciclo ✓
-                                  </p>
-                                </motion.div>
+                              {/* ── Normal session content (exercises) ── */}
+                              {!showAutoregFlow && (
+                                <>
+                                  {/* Autoreg summary badge if completed */}
+                                  {showAutoregResults && autoreg.engineOutput && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: -5 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      className="flex items-center justify-between p-3 rounded-xl bg-card border border-border"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Brain className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-xs text-muted-foreground">Readiness</span>
+                                        <span className="text-sm font-bold text-foreground tabular-nums">
+                                          {Math.round(autoreg.engineOutput.readinessScore)}
+                                        </span>
+                                      </div>
+                                      {sessionPlan.summary.accepted > 0 && (
+                                        <Badge variant="outline" className="text-[10px] bg-[hsl(var(--success))]/15 text-[hsl(var(--success))]">
+                                          {sessionPlan.summary.accepted} ajuste{sessionPlan.summary.accepted > 1 ? 's' : ''} aplicado{sessionPlan.summary.accepted > 1 ? 's' : ''}
+                                        </Badge>
+                                      )}
+                                    </motion.div>
+                                  )}
+
+                                  {/* Neo Autoreg Button (if not started yet) */}
+                                  {!isThisSessionInAutoreg && !isCompletedInMicrocycle && (
+                                    <motion.div whileTap={{ scale: 0.98 }}>
+                                      <Button
+                                        variant="outline"
+                                        className="w-full gap-2 rounded-xl border-border"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleStartAutoregulation(session);
+                                        }}
+                                      >
+                                        <Brain className="w-4 h-4" />
+                                        Analizar con Neo
+                                      </Button>
+                                    </motion.div>
+                                  )}
+
+                                  {/* Modified plan view */}
+                                  {showAutoregResults && sessionPlan.summary.plan_was_modified && (
+                                    <ActivePlanView
+                                      basePlan={sessionPlan.basePlan}
+                                      activePlan={sessionPlan.activePlan}
+                                    />
+                                  )}
+
+                                  {/* Recommendation history */}
+                                  {showAutoregResults && sessionPlan.history.length > 0 && (
+                                    <RecommendationHistory history={sessionPlan.history} />
+                                  )}
+
+                                  {/* Exercises */}
+                                  <div className="space-y-3">
+                                    {session.exercises.map((exercise, index) => (
+                                      <ExerciseCardNew 
+                                        key={exercise.id} 
+                                        exercise={{
+                                          ...exercise,
+                                          session_id: session.id,
+                                          approach_sets: null,
+                                          created_at: new Date().toISOString()
+                                        }} 
+                                        index={index} 
+                                      />
+                                    ))}
+                                  </div>
+
+                                  {/* Session completion */}
+                                  {!isCompletedInMicrocycle && (
+                                    <div className="gradient-card rounded-xl p-4 border border-border mt-4">
+                                      <div className="flex items-center gap-3 mb-4">
+                                        <Checkbox 
+                                          id={`gym-session-complete-${session.id}`}
+                                          checked={isChecked}
+                                          onCheckedChange={(checked) => 
+                                            setSessionCompleteCheck(prev => ({ 
+                                              ...prev, 
+                                              [session.id]: checked === true 
+                                            }))
+                                          }
+                                          className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                        />
+                                        <label 
+                                          htmlFor={`gym-session-complete-${session.id}`}
+                                          className="text-sm font-medium text-foreground cursor-pointer"
+                                        >
+                                          {t('gym.completedSessionConfirm')}
+                                        </label>
+                                      </div>
+                                      
+                                      <Button 
+                                        onClick={() => handleCompleteSession(session.id)}
+                                        disabled={!isChecked || isCompletingThis}
+                                        className="w-full gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                                      >
+                                        {isCompletingThis ? (
+                                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        ) : (
+                                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                                        )}
+                                        {t('gym.registerWorkout')}
+                                      </Button>
+                                    </div>
+                                  )}
+
+                                  {isCompletedInMicrocycle && (
+                                    <motion.div 
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center"
+                                    >
+                                      <CheckCircle2 className="w-8 h-8 text-primary mx-auto mb-2" />
+                                      <p className="text-sm font-medium text-primary">
+                                        Sesión completada en este microciclo ✓
+                                      </p>
+                                    </motion.div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </motion.div>
