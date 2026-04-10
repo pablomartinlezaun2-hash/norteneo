@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Activity } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { ExerciseSessionAlert } from '@/lib/performanceAlertEngine';
 
 interface Props {
@@ -8,10 +7,9 @@ interface Props {
 }
 
 export const PerformanceAlertHeader = ({ alerts }: Props) => {
-  const positives = alerts.filter(a => a.alertLevel.includes('positive')).length;
-  const negatives = alerts.filter(a =>
-    a.alertLevel.includes('negative') || a.alertLevel === 'outlier'
-  ).length;
+  const relevant = alerts.filter(a => a.alertLevel !== 'stable');
+  const positives = relevant.filter(a => a.alertLevel.includes('positive')).length;
+  const negatives = relevant.filter(a => a.alertLevel.includes('negative')).length;
 
   return (
     <motion.div
@@ -34,8 +32,7 @@ export const PerformanceAlertHeader = ({ alerts }: Props) => {
         </div>
       </div>
 
-      {/* Right badge summary */}
-      {alerts.length > 0 && (
+      {relevant.length > 0 && (
         <div className="flex items-center gap-1.5">
           {positives > 0 && (
             <span className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400">
