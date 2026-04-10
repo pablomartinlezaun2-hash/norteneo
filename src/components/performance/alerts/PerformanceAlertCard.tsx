@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, AlertTriangle, Activity, Minus, ChevronRight, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Activity, Minus, ChevronRight, ArrowRight, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ExerciseSessionAlert, AlertLevel } from '@/lib/performanceAlertEngine';
 import { PerformanceSparkline } from './PerformanceSparkline';
-
+import { getAlertSeverity, getAlertGuidance } from '@/lib/alertCopyLibrary';
 interface Props {
   alert: ExerciseSessionAlert;
   index: number;
@@ -131,9 +131,17 @@ export const PerformanceAlertCard = ({ alert, index, onViewTrend }: Props) => {
   const sparkValues = buildSparkValues(alert);
   const isStable = alert.alertLevel === 'stable';
 
-  const closedSummary = alert.explanation
-    ? alert.explanation.replace(/^(Mejora|Caída) detectada:\s*/i, '')
-    : isStable ? 'Sin cambios significativos' : null;
+  // Get severity-based guidance copy
+  const severity = useMemo(
+    () => getAlertSeverity(alert.deltaPercent ?? 0),
+    [alert.deltaPercent]
+  );
+  const guidance = useMemo(
+    () => getAlertGuidance(severity, alert.exerciseId),
+    [severity, alert.exerciseId]
+  );
+
+  const closedSummary = guidance.explanation;
 
   return (
     <motion.div
@@ -209,11 +217,18 @@ export const PerformanceAlertCard = ({ alert, index, onViewTrend }: Props) => {
             className="overflow-hidden"
           >
             <div className="px-4 pt-3 pb-4 space-y-3">
-              {alert.explanation && (
-                <p className="text-[13px] text-foreground/75 leading-relaxed">
-                  {alert.explanation}
+              {/* Explanation */}
+              <p className="text-[13px] text-foreground/75 leading-relaxed">
+                {guidance.explanation}
+              </p>
+
+              {/* Recommendation */}
+              <div className="flex gap-2 items-start rounded-xl bg-muted/15 border border-border/10 p-2.5">
+                <Lightbulb className="w-3.5 h-3.5 text-muted-foreground/50 mt-0.5 shrink-0" />
+                <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
+                  {guidance.recommendation}
                 </p>
-              )}
+              </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <MetricCompare label="Peso" current={alert.latestAvgWeight} previous={alert.baselineAvgWeight} unit="kg" />
