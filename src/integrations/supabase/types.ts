@@ -174,6 +174,60 @@ export type Database = {
           },
         ]
       }
+      autoregulation_recommendations: {
+        Row: {
+          created_at: string
+          exercise_id: string | null
+          id: string
+          recommendation_payload: Json | null
+          recommendation_reason: string | null
+          recommendation_type: string
+          responded_at: string | null
+          session_autoregulation_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          recommendation_payload?: Json | null
+          recommendation_reason?: string | null
+          recommendation_type: string
+          responded_at?: string | null
+          session_autoregulation_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          recommendation_payload?: Json | null
+          recommendation_reason?: string | null
+          recommendation_type?: string
+          responded_at?: string | null
+          session_autoregulation_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "autoregulation_recommendations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "autoregulation_recommendations_session_autoregulation_id_fkey"
+            columns: ["session_autoregulation_id"]
+            isOneToOne: false
+            referencedRelation: "session_autoregulation_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cardio_session_intervals: {
         Row: {
           created_at: string
@@ -625,6 +679,48 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_checkins: {
+        Row: {
+          created_at: string
+          date: string
+          general_energy: number | null
+          general_soreness: number | null
+          id: string
+          joint_discomfort: number | null
+          mental_stress: number | null
+          motivation: number | null
+          sleep_hours: number | null
+          sleep_quality: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          general_energy?: number | null
+          general_soreness?: number | null
+          id?: string
+          joint_discomfort?: number | null
+          mental_stress?: number | null
+          motivation?: number | null
+          sleep_hours?: number | null
+          sleep_quality?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          general_energy?: number | null
+          general_soreness?: number | null
+          id?: string
+          joint_discomfort?: number | null
+          mental_stress?: number | null
+          motivation?: number | null
+          sleep_hours?: number | null
+          sleep_quality?: number | null
           user_id?: string
         }
         Relationships: []
@@ -1486,6 +1582,53 @@ export type Database = {
           },
         ]
       }
+      pre_workout_checkins: {
+        Row: {
+          available_time_minutes: number | null
+          created_at: string
+          expected_strength: number | null
+          general_freshness: number | null
+          id: string
+          local_fatigue_target_muscle: number | null
+          session_id: string
+          specific_pain_or_discomfort: string | null
+          user_id: string
+          willingness_to_push: number | null
+        }
+        Insert: {
+          available_time_minutes?: number | null
+          created_at?: string
+          expected_strength?: number | null
+          general_freshness?: number | null
+          id?: string
+          local_fatigue_target_muscle?: number | null
+          session_id: string
+          specific_pain_or_discomfort?: string | null
+          user_id: string
+          willingness_to_push?: number | null
+        }
+        Update: {
+          available_time_minutes?: number | null
+          created_at?: string
+          expected_strength?: number | null
+          general_freshness?: number | null
+          id?: string
+          local_fatigue_target_muscle?: number | null
+          session_id?: string
+          specific_pain_or_discomfort?: string | null
+          user_id?: string
+          willingness_to_push?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_workout_checkins_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_model: string | null
@@ -1617,6 +1760,145 @@ export type Database = {
         }
         Relationships: []
       }
+      session_autoregulation_state: {
+        Row: {
+          active_state: Json | null
+          completed_session_id: string | null
+          created_at: string
+          id: string
+          local_fatigue_score: number | null
+          planned_state: Json | null
+          readiness_score: number | null
+          recommended_state: Json | null
+          session_id: string
+          started_at: string | null
+          systemic_fatigue_score: number | null
+          user_id: string
+        }
+        Insert: {
+          active_state?: Json | null
+          completed_session_id?: string | null
+          created_at?: string
+          id?: string
+          local_fatigue_score?: number | null
+          planned_state?: Json | null
+          readiness_score?: number | null
+          recommended_state?: Json | null
+          session_id: string
+          started_at?: string | null
+          systemic_fatigue_score?: number | null
+          user_id: string
+        }
+        Update: {
+          active_state?: Json | null
+          completed_session_id?: string | null
+          created_at?: string
+          id?: string
+          local_fatigue_score?: number | null
+          planned_state?: Json | null
+          readiness_score?: number | null
+          recommended_state?: Json | null
+          session_id?: string
+          started_at?: string | null
+          systemic_fatigue_score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_autoregulation_state_completed_session_id_fkey"
+            columns: ["completed_session_id"]
+            isOneToOne: false
+            referencedRelation: "completed_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_autoregulation_state_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_exercise_state: {
+        Row: {
+          active_rep_range: string | null
+          active_rir: number | null
+          active_sets: number | null
+          autoregulation_state_id: string
+          created_at: string
+          exercise_id: string
+          fatigue_cost: number | null
+          id: string
+          planned_rep_range: string
+          planned_rir: number
+          planned_sets: number
+          recommended_rep_range: string | null
+          recommended_rir: number | null
+          recommended_sets: number | null
+          substituted_by_exercise_id: string | null
+          target_muscle_group: string | null
+        }
+        Insert: {
+          active_rep_range?: string | null
+          active_rir?: number | null
+          active_sets?: number | null
+          autoregulation_state_id: string
+          created_at?: string
+          exercise_id: string
+          fatigue_cost?: number | null
+          id?: string
+          planned_rep_range: string
+          planned_rir?: number
+          planned_sets: number
+          recommended_rep_range?: string | null
+          recommended_rir?: number | null
+          recommended_sets?: number | null
+          substituted_by_exercise_id?: string | null
+          target_muscle_group?: string | null
+        }
+        Update: {
+          active_rep_range?: string | null
+          active_rir?: number | null
+          active_sets?: number | null
+          autoregulation_state_id?: string
+          created_at?: string
+          exercise_id?: string
+          fatigue_cost?: number | null
+          id?: string
+          planned_rep_range?: string
+          planned_rir?: number
+          planned_sets?: number
+          recommended_rep_range?: string | null
+          recommended_rir?: number | null
+          recommended_sets?: number | null
+          substituted_by_exercise_id?: string | null
+          target_muscle_group?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_exercise_state_autoregulation_state_id_fkey"
+            columns: ["autoregulation_state_id"]
+            isOneToOne: false
+            referencedRelation: "session_autoregulation_state"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercise_state_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercise_state_substituted_by_exercise_id_fkey"
+            columns: ["substituted_by_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_exercise_summary: {
         Row: {
           adjusted_pct: number | null
@@ -1668,7 +1950,9 @@ export type Database = {
           partial_reps: number | null
           reps: number
           rir: number | null
+          rir_deviation: number | null
           set_number: number
+          target_rir: number | null
           user_id: string
           weight: number
         }
@@ -1683,7 +1967,9 @@ export type Database = {
           partial_reps?: number | null
           reps: number
           rir?: number | null
+          rir_deviation?: number | null
           set_number: number
+          target_rir?: number | null
           user_id: string
           weight: number
         }
@@ -1698,7 +1984,9 @@ export type Database = {
           partial_reps?: number | null
           reps?: number
           rir?: number | null
+          rir_deviation?: number | null
           set_number?: number
+          target_rir?: number | null
           user_id?: string
           weight?: number
         }
@@ -1956,6 +2244,42 @@ export type Database = {
           name?: string
           notes?: string | null
           timing?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_training_baselines: {
+        Row: {
+          baseline_energy: number | null
+          baseline_readiness: number | null
+          baseline_sleep: number | null
+          baseline_volume_tolerance: string
+          created_at: string
+          id: string
+          training_experience: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baseline_energy?: number | null
+          baseline_readiness?: number | null
+          baseline_sleep?: number | null
+          baseline_volume_tolerance?: string
+          created_at?: string
+          id?: string
+          training_experience?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baseline_energy?: number | null
+          baseline_readiness?: number | null
+          baseline_sleep?: number | null
+          baseline_volume_tolerance?: string
+          created_at?: string
+          id?: string
+          training_experience?: string
           updated_at?: string
           user_id?: string
         }
