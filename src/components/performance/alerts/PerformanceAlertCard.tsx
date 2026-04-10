@@ -131,9 +131,17 @@ export const PerformanceAlertCard = ({ alert, index, onViewTrend }: Props) => {
   const sparkValues = buildSparkValues(alert);
   const isStable = alert.alertLevel === 'stable';
 
-  const closedSummary = alert.explanation
-    ? alert.explanation.replace(/^(Mejora|Caída) detectada:\s*/i, '')
-    : isStable ? 'Sin cambios significativos' : null;
+  // Get severity-based guidance copy
+  const severity = useMemo(
+    () => getAlertSeverity(alert.deltaPercent ?? 0),
+    [alert.deltaPercent]
+  );
+  const guidance = useMemo(
+    () => getAlertGuidance(severity, alert.exerciseId),
+    [severity, alert.exerciseId]
+  );
+
+  const closedSummary = guidance.explanation;
 
   return (
     <motion.div
