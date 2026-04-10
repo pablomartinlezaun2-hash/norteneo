@@ -56,3 +56,22 @@ export type {
   IntensityAdherenceLevel,
   DeviationPattern,
 } from './rirAnalysis';
+
+export {
+  sessionPlanReducer,
+  sessionContextToBasePlan,
+  getPendingRecommendations,
+  getAcceptedRecommendations,
+  getRejectedRecommendations,
+  hasUnrespondedRecommendations,
+  getSessionSummary,
+} from './sessionPlanManager';
+
+export type {
+  RecommendationStatus,
+  ExercisePlan,
+  SessionPlan,
+  RecommendationHistoryEntry,
+  SessionPlanState,
+  SessionPlanAction,
+} from './sessionPlanManager';
