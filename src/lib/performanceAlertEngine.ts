@@ -19,6 +19,16 @@ export interface SetInput {
 
 export type AlertLevel =
   | 'none'
+  | 'stable'
+  | 'positive_level_1'
+  | 'positive_level_2'
+  | 'positive_level_3'
+  | 'positive_outlier'
+  | 'negative_level_1'
+  | 'negative_level_2'
+  | 'negative_level_3'
+  | 'negative_outlier'
+  // Legacy compat
   | 'moderate_positive'
   | 'strong_positive'
   | 'moderate_negative'
