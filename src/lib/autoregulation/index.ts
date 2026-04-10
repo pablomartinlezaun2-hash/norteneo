@@ -75,3 +75,18 @@ export type {
   SessionPlanState,
   SessionPlanAction,
 } from './sessionPlanManager';
+
+export {
+  evaluateIntraSession,
+  createSessionTracker,
+  trackSetAndEvaluate,
+} from './intraSessionEngine';
+
+export type {
+  LiveSetData,
+  ExerciseBaseline,
+  IntraSessionInput,
+  IntraSessionAlert,
+  IntraSessionResult,
+  SessionTracker,
+} from './intraSessionEngine';
