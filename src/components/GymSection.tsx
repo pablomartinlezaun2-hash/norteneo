@@ -268,11 +268,11 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
         const inserts = sessionPlan.history.map(h => ({
           session_autoregulation_id: stateRow.id,
           user_id: user.id,
-          recommendation_type: h.recommendation.recommendation_type,
+          recommendation_type: h.recommendation.recommendation_type as string,
           recommendation_reason: h.recommendation.recommendation_reason,
           exercise_id: h.recommendation.exercise_id ?? null,
-          recommendation_payload: h.recommendation.recommendation_payload,
-          status: h.status,
+          recommendation_payload: h.recommendation.recommendation_payload as Record<string, unknown> as import('@/integrations/supabase/types').Json,
+          status: h.status as string,
           responded_at: h.responded_at,
         }));
         if (inserts.length > 0) {
