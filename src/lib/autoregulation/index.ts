@@ -40,3 +40,19 @@ export type {
   EngineInput,
   EngineOutput,
 } from './recommendationEngine';
+
+export {
+  analyzeRirAdherence,
+  getIntensityAdherenceLevel,
+  detectDeviationPattern,
+  rirAnalysisToPerformanceInputs,
+} from './rirAnalysis';
+
+export type {
+  DeviationReason,
+  SetLogInput,
+  RirAnalysis,
+  SetDeviation,
+  IntensityAdherenceLevel,
+  DeviationPattern,
+} from './rirAnalysis';

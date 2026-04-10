@@ -1941,6 +1941,7 @@ export type Database = {
       set_logs: {
         Row: {
           created_at: string
+          deviation_reason: string | null
           est_1rm_set: number | null
           exercise_id: string
           id: string
@@ -1958,6 +1959,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deviation_reason?: string | null
           est_1rm_set?: number | null
           exercise_id: string
           id?: string
@@ -1975,6 +1977,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deviation_reason?: string | null
           est_1rm_set?: number | null
           exercise_id?: string
           id?: string
