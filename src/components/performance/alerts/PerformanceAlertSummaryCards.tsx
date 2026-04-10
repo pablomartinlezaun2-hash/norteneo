@@ -8,28 +8,27 @@ interface Props {
 }
 
 export const PerformanceAlertSummaryCards = ({ alerts }: Props) => {
-  const positives = alerts.filter(a => a.alertLevel.includes('positive'));
-  const negatives = alerts.filter(a => a.alertLevel.includes('negative') || a.alertLevel === 'outlier');
+  // Only count relevant alerts (exclude stable)
+  const relevant = alerts.filter(a => a.alertLevel !== 'stable');
+  const positives = relevant.filter(a => a.alertLevel.includes('positive'));
+  const negatives = relevant.filter(a => a.alertLevel.includes('negative'));
 
-  // Best improvement
   const best = positives.length > 0
     ? positives.reduce((a, b) => (a.deltaPercent ?? 0) > (b.deltaPercent ?? 0) ? a : b)
     : null;
 
-  // Worst decline
   const worst = negatives.length > 0
     ? negatives.reduce((a, b) => (a.deltaPercent ?? 0) < (b.deltaPercent ?? 0) ? a : b)
     : null;
 
-  // Overall balance
-  const avgDelta = alerts.length > 0
-    ? alerts.reduce((sum, a) => sum + (a.deltaPercent ?? 0), 0) / alerts.length
+  const avgDelta = relevant.length > 0
+    ? relevant.reduce((sum, a) => sum + (a.deltaPercent ?? 0), 0) / relevant.length
     : 0;
 
   const cards = [
     {
-      label: 'Activas',
-      value: `${alerts.length}`,
+      label: 'Relevantes',
+      value: `${relevant.length}`,
       icon: Activity,
       color: 'text-foreground',
     },
