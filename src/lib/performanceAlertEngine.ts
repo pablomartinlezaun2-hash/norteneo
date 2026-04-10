@@ -129,15 +129,21 @@ export function classifyAlert(deltaPercent: number | null): AlertLevel {
   if (deltaPercent == null) return 'none';
   const abs = Math.abs(deltaPercent);
 
-  // Outlier check
-  if (abs > 30) return 'outlier';
+  // Outlier check (possible logging error)
+  if (abs > 30) return deltaPercent > 0 ? 'positive_outlier' : 'negative_outlier';
 
-  if (abs < 5) return 'none';
-  if (deltaPercent >= 10) return 'strong_positive';
-  if (deltaPercent >= 5) return 'moderate_positive';
-  if (deltaPercent <= -10) return 'strong_negative';
-  if (deltaPercent <= -5) return 'moderate_negative';
-  return 'none';
+  // Below 4% = stable
+  if (abs < 4) return 'stable';
+
+  if (deltaPercent >= 12) return 'positive_outlier';
+  if (deltaPercent >= 8.5) return 'positive_level_3';
+  if (deltaPercent >= 6) return 'positive_level_2';
+  if (deltaPercent >= 4) return 'positive_level_1';
+  if (deltaPercent <= -12) return 'negative_outlier';
+  if (deltaPercent <= -8.5) return 'negative_level_3';
+  if (deltaPercent <= -6) return 'negative_level_2';
+  if (deltaPercent <= -4) return 'negative_level_1';
+  return 'stable';
 }
 
 // ── Explanation generator ──
@@ -154,8 +160,9 @@ export function generateExplanation(alert: {
 }): string | null {
   const { alertLevel, deltaPercent, latestAvgWeight, baselineAvgWeight, latestAvgReps, baselineAvgReps, latestAvgRir, baselineAvgRir } = alert;
 
-  if (alertLevel === 'none') return null;
-  if (alertLevel === 'outlier') return 'Cambio inusual (>30%). Posible error de registro.';
+  if (alertLevel === 'none' || alertLevel === 'stable') return null;
+  if (alertLevel === 'outlier' || (alertLevel === 'positive_outlier' && Math.abs(deltaPercent ?? 0) > 30) || (alertLevel === 'negative_outlier' && Math.abs(deltaPercent ?? 0) > 30))
+    return 'Cambio inusual (>30%). Posible error de registro.';
 
   const isPositive = alertLevel.includes('positive');
   const prefix = isPositive ? 'Mejora detectada' : 'Caída detectada';
@@ -292,7 +299,7 @@ export function computeAllAlerts(
     });
   }
 
-  // Only return alerts that are not 'none'
+  // Return all alerts except 'none' (stable alerts are kept for display)
   return alerts.filter(a => a.alertLevel !== 'none');
 }
 
