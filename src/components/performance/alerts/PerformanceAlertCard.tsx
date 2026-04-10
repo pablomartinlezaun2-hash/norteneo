@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, AlertTriangle, Activity, Minus, ChevronRight, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Activity, Minus, ChevronRight, ArrowRight, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ExerciseSessionAlert, AlertLevel } from '@/lib/performanceAlertEngine';
 import { PerformanceSparkline } from './PerformanceSparkline';
-
+import { getAlertSeverity, getAlertGuidance } from '@/lib/alertCopyLibrary';
 interface Props {
   alert: ExerciseSessionAlert;
   index: number;
