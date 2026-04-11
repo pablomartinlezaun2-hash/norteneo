@@ -117,15 +117,19 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Leg extension
   'extensión de cuádriceps': 'leg-extension',
   'extension de cuadriceps': 'leg-extension',
+  'extension cuad': 'leg-extension',
+  'extensión cuad': 'leg-extension',
   'leg extension': 'leg-extension',
 
   // Leg curl
   'curl femoral': 'leg-curl',
   'curl de piernas': 'leg-curl',
+  'isquios': 'leg-curl',
   'leg curl': 'leg-curl',
 
   // Calf raise
   'gemelos': 'calf-raise',
+  'gemelo': 'calf-raise',
   'elevación de gemelos': 'calf-raise',
   'calf raise': 'calf-raise',
 
