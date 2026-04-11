@@ -123,6 +123,10 @@ export const MUSCLE_GROUPS: MuscleGroup[] = [
 export const EXERCISE_MUSCLE_MAP: Record<string, string[]> = {
   // Chest
   'press banca': ['chest', 'chest-upper', 'chest-middle', 'chest-lower'],
+  'press plano': ['chest', 'chest-middle', 'chest-lower'],
+  'press plano en máquina': ['chest', 'chest-middle'],
+  'press plano en maquina': ['chest', 'chest-middle'],
+  'press mancuernas 30': ['chest', 'chest-upper'],
   'press inclinado': ['chest', 'chest-upper'],
   'press declinado': ['chest', 'chest-lower'],
   'aperturas': ['chest', 'chest-middle'],
@@ -134,6 +138,8 @@ export const EXERCISE_MUSCLE_MAP: Record<string, string[]> = {
   // Back
   'dominadas': ['back', 'lats', 'biceps'],
   'jalón': ['back', 'lats'],
+  'tracción vertical': ['back', 'lats'],
+  'traccion vertical': ['back', 'lats'],
   'remo': ['back', 'lats', 'traps'],
   'peso muerto': ['back', 'lower-back', 'glutes', 'hamstrings'],
   'pull over': ['back', 'lats', 'chest'],
@@ -143,6 +149,7 @@ export const EXERCISE_MUSCLE_MAP: Record<string, string[]> = {
   'press militar': ['shoulders', 'front-delt'],
   'press hombro': ['shoulders', 'front-delt', 'side-delt'],
   'elevaciones laterales': ['shoulders', 'side-delt'],
+  'y lateral raises': ['shoulders', 'side-delt'],
   'elevaciones frontales': ['shoulders', 'front-delt'],
   'pájaros': ['shoulders', 'rear-delt'],
   'encogimientos': ['shoulders', 'traps'],
@@ -157,14 +164,25 @@ export const EXERCISE_MUSCLE_MAP: Record<string, string[]> = {
   
   // Legs
   'sentadillas': ['legs', 'quads', 'glutes'],
+  'sentadilla búlgara': ['legs', 'quads', 'glutes'],
+  'sentadilla bulgara': ['legs', 'quads', 'glutes'],
+  'sentadilla en máquina': ['legs', 'quads'],
+  'sentadilla en maquina': ['legs', 'quads'],
   'prensa': ['legs', 'quads', 'glutes'],
   'extensiones': ['legs', 'quads'],
+  'extension cuad': ['legs', 'quads'],
+  'extensión cuad': ['legs', 'quads'],
   'curl femoral': ['legs', 'hamstrings'],
+  'isquios': ['legs', 'hamstrings'],
   'peso muerto rumano': ['legs', 'hamstrings', 'glutes', 'lower-back'],
   'zancadas': ['legs', 'quads', 'glutes'],
   'hip thrust': ['glutes', 'glute-max', 'hamstrings'],
   'elevación talones': ['legs', 'calves'],
   'gemelos': ['legs', 'calves'],
+  'gemelo': ['legs', 'calves'],
+  'abductor': ['glutes', 'glute-med'],
+  'abductor en máquina': ['glutes', 'glute-med'],
+  'abductor en maquina': ['glutes', 'glute-med'],
   
   // Core
   'crunch': ['core', 'abs'],

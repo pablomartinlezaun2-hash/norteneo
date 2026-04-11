@@ -9,6 +9,10 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Bench press variations
   'press banca': 'bench-press',
   'press de banca': 'bench-press',
+  'press plano': 'bench-press',
+  'press plano en máquina': 'bench-press',
+  'press plano en maquina': 'bench-press',
+  'press mancuernas 30': 'bench-press',
   'bench press': 'bench-press',
   'press inclinado': 'bench-press',
   'incline bench press': 'bench-press',
@@ -26,12 +30,15 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Squat
   'sentadilla': 'squat',
   'sentadillas': 'squat',
+  'sentadilla búlgara': 'squat',
+  'sentadilla bulgara': 'squat',
+  'sentadilla en máquina': 'squat',
+  'sentadilla en maquina': 'squat',
   'squat': 'squat',
   'barbell squat': 'squat',
   'front squat': 'squat',
   'goblet squat': 'squat',
   'hack squat': 'squat',
-  'sentadilla búlgara': 'squat',
   'bulgarian split squat': 'squat',
 
   // Deadlift
@@ -65,6 +72,7 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Lateral raise
   'elevaciones laterales': 'lateral-raise',
   'elevacion lateral': 'lateral-raise',
+  'y lateral raises': 'lateral-raise',
   'lateral raise': 'lateral-raise',
   'elevaciones frontales': 'lateral-raise',
   'front raise': 'lateral-raise',
@@ -85,6 +93,8 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Pulldown
   'jalón al pecho': 'pulldown',
   'jalon al pecho': 'pulldown',
+  'tracción vertical': 'pulldown',
+  'traccion vertical': 'pulldown',
   'lat pulldown': 'pulldown',
   'jalón en polea': 'pulldown',
   'cable pulldown': 'pulldown',
@@ -107,15 +117,19 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Leg extension
   'extensión de cuádriceps': 'leg-extension',
   'extension de cuadriceps': 'leg-extension',
+  'extension cuad': 'leg-extension',
+  'extensión cuad': 'leg-extension',
   'leg extension': 'leg-extension',
 
   // Leg curl
   'curl femoral': 'leg-curl',
   'curl de piernas': 'leg-curl',
+  'isquios': 'leg-curl',
   'leg curl': 'leg-curl',
 
   // Calf raise
   'gemelos': 'calf-raise',
+  'gemelo': 'calf-raise',
   'elevación de gemelos': 'calf-raise',
   'calf raise': 'calf-raise',
 
