@@ -114,7 +114,7 @@ export const MUSCLE_GROUPS: MuscleGroup[] = [
     size: [0.35, 0.15, 0.12],
     subgroups: [
       { id: 'glute-max', name: 'Glúteo Mayor', nameKey: 'muscles.gluteMax', descKey: 'muscleDesc.gluteMax', parentId: 'glutes' },
-      { id: 'glute-med', name: 'Glúteo Medio', nameKey: 'muscles.gluteMed', descKey: 'muscleDesc.gluteMed', parentId: 'glutes' },
+      { id: 'glute-med', name: 'Abductor', nameKey: 'muscles.gluteMed', descKey: 'muscleDesc.gluteMed', parentId: 'glutes' },
     ],
   },
 ];

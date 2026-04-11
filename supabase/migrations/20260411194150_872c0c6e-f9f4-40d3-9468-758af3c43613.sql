@@ -1,0 +1,1 @@
+UPDATE muscle_groups SET name = 'Abductor' WHERE id = '616fdd99-e1d2-4f1a-9297-bba698f9494d';
