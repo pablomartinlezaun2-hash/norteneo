@@ -9,6 +9,10 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Bench press variations
   'press banca': 'bench-press',
   'press de banca': 'bench-press',
+  'press plano': 'bench-press',
+  'press plano en máquina': 'bench-press',
+  'press plano en maquina': 'bench-press',
+  'press mancuernas 30': 'bench-press',
   'bench press': 'bench-press',
   'press inclinado': 'bench-press',
   'incline bench press': 'bench-press',
