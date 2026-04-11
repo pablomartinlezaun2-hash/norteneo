@@ -30,12 +30,15 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Squat
   'sentadilla': 'squat',
   'sentadillas': 'squat',
+  'sentadilla búlgara': 'squat',
+  'sentadilla bulgara': 'squat',
+  'sentadilla en máquina': 'squat',
+  'sentadilla en maquina': 'squat',
   'squat': 'squat',
   'barbell squat': 'squat',
   'front squat': 'squat',
   'goblet squat': 'squat',
   'hack squat': 'squat',
-  'sentadilla búlgara': 'squat',
   'bulgarian split squat': 'squat',
 
   // Deadlift
