@@ -72,6 +72,7 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Lateral raise
   'elevaciones laterales': 'lateral-raise',
   'elevacion lateral': 'lateral-raise',
+  'y lateral raises': 'lateral-raise',
   'lateral raise': 'lateral-raise',
   'elevaciones frontales': 'lateral-raise',
   'front raise': 'lateral-raise',
@@ -92,6 +93,8 @@ const exerciseMap: Record<string, ExerciseAnimationType> = {
   // Pulldown
   'jalón al pecho': 'pulldown',
   'jalon al pecho': 'pulldown',
+  'tracción vertical': 'pulldown',
+  'traccion vertical': 'pulldown',
   'lat pulldown': 'pulldown',
   'jalón en polea': 'pulldown',
   'cable pulldown': 'pulldown',
