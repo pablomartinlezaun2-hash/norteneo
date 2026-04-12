@@ -29,7 +29,7 @@ export const SetForm = ({ setNumber, onSubmit, lastLog }: SetFormProps) => {
   const [weight, setWeight] = useState(lastLog?.weight?.toString() || '');
   const [reps, setReps] = useState(lastLog?.reps?.toString() || '');
   const [partialReps, setPartialReps] = useState('0');
-  const [rir, setRir] = useState(lastLog?.rir?.toString() || '2');
+  const [rir, setRir] = useState(lastLog?.rir?.toString() || '0');
   const [isWarmup, setIsWarmup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +120,7 @@ export const SetForm = ({ setNumber, onSubmit, lastLog }: SetFormProps) => {
           <Label htmlFor={`rir-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.rir')}
           </Label>
-          <Input id={`rir-${setNumber}`} type="text" inputMode="numeric" placeholder="2" value={rir} onChange={(e) => setRir(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
+          <Input id={`rir-${setNumber}`} type="text" inputMode="numeric" placeholder="0" value={rir} onChange={(e) => setRir(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
         </div>
       </div>
 
