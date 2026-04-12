@@ -178,14 +178,39 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
   const handleAutoregComplete = useCallback(() => {
     if (autoreg.engineOutput) {
+      // First set the recommendations in the session plan (creates history entries with 'pending' status)
       sessionPlan.setRecommendations(
         autoreg.engineOutput.recommendations,
         autoreg.engineOutput.readinessScore,
         'pre_session'
       );
+
+      // Now apply the user's accept/reject responses from the autoreg flow
+      // We need to do this after setRecommendations creates the history entries
+      // Use a microtask to ensure state has updated
+      setTimeout(() => {
+        const actionableRecs = autoreg.engineOutput!.recommendations.filter(
+          r => r.recommendation_type !== 'KEEP_PLAN'
+        );
+        
+        // Get the history entries that were just created (they are the last N pending entries)
+        const pendingEntries = sessionPlan.pending;
+        
+        actionableRecs.forEach((_, i) => {
+          const response = autoreg.responses.get(i);
+          const historyEntry = pendingEntries[i];
+          if (historyEntry) {
+            if (response === 'accepted') {
+              sessionPlan.acceptRecommendation(historyEntry.id);
+            } else if (response === 'rejected') {
+              sessionPlan.rejectRecommendation(historyEntry.id);
+            }
+          }
+        });
+      }, 0);
     }
     autoreg.proceedToSession();
-  }, [autoreg.engineOutput]);
+  }, [autoreg.engineOutput, autoreg.responses]);
 
   const handleSkipAutoreg = useCallback(() => {
     setAutoregSessionId(null);
