@@ -178,14 +178,30 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
   const handleAutoregComplete = useCallback(() => {
     if (autoreg.engineOutput) {
-      sessionPlan.setRecommendations(
-        autoreg.engineOutput.recommendations,
-        autoreg.engineOutput.readinessScore,
-        'pre_session'
-      );
+      // Only send the accepted recommendations to the session plan
+      const acceptedRecs = autoreg.acceptedRecommendations;
+      
+      if (acceptedRecs.length > 0) {
+        // Set only accepted recommendations, then immediately accept all
+        sessionPlan.setRecommendations(
+          acceptedRecs,
+          autoreg.engineOutput.readinessScore,
+          'pre_session'
+        );
+        // Accept all pending in one shot (they're the ones we just added)
+        sessionPlan.acceptAll();
+      } else {
+        // No accepted recs — just set empty recommendations for the history
+        sessionPlan.setRecommendations(
+          autoreg.engineOutput.recommendations,
+          autoreg.engineOutput.readinessScore,
+          'pre_session'
+        );
+        sessionPlan.rejectAll();
+      }
     }
     autoreg.proceedToSession();
-  }, [autoreg.engineOutput]);
+  }, [autoreg.engineOutput, autoreg.acceptedRecommendations]);
 
   const handleSkipAutoreg = useCallback(() => {
     setAutoregSessionId(null);
@@ -571,18 +587,34 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
                                   {/* Exercises */}
                                   <div className="space-y-3">
-                                    {session.exercises.map((exercise, index) => (
-                                      <ExerciseCardNew 
-                                        key={exercise.id} 
-                                        exercise={{
-                                          ...exercise,
-                                          session_id: session.id,
-                                          approach_sets: null,
-                                          created_at: new Date().toISOString()
-                                        }} 
-                                        index={index} 
-                                      />
-                                    ))}
+                                    {session.exercises.map((exercise, index) => {
+                                      // Apply autoreg modifications if active
+                                      let displayExercise = exercise;
+                                      if (showAutoregResults && sessionPlan.summary.plan_was_modified) {
+                                        const modifiedEx = sessionPlan.activePlan.exercises.find(
+                                          e => e.exercise_id === exercise.id
+                                        );
+                                        if (modifiedEx) {
+                                          displayExercise = {
+                                            ...exercise,
+                                            series: modifiedEx.sets,
+                                            reps: modifiedEx.rep_range,
+                                          };
+                                        }
+                                      }
+                                      return (
+                                        <ExerciseCardNew 
+                                          key={exercise.id} 
+                                          exercise={{
+                                            ...displayExercise,
+                                            session_id: session.id,
+                                            approach_sets: null,
+                                            created_at: new Date().toISOString()
+                                          }} 
+                                          index={index} 
+                                        />
+                                      );
+                                    })}
                                   </div>
 
                                   {/* Session completion */}
