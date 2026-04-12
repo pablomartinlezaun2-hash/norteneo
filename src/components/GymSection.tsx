@@ -571,18 +571,34 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
                                   {/* Exercises */}
                                   <div className="space-y-3">
-                                    {session.exercises.map((exercise, index) => (
-                                      <ExerciseCardNew 
-                                        key={exercise.id} 
-                                        exercise={{
-                                          ...exercise,
-                                          session_id: session.id,
-                                          approach_sets: null,
-                                          created_at: new Date().toISOString()
-                                        }} 
-                                        index={index} 
-                                      />
-                                    ))}
+                                    {session.exercises.map((exercise, index) => {
+                                      // Apply autoreg modifications if active
+                                      let displayExercise = exercise;
+                                      if (showAutoregResults && sessionPlan.summary.plan_was_modified) {
+                                        const modifiedEx = sessionPlan.activePlan.exercises.find(
+                                          e => e.exercise_id === exercise.id
+                                        );
+                                        if (modifiedEx) {
+                                          displayExercise = {
+                                            ...exercise,
+                                            series: modifiedEx.sets,
+                                            reps: modifiedEx.rep_range,
+                                          };
+                                        }
+                                      }
+                                      return (
+                                        <ExerciseCardNew 
+                                          key={exercise.id} 
+                                          exercise={{
+                                            ...displayExercise,
+                                            session_id: session.id,
+                                            approach_sets: null,
+                                            created_at: new Date().toISOString()
+                                          }} 
+                                          index={index} 
+                                        />
+                                      );
+                                    })}
                                   </div>
 
                                   {/* Session completion */}
