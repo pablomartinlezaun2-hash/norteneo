@@ -55,7 +55,8 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       });
       if (error) throw error;
       toast.success('Tu cuenta ha sido eliminada');
-      await supabase.auth.signOut();
+      // User already deleted in backend — sign out locally only to clear session
+      await supabase.auth.signOut({ scope: 'local' });
       navigate('/auth');
     } catch (err) {
       console.error('Error deleting account:', err);
