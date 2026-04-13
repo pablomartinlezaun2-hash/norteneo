@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Dumbbell, Wind, Target, AlertTriangle, Flame, Clock } from 'lucide-react';
+import { Dumbbell, Target, AlertTriangle, Clock } from 'lucide-react';
 import type { PreWorkoutCheckInInput } from '@/lib/autoregulation/scoring';
 
 interface PreWorkoutCheckInProps {
@@ -14,6 +14,7 @@ interface PreWorkoutCheckInProps {
 interface Field {
   key: keyof Omit<PreWorkoutCheckInInput, 'planned_session_minutes'>;
   label: string;
+  sublabel: string;
   icon: React.ReactNode;
   min: number;
   max: number;
@@ -24,18 +25,33 @@ interface Field {
 
 export function PreWorkoutCheckIn({ plannedMinutes, onSubmit, onSkip }: PreWorkoutCheckInProps) {
   const [values, setValues] = useState<Omit<PreWorkoutCheckInInput, 'planned_session_minutes'>>({
-    expected_strength: 6, general_freshness: 6,
-    local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 1,
-    willingness_to_push: 6, available_time_minutes: plannedMinutes,
+    expected_strength: 6,
+    local_fatigue_target_muscle: 3,
+    specific_pain_or_discomfort: 1,
+    available_time_minutes: plannedMinutes,
   });
 
   const fields: Field[] = [
-    { key: 'expected_strength', label: 'Fuerza esperada', icon: <Dumbbell className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Baja', 'Alta'] },
-    { key: 'general_freshness', label: 'Frescura general', icon: <Wind className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Agotado', 'Fresco'] },
-    { key: 'local_fatigue_target_muscle', label: 'Fatiga local (músculo objetivo)', icon: <Target className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguna', 'Mucha'] },
-    { key: 'specific_pain_or_discomfort', label: 'Dolor o molestia', icon: <AlertTriangle className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguno', 'Severo'] },
-    { key: 'willingness_to_push', label: 'Ganas de entrenar duro', icon: <Flame className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Pocas', 'Muchas'] },
-    { key: 'available_time_minutes', label: 'Tiempo disponible', icon: <Clock className="w-4 h-4" />, min: 15, max: 150, step: 5, isMinutes: true },
+    {
+      key: 'expected_strength', label: 'Percepción de rendimiento de fuerza',
+      sublabel: 'Valora tu percepción actual de capacidad para rendir en esfuerzos de fuerza.',
+      icon: <Dumbbell className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Baja', 'Alta'],
+    },
+    {
+      key: 'local_fatigue_target_muscle', label: 'Fatiga local del grupo muscular objetivo',
+      sublabel: 'Valora el nivel de fatiga local del grupo muscular principal que vas a entrenar.',
+      icon: <Target className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguna', 'Mucha'],
+    },
+    {
+      key: 'specific_pain_or_discomfort', label: 'Dolor o molestia específica',
+      sublabel: 'Valora la intensidad de cualquier dolor o molestia localizada relevante para la sesión.',
+      icon: <AlertTriangle className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguno', 'Severo'],
+    },
+    {
+      key: 'available_time_minutes', label: 'Disponibilidad real de tiempo',
+      sublabel: 'Indica el tiempo efectivo disponible para completar la sesión.',
+      icon: <Clock className="w-4 h-4" />, min: 15, max: 150, step: 5, isMinutes: true,
+    },
   ];
 
   const handleChange = (key: string, val: number) => {
@@ -68,6 +84,7 @@ export function PreWorkoutCheckIn({ plannedMinutes, onSubmit, onSkip }: PreWorko
                   {f.isMinutes ? `${values[f.key]} min` : `${values[f.key]}/10`}
                 </span>
               </div>
+              <p className="text-[11px] text-muted-foreground">{f.sublabel}</p>
               <Slider
                 min={f.min}
                 max={f.max}

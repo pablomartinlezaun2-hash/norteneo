@@ -687,12 +687,10 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          general_discomfort: number | null
           general_energy: number | null
-          general_soreness: number | null
           id: string
-          joint_discomfort: number | null
           mental_stress: number | null
-          motivation: number | null
           sleep_hours: number | null
           sleep_quality: number | null
           user_id: string
@@ -700,12 +698,10 @@ export type Database = {
         Insert: {
           created_at?: string
           date?: string
+          general_discomfort?: number | null
           general_energy?: number | null
-          general_soreness?: number | null
           id?: string
-          joint_discomfort?: number | null
           mental_stress?: number | null
-          motivation?: number | null
           sleep_hours?: number | null
           sleep_quality?: number | null
           user_id: string
@@ -713,12 +709,10 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          general_discomfort?: number | null
           general_energy?: number | null
-          general_soreness?: number | null
           id?: string
-          joint_discomfort?: number | null
           mental_stress?: number | null
-          motivation?: number | null
           sleep_hours?: number | null
           sleep_quality?: number | null
           user_id?: string
@@ -1587,37 +1581,31 @@ export type Database = {
           available_time_minutes: number | null
           created_at: string
           expected_strength: number | null
-          general_freshness: number | null
           id: string
           local_fatigue_target_muscle: number | null
           session_id: string
-          specific_pain_or_discomfort: string | null
+          specific_pain_or_discomfort: number | null
           user_id: string
-          willingness_to_push: number | null
         }
         Insert: {
           available_time_minutes?: number | null
           created_at?: string
           expected_strength?: number | null
-          general_freshness?: number | null
           id?: string
           local_fatigue_target_muscle?: number | null
           session_id: string
-          specific_pain_or_discomfort?: string | null
+          specific_pain_or_discomfort?: number | null
           user_id: string
-          willingness_to_push?: number | null
         }
         Update: {
           available_time_minutes?: number | null
           created_at?: string
           expected_strength?: number | null
-          general_freshness?: number | null
           id?: string
           local_fatigue_target_muscle?: number | null
           session_id?: string
-          specific_pain_or_discomfort?: string | null
+          specific_pain_or_discomfort?: number | null
           user_id?: string
-          willingness_to_push?: number | null
         }
         Relationships: [
           {

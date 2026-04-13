@@ -101,9 +101,9 @@ describe('evaluateIntraSession', () => {
       exercise: EXERCISE,
       completedSets: [mkSet()],
       preWorkout: {
-        expected_strength: 5, general_freshness: 5,
+        expected_strength: 5,
         local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 7,
-        willingness_to_push: 5, available_time_minutes: 60, planned_session_minutes: 60,
+        available_time_minutes: 60, planned_session_minutes: 60,
       },
     });
     expect(result.should_trigger).toBe(true);
