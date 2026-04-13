@@ -32,50 +32,69 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Track emails we've already sent welcome emails to in this session
     const welcomeEmailsSent = new Set<string>();
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
+    const syncSessionState = async (nextSession: Session | null) => {
+      if (!nextSession) {
+        setSession(null);
+        setUser(null);
+        if (initialized) setLoading(false);
+        return;
+      }
 
-        // Send welcome email for new OAuth users (Google/Apple)
-        if (event === 'SIGNED_IN' && session?.user) {
-          const user = session.user;
-          const createdAt = new Date(user.created_at).getTime();
-          const now = Date.now();
-          const isNewUser = (now - createdAt) < 60000; // Created less than 60s ago
-          const isOAuth = user.app_metadata?.provider !== 'email';
+      try {
+        const { data, error } = await supabase.auth.getUser(nextSession.access_token);
 
-          if (isOAuth && isNewUser && user.email && !welcomeEmailsSent.has(user.email)) {
-            welcomeEmailsSent.add(user.email);
-            supabase.functions.invoke('send-welcome-email', {
-              body: { email: user.email },
-            }).catch((err) => {
-              console.error('Failed to send welcome email for OAuth user:', err);
-            });
-          }
+        if (error || !data.user) {
+          await supabase.auth.signOut({ scope: 'local' });
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(nextSession);
+          setUser(data.user);
         }
-        
-        // Only set loading to false after we've initialized
-        if (initialized) {
-          setLoading(false);
+      } catch (error) {
+        console.error('Error validating session:', error);
+        await supabase.auth.signOut({ scope: 'local' });
+        setSession(null);
+        setUser(null);
+      } finally {
+        if (initialized) setLoading(false);
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      void syncSessionState(session);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        const user = session.user;
+        const createdAt = new Date(user.created_at).getTime();
+        const now = Date.now();
+        const isNewUser = (now - createdAt) < 60000;
+        const isOAuth = user.app_metadata?.provider !== 'email';
+
+        if (isOAuth && isNewUser && user.email && !welcomeEmailsSent.has(user.email)) {
+          welcomeEmailsSent.add(user.email);
+          supabase.functions.invoke('send-welcome-email', {
+            body: { email: user.email },
+          }).catch((err) => {
+            console.error('Failed to send welcome email for OAuth user:', err);
+          });
         }
       }
-    );
+    });
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
+      await syncSessionState(session);
       setInitialized(true);
       setLoading(false);
-    }).catch((error) => {
+    }).catch(async (error) => {
       console.error('Error getting session:', error);
+      await supabase.auth.signOut({ scope: 'local' });
+      setSession(null);
+      setUser(null);
       setInitialized(true);
       setLoading(false);
     });

@@ -50,14 +50,28 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
         toast.error('No se pudo verificar tu sesión');
         return;
       }
+
       const { error } = await supabase.functions.invoke('delete-account', {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (error) throw error;
+
+      if (error) {
+        const message = typeof error.message === 'string' ? error.message : '';
+        const alreadyDeleted = message.includes('Invalid user') || message.includes('401');
+
+        if (alreadyDeleted) {
+          await supabase.auth.signOut({ scope: 'local' });
+          toast.success('Tu cuenta ya había sido eliminada');
+          navigate('/auth', { replace: true });
+          return;
+        }
+
+        throw error;
+      }
+
       toast.success('Tu cuenta ha sido eliminada');
-      // User already deleted in backend — sign out locally only to clear session
       await supabase.auth.signOut({ scope: 'local' });
-      navigate('/auth');
+      navigate('/auth', { replace: true });
     } catch (err) {
       console.error('Error deleting account:', err);
       toast.error('Error al eliminar la cuenta. Inténtalo de nuevo.');
