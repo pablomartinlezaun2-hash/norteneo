@@ -118,9 +118,20 @@ const Index = () => {
 
   const handleRestartTour = () => {
     localStorage.removeItem('neo-welcome-seen');
-    setShowWelcome(true);
+    localStorage.removeItem('neo-cinematic-seen');
+    setShowCinematic(true);
     setHasSeenWelcome(false);
   };
+
+  const handleCinematicComplete = () => {
+    localStorage.setItem('neo-cinematic-seen', 'true');
+    setShowCinematic(false);
+    setShowWelcome(true);
+  };
+
+  if (showCinematic) {
+    return <CinematicOnboarding onComplete={handleCinematicComplete} />;
+  }
 
   if ((!program && showWelcome) || showWelcome) {
     return <WelcomeScreen onStartWithAssistant={handleStartWithAssistant} onStartAlone={handleStartAlone} />;
