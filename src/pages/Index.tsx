@@ -362,6 +362,8 @@ const Index = () => {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <NeoHelpChat />
     </div>
   );
 };
