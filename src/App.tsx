@@ -59,6 +59,7 @@ const AppContent = () => {
 
   return (
     <>
+      <SupplementNotificationToast />
       {showSplash && !hasSeenSplash && (
         <SplashScreen onComplete={handleSplashComplete} />
       )}
@@ -95,7 +96,6 @@ const App = () => (
           <ThemeInitializer />
           <Toaster />
           <Sonner />
-          <SupplementNotificationToast />
           <BrowserRouter>
             <AppContent />
           </BrowserRouter>
