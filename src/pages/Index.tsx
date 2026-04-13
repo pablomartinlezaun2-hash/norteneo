@@ -65,8 +65,16 @@ const Index = () => {
   useEffect(() => {
     if (!programLoading && !program && !hasSeenWelcome) {
       const seen = localStorage.getItem('neo-welcome-seen');
-      if (!seen) setShowWelcome(true);
-      else setHasSeenWelcome(true);
+      const seenCinematic = localStorage.getItem('neo-cinematic-seen');
+      if (!seen) {
+        if (!seenCinematic) {
+          setShowCinematic(true);
+        } else {
+          setShowWelcome(true);
+        }
+      } else {
+        setHasSeenWelcome(true);
+      }
     }
   }, [programLoading, program, hasSeenWelcome]);
 
