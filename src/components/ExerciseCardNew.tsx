@@ -18,9 +18,11 @@ import { useTranslation } from 'react-i18next';
 interface ExerciseCardNewProps {
   exercise: Exercise;
   index: number;
+  /** RIR recomendado por Neo para esta sesión (solo si difiere del pautado) */
+  neoRecommendedRir?: number | null;
 }
 
-export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
+export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: ExerciseCardNewProps) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSetTab, setActiveSetTab] = useState(1);
@@ -77,6 +79,11 @@ export const ExerciseCardNew = ({ exercise, index }: ExerciseCardNewProps) => {
               {t('exerciseCard.series', { count: exercise.series })}
             </span>
             <span>{exercise.reps}</span>
+            {neoRecommendedRir != null && (
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-destructive bg-destructive/10 border border-destructive/30 rounded-full px-1.5 py-0.5">
+                RIR {neoRecommendedRir} Neo
+              </span>
+            )}
             {exercise.rest && (
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3 text-primary" />

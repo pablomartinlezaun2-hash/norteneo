@@ -602,6 +602,22 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                           };
                                         }
                                       }
+                                      // Determine if Neo changed the RIR for this exercise
+                                      let neoRir: number | null = null;
+                                      if (showAutoregResults && sessionPlan.summary.plan_was_modified) {
+                                        const modifiedEx = sessionPlan.activePlan.exercises.find(
+                                          e => e.exercise_id === exercise.id
+                                        );
+                                        if (modifiedEx?.is_modified && modifiedEx.rir !== undefined) {
+                                          // Only show if RIR was actually changed from original
+                                          const originalRir = sessionPlan.basePlan.exercises.find(
+                                            e => e.exercise_id === exercise.id
+                                          )?.rir;
+                                          if (originalRir !== undefined && modifiedEx.rir !== originalRir) {
+                                            neoRir = modifiedEx.rir;
+                                          }
+                                        }
+                                      }
                                       return (
                                         <ExerciseCardNew 
                                           key={exercise.id} 
@@ -611,7 +627,8 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                             approach_sets: null,
                                             created_at: new Date().toISOString()
                                           }} 
-                                          index={index} 
+                                          index={index}
+                                          neoRecommendedRir={neoRir}
                                         />
                                       );
                                     })}
