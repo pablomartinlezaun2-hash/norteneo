@@ -165,7 +165,7 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
               )}
             </div>
 
-            <SetForm setNumber={activeSetTab} onSubmit={(data) => handleAddLog(activeSetTab, data)} lastLog={getLastLogForSet(activeSetTab)} />
+            <SetForm setNumber={activeSetTab} onSubmit={(data) => handleAddLog(activeSetTab, data)} lastLog={getLastLogForSet(activeSetTab)} neoRecommendedRir={neoRecommendedRir} />
             <div className="pt-2"><SetProgressChart logs={logs} setNumber={activeSetTab} /></div>
             <SetLogList logs={getLogsBySetNumber(activeSetTab)} onDelete={deleteLog} />
           </div>

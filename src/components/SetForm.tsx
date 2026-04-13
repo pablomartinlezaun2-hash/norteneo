@@ -22,9 +22,10 @@ interface SetFormProps {
     reps: number;
     rir: number | null;
   } | null;
+  neoRecommendedRir?: number | null;
 }
 
-export const SetForm = ({ setNumber, onSubmit, lastLog }: SetFormProps) => {
+export const SetForm = ({ setNumber, onSubmit, lastLog, neoRecommendedRir }: SetFormProps) => {
   const { t } = useTranslation();
   const [weight, setWeight] = useState(lastLog?.weight?.toString() || '');
   const [reps, setReps] = useState(lastLog?.reps?.toString() || '');
@@ -120,6 +121,11 @@ export const SetForm = ({ setNumber, onSubmit, lastLog }: SetFormProps) => {
           <Label htmlFor={`rir-${setNumber}`} className="text-xs font-semibold text-foreground">
             {t('setForm.rir')}
           </Label>
+          {neoRecommendedRir != null && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-destructive/10 border border-destructive/30">
+              <span className="text-[10px] font-bold text-destructive">RIR {neoRecommendedRir} Neo</span>
+            </div>
+          )}
           <Input id={`rir-${setNumber}`} type="text" inputMode="numeric" placeholder="0" value={rir} onChange={(e) => setRir(e.target.value.replace(/[^0-9]/g, ''))} className="h-11 text-center font-semibold bg-background border-2 focus:border-primary" />
         </div>
       </div>
