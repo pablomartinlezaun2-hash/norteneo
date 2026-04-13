@@ -125,12 +125,12 @@ describe('ADD_SET eligibility', () => {
 describe('KEEP_PLAN', () => {
   it('returns KEEP_PLAN for maintain readiness with no issues', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 7, sleep_quality: 7, general_energy: 7, mental_stress: 3, general_discomfort: 1 },
-      preWorkout: { expected_strength: 7, local_fatigue_target_muscle: 2, specific_pain_or_discomfort: 1, available_time_minutes: 70, planned_session_minutes: 60 },
+      daily: { sleep_hours: 7, sleep_quality: 6, general_energy: 6, mental_stress: 4, general_discomfort: 3 },
+      preWorkout: { expected_strength: 6, local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 1, available_time_minutes: 65, planned_session_minutes: 60 },
       performance: { performance_vs_baseline_ratio: 1.0, rep_drop_between_sets_percent: 8,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.5 },
-      fatigue: { recent_volume_load_score: 75, local_fatigue_history_score: 75,
-        performance_decline_score: 80, recovery_penalty_score: 75 },
+      fatigue: { recent_volume_load_score: 70, local_fatigue_history_score: 70,
+        performance_decline_score: 75, recovery_penalty_score: 70 },
       session: mkSession(),
     });
     expect(out.recommendations.some(r => r.recommendation_type === 'KEEP_PLAN')).toBe(true);
