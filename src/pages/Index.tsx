@@ -9,6 +9,7 @@ import { ExerciseCatalog } from '@/components/ExerciseCatalog';
 import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
+import { CinematicOnboarding } from '@/components/CinematicOnboarding';
 import { ProfileSection } from '@/components/profile';
 import { CoachPanel } from '@/components/coach/CoachPanel';
 import { COACH_PREVIEW_EMAILS } from '@/components/coach/coachConstants';
