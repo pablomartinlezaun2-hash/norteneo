@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NeoLogo } from './NeoLogo';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,12 +20,22 @@ export const NeoHelpChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '¡Hola! Soy **NEO**, tu asistente. Pregúntame cualquier cosa sobre cómo funciona la app y te lo explico al detalle 💪',
+      content: '¡Hola! Soy **NEO**, tu asistente. Pregúntame cualquier cosa sobre cómo funciona la app 💪',
     },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('display_name, full_name').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        setUserName(data?.display_name || data?.full_name || null);
+      });
+  }, [user]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,6 +68,7 @@ export const NeoHelpChat = () => {
         },
         body: JSON.stringify({
           messages: allMessages.map(m => ({ role: m.role, content: m.content })),
+          userName: userName || undefined,
         }),
       });
 
