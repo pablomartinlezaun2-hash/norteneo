@@ -29,6 +29,11 @@ const mkSession = (exercises?: ExerciseContext[]) => ({
   ],
 });
 
+const goodDaily = () => ({ sleep_hours: 8, sleep_quality: 9, general_energy: 9, mental_stress: 2, general_discomfort: 1 });
+const goodPreWorkout = () => ({ expected_strength: 9, local_fatigue_target_muscle: 1, specific_pain_or_discomfort: 1, available_time_minutes: 90, planned_session_minutes: 60 });
+const neutralDaily = () => ({ sleep_hours: 7, sleep_quality: 7, general_energy: 7, mental_stress: 3, general_discomfort: 2 });
+const neutralPreWorkout = () => ({ expected_strength: 7, local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 2, available_time_minutes: 70, planned_session_minutes: 60 });
+
 // ─── Normalization ────────────────────────────────────────────────
 
 describe('Normalization', () => {
@@ -86,11 +91,8 @@ describe('Veto rules', () => {
 describe('ADD_SET eligibility', () => {
   it('recommends ADD_SET when all guards pass', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 8, sleep_quality: 9, general_energy: 9,
-        mental_stress: 2, general_soreness: 1, motivation: 9, joint_discomfort: 1 },
-      preWorkout: { expected_strength: 9, general_freshness: 9,
-        local_fatigue_target_muscle: 1, specific_pain_or_discomfort: 1,
-        willingness_to_push: 9, available_time_minutes: 90, planned_session_minutes: 60 },
+      daily: goodDaily(),
+      preWorkout: goodPreWorkout(),
       performance: { performance_vs_baseline_ratio: 1.05, rep_drop_between_sets_percent: 5,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.3 },
       fatigue: { recent_volume_load_score: 85, local_fatigue_history_score: 85,
@@ -107,18 +109,14 @@ describe('ADD_SET eligibility', () => {
 
   it('blocks ADD_SET when pain > 3', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 8, sleep_quality: 9, general_energy: 9,
-        mental_stress: 2, general_soreness: 1, motivation: 9, joint_discomfort: 1 },
-      preWorkout: { expected_strength: 9, general_freshness: 9,
-        local_fatigue_target_muscle: 1, specific_pain_or_discomfort: 5,
-        willingness_to_push: 9, available_time_minutes: 90, planned_session_minutes: 60 },
+      daily: goodDaily(),
+      preWorkout: { ...goodPreWorkout(), specific_pain_or_discomfort: 5 },
       performance: { performance_vs_baseline_ratio: 1.05, rep_drop_between_sets_percent: 5,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.3 },
       fatigue: { recent_volume_load_score: 85, local_fatigue_history_score: 85,
         performance_decline_score: 90, recovery_penalty_score: 85 },
       session: mkSession(),
     });
-    // Should NOT be ADD_SET — pain guard blocks it
     const types = out.recommendations.map(r => r.recommendation_type);
     expect(types).not.toContain('ADD_SET');
   });
@@ -127,11 +125,8 @@ describe('ADD_SET eligibility', () => {
 describe('KEEP_PLAN', () => {
   it('returns KEEP_PLAN for maintain readiness with no issues', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 7, sleep_quality: 7, general_energy: 7,
-        mental_stress: 3, general_soreness: 2, motivation: 7, joint_discomfort: 2 },
-      preWorkout: { expected_strength: 7, general_freshness: 7,
-        local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 2,
-        willingness_to_push: 7, available_time_minutes: 70, planned_session_minutes: 60 },
+      daily: neutralDaily(),
+      preWorkout: neutralPreWorkout(),
       performance: { performance_vs_baseline_ratio: 1.0, rep_drop_between_sets_percent: 8,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.5 },
       fatigue: { recent_volume_load_score: 75, local_fatigue_history_score: 75,
@@ -145,11 +140,8 @@ describe('KEEP_PLAN', () => {
 describe('REMOVE_SET', () => {
   it('removes sets from accessories on moderate fatigue', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 5, sleep_quality: 4, general_energy: 4,
-        mental_stress: 6, general_soreness: 5, motivation: 4, joint_discomfort: 4 },
-      preWorkout: { expected_strength: 5, general_freshness: 4,
-        local_fatigue_target_muscle: 5, specific_pain_or_discomfort: 3,
-        willingness_to_push: 5, available_time_minutes: 60, planned_session_minutes: 60 },
+      daily: { sleep_hours: 5, sleep_quality: 4, general_energy: 4, mental_stress: 6, general_discomfort: 5 },
+      preWorkout: { expected_strength: 5, local_fatigue_target_muscle: 5, specific_pain_or_discomfort: 3, available_time_minutes: 60, planned_session_minutes: 60 },
       performance: { performance_vs_baseline_ratio: 0.95, rep_drop_between_sets_percent: 15,
         plan_completion_ratio: 0.9, intensity_adherence_ratio: 0.95, avg_rir_deviation: 1.0 },
       fatigue: { recent_volume_load_score: 50, local_fatigue_history_score: 50,
@@ -158,7 +150,6 @@ describe('REMOVE_SET', () => {
     });
     const removeRecs = out.recommendations.filter(r => r.recommendation_type === 'REMOVE_SET');
     expect(removeRecs.length).toBeGreaterThanOrEqual(1);
-    // Should target the accessory (e2, fatigue_cost 30)
     const accessoryRemove = removeRecs.find(r => r.exercise_id === 'e2');
     if (accessoryRemove) {
       expect(accessoryRemove.recommendation_payload.recommended_sets).toBe(2);
@@ -169,11 +160,8 @@ describe('REMOVE_SET', () => {
 describe('SUBSTITUTE_EXERCISE', () => {
   it('suggests substitution on pain >= 6 when substitute available', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 7, sleep_quality: 7, general_energy: 7,
-        mental_stress: 3, general_soreness: 3, motivation: 7, joint_discomfort: 2 },
-      preWorkout: { expected_strength: 7, general_freshness: 7,
-        local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 7,
-        willingness_to_push: 5, available_time_minutes: 60, planned_session_minutes: 60 },
+      daily: neutralDaily(),
+      preWorkout: { expected_strength: 7, local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 7, available_time_minutes: 60, planned_session_minutes: 60 },
       performance: { performance_vs_baseline_ratio: 1.0, rep_drop_between_sets_percent: 10,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.5 },
       fatigue: { recent_volume_load_score: 70, local_fatigue_history_score: 70,
@@ -182,7 +170,6 @@ describe('SUBSTITUTE_EXERCISE', () => {
     });
     const subRecs = out.recommendations.filter(r => r.recommendation_type === 'SUBSTITUTE_EXERCISE');
     expect(subRecs.length).toBeGreaterThanOrEqual(1);
-    // Should maintain same sets and rep range
     expect(subRecs[0].recommendation_payload).toMatchObject({
       keep_sets: expect.any(Number),
       keep_rep_range: expect.any(String),
@@ -194,11 +181,8 @@ describe('SUBSTITUTE_EXERCISE', () => {
 describe('INCREASE_RIR', () => {
   it('bumps RIR on moderate pain', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 7, sleep_quality: 7, general_energy: 7,
-        mental_stress: 3, general_soreness: 3, motivation: 7, joint_discomfort: 2 },
-      preWorkout: { expected_strength: 7, general_freshness: 7,
-        local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 5,
-        willingness_to_push: 6, available_time_minutes: 60, planned_session_minutes: 60 },
+      daily: neutralDaily(),
+      preWorkout: { expected_strength: 7, local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 5, available_time_minutes: 60, planned_session_minutes: 60 },
       performance: { performance_vs_baseline_ratio: 1.0, rep_drop_between_sets_percent: 10,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.5 },
       fatigue: { recent_volume_load_score: 70, local_fatigue_history_score: 70,
@@ -214,11 +198,8 @@ describe('INCREASE_RIR', () => {
 describe('RESTRUCTURE_SESSION', () => {
   it('triggers on readiness < 50 with multiple issues', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 3, sleep_quality: 2, general_energy: 2,
-        mental_stress: 9, general_soreness: 8, motivation: 2, joint_discomfort: 7 },
-      preWorkout: { expected_strength: 2, general_freshness: 2,
-        local_fatigue_target_muscle: 8, specific_pain_or_discomfort: 7,
-        willingness_to_push: 2, available_time_minutes: 30, planned_session_minutes: 60 },
+      daily: { sleep_hours: 3, sleep_quality: 2, general_energy: 2, mental_stress: 9, general_discomfort: 8 },
+      preWorkout: { expected_strength: 2, local_fatigue_target_muscle: 8, specific_pain_or_discomfort: 7, available_time_minutes: 30, planned_session_minutes: 60 },
       performance: { performance_vs_baseline_ratio: 0.80, rep_drop_between_sets_percent: 35,
         plan_completion_ratio: 0.5, intensity_adherence_ratio: 0.80, avg_rir_deviation: 2.5 },
       fatigue: { recent_volume_load_score: 20, local_fatigue_history_score: 25,
@@ -233,11 +214,8 @@ describe('RESTRUCTURE_SESSION', () => {
 
   it('triggers on insufficient time alone', () => {
     const out = computeRecommendations({
-      daily: { sleep_hours: 7, sleep_quality: 7, general_energy: 7,
-        mental_stress: 3, general_soreness: 2, motivation: 7, joint_discomfort: 2 },
-      preWorkout: { expected_strength: 7, general_freshness: 7,
-        local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 2,
-        willingness_to_push: 7, available_time_minutes: 25, planned_session_minutes: 60 },
+      daily: neutralDaily(),
+      preWorkout: { expected_strength: 7, local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 2, available_time_minutes: 25, planned_session_minutes: 60 },
       performance: { performance_vs_baseline_ratio: 1.0, rep_drop_between_sets_percent: 10,
         plan_completion_ratio: 1.0, intensity_adherence_ratio: 1.0, avg_rir_deviation: 0.5 },
       fatigue: { recent_volume_load_score: 70, local_fatigue_history_score: 70,
@@ -254,9 +232,7 @@ describe('RESTRUCTURE_SESSION', () => {
 describe('Payload correctness', () => {
   it('SUBSTITUTE keeps same sets and rep range', () => {
     const out = computeRecommendations({
-      preWorkout: { expected_strength: 7, general_freshness: 7,
-        local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 7,
-        willingness_to_push: 5, available_time_minutes: 60, planned_session_minutes: 60 },
+      preWorkout: { expected_strength: 7, local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 7, available_time_minutes: 60, planned_session_minutes: 60 },
       session: mkSession(),
     });
     const sub = out.recommendations.find(r => r.recommendation_type === 'SUBSTITUTE_EXERCISE');
