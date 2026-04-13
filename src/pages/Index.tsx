@@ -43,6 +43,7 @@ const Index = () => {
   const [contentKey, setContentKey] = useState(0);
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [showCinematic, setShowCinematic] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
