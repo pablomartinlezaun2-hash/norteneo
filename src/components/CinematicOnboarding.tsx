@@ -16,10 +16,10 @@ interface SlideConfig {
 
 const SLIDES: SlideConfig[] = [
   { id: 'welcome', bg: '#000000', accentColor: '#ffffff' },
-  { id: 'training', bg: '#050507', accentColor: '#60A5FA' },
-  { id: 'ai', bg: '#050507', accentColor: '#A5F3FC' },
-  { id: 'nutrition', bg: '#050507', accentColor: '#34D399' },
-  { id: 'progress', bg: '#050507', accentColor: '#C4B5FD' },
+  { id: 'training', bg: '#000000', accentColor: '#60A5FA' },
+  { id: 'ai', bg: '#000000', accentColor: '#A5F3FC' },
+  { id: 'nutrition', bg: '#000000', accentColor: '#34D399' },
+  { id: 'progress', bg: '#000000', accentColor: '#C4B5FD' },
   { id: 'start', bg: '#000000', accentColor: '#ffffff' },
 ];
 
