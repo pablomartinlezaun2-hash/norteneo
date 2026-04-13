@@ -9,6 +9,7 @@ import { ExerciseCatalog } from '@/components/ExerciseCatalog';
 import { WorkoutDesigner } from '@/components/WorkoutDesigner';
 import { WorkoutsHub } from '@/components/WorkoutsHub';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
+import { CinematicOnboarding } from '@/components/CinematicOnboarding';
 import { ProfileSection } from '@/components/profile';
 import { CoachPanel } from '@/components/coach/CoachPanel';
 import { COACH_PREVIEW_EMAILS } from '@/components/coach/coachConstants';
@@ -42,6 +43,7 @@ const Index = () => {
   const [contentKey, setContentKey] = useState(0);
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [showCinematic, setShowCinematic] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
   const { formattedTime, isRunning, mode, startStopwatch, startCountdown, pause, resume, reset } = useTimer(120);
   const presetTimes = [60, 120, 150, 180];
@@ -63,8 +65,16 @@ const Index = () => {
   useEffect(() => {
     if (!programLoading && !program && !hasSeenWelcome) {
       const seen = localStorage.getItem('neo-welcome-seen');
-      if (!seen) setShowWelcome(true);
-      else setHasSeenWelcome(true);
+      const seenCinematic = localStorage.getItem('neo-cinematic-seen');
+      if (!seen) {
+        if (!seenCinematic) {
+          setShowCinematic(true);
+        } else {
+          setShowWelcome(true);
+        }
+      } else {
+        setHasSeenWelcome(true);
+      }
     }
   }, [programLoading, program, hasSeenWelcome]);
 
@@ -108,9 +118,20 @@ const Index = () => {
 
   const handleRestartTour = () => {
     localStorage.removeItem('neo-welcome-seen');
-    setShowWelcome(true);
+    localStorage.removeItem('neo-cinematic-seen');
+    setShowCinematic(true);
     setHasSeenWelcome(false);
   };
+
+  const handleCinematicComplete = () => {
+    localStorage.setItem('neo-cinematic-seen', 'true');
+    setShowCinematic(false);
+    setShowWelcome(true);
+  };
+
+  if (showCinematic) {
+    return <CinematicOnboarding onComplete={handleCinematicComplete} />;
+  }
 
   if ((!program && showWelcome) || showWelcome) {
     return <WelcomeScreen onStartWithAssistant={handleStartWithAssistant} onStartAlone={handleStartAlone} />;
