@@ -18,6 +18,7 @@ import { useTimer } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
+import { NeoHelpChat } from '@/components/NeoHelpChat';
 
 const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -361,6 +362,8 @@ const Index = () => {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <NeoHelpChat />
     </div>
   );
 };
