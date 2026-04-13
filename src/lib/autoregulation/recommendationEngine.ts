@@ -85,13 +85,13 @@ export interface EngineOutput {
 
 const DEFAULT_DAILY: DailyCheckInInput = {
   sleep_hours: 7, sleep_quality: 6, general_energy: 6,
-  mental_stress: 4, general_soreness: 3, motivation: 6, joint_discomfort: 2,
+  mental_stress: 4, general_discomfort: 2,
 };
 
 const DEFAULT_PRE_WORKOUT: PreWorkoutCheckInInput = {
-  expected_strength: 6, general_freshness: 6,
+  expected_strength: 6,
   local_fatigue_target_muscle: 3, specific_pain_or_discomfort: 1,
-  willingness_to_push: 6, available_time_minutes: 90, planned_session_minutes: 60,
+  available_time_minutes: 90, planned_session_minutes: 60,
 };
 
 const DEFAULT_PERFORMANCE: PerformanceInput = {
