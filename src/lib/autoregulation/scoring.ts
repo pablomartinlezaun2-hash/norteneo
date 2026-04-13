@@ -1,6 +1,7 @@
 /**
- * Autoregulation Scoring Engine — NEO
+ * Autoregulation Scoring Engine — NEO v2
  * 
+ * Simplified check-ins, recalibrated weights.
  * Pure math functions. No DB, no side effects.
  * Every score outputs 0–100.
  */
@@ -35,46 +36,38 @@ export const timeAvailabilityScore = (
   return 15;
 };
 
-// ─── Daily Score ──────────────────────────────────────────────────
+// ─── Daily Score (5 variables) ───────────────────────────────────
 
 export interface DailyCheckInInput {
   sleep_hours: number;
   sleep_quality: number;       // 1-10 positive
   general_energy: number;      // 1-10 positive
   mental_stress: number;       // 1-10 negative
-  general_soreness: number;    // 1-10 negative
-  motivation: number;          // 1-10 positive
-  joint_discomfort: number;    // 1-10 negative
+  general_discomfort: number;  // 1-10 negative
 }
 
 export const computeDailyScore = (d: DailyCheckInInput): number =>
-  0.20 * sleepHoursScore(d.sleep_hours) +
-  0.15 * positiveScore(d.sleep_quality) +
-  0.20 * positiveScore(d.general_energy) +
+  0.25 * sleepHoursScore(d.sleep_hours) +
+  0.20 * positiveScore(d.sleep_quality) +
+  0.25 * positiveScore(d.general_energy) +
   0.15 * negativeScore(d.mental_stress) +
-  0.10 * negativeScore(d.general_soreness) +
-  0.10 * positiveScore(d.motivation) +
-  0.10 * negativeScore(d.joint_discomfort);
+  0.15 * negativeScore(d.general_discomfort);
 
-// ─── Pre-Workout Score ────────────────────────────────────────────
+// ─── Pre-Workout Score (4 variables) ─────────────────────────────
 
 export interface PreWorkoutCheckInInput {
   expected_strength: number;                // 1-10 positive
-  general_freshness: number;                // 1-10 positive
   local_fatigue_target_muscle: number;      // 1-10 negative
   specific_pain_or_discomfort: number;      // 1-10 negative
-  willingness_to_push: number;              // 1-10 positive
   available_time_minutes: number;
   planned_session_minutes: number;
 }
 
 export const computePreWorkoutScore = (p: PreWorkoutCheckInInput): number =>
-  0.25 * positiveScore(p.expected_strength) +
-  0.20 * positiveScore(p.general_freshness) +
-  0.20 * negativeScore(p.local_fatigue_target_muscle) +
-  0.15 * negativeScore(p.specific_pain_or_discomfort) +
-  0.10 * positiveScore(p.willingness_to_push) +
-  0.10 * timeAvailabilityScore(p.available_time_minutes, p.planned_session_minutes);
+  0.35 * positiveScore(p.expected_strength) +
+  0.30 * negativeScore(p.local_fatigue_target_muscle) +
+  0.20 * negativeScore(p.specific_pain_or_discomfort) +
+  0.15 * timeAvailabilityScore(p.available_time_minutes, p.planned_session_minutes);
 
 // ─── Performance Sub-Scores ──────────────────────────────────────
 

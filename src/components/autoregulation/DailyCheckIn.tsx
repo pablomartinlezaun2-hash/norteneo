@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Moon, Zap, Brain, Activity, Flame, Heart } from 'lucide-react';
+import { Moon, Zap, Brain, AlertTriangle } from 'lucide-react';
 import type { DailyCheckInInput } from '@/lib/autoregulation/scoring';
 
 interface DailyCheckInProps {
@@ -13,6 +13,7 @@ interface DailyCheckInProps {
 interface CheckInField {
   key: keyof DailyCheckInInput;
   label: string;
+  sublabel: string;
   icon: React.ReactNode;
   min: number;
   max: number;
@@ -22,19 +23,37 @@ interface CheckInField {
 }
 
 const FIELDS: CheckInField[] = [
-  { key: 'sleep_hours', label: 'Horas de sueño', icon: <Moon className="w-4 h-4" />, min: 2, max: 10, step: 0.5, isHours: true },
-  { key: 'sleep_quality', label: 'Calidad de sueño', icon: <Moon className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Mala', 'Excelente'] },
-  { key: 'general_energy', label: 'Energía general', icon: <Zap className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Baja', 'Alta'] },
-  { key: 'mental_stress', label: 'Estrés mental', icon: <Brain className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Bajo', 'Alto'] },
-  { key: 'general_soreness', label: 'Dolor muscular', icon: <Activity className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguno', 'Severo'] },
-  { key: 'motivation', label: 'Motivación', icon: <Flame className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Baja', 'Alta'] },
-  { key: 'joint_discomfort', label: 'Molestia articular', icon: <Heart className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguna', 'Severa'] },
+  {
+    key: 'sleep_hours', label: 'Horas totales de sueño',
+    sublabel: 'Indica el número total de horas dormidas en el último periodo de sueño.',
+    icon: <Moon className="w-4 h-4" />, min: 2, max: 10, step: 0.5, isHours: true,
+  },
+  {
+    key: 'sleep_quality', label: 'Calidad percibida del sueño',
+    sublabel: 'Valora la calidad global de tu descanso.',
+    icon: <Moon className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Mala', 'Excelente'],
+  },
+  {
+    key: 'general_energy', label: 'Nivel general de energía',
+    sublabel: 'Valora tu nivel general de energía en este momento.',
+    icon: <Zap className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Baja', 'Alta'],
+  },
+  {
+    key: 'mental_stress', label: 'Carga de estrés mental',
+    sublabel: 'Valora tu carga actual de estrés mental.',
+    icon: <Brain className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Bajo', 'Alto'],
+  },
+  {
+    key: 'general_discomfort', label: 'Nivel de malestar o molestias generales',
+    sublabel: 'Valora el nivel actual de malestar físico general o molestias no localizadas.',
+    icon: <AlertTriangle className="w-4 h-4" />, min: 1, max: 10, step: 1, labels: ['Ninguno', 'Severo'],
+  },
 ];
 
 export function DailyCheckIn({ onSubmit, onSkip }: DailyCheckInProps) {
   const [values, setValues] = useState<DailyCheckInInput>({
     sleep_hours: 7, sleep_quality: 6, general_energy: 6,
-    mental_stress: 4, general_soreness: 3, motivation: 6, joint_discomfort: 2,
+    mental_stress: 4, general_discomfort: 2,
   });
 
   const handleChange = (key: keyof DailyCheckInInput, val: number) => {
@@ -61,6 +80,7 @@ export function DailyCheckIn({ onSubmit, onSkip }: DailyCheckInProps) {
                   {f.isHours ? `${values[f.key]}h` : `${values[f.key]}/10`}
                 </span>
               </div>
+              <p className="text-[11px] text-muted-foreground">{f.sublabel}</p>
               <Slider
                 min={f.min}
                 max={f.max}
