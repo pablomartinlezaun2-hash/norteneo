@@ -68,6 +68,7 @@ export const NeoHelpChat = () => {
         },
         body: JSON.stringify({
           messages: allMessages.map(m => ({ role: m.role, content: m.content })),
+          userName: userName || undefined,
         }),
       });
 
