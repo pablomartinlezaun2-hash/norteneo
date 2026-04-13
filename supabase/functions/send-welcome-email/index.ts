@@ -81,9 +81,10 @@ serve(async (req) => {
 
     if (!res.ok) {
       console.error("[send-welcome-email] Resend error:", res.status, JSON.stringify(data));
+      // Return 200 with ok:false so the client doesn't crash
       return new Response(
-        JSON.stringify({ error: "Error al enviar el email de bienvenida" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ ok: false, error: "Email no enviado", details: data?.message || "Error de proveedor" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
