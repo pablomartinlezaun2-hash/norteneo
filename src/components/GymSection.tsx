@@ -29,6 +29,7 @@ import { es, enUS, fr, de, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 
 const dateLocales: Record<string, Locale> = { es, en: enUS, fr, de };
+const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 interface ActiveProgram {
   id: string;
@@ -178,20 +179,16 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
   const handleAutoregComplete = useCallback(() => {
     if (autoreg.engineOutput) {
-      // Only send the accepted recommendations to the session plan
       const acceptedRecs = autoreg.acceptedRecommendations;
       
       if (acceptedRecs.length > 0) {
-        // Set only accepted recommendations, then immediately accept all
         sessionPlan.setRecommendations(
           acceptedRecs,
           autoreg.engineOutput.readinessScore,
           'pre_session'
         );
-        // Accept all pending in one shot (they're the ones we just added)
         sessionPlan.acceptAll();
       } else {
-        // No accepted recs — just set empty recommendations for the history
         sessionPlan.setRecommendations(
           autoreg.engineOutput.recommendations,
           autoreg.engineOutput.readinessScore,
@@ -225,11 +222,9 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
           toast.success(t('gym.workoutRegistered'), { description: t('gym.progressUpdated') });
         }
         setSessionCompleteCheck(prev => ({ ...prev, [sessionId]: false }));
-        // Save autoreg summary
         if (hasAutoregResults && sessionPlan.summary.total_recommendations > 0) {
           saveAutoregHistory(sessionId);
         }
-        // Reset autoreg
         if (autoregSessionId === sessionId) {
           setAutoregSessionId(null);
           setAutoregContext(null);
@@ -263,7 +258,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
   const saveAutoregHistory = async (sessionId: string) => {
     if (!user) return;
     try {
-      // Save session autoregulation state
       const { data: stateRow } = await supabase
         .from('session_autoregulation_state')
         .insert({
@@ -280,7 +274,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
         .single();
 
       if (stateRow) {
-        // Save each recommendation
         const inserts = sessionPlan.history.map(h => ({
           session_autoregulation_id: stateRow.id,
           user_id: user.id,
@@ -303,7 +296,7 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -312,56 +305,44 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.28 }}
-      className="space-y-6"
+      transition={{ duration: 0.3, ease }}
+      className="space-y-5"
     >
       {/* Header */}
-      <div className="text-center mb-6">
+      <div className="mb-2">
         <motion.div
-          initial={{ opacity: 0, scale: 0.88, filter: 'blur(5px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          transition={{ delay: 0.06, duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease }}
+          className="flex items-center gap-3 mb-3"
         >
-          <Dumbbell className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">{t('gym.title')}</span>
+          <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center">
+            <Dumbbell className="w-[18px] h-[18px] text-background" />
+          </div>
+          <div>
+            <h2 className="text-[19px] font-bold text-foreground tracking-[-0.02em]">{t('gym.title')}</h2>
+            <p className="text-[13px] text-muted-foreground">{t('gym.routinesSubtitle')}</p>
+          </div>
         </motion.div>
-        <motion.h2
-          initial={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
-          animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
-          transition={{ delay: 0.2, duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-2xl font-bold text-foreground"
-        >{t('gym.myRoutines')}</motion.h2>
-        <motion.p
-          initial={{ opacity: 0, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, filter: 'blur(0px)' }}
-          transition={{ delay: 0.4, duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-sm text-muted-foreground mt-1"
-        >
-          {t('gym.routinesSubtitle')}
-        </motion.p>
       </div>
 
       {/* Stats Toggle */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex justify-center"
+        transition={{ delay: 0.1, duration: 0.3, ease }}
       >
-        <motion.div whileTap={{ scale: 0.98 }}>
-          <Button
-            variant={showStats ? "default" : "outline"}
-            onClick={() => setShowStats(!showStats)}
-            className={cn(
-              "gap-2 rounded-full transition-all duration-200",
-              showStats && "gradient-primary text-primary-foreground"
-            )}
-          >
-            <BarChart3 className="w-4 h-4" />
-            {showStats ? t('gym.hideStats') : t('gym.viewStats')}
-          </Button>
-        </motion.div>
+        <motion.button
+          onClick={() => setShowStats(!showStats)}
+          className={cn(
+            "neo-pill flex items-center gap-2",
+            showStats && "bg-foreground text-background"
+          )}
+          whileTap={{ scale: 0.96 }}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          {showStats ? t('gym.hideStats') : t('gym.viewStats')}
+        </motion.button>
       </motion.div>
 
       {/* Stats Section */}
@@ -371,7 +352,8 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.3, ease }}
+            className="overflow-hidden"
           >
             <GymStatsSection
               completedSessions={completedSessions}
@@ -386,41 +368,40 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
       {/* Active Programs */}
       {activePrograms.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.35, ease }}
+          className="text-center py-16 neo-surface"
         >
-          <Dumbbell className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">{t('gym.noActiveRoutines')}</p>
-          <p className="text-sm text-muted-foreground/70 mt-1">
-            {t('gym.goToWorkouts')}
-          </p>
+          <Dumbbell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-[15px] font-medium text-muted-foreground">{t('gym.noActiveRoutines')}</p>
+          <p className="text-[13px] text-muted-foreground/60 mt-1">{t('gym.goToWorkouts')}</p>
         </motion.div>
       ) : (
         <div className="space-y-4">
           {activePrograms.map((program, programIndex) => (
             <motion.div
               key={program.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: programIndex * 0.1 }}
+              transition={{ delay: 0.12 + programIndex * 0.08, duration: 0.4, ease }}
               className="space-y-3"
             >
               <PeriodizationBadge programId={program.id} variant="full" />
 
               <div className="flex items-center gap-3 px-1">
-                <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
-                  <Play className="w-5 h-5 text-primary-foreground" />
+                <div className="w-10 h-10 bg-foreground rounded-xl flex items-center justify-center">
+                  <Play className="w-[18px] h-[18px] text-background" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">{program.name}</h3>
-                  <p className="text-xs text-muted-foreground">
+                  <h3 className="text-[16px] font-semibold text-foreground tracking-[-0.01em]">{program.name}</h3>
+                  <p className="text-[12px] text-muted-foreground">
                     {t('gym.sessionsCount', { count: program.sessions.length })}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {program.sessions.map((session, sessionIndex) => {
                   const isActive = activeSession === session.id;
                   const isCompletedInMicrocycle = periodization.isSessionCompletedInMicrocycle(session.id);
@@ -434,41 +415,41 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                   return (
                     <motion.div
                       key={session.id}
-                      initial={{ opacity: 0, x: -15, filter: 'blur(3px)' }}
+                      initial={{ opacity: 0, x: -10, filter: 'blur(3px)' }}
                       animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                      transition={{ delay: 0.3 + (programIndex * 0.12) + (sessionIndex * 0.1), duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      transition={{ delay: 0.2 + (programIndex * 0.08) + (sessionIndex * 0.06), duration: 0.4, ease }}
                       className={cn(
-                        "rounded-2xl overflow-hidden transition-all duration-300 apple-shadow",
-                        isActive 
-                          ? "bg-card border-2 border-primary/30" 
-                          : "bg-card border border-border"
+                        "overflow-hidden transition-all duration-300",
+                        isActive ? "neo-surface-elevated" : "neo-module-card"
                       )}
                     >
                       {/* Session Header */}
                       <button
                         onClick={() => setActiveSession(isActive ? null : session.id)}
-                        className="w-full p-4 flex items-center justify-between"
+                        className="w-full px-4 py-3.5 flex items-center justify-between"
                       >
                         <div className="flex items-center gap-3">
                           <div className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center font-bold text-base",
+                            "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-[14px] transition-all duration-300",
                             isCompletedInMicrocycle 
-                              ? "bg-primary/20 text-primary" 
-                              : "gradient-primary text-primary-foreground"
+                              ? "bg-primary/15 text-primary" 
+                              : isActive
+                                ? "bg-foreground text-background"
+                                : "bg-surface-2 text-muted-foreground"
                           )}>
                             {isCompletedInMicrocycle ? (
-                              <CheckCircle2 className="w-6 h-6" />
+                              <CheckCircle2 className="w-5 h-5" />
                             ) : (
                               session.short_name.slice(0, 2)
                             )}
                           </div>
                           <div className="text-left">
-                            <h4 className="font-semibold text-foreground">{session.name}</h4>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <h4 className="text-[15px] font-semibold text-foreground tracking-[-0.01em]">{session.name}</h4>
+                            <div className="flex items-center gap-2 text-[12px] text-muted-foreground mt-0.5">
                               <span>{t('gym.exercisesCount', { count: session.exercises.length })}</span>
                               {lastCompleted && (
                                 <>
-                                  <span>•</span>
+                                  <span>·</span>
                                   <span className="flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />
                                     {format(lastCompleted, "dd MMM", { locale: dateLoc })}
@@ -480,9 +461,9 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                         </div>
                         <motion.div
                           animate={{ rotate: isActive ? 90 : 0 }}
-                          transition={{ duration: 0.2 }}
+                          transition={{ duration: 0.25, ease }}
                         >
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                         </motion.div>
                       </button>
 
@@ -490,19 +471,25 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                       <AnimatePresence>
                         {isActive && (
                           <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.35, ease }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-4 space-y-4">
-
+                            <div className="h-px mx-4" style={{ background: 'hsl(var(--border) / 0.3)' }} />
+                            <motion.div
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.25, delay: 0.08, ease }}
+                              className="px-4 pb-4 pt-3 space-y-4"
+                            >
                               {/* ── Autoregulation Flow ── */}
                               {showAutoregFlow && (
                                 <motion.div
                                   initial={{ opacity: 0, y: 10 }}
                                   animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.3, ease }}
                                 >
                                   {autoreg.phase === 'daily_checkin' && (
                                     <DailyCheckIn
@@ -530,20 +517,20 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                 </motion.div>
                               )}
 
-                              {/* ── Normal session content (exercises) ── */}
+                              {/* ── Normal session content ── */}
                               {!showAutoregFlow && (
                                 <>
-                                  {/* Autoreg summary badge if completed */}
+                                  {/* Autoreg summary badge */}
                                   {showAutoregResults && autoreg.engineOutput && (
                                     <motion.div
                                       initial={{ opacity: 0, y: -5 }}
                                       animate={{ opacity: 1, y: 0 }}
-                                      className="flex items-center justify-between p-3 rounded-xl bg-card border border-border"
+                                      className="flex items-center justify-between p-3 rounded-xl neo-surface"
                                     >
                                       <div className="flex items-center gap-2">
                                         <Brain className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-xs text-muted-foreground">Readiness</span>
-                                        <span className="text-sm font-bold text-foreground tabular-nums">
+                                        <span className="text-[12px] text-muted-foreground">Readiness</span>
+                                        <span className="text-[14px] font-bold text-foreground tabular-nums">
                                           {Math.round(autoreg.engineOutput.readinessScore)}
                                         </span>
                                       </div>
@@ -555,12 +542,12 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                     </motion.div>
                                   )}
 
-                                  {/* Neo Autoreg Button (if not started yet) */}
+                                  {/* Neo Autoreg Button */}
                                   {!isThisSessionInAutoreg && !isCompletedInMicrocycle && (
                                     <motion.div whileTap={{ scale: 0.98 }}>
                                       <Button
                                         variant="outline"
-                                        className="w-full gap-2 rounded-xl border-border"
+                                        className="w-full gap-2 rounded-xl border-border/50 text-[13px]"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleStartAutoregulation(session);
@@ -588,7 +575,6 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                   {/* Exercises */}
                                   <div className="space-y-3">
                                     {session.exercises.map((exercise, index) => {
-                                      // Apply autoreg modifications if active
                                       let displayExercise = exercise;
                                       if (showAutoregResults && sessionPlan.summary.plan_was_modified) {
                                         const modifiedEx = sessionPlan.activePlan.exercises.find(
@@ -602,14 +588,12 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                           };
                                         }
                                       }
-                                      // Determine if Neo changed the RIR for this exercise
                                       let neoRir: number | null = null;
                                       if (showAutoregResults && sessionPlan.summary.plan_was_modified) {
                                         const modifiedEx = sessionPlan.activePlan.exercises.find(
                                           e => e.exercise_id === exercise.id
                                         );
                                         if (modifiedEx?.is_modified && modifiedEx.rir !== undefined) {
-                                          // Only show if RIR was actually changed from original
                                           const originalRir = sessionPlan.basePlan.exercises.find(
                                             e => e.exercise_id === exercise.id
                                           )?.rir;
@@ -636,8 +620,8 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
 
                                   {/* Session completion */}
                                   {!isCompletedInMicrocycle && (
-                                    <div className="gradient-card rounded-xl p-4 border border-border mt-4">
-                                      <div className="flex items-center gap-3 mb-4">
+                                    <div className="neo-surface rounded-xl p-4 mt-3">
+                                      <div className="flex items-center gap-3 mb-3">
                                         <Checkbox 
                                           id={`gym-session-complete-${session.id}`}
                                           checked={isChecked}
@@ -651,24 +635,26 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                         />
                                         <label 
                                           htmlFor={`gym-session-complete-${session.id}`}
-                                          className="text-sm font-medium text-foreground cursor-pointer"
+                                          className="text-[13px] font-medium text-foreground cursor-pointer"
                                         >
                                           {t('gym.completedSessionConfirm')}
                                         </label>
                                       </div>
                                       
-                                      <Button 
-                                        onClick={() => handleCompleteSession(session.id)}
-                                        disabled={!isChecked || isCompletingThis}
-                                        className="w-full gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                                      >
-                                        {isCompletingThis ? (
-                                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        ) : (
-                                          <CheckCircle2 className="w-4 h-4 mr-2" />
-                                        )}
-                                        {t('gym.registerWorkout')}
-                                      </Button>
+                                      <motion.div whileTap={{ scale: 0.98 }}>
+                                        <Button 
+                                          onClick={() => handleCompleteSession(session.id)}
+                                          disabled={!isChecked || isCompletingThis}
+                                          className="w-full bg-foreground text-background font-semibold hover:bg-foreground/90 transition-all disabled:opacity-40 rounded-xl h-11 text-[14px]"
+                                        >
+                                          {isCompletingThis ? (
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                          ) : (
+                                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                                          )}
+                                          {t('gym.registerWorkout')}
+                                        </Button>
+                                      </motion.div>
                                     </div>
                                   )}
 
@@ -676,17 +662,19 @@ export const GymSection = ({ initialExpandedSession, onSessionExpanded }: GymSec
                                     <motion.div 
                                       initial={{ opacity: 0, scale: 0.95 }}
                                       animate={{ opacity: 1, scale: 1 }}
-                                      className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center"
+                                      transition={{ duration: 0.3, ease }}
+                                      className="p-4 bg-primary/10 rounded-xl text-center"
+                                      style={{ border: '1px solid hsl(var(--primary) / 0.2)' }}
                                     >
-                                      <CheckCircle2 className="w-8 h-8 text-primary mx-auto mb-2" />
-                                      <p className="text-sm font-medium text-primary">
+                                      <CheckCircle2 className="w-7 h-7 text-primary mx-auto mb-2" />
+                                      <p className="text-[13px] font-medium text-primary">
                                         Sesión completada en este microciclo ✓
                                       </p>
                                     </motion.div>
                                   )}
                                 </>
                               )}
-                            </div>
+                            </motion.div>
                           </motion.div>
                         )}
                       </AnimatePresence>
