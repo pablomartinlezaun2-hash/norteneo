@@ -478,57 +478,29 @@ export const UnifiedProgressChart = ({
 
           {/* Stats Cards - All activities */}
       <div className="grid grid-cols-4 gap-2">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="gradient-card rounded-2xl p-3 border border-border text-center apple-shadow"
-        >
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 mb-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-          </div>
-          <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-          <p className="text-[10px] text-muted-foreground mt-1">Total</p>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="gradient-card rounded-2xl p-3 border border-border text-center apple-shadow"
-        >
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 mb-2">
-            <Dumbbell className="w-5 h-5 text-primary" />
-          </div>
-          <p className="text-2xl font-bold text-foreground">{stats.gym}</p>
-          <p className="text-[10px] text-muted-foreground mt-1">Gimnasio</p>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="gradient-card rounded-2xl p-3 border border-border text-center apple-shadow"
-        >
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-500/10 mb-2">
-            <Waves className="w-5 h-5 text-cyan-500" />
-          </div>
-          <p className="text-2xl font-bold text-foreground">{stats.swimming}</p>
-          <p className="text-[10px] text-muted-foreground mt-1">Natación</p>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="gradient-card rounded-2xl p-3 border border-border text-center apple-shadow"
-        >
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-green-500/10 mb-2">
-            <Footprints className="w-5 h-5 text-green-500" />
-          </div>
-          <p className="text-2xl font-bold text-foreground">{stats.running}</p>
-          <p className="text-[10px] text-muted-foreground mt-1">Running</p>
-        </motion.div>
+        {[
+          { icon: TrendingUp, value: stats.total, label: 'Total' },
+          { icon: Dumbbell, value: stats.gym, label: 'Gimnasio' },
+          { icon: Waves, value: stats.swimming, label: 'Natación' },
+          { icon: Footprints, value: stats.running, label: 'Running' },
+        ].map((item, i) => {
+          const StatIcon = item.icon;
+          return (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 + i * 0.04 }}
+              className="neo-surface p-3 text-center"
+            >
+              <div className="w-8 h-8 mx-auto rounded-lg bg-muted flex items-center justify-center mb-2">
+                <StatIcon className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className="text-xl font-bold text-foreground tabular-nums">{item.value}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{item.label}</p>
+            </motion.div>
+          );
+        })}
       </div>
 
 
