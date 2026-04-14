@@ -285,7 +285,7 @@
 
   /* ── Tab system ── */
   .neo-tab {
-    @apply flex items-center gap-2 px-5 py-2.5 rounded-full text-[15px] font-semibold transition-all duration-250 whitespace-nowrap;
+    @apply flex items-center gap-2 px-5 py-2.5 rounded-full text-[15px] font-semibold transition-all duration-200 whitespace-nowrap;
     color: hsl(var(--muted-foreground));
   }
   .neo-tab:hover {
