@@ -185,12 +185,12 @@
 
   /* ── Module card (featured) ── */
   .neo-module-card {
-    @apply rounded-2xl p-5;
+    @apply rounded-2xl;
     background: hsl(var(--surface-1));
     border: 1px solid hsl(var(--border) / 0.5);
     transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
-  .neo-module-card:hover {
+  .neo-module-card:hover, .neo-module-card:active {
     border-color: hsl(var(--border));
     box-shadow: 0 2px 16px -6px hsla(0, 0%, 0%, 0.15);
   }
@@ -254,12 +254,12 @@
 
   /* Section headline */
   .section-headline {
-    @apply text-[28px] font-bold tracking-tight leading-tight;
+    @apply text-[32px] font-bold tracking-tight leading-[1.1];
     letter-spacing: -0.03em;
   }
 
   .section-subheadline {
-    @apply text-sm text-muted-foreground leading-relaxed max-w-sm;
+    @apply text-[15px] text-muted-foreground leading-relaxed max-w-sm;
   }
 
   /* ── Premium pill/chip ── */
@@ -285,7 +285,7 @@
 
   /* ── Tab system ── */
   .neo-tab {
-    @apply flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap;
+    @apply flex items-center gap-2 px-5 py-2.5 rounded-full text-[15px] font-semibold transition-all duration-250 whitespace-nowrap;
     color: hsl(var(--muted-foreground));
   }
   .neo-tab:hover {
@@ -293,7 +293,7 @@
     background: hsl(var(--muted) / 0.6);
   }
   .neo-tab-active {
-    @apply flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-medium whitespace-nowrap;
+    @apply flex items-center gap-2 px-5 py-2.5 rounded-full text-[15px] font-semibold whitespace-nowrap;
     background: hsl(var(--foreground));
     color: hsl(var(--background));
   }

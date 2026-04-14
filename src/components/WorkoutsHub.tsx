@@ -25,7 +25,7 @@ export const WorkoutsHub = () => {
     { id: 'gym' as const, labelKey: 'workoutsHub.gym', icon: Dumbbell, desc: 'Fuerza · Periodización · Series', component: <GymSection /> },
     { id: 'swimming' as const, labelKey: 'workoutsHub.swimming', icon: Waves, desc: 'Intervalos · Técnica · Distancia', component: <SwimmingSection /> },
     { id: 'running' as const, labelKey: 'workoutsHub.running', icon: Footprints, desc: 'Ritmo · Cadencia · Progresión', component: <RunningSection /> },
-    { id: 'saved' as const, labelKey: 'workoutsHub.saved', icon: Bookmark, desc: 'Rutinas personalizadas', component: <MyWorkoutsSection /> },
+    { id: 'saved' as const, labelKey: 'workoutsHub.saved', icon: Bookmark, desc: 'Rutinas guardadas', component: <MyWorkoutsSection /> },
     { id: 'microcycles' as const, labelKey: 'workoutsHub.microcycles', icon: Layers, desc: 'Planificación periódica', component: <MesocycleList /> },
   ];
 
@@ -33,31 +33,23 @@ export const WorkoutsHub = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-5"
+      transition={{ duration: 0.35 }}
+      className="space-y-4"
     >
       {/* Section header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <motion.h2
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease }}
+          transition={{ duration: 0.45, ease }}
           className="section-headline text-foreground"
         >
           {t('workoutsHub.title')}
         </motion.h2>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-          className="section-subheadline mt-1.5"
-        >
-          {t('workoutsHub.subtitle')}
-        </motion.p>
       </div>
 
       {/* Module list */}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {sections.map((section, index) => {
           const Icon = section.icon;
           const isExpanded = expandedSection === section.id;
@@ -65,9 +57,9 @@ export const WorkoutsHub = () => {
           return (
             <motion.div
               key={section.id}
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease, delay: 0.08 + index * 0.04 }}
+              transition={{ duration: 0.35, ease, delay: 0.06 + index * 0.05 }}
               className={cn(
                 "overflow-hidden transition-all duration-300",
                 isExpanded ? "neo-surface-elevated" : "neo-module-card"
@@ -75,27 +67,24 @@ export const WorkoutsHub = () => {
             >
               <motion.button
                 onClick={() => toggleSection(section.id)}
-                whileTap={{ scale: 0.995 }}
-                className="w-full px-4 py-3.5 flex items-center justify-between"
+                whileTap={{ scale: 0.98 }}
+                className="w-full px-4 py-3 flex items-center justify-between"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                    "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300",
                     isExpanded ? "bg-foreground" : "bg-surface-2"
                   )}>
                     <Icon className={cn(
-                      "w-[18px] h-[18px] transition-colors duration-300",
+                      "w-5 h-5 transition-colors duration-300",
                       isExpanded ? "text-background" : "text-muted-foreground"
                     )} />
                   </div>
                   <div className="text-left">
-                    <span className={cn(
-                      "text-[15px] font-semibold transition-colors duration-200 block",
-                      isExpanded ? "text-foreground" : "text-foreground"
-                    )}>
+                    <span className="text-[17px] font-semibold text-foreground block leading-tight">
                       {t(section.labelKey)}
                     </span>
-                    <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                    <span className="text-[13px] text-muted-foreground mt-0.5 block">
                       {section.desc}
                     </span>
                   </div>
