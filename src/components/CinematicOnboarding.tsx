@@ -78,7 +78,7 @@ const TwinklingStars = () => {
 
       // Draw stars
       stars.forEach((s) => {
-        const opacity = 0.25 + 0.75 * ((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2);
+        const opacity = 0.1 + 0.9 * Math.pow((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2, 0.6);
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${opacity})`;
