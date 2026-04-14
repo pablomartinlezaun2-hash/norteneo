@@ -176,22 +176,22 @@ const Index = () => {
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* ── Header ── */}
       <motion.header
-        className="px-5 py-3.5 sticky top-0 z-50 bg-background/90 backdrop-blur-2xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, ease }}
+        className="px-5 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-2xl"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease }}
         style={{ borderBottom: '1px solid hsl(var(--border) / 0.3)' }}
       >
         <div className="flex items-center justify-between">
           {/* Logo */}
           <motion.div
             className="flex items-center"
-            initial={{ opacity: 0, x: -6 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, ease }}
+            transition={{ duration: 0.4, ease }}
           >
-            <div className="h-7 px-2.5 rounded-md bg-foreground flex items-center justify-center">
-              <span className="font-bold tracking-[0.12em] text-background text-[10px] uppercase">NEO</span>
+            <div className="h-9 px-3.5 rounded-lg bg-foreground flex items-center justify-center">
+              <span className="font-bold tracking-[0.14em] text-background text-[13px] uppercase">NEO</span>
             </div>
           </motion.div>
 
@@ -200,15 +200,15 @@ const Index = () => {
             <motion.button
               onClick={() => setTimerOpen(prev => !prev)}
               className={cn(
-                "relative w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+                "relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200",
                 isRunning ? "bg-neo-accent/10" : "hover:bg-surface-2"
               )}
-              whileTap={{ scale: 0.92 }}
+              whileTap={{ scale: 0.9 }}
             >
-              <TimerIcon className={cn("w-[15px] h-[15px]", isRunning ? "text-neo-accent" : "text-muted-foreground")} />
+              <TimerIcon className={cn("w-[18px] h-[18px]", isRunning ? "text-neo-accent" : "text-muted-foreground")} />
               {isRunning && (
                 <motion.span
-                  className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-neo-accent"
+                  className="absolute top-1 right-1 w-2 h-2 rounded-full bg-neo-accent"
                   animate={{ opacity: [1, 0.3, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
@@ -222,21 +222,21 @@ const Index = () => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: -6 }}
                   transition={{ duration: 0.2, ease }}
-                  className="fixed top-[52px] inset-x-0 mx-auto w-[280px] z-[60] neo-surface-elevated p-5"
+                  className="fixed top-[60px] inset-x-0 mx-auto w-[280px] z-[60] neo-surface-elevated p-5"
                 >
                   <div className="space-y-4">
                     <div className="text-center">
                       <span className="text-[36px] font-bold tabular-nums tracking-tight text-foreground leading-none">
                         {formattedTime}
                       </span>
-                      <p className="text-micro text-muted-foreground mt-2 uppercase tracking-widest">
+                      <p className="text-[11px] text-muted-foreground mt-2 uppercase tracking-widest">
                         {mode === 'stopwatch' ? t('index.stopwatch') : t('index.rest')}
                       </p>
                     </div>
                     <div className="flex justify-center gap-2">
                       {!isRunning ? (
                         <>
-                          <Button size="sm" variant="outline" onClick={startStopwatch} className="h-9 text-body flex-1 rounded-xl">
+                          <Button size="sm" variant="outline" onClick={startStopwatch} className="h-9 text-sm flex-1 rounded-xl">
                             <Play className="w-3.5 h-3.5 mr-1.5" /> {t('index.start')}
                           </Button>
                           <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="h-9 w-9 rounded-xl bg-foreground text-background hover:bg-foreground/90 p-0">
@@ -244,7 +244,7 @@ const Index = () => {
                           </Button>
                         </>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={pause} className="h-9 text-body flex-1 rounded-xl">
+                        <Button size="sm" variant="outline" onClick={pause} className="h-9 text-sm flex-1 rounded-xl">
                           <Pause className="w-3.5 h-3.5 mr-1.5" /> {t('index.pause')}
                         </Button>
                       )}
@@ -253,13 +253,13 @@ const Index = () => {
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      <span className="text-micro text-muted-foreground uppercase tracking-widest">{t('index.quickRest')}</span>
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-widest">{t('index.quickRest')}</span>
                       <div className="grid grid-cols-4 gap-1.5">
                         {presetTimes.map(s => (
                           <motion.button
                             key={s}
                             onClick={() => startCountdown(s)}
-                            className="text-caption py-2 rounded-lg bg-surface-2 hover:bg-foreground hover:text-background font-medium transition-all duration-200"
+                            className="text-[13px] py-2 rounded-lg bg-surface-2 hover:bg-foreground hover:text-background font-medium transition-all duration-200"
                             whileTap={{ scale: 0.95 }}
                           >
                             {Math.floor(s / 60)}:{(s % 60).toString().padStart(2, '0')}
@@ -276,39 +276,39 @@ const Index = () => {
           {/* Profile */}
           <motion.button
             onClick={() => handleMainTabChange('profile')}
-            className="w-7 h-7 rounded-full bg-surface-2 flex items-center justify-center hover:bg-surface-3 transition-colors"
+            className="w-9 h-9 rounded-full bg-surface-2 flex items-center justify-center hover:bg-surface-3 transition-colors"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.25, ease, delay: 0.1 }}
-            whileTap={{ scale: 0.92 }}
+            transition={{ duration: 0.3, ease, delay: 0.1 }}
+            whileTap={{ scale: 0.9 }}
           >
-            <User className="w-3.5 h-3.5 text-muted-foreground" />
+            <User className="w-4 h-4 text-muted-foreground" />
           </motion.button>
         </div>
       </motion.header>
 
       {/* ── Navigation ── */}
       <motion.nav
-        className="sticky top-[51px] z-40 bg-background/90 backdrop-blur-2xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.05 }}
+        className="sticky top-[57px] z-40 bg-background/90 backdrop-blur-2xl"
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.08, ease }}
       >
         <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex min-w-max px-5 py-2.5 gap-1">
+          <div className="flex min-w-max px-5 py-3 gap-1.5">
             {tabs.map((tab, i) => {
               const isActive = mainTab === tab.key;
               return (
                 <motion.button
                   key={tab.key}
                   onClick={() => handleMainTabChange(tab.key)}
-                  initial={{ opacity: 0, y: 4 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.06 + i * 0.03, duration: 0.3, ease }}
+                  transition={{ delay: 0.1 + i * 0.04, duration: 0.35, ease }}
                   className={isActive ? 'neo-tab-active' : 'neo-tab'}
-                  whileTap={{ scale: 0.96 }}
+                  whileTap={{ scale: 0.94 }}
                 >
-                  <tab.icon className="w-3.5 h-3.5" />
+                  <tab.icon className="w-4 h-4" />
                   {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
                 </motion.button>
               );
