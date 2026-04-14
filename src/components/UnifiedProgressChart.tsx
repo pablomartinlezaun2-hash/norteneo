@@ -506,7 +506,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="neo-surface p-5"
+        className="neo-chart-container"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">
           Resumen semanal (últimas 8 semanas)
@@ -545,16 +545,16 @@ export const UnifiedProgressChart = ({
         {/* Legend */}
         <div className="flex justify-center gap-4 mt-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-primary" />
-            <span className="text-xs text-muted-foreground">Gimnasio</span>
+            <div className="w-3 h-3 rounded-sm bg-foreground" />
+            <span className="text-[11px] text-muted-foreground">Gimnasio</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-cyan-500" />
-            <span className="text-xs text-muted-foreground">Natación</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'hsl(199, 89%, 48%)' }} />
+            <span className="text-[11px] text-muted-foreground">Natación</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-green-500" />
-            <span className="text-xs text-muted-foreground">Running</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'hsl(142, 71%, 45%)' }} />
+            <span className="text-[11px] text-muted-foreground">Running</span>
           </div>
         </div>
       </motion.div>
@@ -564,7 +564,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="neo-surface p-5"
+        className="neo-chart-container"
       >
         <h3 className="text-sm font-semibold text-foreground mb-2">
           Evolución últimos 30 días
@@ -662,7 +662,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="neo-surface p-5"
+        className="neo-chart-container"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">
           Últimos entrenos
