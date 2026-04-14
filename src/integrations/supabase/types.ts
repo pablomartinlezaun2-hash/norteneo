@@ -2327,12 +2327,14 @@ export type Database = {
           disciplines: string[]
           display_name: string
           full_name: string
+          height: number
           id: string
           main_goal: string
           role: string
           updated_at: string
           user_id: string
           vb2_enabled: boolean
+          weight: number
           years_training: string
         }[]
       }
