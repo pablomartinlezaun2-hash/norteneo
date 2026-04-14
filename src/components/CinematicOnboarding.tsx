@@ -39,9 +39,9 @@ const TwinklingStars = () => {
     const stars = Array.from({ length: STAR_COUNT }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      r: Math.random() * 1.4 + 0.4,
+      r: Math.random() * 1.6 + 0.5,
       phase: Math.random() * Math.PI * 2,
-      speed: Math.random() * 2.5 + 1.2,
+      speed: Math.random() * 5 + 3,
     }));
 
     // Shooting stars / comets
