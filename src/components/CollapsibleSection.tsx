@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
+const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 interface CollapsibleSectionProps {
   isOpen: boolean;
@@ -23,39 +23,37 @@ export const CollapsibleSection = forwardRef<HTMLDivElement, CollapsibleSectionP
     ref={ref}
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.4, ease: premiumEase }}
+    transition={{ delay, duration: 0.4, ease }}
     className={cn(
-      "rounded-2xl overflow-hidden transition-all duration-300",
-      isOpen
-        ? "neo-surface-elevated"
-        : "neo-surface hover:border-border"
+      "overflow-hidden transition-all duration-300",
+      isOpen ? "neo-surface-elevated" : "neo-module-card"
     )}
   >
     <motion.button
       onClick={onToggle}
       className="w-full px-5 py-4 flex items-center justify-between"
-      whileTap={{ scale: 0.99 }}
+      whileTap={{ scale: 0.995 }}
     >
       <div className="flex items-center gap-3.5">
         <div className={cn(
-          "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
-          isOpen ? "bg-foreground" : "bg-muted"
+          "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300",
+          isOpen ? "bg-foreground" : "bg-surface-2"
         )}>
           <Icon className={cn(
-            "w-[18px] h-[18px] transition-colors duration-300",
+            "w-[16px] h-[16px] transition-colors duration-300",
             isOpen ? "text-background" : "text-muted-foreground"
           )} />
         </div>
         <div className="text-left">
-          <h3 className="text-title text-foreground">{title}</h3>
-          <p className="text-caption text-muted-foreground mt-0.5">{subtitle}</p>
+          <h3 className="text-[15px] font-semibold text-foreground tracking-[-0.01em]">{title}</h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5 tracking-[-0.005em]">{subtitle}</p>
         </div>
       </div>
-      <motion.div 
-        animate={{ rotate: isOpen ? 90 : 0 }} 
-        transition={{ duration: 0.2, ease: premiumEase }}
+      <motion.div
+        animate={{ rotate: isOpen ? 90 : 0 }}
+        transition={{ duration: 0.25, ease }}
       >
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
       </motion.div>
     </motion.button>
 
@@ -65,14 +63,14 @@ export const CollapsibleSection = forwardRef<HTMLDivElement, CollapsibleSectionP
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: premiumEase }}
+          transition={{ duration: 0.35, ease }}
           className="overflow-hidden"
         >
-          <div className="h-px bg-border/50 mx-5" />
+          <div className="h-px mx-5" style={{ background: 'hsl(var(--border) / 0.3)' }} />
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.08, ease: premiumEase }}
+            transition={{ duration: 0.25, delay: 0.08, ease }}
             className="p-5"
           >
             {children}

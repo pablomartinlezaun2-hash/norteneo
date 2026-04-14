@@ -318,32 +318,34 @@ export const UnifiedProgressChart = ({
     { id: 'exercises' as ProgressTab, label: 'Ejercicios', icon: Activity },
   ];
 
+  const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="space-y-5"
     >
-      {/* Header — editorial */}
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-6">
         <motion.h2
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.35, ease }}
           className="section-headline text-foreground"
         >Tu Progreso</motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.3 }}
-          className="section-subheadline mt-2"
+          className="section-subheadline mt-1.5"
         >
           Todos tus entrenamientos en un solo lugar
         </motion.p>
       </div>
 
-      {/* Tab Navigation — pill style */}
+      {/* Tab Navigation */}
       <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
         <div className="flex gap-1 min-w-max">
           {PROGRESS_TABS.map((tab, i) => {
@@ -353,15 +355,10 @@ export const UnifiedProgressChart = ({
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.05, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full text-body font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
+                transition={{ delay: 0.15 + i * 0.04, duration: 0.3, ease }}
+                className={isActive ? 'neo-tab-active' : 'neo-tab'}
                 whileTap={{ scale: 0.96 }}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -491,9 +488,9 @@ export const UnifiedProgressChart = ({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 + i * 0.04 }}
-              className="neo-surface p-3 text-center"
+              className="neo-stat-card text-center"
             >
-              <div className="w-8 h-8 mx-auto rounded-lg bg-muted flex items-center justify-center mb-2">
+              <div className="w-8 h-8 mx-auto rounded-lg bg-surface-2 flex items-center justify-center mb-2">
                 <StatIcon className="w-4 h-4 text-muted-foreground" />
               </div>
               <p className="text-xl font-bold text-foreground tabular-nums">{item.value}</p>
@@ -509,7 +506,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="neo-surface p-5"
+        className="neo-chart-container"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">
           Resumen semanal (últimas 8 semanas)
@@ -548,16 +545,16 @@ export const UnifiedProgressChart = ({
         {/* Legend */}
         <div className="flex justify-center gap-4 mt-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-primary" />
-            <span className="text-xs text-muted-foreground">Gimnasio</span>
+            <div className="w-3 h-3 rounded-sm bg-foreground" />
+            <span className="text-[11px] text-muted-foreground">Gimnasio</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-cyan-500" />
-            <span className="text-xs text-muted-foreground">Natación</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'hsl(199, 89%, 48%)' }} />
+            <span className="text-[11px] text-muted-foreground">Natación</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-green-500" />
-            <span className="text-xs text-muted-foreground">Running</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'hsl(142, 71%, 45%)' }} />
+            <span className="text-[11px] text-muted-foreground">Running</span>
           </div>
         </div>
       </motion.div>
@@ -567,7 +564,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="neo-surface p-5"
+        className="neo-chart-container"
       >
         <h3 className="text-sm font-semibold text-foreground mb-2">
           Evolución últimos 30 días
@@ -665,7 +662,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="neo-surface p-5"
+        className="neo-chart-container"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">
           Últimos entrenos

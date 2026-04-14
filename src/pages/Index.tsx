@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
 import { NeoHelpChat } from '@/components/NeoHelpChat';
 
-const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
+const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 const Index = () => {
   const { t } = useTranslation();
@@ -90,25 +90,19 @@ const Index = () => {
     setHasSeenWelcome(true);
   };
 
-  const contentVariants = {
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -4 }
-  };
-
   if (programLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: premiumEase }}
+          transition={{ duration: 0.3, ease }}
         >
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </motion.div>
         <motion.p
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.6 }}
+          animate={{ opacity: 0.5 }}
           transition={{ delay: 0.2, duration: 0.3 }}
           className="text-caption text-muted-foreground"
         >{t('index.loading')}</motion.p>
@@ -180,43 +174,42 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Header — minimal, clean */}
+      {/* ── Header ── */}
       <motion.header
-        className="px-5 py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40"
+        className="px-5 py-3.5 sticky top-0 z-50 bg-background/90 backdrop-blur-2xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, ease: premiumEase }}
+        transition={{ duration: 0.4, ease }}
+        style={{ borderBottom: '1px solid hsl(var(--border) / 0.3)' }}
       >
         <div className="flex items-center justify-between">
-          {/* Logo — clean, no starfield */}
+          {/* Logo */}
           <motion.div
-            className="flex items-center gap-2.5"
-            initial={{ opacity: 0, x: -8 }}
+            className="flex items-center"
+            initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, ease: premiumEase }}
+            transition={{ duration: 0.35, ease }}
           >
-            <div className="h-8 px-3 rounded-lg bg-foreground flex items-center justify-center">
-              <span className="font-bold tracking-[0.1em] text-background text-[11px] uppercase">NEO</span>
+            <div className="h-7 px-2.5 rounded-md bg-foreground flex items-center justify-center">
+              <span className="font-bold tracking-[0.12em] text-background text-[10px] uppercase">NEO</span>
             </div>
           </motion.div>
 
-          {/* Timer — subtle center */}
+          {/* Timer */}
           <div className="absolute left-1/2 -translate-x-1/2">
             <motion.button
               onClick={() => setTimerOpen(prev => !prev)}
               className={cn(
-                "relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
-                isRunning
-                  ? "bg-neo-accent/10"
-                  : "hover:bg-muted"
+                "relative w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+                isRunning ? "bg-neo-accent/10" : "hover:bg-surface-2"
               )}
-              whileTap={{ scale: 0.94 }}
+              whileTap={{ scale: 0.92 }}
             >
-              <TimerIcon className={cn("w-4 h-4", isRunning ? "text-neo-accent" : "text-muted-foreground")} />
+              <TimerIcon className={cn("w-[15px] h-[15px]", isRunning ? "text-neo-accent" : "text-muted-foreground")} />
               {isRunning && (
                 <motion.span
-                  className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-neo-accent"
-                  animate={{ opacity: [1, 0.4, 1] }}
+                  className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-neo-accent"
+                  animate={{ opacity: [1, 0.3, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 />
               )}
@@ -225,21 +218,18 @@ const Index = () => {
             <AnimatePresence>
               {timerOpen && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  initial={{ opacity: 0, scale: 0.96, y: -6 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                  transition={{ duration: 0.2, ease: premiumEase }}
-                  className="fixed top-[56px] inset-x-0 mx-auto w-72 z-[60] neo-surface-elevated p-5"
+                  exit={{ opacity: 0, scale: 0.96, y: -6 }}
+                  transition={{ duration: 0.2, ease }}
+                  className="fixed top-[52px] inset-x-0 mx-auto w-[280px] z-[60] neo-surface-elevated p-5"
                 >
                   <div className="space-y-4">
                     <div className="text-center">
-                      <span className={cn(
-                        "text-4xl font-bold tabular-nums tracking-tight",
-                        isRunning ? "text-foreground" : "text-foreground"
-                      )}>
+                      <span className="text-[36px] font-bold tabular-nums tracking-tight text-foreground leading-none">
                         {formattedTime}
                       </span>
-                      <p className="text-caption text-muted-foreground mt-1">
+                      <p className="text-micro text-muted-foreground mt-2 uppercase tracking-widest">
                         {mode === 'stopwatch' ? t('index.stopwatch') : t('index.rest')}
                       </p>
                     </div>
@@ -263,13 +253,13 @@ const Index = () => {
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      <span className="text-overline text-muted-foreground uppercase">{t('index.quickRest')}</span>
+                      <span className="text-micro text-muted-foreground uppercase tracking-widest">{t('index.quickRest')}</span>
                       <div className="grid grid-cols-4 gap-1.5">
                         {presetTimes.map(s => (
                           <motion.button
                             key={s}
                             onClick={() => startCountdown(s)}
-                            className="text-caption py-2 rounded-lg bg-muted hover:bg-foreground hover:text-background font-medium transition-all duration-200"
+                            className="text-caption py-2 rounded-lg bg-surface-2 hover:bg-foreground hover:text-background font-medium transition-all duration-200"
                             whileTap={{ scale: 0.95 }}
                           >
                             {Math.floor(s / 60)}:{(s % 60).toString().padStart(2, '0')}
@@ -286,56 +276,57 @@ const Index = () => {
           {/* Profile */}
           <motion.button
             onClick={() => handleMainTabChange('profile')}
-            className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+            className="w-7 h-7 rounded-full bg-surface-2 flex items-center justify-center hover:bg-surface-3 transition-colors"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.25, ease: premiumEase, delay: 0.1 }}
-            whileTap={{ scale: 0.94 }}
+            transition={{ duration: 0.25, ease, delay: 0.1 }}
+            whileTap={{ scale: 0.92 }}
           >
-            <User className="w-4 h-4 text-muted-foreground" />
+            <User className="w-3.5 h-3.5 text-muted-foreground" />
           </motion.button>
         </div>
       </motion.header>
 
-      {/* Navigation — minimal pill tabs */}
+      {/* ── Navigation ── */}
       <motion.nav
-        className="sticky top-[57px] z-40 bg-background/80 backdrop-blur-xl"
+        className="sticky top-[51px] z-40 bg-background/90 backdrop-blur-2xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.25, delay: 0.05 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
       >
         <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex min-w-max px-5 py-3 gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => handleMainTabChange(tab.key)}
-                className={cn(
-                  "relative flex items-center gap-2 px-4 py-2 rounded-full text-body font-medium transition-all duration-200 whitespace-nowrap",
-                  mainTab === tab.key
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
-              >
-                <tab.icon className="w-3.5 h-3.5" />
-                {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
-              </button>
-            ))}
+          <div className="flex min-w-max px-5 py-2.5 gap-1">
+            {tabs.map((tab, i) => {
+              const isActive = mainTab === tab.key;
+              return (
+                <motion.button
+                  key={tab.key}
+                  onClick={() => handleMainTabChange(tab.key)}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.06 + i * 0.03, duration: 0.3, ease }}
+                  className={isActive ? 'neo-tab-active' : 'neo-tab'}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  <tab.icon className="w-3.5 h-3.5" />
+                  {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
+                </motion.button>
+              );
+            })}
           </div>
         </div>
-        <div className="h-px bg-border/40" />
+        <div className="h-px" style={{ background: 'hsl(var(--border) / 0.25)' }} />
       </motion.nav>
 
-      {/* Content */}
-      <main className="px-5 py-8 pb-32 max-w-lg mx-auto">
+      {/* ── Content ── */}
+      <main className="px-5 py-6 pb-32 max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={contentKey}
-            variants={contentVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.25, ease: premiumEase }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.3, ease }}
           >
             {renderContent()}
           </motion.div>
