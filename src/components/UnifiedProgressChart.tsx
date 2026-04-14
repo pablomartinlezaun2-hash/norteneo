@@ -318,26 +318,28 @@ export const UnifiedProgressChart = ({
     { id: 'exercises' as ProgressTab, label: 'Ejercicios', icon: Activity },
   ];
 
+  const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="space-y-5"
     >
-      {/* Header — editorial */}
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-6">
         <motion.h2
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.35, ease }}
           className="section-headline text-foreground"
         >Tu Progreso</motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.3 }}
-          className="section-subheadline mt-2"
+          className="section-subheadline mt-1.5"
         >
           Todos tus entrenamientos en un solo lugar
         </motion.p>
