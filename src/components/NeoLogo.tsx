@@ -7,15 +7,15 @@ interface NeoLogoProps {
 
 export const NeoLogo = ({ size = 'md', className }: NeoLogoProps) => {
   const sizeClasses = {
-    sm: 'w-6 h-6 text-[8px]',
-    md: 'w-8 h-8 text-[10px]',
-    lg: 'w-12 h-12 text-sm'
+    sm: 'h-6 px-2 text-[9px]',
+    md: 'h-8 px-3 text-[11px]',
+    lg: 'h-10 px-4 text-xs'
   };
 
   return (
     <div 
       className={cn(
-        "rounded-full bg-black flex items-center justify-center font-bold text-white tracking-tight",
+        "rounded-lg bg-foreground flex items-center justify-center font-bold text-background tracking-[0.08em] uppercase",
         sizeClasses[size],
         className
       )}

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { supabase } from '@/integrations/supabase/client';
-import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Sparkles, Trash2, Play } from 'lucide-react';
+import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Trash2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ThemeSelector } from './ThemeSelector';
@@ -37,6 +37,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
   const [currentView, setCurrentView] = useState<ProfileView>('main');
   const [notificationsEnabled, setNotificationsEnabled] = useState(preferences.notifications);
   const [deleting, setDeleting] = useState(false);
+
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
     savePreferences({ notifications: enabled });
@@ -85,7 +86,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       case 'subscription':
         return (
           <div className="space-y-4">
-            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2">
+            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2 text-body">
               ← {t('common.back')}
             </Button>
             <SubscriptionCard currentSubscription={subscription} onSubscribe={setSubscriptionType} />
@@ -94,7 +95,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       case 'language':
         return (
           <div className="space-y-4">
-            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2">
+            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2 text-body">
               ← {t('common.back')}
             </Button>
             <LanguageSelector currentLanguage={preferences.language} onLanguageChange={(lang) => savePreferences({ language: lang })} />
@@ -103,7 +104,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       case 'health':
         return (
           <div className="space-y-4">
-            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2">
+            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2 text-body">
               ← {t('common.back')}
             </Button>
             <HealthProfileForm profile={healthProfile} onSave={saveHealthProfile} />
@@ -112,7 +113,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       case 'integrations':
         return (
           <div className="space-y-4">
-            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2">
+            <Button variant="ghost" onClick={() => setCurrentView('main')} className="mb-2 text-body">
               ← {t('common.back')}
             </Button>
             <IntegrationsSection integrations={integrations} onToggle={toggleIntegration} />
@@ -126,21 +127,21 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
   const renderMainView = () => (
     <div className="space-y-6">
       {/* User Card */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="gradient-card rounded-2xl p-5 border border-border apple-shadow">
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="neo-surface p-5">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
-            <User className="w-8 h-8 text-primary-foreground" />
+          <div className="w-14 h-14 rounded-2xl bg-foreground flex items-center justify-center">
+            <User className="w-6 h-6 text-background" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="text-lg font-bold text-foreground truncate">{user?.email?.split('@')[0] || 'Usuario'}</p>
+              <p className="text-title text-foreground truncate">{user?.email?.split('@')[0] || 'Usuario'}</p>
               {subscription.type !== 'free' && (
-                <span className={cn("px-2 py-0.5 rounded-full text-xs font-bold text-white", subscription.type === 'ultra' ? 'bg-gradient-to-r from-purple-500 to-violet-500' : 'bg-gradient-to-r from-amber-500 to-yellow-500')}>
+                <span className="px-2 py-0.5 rounded-full text-overline font-semibold bg-foreground text-background">
                   {subscription.type.toUpperCase()}
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+            <p className="text-caption text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>
       </motion.div>
@@ -148,112 +149,112 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       {/* NEO Profile Summary */}
       <NeoProfileSummary />
 
-      {/* VB2 Follow-up (shown if vb2_enabled) or Activation CTA (shown if not) */}
+      {/* VB2 Follow-up or Activation CTA */}
       <VB2FollowUpSection />
       <VB2ActivationCTA />
 
-      {/* Coach Chat (shown if athlete has a coach) */}
+      {/* Coach Chat */}
       <AthleteChatSection />
 
       {/* Subscription */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="gradient-card rounded-2xl border border-border overflow-hidden">
-        <button onClick={() => setCurrentView('subscription')} className="w-full flex items-center gap-3 px-4 py-4 hover:bg-muted/50 transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 flex items-center justify-center">
-            <Crown className="w-5 h-5 text-white" />
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}>
+        <button onClick={() => setCurrentView('subscription')} className="w-full flex items-center gap-3 px-4 py-3.5 neo-surface hover:bg-muted/30 transition-colors">
+          <div className="w-9 h-9 rounded-lg bg-foreground flex items-center justify-center">
+            <Crown className="w-4 h-4 text-background" />
           </div>
           <div className="flex-1 text-left">
-            <p className="font-medium text-foreground">{t('profile.manageSubscription')}</p>
-            <p className="text-xs text-muted-foreground">{subscription.type === 'free' ? t('profile.freePlan') : t('profile.planLabel', { type: subscription.type.toUpperCase() })}</p>
+            <p className="text-body font-medium text-foreground">{t('profile.manageSubscription')}</p>
+            <p className="text-caption text-muted-foreground">{subscription.type === 'free' ? t('profile.freePlan') : t('profile.planLabel', { type: subscription.type.toUpperCase() })}</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </button>
       </motion.div>
 
       {/* Quick Settings */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="gradient-card rounded-2xl border border-border overflow-hidden divide-y divide-border">
-        <button onClick={() => setCurrentView('language')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><span className="text-lg">🌐</span></div>
-          <p className="flex-1 text-left text-sm font-medium text-foreground">{t('profile.language')}</p>
-          <span className="text-sm text-muted-foreground mr-2">{preferences.language.toUpperCase()}</span>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="neo-surface divide-y divide-border/50 overflow-hidden">
+        <button onClick={() => setCurrentView('language')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors">
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><span className="text-sm">🌐</span></div>
+          <p className="flex-1 text-left text-body font-medium text-foreground">{t('profile.language')}</p>
+          <span className="text-caption text-muted-foreground mr-2">{preferences.language.toUpperCase()}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
-        <button onClick={() => setCurrentView('health')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors">
-          <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center"><Heart className="w-4 h-4 text-red-500" /></div>
-          <p className="flex-1 text-left text-sm font-medium text-foreground">{t('profile.healthActivity')}</p>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        <button onClick={() => setCurrentView('health')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors">
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><Heart className="w-3.5 h-3.5 text-muted-foreground" /></div>
+          <p className="flex-1 text-left text-body font-medium text-foreground">{t('profile.healthActivity')}</p>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
-        <button onClick={() => setCurrentView('integrations')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 flex items-center justify-center"><Scale className="w-4 h-4 text-cyan-500" /></div>
-          <p className="flex-1 text-left text-sm font-medium text-foreground">{t('profile.integrations')}</p>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        <button onClick={() => setCurrentView('integrations')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors">
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><Scale className="w-3.5 h-3.5 text-muted-foreground" /></div>
+          <p className="flex-1 text-left text-body font-medium text-foreground">{t('profile.integrations')}</p>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
         <div className="flex items-center gap-3 px-4 py-3.5">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><Bell className="w-4 h-4 text-primary" /></div>
-          <p className="flex-1 text-sm font-medium text-foreground">{t('profile.notifications')}</p>
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><Bell className="w-3.5 h-3.5 text-muted-foreground" /></div>
+          <p className="flex-1 text-body font-medium text-foreground">{t('profile.notifications')}</p>
           <Switch checked={notificationsEnabled} onCheckedChange={handleNotificationToggle} />
         </div>
       </motion.div>
 
       {/* Theme */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="gradient-card rounded-2xl p-4 border border-border">
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} className="neo-surface p-4">
         <ThemeSelector />
       </motion.div>
 
       {/* Data Export */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="gradient-card rounded-2xl p-4 border border-border">
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="neo-surface p-4">
         <DataExportSection isPro={isPro} />
       </motion.div>
 
       {/* Support */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
         <SupportSection />
       </motion.div>
 
-      {/* Restart Neo Tour */}
+      {/* Restart Tour */}
       {onRestartTour && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
           <button
             onClick={onRestartTour}
-            className="w-full h-12 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-primary"
+            className="w-full h-11 rounded-xl border border-border hover:bg-muted/40 transition-colors flex items-center justify-center gap-2 text-caption font-medium text-muted-foreground"
           >
-            <Play className="w-4 h-4" />
+            <Play className="w-3.5 h-3.5" />
             {t('profile.restartTour')}
           </button>
         </motion.div>
       )}
 
       {/* Logout */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-        <Button variant="outline" onClick={signOut} className="w-full h-12 text-destructive border-destructive/20 hover:bg-destructive/10">
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
+        <Button variant="outline" onClick={signOut} className="w-full h-11 text-destructive border-destructive/20 hover:bg-destructive/5 rounded-xl text-body">
           <LogOut className="w-4 h-4 mr-2" />
           {t('profile.logout')}
         </Button>
       </motion.div>
 
       {/* Delete Account */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="w-full h-12 text-destructive/70 hover:text-destructive hover:bg-destructive/5 text-sm">
-              <Trash2 className="w-4 h-4 mr-2" />
+            <Button variant="ghost" className="w-full h-11 text-destructive/50 hover:text-destructive hover:bg-destructive/5 text-caption">
+              <Trash2 className="w-3.5 h-3.5 mr-2" />
               {t('profile.deleteAccount')}
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent className="neo-surface-elevated">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-destructive flex items-center gap-2">
-                <Trash2 className="w-5 h-5" />
+              <AlertDialogTitle className="text-destructive flex items-center gap-2 text-title">
+                <Trash2 className="w-4 h-4" />
                 {t('profile.deleteTitle')}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-left space-y-2">
-                <p className="font-semibold text-foreground">{t('profile.deleteWarning')}</p>
-                <p>{t('profile.deleteDesc')}</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
+                <p className="font-semibold text-foreground text-body">{t('profile.deleteWarning')}</p>
+                <p className="text-body">{t('profile.deleteDesc')}</p>
+                <ul className="list-disc list-inside space-y-1 text-caption">
                   {(t('profile.deleteItems', { returnObjects: true }) as string[]).map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>
-                <p className="font-medium text-destructive pt-2">{t('profile.deleteConfirmMsg')}</p>
+                <p className="font-medium text-destructive pt-2 text-body">{t('profile.deleteConfirmMsg')}</p>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -273,14 +274,10 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
   );
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-8">
-      <div className="text-center mb-6">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-          <User className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">{t('profile.title')}</span>
-        </motion.div>
-        <h2 className="text-2xl font-bold text-foreground">{t('profile.title')}</h2>
-        <p className="text-sm text-muted-foreground mt-1">{t('profile.subtitle')}</p>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-8">
+      <div className="mb-8">
+        <h2 className="section-headline text-foreground">{t('profile.title')}</h2>
+        <p className="section-subheadline mt-2">{t('profile.subtitle')}</p>
       </div>
       {renderView()}
     </motion.div>
