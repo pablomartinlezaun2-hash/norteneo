@@ -518,8 +518,8 @@ export const WelcomeLogo = () => {
       <div className="relative mb-12">
         <div className="logo-glow absolute inset-[-20px] rounded-[32px] bg-[#ffffff0a] blur-[24px]" />
         <div className="logo-mask">
-          <div className="logo-inner bg-[#F5F5F7] rounded-[20px] px-10 py-5">
-            <span className="text-[42px] font-bold tracking-[0.04em] text-black select-none leading-none">
+          <div className="logo-inner bg-black border border-white/10 rounded-[20px] px-10 py-5">
+            <span className="text-[42px] font-bold tracking-[0.04em] text-white select-none leading-none">
               NEO
             </span>
           </div>
@@ -579,9 +579,9 @@ export const ClosingLogo = () => {
 
   return (
     <div ref={ref} className="relative mb-12">
-      <div className="closing-glow absolute inset-[-24px] rounded-[32px] bg-[#ffffff08] blur-[28px]" />
-      <div className="closing-logo bg-[#F5F5F7] rounded-[20px] px-10 py-5">
-        <span className="text-[42px] font-bold tracking-[0.04em] text-black select-none leading-none">
+      <div className="closing-glow absolute inset-[-24px] rounded-[32px] bg-[#ffffff0a] blur-[28px]" />
+      <div className="closing-logo bg-black border border-white/10 rounded-[20px] px-10 py-5">
+        <span className="text-[42px] font-bold tracking-[0.04em] text-white select-none leading-none">
           NEO
         </span>
       </div>
