@@ -10,6 +10,8 @@ export interface CoachAthlete {
   active_model: string | null;
   vb2_enabled: boolean;
   age: number | null;
+  weight: number | null;
+  height: number | null;
   disciplines: string[] | null;
   years_training: string | null;
   main_goal: string | null;

@@ -268,9 +268,11 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
 
           {/* 1. Perfil base */}
           <SlimAccordionItem value="profile" icon={Heart} label="Perfil base">
-            {(athlete.age != null || athlete.disciplines?.length || athlete.years_training || athlete.main_goal) ? (
+            {(athlete.age != null || athlete.weight != null || athlete.height != null || athlete.disciplines?.length || athlete.years_training || athlete.main_goal) ? (
               <>
                 <MetricRow label="Edad" value={athlete.age != null ? `${athlete.age} años` : '—'} />
+                <MetricRow label="Peso" value={athlete.weight != null ? `${athlete.weight} kg` : '—'} />
+                <MetricRow label="Altura" value={athlete.height != null ? `${athlete.height} cm` : '—'} />
                 <MetricRow label="Disciplinas" value={athlete.disciplines?.length ? athlete.disciplines.join(', ') : '—'} />
                 <MetricRow label="Experiencia" value={athlete.years_training ?? '—'} />
                 <MetricRow label="Objetivo" value={athlete.main_goal ?? '—'} />
