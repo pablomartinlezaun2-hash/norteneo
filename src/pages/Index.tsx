@@ -319,14 +319,14 @@ const Index = () => {
       </motion.nav>
 
       {/* ── Content ── */}
-      <main className="px-5 py-6 pb-32 max-w-lg mx-auto">
+      <main className="px-5 py-5 pb-32 max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={contentKey}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.3, ease }}
+            initial={{ opacity: 0, y: 14, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
+            transition={{ duration: 0.35, ease }}
           >
             {renderContent()}
           </motion.div>
