@@ -39,9 +39,9 @@ const TwinklingStars = () => {
     const stars = Array.from({ length: STAR_COUNT }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      r: Math.random() * 1.4 + 0.4,
+      r: Math.random() * 1.6 + 0.5,
       phase: Math.random() * Math.PI * 2,
-      speed: Math.random() * 2.5 + 1.2,
+      speed: Math.random() * 5 + 3,
     }));
 
     // Shooting stars / comets
@@ -78,7 +78,7 @@ const TwinklingStars = () => {
 
       // Draw stars
       stars.forEach((s) => {
-        const opacity = 0.25 + 0.75 * ((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2);
+        const opacity = 0.1 + 0.9 * Math.pow((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2, 0.6);
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${opacity})`;
