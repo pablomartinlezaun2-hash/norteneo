@@ -91,26 +91,26 @@ const Index = () => {
   };
 
   const contentVariants = {
-    initial: { opacity: 0, scale: 0.97, filter: 'blur(4px)' },
-    animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
-    exit: { opacity: 0, scale: 0.98, filter: 'blur(3px)' }
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -4 }
   };
 
   if (programLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.32, ease: premiumEase }}
+          transition={{ duration: 0.3, ease: premiumEase }}
         >
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </motion.div>
         <motion.p
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.24 }}
-          className="text-sm text-muted-foreground"
+          animate={{ opacity: 0.6 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+          className="text-caption text-muted-foreground"
         >{t('index.loading')}</motion.p>
       </div>
     );
@@ -180,196 +180,154 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Header */}
+      {/* Header — minimal, clean */}
       <motion.header
-        className="px-4 py-4 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-sm overflow-visible"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.32, ease: premiumEase }}
+        className="px-5 py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, ease: premiumEase }}
       >
         <div className="flex items-center justify-between">
-          {/* Logo with subtle glow */}
-          <div className="flex items-center gap-3">
-            <motion.div
-              className="relative rounded-xl px-4 py-2.5 overflow-hidden"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.32, ease: premiumEase, delay: 0.04 }}
-              whileTap={{ scale: 0.96 }}
-              style={{ background: '#000', boxShadow: '0 0 20px hsla(0, 0%, 100%, 0.08)' }}
-            >
-              {/* Starfield */}
-              {Array.from({ length: 12 }).map((_, i) => (
-                <motion.span
-                  key={i}
-                  className="absolute rounded-full bg-white"
-                  style={{
-                    width: Math.random() > 0.5 ? 2 : 1.5,
-                    height: Math.random() > 0.5 ? 2 : 1.5,
-                    top: `${10 + Math.random() * 80}%`,
-                    left: `${5 + Math.random() * 90}%`,
-                  }}
-                  animate={{ opacity: [0.15, 0.8, 0.15] }}
-                  transition={{
-                    duration: 1.6 + Math.random() * 1.4,
-                    repeat: Infinity,
-                    delay: Math.random() * 2,
-                    ease: 'easeInOut',
-                  }}
-                />
-              ))}
-              <span className="relative z-10 font-bold tracking-tight text-white text-xl text-center">NEO</span>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.28, ease: premiumEase, delay: 0.12 }}
-              className="flex items-center gap-2"
-            >
-              
-            </motion.div>
-          </div>
+          {/* Logo — clean, no starfield */}
+          <motion.div
+            className="flex items-center gap-2.5"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, ease: premiumEase }}
+          >
+            <div className="h-8 px-3 rounded-lg bg-foreground flex items-center justify-center">
+              <span className="font-bold tracking-[0.1em] text-background text-[11px] uppercase">NEO</span>
+            </div>
+          </motion.div>
 
-          {/* Timer */}
+          {/* Timer — subtle center */}
           <div className="absolute left-1/2 -translate-x-1/2">
-            <div className="relative flex items-center justify-center">
-              <motion.button
-                onClick={() => setTimerOpen(prev => !prev)}
-                className={cn(
-                  "relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
-                  isRunning
-                    ? "bg-primary/20 shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
-                    : "bg-muted/60 hover:bg-muted"
-                )}
-                whileTap={{ scale: 0.92 }}
-              >
-                <TimerIcon className={cn("w-5 h-5", isRunning ? "text-primary" : "text-muted-foreground")} />
-                {isRunning && (
-                  <motion.span
-                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary"
-                    animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                )}
-              </motion.button>
+            <motion.button
+              onClick={() => setTimerOpen(prev => !prev)}
+              className={cn(
+                "relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                isRunning
+                  ? "bg-neo-accent/10"
+                  : "hover:bg-muted"
+              )}
+              whileTap={{ scale: 0.94 }}
+            >
+              <TimerIcon className={cn("w-4 h-4", isRunning ? "text-neo-accent" : "text-muted-foreground")} />
+              {isRunning && (
+                <motion.span
+                  className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-neo-accent"
+                  animate={{ opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              )}
+            </motion.button>
 
-              <AnimatePresence>
-                {timerOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.92, y: -4 }}
-                    transition={{ duration: 0.24, ease: premiumEase }}
-                    className="fixed top-[60px] inset-x-0 mx-auto w-64 z-[60] rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden"
-                  >
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-                    <div className="p-4 space-y-4">
-                      <div className="text-center">
-                        <span className={cn(
-                          "text-4xl font-bold tabular-nums tracking-tight",
-                          isRunning ? "text-primary" : "text-foreground"
-                        )}>
-                          {formattedTime}
-                        </span>
-                        <p className="text-[11px] text-muted-foreground mt-1">
-                          {mode === 'stopwatch' ? t('index.stopwatch') : t('index.rest')}
-                        </p>
-                      </div>
-                      <div className="flex justify-center gap-2">
-                        {!isRunning ? (
-                          <>
-                            <Button size="sm" variant="outline" onClick={startStopwatch} className="h-10 text-sm flex-1 rounded-xl">
-                              <Play className="w-4 h-4 mr-2" /> {t('index.start')}
-                            </Button>
-                            <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="h-10 w-10 rounded-xl gradient-primary text-primary-foreground p-0">
-                              <Play className="w-4 h-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button size="sm" variant="outline" onClick={pause} className="h-10 text-sm flex-1 rounded-xl">
-                            <Pause className="w-4 h-4 mr-2" /> {t('index.pause')}
+            <AnimatePresence>
+              {timerOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.2, ease: premiumEase }}
+                  className="fixed top-[56px] inset-x-0 mx-auto w-72 z-[60] neo-surface-elevated p-5"
+                >
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <span className={cn(
+                        "text-4xl font-bold tabular-nums tracking-tight",
+                        isRunning ? "text-foreground" : "text-foreground"
+                      )}>
+                        {formattedTime}
+                      </span>
+                      <p className="text-caption text-muted-foreground mt-1">
+                        {mode === 'stopwatch' ? t('index.stopwatch') : t('index.rest')}
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      {!isRunning ? (
+                        <>
+                          <Button size="sm" variant="outline" onClick={startStopwatch} className="h-9 text-body flex-1 rounded-xl">
+                            <Play className="w-3.5 h-3.5 mr-1.5" /> {t('index.start')}
                           </Button>
-                        )}
-                        <Button size="sm" variant="ghost" onClick={reset} className="h-10 w-10 rounded-xl p-0">
-                          <RotateCcw className="w-4 h-4" />
+                          <Button size="sm" onClick={resume} disabled={formattedTime === '00:00'} className="h-9 w-9 rounded-xl bg-foreground text-background hover:bg-foreground/90 p-0">
+                            <Play className="w-3.5 h-3.5" />
+                          </Button>
+                        </>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={pause} className="h-9 text-body flex-1 rounded-xl">
+                          <Pause className="w-3.5 h-3.5 mr-1.5" /> {t('index.pause')}
                         </Button>
-                      </div>
-                      <div className="space-y-2">
-                        <span className="text-[11px] text-muted-foreground">{t('index.quickRest')}</span>
-                        <div className="grid grid-cols-4 gap-2">
-                          {presetTimes.map(s => (
-                            <motion.button
-                              key={s}
-                              onClick={() => startCountdown(s)}
-                              className="text-xs py-2 rounded-lg bg-muted/60 hover:bg-primary hover:text-primary-foreground font-medium transition-colors duration-200"
-                              whileTap={{ scale: 0.94 }}
-                            >
-                              {Math.floor(s / 60)}:{(s % 60).toString().padStart(2, '0')}
-                            </motion.button>
-                          ))}
-                        </div>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={reset} className="h-9 w-9 rounded-xl p-0">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-overline text-muted-foreground uppercase">{t('index.quickRest')}</span>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {presetTimes.map(s => (
+                          <motion.button
+                            key={s}
+                            onClick={() => startCountdown(s)}
+                            className="text-caption py-2 rounded-lg bg-muted hover:bg-foreground hover:text-background font-medium transition-all duration-200"
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {Math.floor(s / 60)}:{(s % 60).toString().padStart(2, '0')}
+                          </motion.button>
+                        ))}
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Profile button */}
+          {/* Profile */}
           <motion.button
             onClick={() => handleMainTabChange('profile')}
-            className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center"
+            className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.28, ease: premiumEase, delay: 0.16 }}
-            whileTap={{ scale: 0.92 }}
+            transition={{ duration: 0.25, ease: premiumEase, delay: 0.1 }}
+            whileTap={{ scale: 0.94 }}
           >
-            <User className="w-5 h-5 text-primary" />
+            <User className="w-4 h-4 text-muted-foreground" />
           </motion.button>
         </div>
       </motion.header>
 
-      {/* Navigation — layoutId sliding indicator */}
+      {/* Navigation — minimal pill tabs */}
       <motion.nav
-        className="sticky top-[65px] z-40 bg-background/95 backdrop-blur-sm border-b border-border"
+        className="sticky top-[57px] z-40 bg-background/80 backdrop-blur-xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.28, delay: 0.08 }}
+        transition={{ duration: 0.25, delay: 0.05 }}
       >
         <div className="overflow-x-auto scrollbar-hide">
-          <div className="flex min-w-max px-3 py-2.5 gap-1.5">
+          <div className="flex min-w-max px-5 py-3 gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => handleMainTabChange(tab.key)}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap min-h-[44px]",
+                  "relative flex items-center gap-2 px-4 py-2 rounded-full text-body font-medium transition-all duration-200 whitespace-nowrap",
                   mainTab === tab.key
-                    ? "text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 )}
               >
-                {/* Sliding background via layoutId */}
-                {mainTab === tab.key && (
-                  <motion.div
-                    layoutId="activeTabBg"
-                    className="absolute inset-0 rounded-xl gradient-primary glow-primary"
-                    transition={{ duration: 0.28, ease: premiumEase }}
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <tab.icon className="w-4 h-4" />
-                  {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
-                </span>
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.labelKey.startsWith('index.') ? t(tab.labelKey) : tab.labelKey}
               </button>
             ))}
           </div>
         </div>
+        <div className="h-px bg-border/40" />
       </motion.nav>
 
       {/* Content */}
-      <main className="px-4 py-6 pb-32">
+      <main className="px-5 py-8 pb-32 max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={contentKey}
@@ -377,7 +335,7 @@ const Index = () => {
             initial="initial"
             animate="animate"
             exit="exit"
-            transition={{ duration: 0.28, ease: premiumEase }}
+            transition={{ duration: 0.25, ease: premiumEase }}
           >
             {renderContent()}
           </motion.div>
