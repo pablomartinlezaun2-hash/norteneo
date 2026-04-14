@@ -11,7 +11,6 @@ export interface CoachAthlete {
   vb2_enabled: boolean;
   age: number | null;
   disciplines: string[] | null;
-  disciplines: string[] | null;
   years_training: string | null;
   main_goal: string | null;
   updated_at: string;
