@@ -2316,6 +2316,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_coach_athlete_profiles: {
+        Args: { _coach_auth_uid: string }
+        Returns: {
+          active_model: string
+          age: number
+          avatar_url: string
+          coach_id: string
+          created_at: string
+          disciplines: string[]
+          display_name: string
+          full_name: string
+          id: string
+          main_goal: string
+          role: string
+          updated_at: string
+          user_id: string
+          vb2_enabled: boolean
+          years_training: string
+        }[]
+      }
       get_profile_id: { Args: { _auth_uid: string }; Returns: string }
       get_user_role: { Args: { _auth_uid: string }; Returns: string }
       is_coach_of: {
