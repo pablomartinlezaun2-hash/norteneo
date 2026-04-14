@@ -10,8 +10,7 @@ export interface CoachAthlete {
   active_model: string | null;
   vb2_enabled: boolean;
   age: number | null;
-  weight: number | null;
-  height: number | null;
+  disciplines: string[] | null;
   disciplines: string[] | null;
   years_training: string | null;
   main_goal: string | null;
@@ -99,18 +98,14 @@ export function useCoachAthletes() {
         }
         coachProfile = created;
       } else if (coachProfile.role !== 'coach') {
-        // Fix role if not coach
-        await (supabase as any)
-          .from('profiles')
-          .update({ role: 'coach' })
-          .eq('user_id', user!.id);
-        coachProfile.role = 'coach';
+        // Role mismatch — cannot self-update role due to trigger, log warning
+        console.warn('Profile role is not coach but cannot self-update. Contact admin.');
       }
 
       const coachProfileId = coachProfile.id;
 
-      // 2. Get athletes assigned to this coach
-      const { data: athleteProfiles, error: apErr } = await rpcSelect('profiles', '*', { coach_id: coachProfileId });
+      // 2. Get athletes assigned to this coach (uses security-definer function, excludes sensitive fields)
+      const { data: athleteProfiles, error: apErr } = await supabase.rpc('get_coach_athlete_profiles', { _coach_auth_uid: user!.id });
 
       if (apErr) {
         setError('Error cargando atletas');
