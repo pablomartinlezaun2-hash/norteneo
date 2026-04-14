@@ -345,7 +345,7 @@ export const UnifiedProgressChart = ({
         </motion.p>
       </div>
 
-      {/* Tab Navigation — pill style */}
+      {/* Tab Navigation */}
       <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
         <div className="flex gap-1 min-w-max">
           {PROGRESS_TABS.map((tab, i) => {
@@ -355,15 +355,10 @@ export const UnifiedProgressChart = ({
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.05, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full text-body font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
+                transition={{ delay: 0.15 + i * 0.04, duration: 0.3, ease }}
+                className={isActive ? 'neo-tab-active' : 'neo-tab'}
                 whileTap={{ scale: 0.96 }}
               >
                 <Icon className="w-3.5 h-3.5" />
