@@ -164,6 +164,7 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
     if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
   };
 
+  const ease = [0.25, 0.46, 0.45, 0.94] as [number, number, number, number];
   const slideVariants = useMemo(() => ({
     enter: (dir: number) => ({
       opacity: 0,
@@ -176,14 +177,14 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
       scale: 1,
       x: 0,
       filter: 'blur(0px)',
-      transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] },
+      transition: { duration: 0.7, ease },
     },
     exit: (dir: number) => ({
       opacity: 0,
       scale: 0.96,
       x: dir > 0 ? '-6%' : '6%',
       filter: 'blur(6px)',
-      transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] },
+      transition: { duration: 0.45, ease },
     }),
   }), []);
 
