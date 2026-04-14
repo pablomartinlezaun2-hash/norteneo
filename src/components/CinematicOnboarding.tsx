@@ -4,6 +4,63 @@ import gsap from 'gsap';
 import { WelcomeLogo, StrokeIcon, TextReveal, SubtitleReveal, ClosingLogo } from './onboarding/OnboardingVisuals';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
+/* ═══════════════════════════════════════════
+   TWINKLING STARS BACKGROUND
+   ═══════════════════════════════════════════ */
+
+const TwinklingStars = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    const dpr = window.devicePixelRatio || 1;
+
+    const resize = () => {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const STAR_COUNT = 80;
+    const stars = Array.from({ length: STAR_COUNT }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: Math.random() * 1.2 + 0.3,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.8 + 0.3,
+    }));
+
+    const animate = (t: number) => {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      stars.forEach((s) => {
+        const opacity = 0.15 + 0.55 * ((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+        ctx.fill();
+      });
+      animId = requestAnimationFrame(animate);
+    };
+    animId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none z-[1]" />;
+};
+
 interface CinematicOnboardingProps {
   onComplete: () => void;
 }
@@ -101,9 +158,12 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Twinkling stars */}
+      <TwinklingStars />
+
       {/* Ambient glow */}
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-1000"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-1000 z-[2]"
         style={{
           background: `radial-gradient(ellipse 60% 50% at 50% 40%, ${SLIDES[current].accentColor}08 0%, transparent 70%)`,
         }}
