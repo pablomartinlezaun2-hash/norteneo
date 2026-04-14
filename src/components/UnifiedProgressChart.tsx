@@ -509,7 +509,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="gradient-card rounded-2xl p-5 border border-border apple-shadow"
+        className="neo-surface p-5"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">
           Resumen semanal (últimas 8 semanas)
@@ -567,7 +567,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="gradient-card rounded-2xl p-5 border border-border apple-shadow"
+        className="neo-surface p-5"
       >
         <h3 className="text-sm font-semibold text-foreground mb-2">
           Evolución últimos 30 días
@@ -665,7 +665,7 @@ export const UnifiedProgressChart = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="gradient-card rounded-2xl p-5 border border-border apple-shadow"
+        className="neo-surface p-5"
       >
         <h3 className="text-sm font-semibold text-foreground mb-4">
           Últimos entrenos
