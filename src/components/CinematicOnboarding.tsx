@@ -35,13 +35,13 @@ const TwinklingStars = () => {
     window.addEventListener('resize', resize);
 
     // Stars — brighter, faster twinkle
-    const STAR_COUNT = 100;
+    const STAR_COUNT = 40;
     const stars = Array.from({ length: STAR_COUNT }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
       r: Math.random() * 1.6 + 0.5,
       phase: Math.random() * Math.PI * 2,
-      speed: Math.random() * 5 + 3,
+      speed: Math.random() * 2 + 1,
     }));
 
     // Shooting stars / comets
