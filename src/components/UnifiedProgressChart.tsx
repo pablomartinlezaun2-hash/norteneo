@@ -488,9 +488,9 @@ export const UnifiedProgressChart = ({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 + i * 0.04 }}
-              className="neo-surface p-3 text-center"
+              className="neo-stat-card text-center"
             >
-              <div className="w-8 h-8 mx-auto rounded-lg bg-muted flex items-center justify-center mb-2">
+              <div className="w-8 h-8 mx-auto rounded-lg bg-surface-2 flex items-center justify-center mb-2">
                 <StatIcon className="w-4 h-4 text-muted-foreground" />
               </div>
               <p className="text-xl font-bold text-foreground tabular-nums">{item.value}</p>
