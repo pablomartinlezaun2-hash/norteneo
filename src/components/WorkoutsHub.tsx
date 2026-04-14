@@ -11,7 +11,7 @@ import { MesocycleList } from './planning';
 
 type AccordionSection = 'gym' | 'swimming' | 'running' | 'saved' | 'microcycles' | null;
 
-const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
+const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 export const WorkoutsHub = () => {
   const { t } = useTranslation();
@@ -22,36 +22,11 @@ export const WorkoutsHub = () => {
   };
 
   const sections = [
-    {
-      id: 'gym' as const,
-      labelKey: 'workoutsHub.gym',
-      icon: Dumbbell,
-      component: <GymSection />
-    },
-    {
-      id: 'swimming' as const,
-      labelKey: 'workoutsHub.swimming',
-      icon: Waves,
-      component: <SwimmingSection />
-    },
-    {
-      id: 'running' as const,
-      labelKey: 'workoutsHub.running',
-      icon: Footprints,
-      component: <RunningSection />
-    },
-    {
-      id: 'saved' as const,
-      labelKey: 'workoutsHub.saved',
-      icon: Bookmark,
-      component: <MyWorkoutsSection />
-    },
-    {
-      id: 'microcycles' as const,
-      labelKey: 'workoutsHub.microcycles',
-      icon: Layers,
-      component: <MesocycleList />
-    },
+    { id: 'gym' as const, labelKey: 'workoutsHub.gym', icon: Dumbbell, desc: 'Fuerza · Periodización · Series', component: <GymSection /> },
+    { id: 'swimming' as const, labelKey: 'workoutsHub.swimming', icon: Waves, desc: 'Intervalos · Técnica · Distancia', component: <SwimmingSection /> },
+    { id: 'running' as const, labelKey: 'workoutsHub.running', icon: Footprints, desc: 'Ritmo · Cadencia · Progresión', component: <RunningSection /> },
+    { id: 'saved' as const, labelKey: 'workoutsHub.saved', icon: Bookmark, desc: 'Rutinas personalizadas', component: <MyWorkoutsSection /> },
+    { id: 'microcycles' as const, labelKey: 'workoutsHub.microcycles', icon: Layers, desc: 'Planificación periódica', component: <MesocycleList /> },
   ];
 
   return (
@@ -59,14 +34,14 @@ export const WorkoutsHub = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="space-y-5"
     >
-      {/* Section header — editorial */}
-      <div className="mb-8">
+      {/* Section header */}
+      <div className="mb-6">
         <motion.h2
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: premiumEase }}
+          transition={{ duration: 0.35, ease }}
           className="section-headline text-foreground"
         >
           {t('workoutsHub.title')}
@@ -75,13 +50,13 @@ export const WorkoutsHub = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.15 }}
-          className="section-subheadline mt-2"
+          className="section-subheadline mt-1.5"
         >
           {t('workoutsHub.subtitle')}
         </motion.p>
       </div>
 
-      {/* Module cards — clean, one idea per row */}
+      {/* Module list */}
       <div className="space-y-2">
         {sections.map((section, index) => {
           const Icon = section.icon;
@@ -92,67 +67,62 @@ export const WorkoutsHub = () => {
               key={section.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.3,
-                ease: premiumEase,
-                delay: 0.1 + index * 0.06,
-              }}
-              className="overflow-hidden"
+              transition={{ duration: 0.3, ease, delay: 0.08 + index * 0.04 }}
+              className={cn(
+                "overflow-hidden transition-all duration-300",
+                isExpanded ? "neo-surface-elevated" : "neo-module-card"
+              )}
             >
-              {/* Row trigger */}
               <motion.button
                 onClick={() => toggleSection(section.id)}
                 whileTap={{ scale: 0.995 }}
-                className={cn(
-                  "w-full px-4 py-3.5 flex items-center justify-between transition-all duration-200 rounded-xl",
-                  isExpanded
-                    ? "bg-foreground text-background"
-                    : "hover:bg-muted/60"
-                )}
+                className="w-full px-4 py-3.5 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200",
-                    isExpanded ? "bg-background/15" : "bg-muted"
+                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                    isExpanded ? "bg-foreground" : "bg-surface-2"
                   )}>
                     <Icon className={cn(
-                      "w-[18px] h-[18px] transition-colors duration-200",
+                      "w-[18px] h-[18px] transition-colors duration-300",
                       isExpanded ? "text-background" : "text-muted-foreground"
                     )} />
                   </div>
-                  <span className={cn(
-                    "text-body font-medium transition-colors duration-200",
-                    isExpanded ? "text-background" : "text-foreground"
-                  )}>
-                    {t(section.labelKey)}
-                  </span>
+                  <div className="text-left">
+                    <span className={cn(
+                      "text-[15px] font-semibold transition-colors duration-200 block",
+                      isExpanded ? "text-foreground" : "text-foreground"
+                    )}>
+                      {t(section.labelKey)}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                      {section.desc}
+                    </span>
+                  </div>
                 </div>
                 <motion.div
                   animate={{ rotate: isExpanded ? 90 : 0 }}
-                  transition={{ duration: 0.2, ease: premiumEase }}
+                  transition={{ duration: 0.25, ease }}
                 >
-                  <ChevronRight className={cn(
-                    "w-4 h-4 transition-colors duration-200",
-                    isExpanded ? "text-background/60" : "text-muted-foreground"
-                  )} />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                 </motion.div>
               </motion.button>
 
-              {/* Expanded content */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25, ease: premiumEase }}
+                    transition={{ duration: 0.3, ease }}
                     className="overflow-hidden"
                   >
+                    <div className="h-px mx-4" style={{ background: 'hsl(var(--border) / 0.3)' }} />
                     <motion.div
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: 0.06, ease: premiumEase }}
-                      className="neo-surface mt-1 p-4"
+                      transition={{ duration: 0.25, delay: 0.06, ease }}
+                      className="p-4"
                     >
                       {section.component}
                     </motion.div>

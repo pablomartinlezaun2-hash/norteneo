@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 type NutritionTab = 'log' | 'goals' | 'supplements' | 'recipes' | 'designer' | 'sleep';
 
-const premiumEase = [0.25, 0.46, 0.45, 0.94] as const;
+const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 export const NutritionSection = () => {
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ export const NutritionSection = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
       </div>
     );
   }
@@ -51,10 +51,10 @@ export const NutritionSection = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="space-y-5"
     >
-      {/* Tab bar — pill style, no background container */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl py-3 -mx-5 px-5">
+      {/* Tab bar */}
+      <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-2xl py-2.5 -mx-5 px-5">
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -63,12 +63,7 @@ export const NutritionSection = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2 rounded-full text-caption font-medium transition-all duration-200 whitespace-nowrap",
-                  isActive
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
+                className={isActive ? 'neo-tab-active' : 'neo-tab'}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
@@ -85,10 +80,10 @@ export const NutritionSection = () => {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.25, ease: premiumEase }}
+          transition={{ duration: 0.25, ease }}
         >
           {activeTab === 'log' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <CollapsibleSection
                 isOpen={statusOpen}
                 onToggle={() => setStatusOpen(!statusOpen)}
@@ -103,7 +98,7 @@ export const NutritionSection = () => {
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3, ease: premiumEase }}
+                transition={{ delay: 0.1, duration: 0.3, ease }}
               >
                 <FoodLogSection foodLogs={foodLogs} foodCatalog={foodCatalog} goals={goals} dailyTotals={dailyTotals} selectedDate={selectedDate} onDateChange={setSelectedDate} onAddFood={addFoodLog} onDeleteLog={deleteFoodLog} />
               </motion.div>
