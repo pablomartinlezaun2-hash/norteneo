@@ -325,36 +325,27 @@ export const UnifiedProgressChart = ({
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Header — laser reveal */}
-      <div className="text-center mb-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.88, filter: 'blur(5px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          transition={{ delay: 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
-        >
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">Progreso Global</span>
-        </motion.div>
+      {/* Header — editorial */}
+      <div className="mb-8">
         <motion.h2
-          initial={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
-          animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
-          transition={{ delay: 0.25, duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-2xl font-bold text-foreground"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="section-headline text-foreground"
         >Tu Progreso</motion.h2>
         <motion.p
-          initial={{ opacity: 0, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, filter: 'blur(0px)' }}
-          transition={{ delay: 0.45, duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-sm text-muted-foreground mt-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.3 }}
+          className="section-subheadline mt-2"
         >
           Todos tus entrenamientos en un solo lugar
         </motion.p>
       </div>
 
-      {/* Tab Navigation — staggered cinematic entry */}
-      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-        <div className="flex gap-2 min-w-max">
+      {/* Tab Navigation — pill style */}
+      <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
+        <div className="flex gap-1 min-w-max">
           {PROGRESS_TABS.map((tab, i) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -362,42 +353,33 @@ export const UnifiedProgressChart = ({
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                initial={{ opacity: 0, y: 12, filter: 'blur(3px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ delay: 0.5 + i * 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.05, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200",
+                  "flex items-center gap-2 px-4 py-2 rounded-full text-body font-medium transition-all duration-200",
                   isActive
-                    ? "text-primary-foreground"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 )}
                 whileTap={{ scale: 0.96 }}
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="progressTabBg"
-                    className="absolute inset-0 rounded-xl gradient-primary glow-primary"
-                    transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </span>
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
               </motion.button>
             );
           })}
         </div>
       </div>
 
-      {/* Tab Content — cinematic transitions */}
+      {/* Tab Content */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, scale: 0.96, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, filter: 'blur(3px)' }}
-          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
       {activeTab === 'radar' && (
         <MuscleRadarChart setLogs={allSetLogs} exercises={allExercises} />
