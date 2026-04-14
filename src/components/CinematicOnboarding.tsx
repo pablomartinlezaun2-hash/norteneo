@@ -19,35 +19,119 @@ const TwinklingStars = () => {
 
     let animId: number;
     const dpr = window.devicePixelRatio || 1;
+    let w = window.innerWidth;
+    let h = window.innerHeight;
 
     const resize = () => {
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      ctx.scale(dpr, dpr);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
     window.addEventListener('resize', resize);
 
-    const STAR_COUNT = 80;
+    // Stars — brighter, faster twinkle
+    const STAR_COUNT = 100;
     const stars = Array.from({ length: STAR_COUNT }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      r: Math.random() * 1.2 + 0.3,
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.4 + 0.4,
       phase: Math.random() * Math.PI * 2,
-      speed: Math.random() * 0.8 + 0.3,
+      speed: Math.random() * 2.5 + 1.2,
     }));
 
+    // Shooting stars / comets
+    interface Comet {
+      x: number; y: number;
+      vx: number; vy: number;
+      len: number; life: number; maxLife: number;
+      width: number;
+    }
+    const comets: Comet[] = [];
+    let nextCometAt = performance.now() + 2000 + Math.random() * 3000;
+
+    const spawnComet = () => {
+      const goRight = Math.random() > 0.5;
+      const startX = goRight ? -20 : w + 20;
+      const startY = Math.random() * h * 0.5;
+      const speed = 3 + Math.random() * 4;
+      const angle = goRight
+        ? (10 + Math.random() * 25) * (Math.PI / 180)
+        : Math.PI - (10 + Math.random() * 25) * (Math.PI / 180);
+      comets.push({
+        x: startX, y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        len: 40 + Math.random() * 60,
+        life: 0,
+        maxLife: 90 + Math.random() * 60,
+        width: 1 + Math.random() * 0.8,
+      });
+    };
+
     const animate = (t: number) => {
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw stars
       stars.forEach((s) => {
-        const opacity = 0.15 + 0.55 * ((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2);
+        const opacity = 0.25 + 0.75 * ((Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2);
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${opacity})`;
         ctx.fill();
       });
+
+      // Spawn comets
+      if (t > nextCometAt) {
+        spawnComet();
+        nextCometAt = t + 3000 + Math.random() * 5000;
+      }
+
+      // Draw & update comets
+      for (let i = comets.length - 1; i >= 0; i--) {
+        const c = comets[i];
+        c.x += c.vx;
+        c.y += c.vy;
+        c.life++;
+
+        const progress = c.life / c.maxLife;
+        const fadeIn = Math.min(progress * 4, 1);
+        const fadeOut = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
+        const alpha = fadeIn * fadeOut * 0.8;
+
+        if (alpha <= 0 || c.life > c.maxLife) {
+          comets.splice(i, 1);
+          continue;
+        }
+
+        const angle = Math.atan2(c.vy, c.vx);
+        const tailX = c.x - Math.cos(angle) * c.len;
+        const tailY = c.y - Math.sin(angle) * c.len;
+
+        const grad = ctx.createLinearGradient(tailX, tailY, c.x, c.y);
+        grad.addColorStop(0, `rgba(255,255,255,0)`);
+        grad.addColorStop(0.7, `rgba(200,210,255,${alpha * 0.4})`);
+        grad.addColorStop(1, `rgba(255,255,255,${alpha})`);
+
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(c.x, c.y);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = c.width;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Head glow
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fill();
+      }
+
       animId = requestAnimationFrame(animate);
     };
     animId = requestAnimationFrame(animate);
