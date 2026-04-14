@@ -31,6 +31,7 @@ export default {
   			'body': ['0.875rem', { lineHeight: '1.5', letterSpacing: '-0.006em', fontWeight: '400' }],
   			'caption': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0', fontWeight: '500' }],
   			'overline': ['0.6875rem', { lineHeight: '1.3', letterSpacing: '0.06em', fontWeight: '600' }],
+  			'micro': ['0.625rem', { lineHeight: '1.3', letterSpacing: '0.04em', fontWeight: '500' }],
   		},
   		colors: {
   			border: 'hsl(var(--border))',
@@ -72,6 +73,12 @@ export default {
   			},
   			chart: {
   				line: 'hsl(var(--chart-line))'
+  			},
+  			surface: {
+  				'0': 'hsl(var(--surface-0))',
+  				'1': 'hsl(var(--surface-1))',
+  				'2': 'hsl(var(--surface-2))',
+  				'3': 'hsl(var(--surface-3))',
   			},
   			'neo-accent': 'hsl(var(--neo-accent))',
   		},
