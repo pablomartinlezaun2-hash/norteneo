@@ -16,32 +16,21 @@ export default {
   		fontFamily: {
   			sans: [
   				'Inter',
-  				'ui-sans-serif',
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'Segoe UI',
   				'system-ui',
   				'sans-serif',
-  				'Apple Color Emoji',
-  				'Segoe UI Emoji',
-  				'Segoe UI Symbol',
-  				'Noto Color Emoji'
   			],
-  			serif: [
-  				'ui-serif',
-  				'Georgia',
-  				'Cambria',
-  				'Times New Roman',
-  				'Times',
-  				'serif'
-  			],
-  			mono: [
-  				'ui-monospace',
-  				'SFMono-Regular',
-  				'Menlo',
-  				'Monaco',
-  				'Consolas',
-  				'Liberation Mono',
-  				'Courier New',
-  				'monospace'
-  			]
+  		},
+  		fontSize: {
+  			'display': ['3rem', { lineHeight: '1.08', letterSpacing: '-0.03em', fontWeight: '700' }],
+  			'headline': ['1.75rem', { lineHeight: '1.15', letterSpacing: '-0.025em', fontWeight: '700' }],
+  			'title': ['1.25rem', { lineHeight: '1.3', letterSpacing: '-0.02em', fontWeight: '600' }],
+  			'body-lg': ['1rem', { lineHeight: '1.6', letterSpacing: '-0.011em', fontWeight: '400' }],
+  			'body': ['0.875rem', { lineHeight: '1.5', letterSpacing: '-0.006em', fontWeight: '400' }],
+  			'caption': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0', fontWeight: '500' }],
+  			'overline': ['0.6875rem', { lineHeight: '1.3', letterSpacing: '0.06em', fontWeight: '600' }],
   		},
   		colors: {
   			border: 'hsl(var(--border))',
@@ -83,7 +72,8 @@ export default {
   			},
   			chart: {
   				line: 'hsl(var(--chart-line))'
-  			}
+  			},
+  			'neo-accent': 'hsl(var(--neo-accent))',
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -92,38 +82,20 @@ export default {
   		},
   		keyframes: {
   			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
+  				from: { height: '0' },
+  				to: { height: 'var(--radix-accordion-content-height)' }
   			},
   			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
+  				from: { height: 'var(--radix-accordion-content-height)' },
+  				to: { height: '0' }
   			},
   			'pulse-glow': {
-  				'0%, 100%': {
-  					opacity: '1'
-  				},
-  				'50%': {
-  					opacity: '0.7'
-  				}
+  				'0%, 100%': { opacity: '1' },
+  				'50%': { opacity: '0.7' }
   			},
   			'slide-up': {
-  				from: {
-  					opacity: '0',
-  					transform: 'translateY(10px)'
-  				},
-  				to: {
-  					opacity: '1',
-  					transform: 'translateY(0)'
-  				}
+  				from: { opacity: '0', transform: 'translateY(10px)' },
+  				to: { opacity: '1', transform: 'translateY(0)' }
   			}
   		},
   		animation: {
