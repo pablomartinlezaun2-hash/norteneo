@@ -64,7 +64,7 @@ const BifurcationCanvas = ({
     resize();
     window.addEventListener('resize', resize);
 
-    // Path definitions — relative coords
+    // Path definitions
     const trunkPath = (t: number, _w: number, _h: number) => {
       const startY = _h * 0.82;
       const endY = _h * 0.42;
@@ -105,9 +105,9 @@ const BifurcationCanvas = ({
         vy: -0.2 - Math.random() * 0.4,
         life: 0,
         maxLife: 40 + Math.random() * 60,
-        size: 0.4 + Math.random() * 1.2,
+        size: 0.5 + Math.random() * 1.6,
         branch,
-        brightness: 0.3 + Math.random() * 0.7,
+        brightness: 0.5 + Math.random() * 0.5,
       });
     };
 
@@ -117,90 +117,137 @@ const BifurcationCanvas = ({
       const ph = phaseRef.current;
 
       ctx.clearRect(0, 0, w, h);
+      if (w === 0) { animId = requestAnimationFrame(animate); return; }
 
-      // ── Draw the main stream paths ──
+      // ── CAMERA ZOOM ──
+      // Starts zoomed in on the trunk base, pulls back as progress increases
+      const zoomStart = 2.2;
+      const zoomEnd = 1.0;
+      // Ease-out cubic for smooth deceleration
+      const zoomT = Math.min(p / 0.85, 1);
+      const easedZoomT = 1 - Math.pow(1 - zoomT, 3);
+      const currentZoom = zoomStart + (zoomEnd - zoomStart) * easedZoomT;
+
+      // Focus point moves from trunk base up to center
+      const focusX = w / 2;
+      const focusStartY = h * 0.75;
+      const focusEndY = h * 0.45;
+      const focusY = focusStartY + (focusEndY - focusStartY) * easedZoomT;
+
+      ctx.save();
+      ctx.translate(focusX, focusY);
+      ctx.scale(currentZoom, currentZoom);
+      ctx.translate(-focusX, -focusY);
+
+      // ── Draw paths ──
       const drawTrunk = p > 0;
       const drawBranches = p > 0.35;
       const trunkLen = Math.min(p / 0.4, 1);
       const branchLen = Math.max(0, (p - 0.35) / 0.5);
 
-      if (drawTrunk && w > 0) {
-        // Trunk path
+      if (drawTrunk) {
+        // Trunk core — bright
         ctx.beginPath();
-        for (let t = 0; t <= trunkLen; t += 0.005) {
+        for (let t = 0; t <= trunkLen; t += 0.004) {
           const pt = trunkPath(t, w, h);
           if (t === 0) ctx.moveTo(pt.x, pt.y);
           else ctx.lineTo(pt.x, pt.y);
         }
-        const trunkAlpha = Math.min(p * 2, 0.35);
+        const trunkAlpha = Math.min(p * 2.5, 0.8);
         ctx.strokeStyle = `rgba(255,255,255,${trunkAlpha})`;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Glow
+        // Inner glow
         ctx.beginPath();
-        for (let t = 0; t <= trunkLen; t += 0.005) {
+        for (let t = 0; t <= trunkLen; t += 0.004) {
           const pt = trunkPath(t, w, h);
           if (t === 0) ctx.moveTo(pt.x, pt.y);
           else ctx.lineTo(pt.x, pt.y);
         }
-        ctx.strokeStyle = `rgba(255,255,255,${trunkAlpha * 0.15})`;
-        ctx.lineWidth = 6;
+        ctx.strokeStyle = `rgba(255,255,255,${trunkAlpha * 0.35})`;
+        ctx.lineWidth = 8;
+        ctx.stroke();
+
+        // Outer glow
+        ctx.beginPath();
+        for (let t = 0; t <= trunkLen; t += 0.004) {
+          const pt = trunkPath(t, w, h);
+          if (t === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.strokeStyle = `rgba(200,220,255,${trunkAlpha * 0.12})`;
+        ctx.lineWidth = 20;
         ctx.stroke();
       }
 
-      if (drawBranches && w > 0) {
+      if (drawBranches) {
         const bl = Math.min(branchLen, 1);
 
-        // Left branch — cooler/silver
+        // Left branch — silver/white
         ctx.beginPath();
-        for (let t = 0; t <= bl; t += 0.005) {
+        for (let t = 0; t <= bl; t += 0.004) {
           const pt = leftPath(t, w, h);
           if (t === 0) ctx.moveTo(pt.x, pt.y);
           else ctx.lineTo(pt.x, pt.y);
         }
-        const lAlpha = bl * 0.3;
-        ctx.strokeStyle = `rgba(180,200,220,${lAlpha})`;
-        ctx.lineWidth = 1.2;
+        const lAlpha = bl * 0.65;
+        ctx.strokeStyle = `rgba(200,215,235,${lAlpha})`;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
         // glow
-        ctx.strokeStyle = `rgba(180,200,220,${lAlpha * 0.12})`;
-        ctx.lineWidth = 5;
+        ctx.strokeStyle = `rgba(200,215,235,${lAlpha * 0.25})`;
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        // outer glow
+        ctx.strokeStyle = `rgba(180,200,220,${lAlpha * 0.08})`;
+        ctx.lineWidth = 18;
         ctx.stroke();
 
         // Right branch — cyan/electric
         ctx.beginPath();
-        for (let t = 0; t <= bl; t += 0.005) {
+        for (let t = 0; t <= bl; t += 0.004) {
           const pt = rightPath(t, w, h);
           if (t === 0) ctx.moveTo(pt.x, pt.y);
           else ctx.lineTo(pt.x, pt.y);
         }
-        const rAlpha = bl * 0.35;
-        ctx.strokeStyle = `rgba(130,210,255,${rAlpha})`;
-        ctx.lineWidth = 1.2;
+        const rAlpha = bl * 0.7;
+        ctx.strokeStyle = `rgba(100,220,255,${rAlpha})`;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
         // glow
-        ctx.strokeStyle = `rgba(130,210,255,${rAlpha * 0.15})`;
-        ctx.lineWidth = 5;
+        ctx.strokeStyle = `rgba(100,220,255,${rAlpha * 0.3})`;
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        // outer glow
+        ctx.strokeStyle = `rgba(80,200,255,${rAlpha * 0.1})`;
+        ctx.lineWidth = 20;
         ctx.stroke();
       }
 
-      // ── Bifurcation point glow ──
-      if (p > 0.3 && w > 0) {
+      // ── Bifurcation point glow — intensified ──
+      if (p > 0.3) {
         const forkPt = trunkPath(1, w, h);
-        const forkAlpha = Math.min((p - 0.3) / 0.3, 1) * 0.12;
-        const pulse = 1 + Math.sin(frameRef.current * 0.04) * 0.15;
-        const grad = ctx.createRadialGradient(forkPt.x, forkPt.y, 0, forkPt.x, forkPt.y, 30 * pulse);
+        const forkAlpha = Math.min((p - 0.3) / 0.25, 1) * 0.35;
+        const pulse = 1 + Math.sin(frameRef.current * 0.04) * 0.2;
+        // Core glow
+        const grad = ctx.createRadialGradient(forkPt.x, forkPt.y, 0, forkPt.x, forkPt.y, 18 * pulse);
         grad.addColorStop(0, `rgba(255,255,255,${forkAlpha})`);
+        grad.addColorStop(0.5, `rgba(200,230,255,${forkAlpha * 0.3})`);
         grad.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = grad;
         ctx.fillRect(forkPt.x - 40, forkPt.y - 40, 80, 80);
+        // Outer halo
+        const halo = ctx.createRadialGradient(forkPt.x, forkPt.y, 0, forkPt.x, forkPt.y, 50 * pulse);
+        halo.addColorStop(0, `rgba(180,220,255,${forkAlpha * 0.15})`);
+        halo.addColorStop(1, 'rgba(180,220,255,0)');
+        ctx.fillStyle = halo;
+        ctx.fillRect(forkPt.x - 60, forkPt.y - 60, 120, 120);
       }
 
       // ── Particles ──
-      // Spawn
       if (ph !== 'boot') {
-        const spawnRate = ph === 'choose' ? 2 : 3;
+        const spawnRate = ph === 'choose' ? 3 : 4;
         for (let i = 0; i < spawnRate; i++) {
           if (drawTrunk) spawnParticle('trunk');
           if (drawBranches && branchLen > 0.1) {
@@ -210,7 +257,6 @@ const BifurcationCanvas = ({
         }
       }
 
-      // Update & draw
       const alive: StreamParticle[] = [];
       for (const pt of particlesRef.current) {
         pt.life++;
@@ -219,13 +265,20 @@ const BifurcationCanvas = ({
         if (pt.life < pt.maxLife) {
           alive.push(pt);
           const lifeRatio = pt.life / pt.maxLife;
-          const fade = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.7 ? (1 - lifeRatio) / 0.3 : 1;
-          const alpha = fade * pt.brightness * 0.4;
+          const fade = lifeRatio < 0.15 ? lifeRatio / 0.15 : lifeRatio > 0.6 ? (1 - lifeRatio) / 0.4 : 1;
+          const alpha = fade * pt.brightness * 0.7;
 
           let r = 255, g = 255, b = 255;
-          if (pt.branch === 'left') { r = 180; g = 200; b = 220; }
-          if (pt.branch === 'right') { r = 130; g = 210; b = 255; }
+          if (pt.branch === 'left') { r = 200; g = 215; b = 235; }
+          if (pt.branch === 'right') { r = 100; g = 220; b = 255; }
 
+          // Particle glow
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size * 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha * 0.1})`;
+          ctx.fill();
+
+          // Particle core
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
@@ -234,37 +287,65 @@ const BifurcationCanvas = ({
       }
       particlesRef.current = alive;
 
-      // ── Leading pulse on trunk ──
-      if (drawTrunk && trunkLen < 1 && w > 0) {
+      // ── Leading pulse — brighter ──
+      if (drawTrunk && trunkLen < 1) {
         const headPt = trunkPath(trunkLen, w, h);
-        const hGrad = ctx.createRadialGradient(headPt.x, headPt.y, 0, headPt.x, headPt.y, 8);
-        hGrad.addColorStop(0, 'rgba(255,255,255,0.6)');
+        // Bright core
+        const hGrad = ctx.createRadialGradient(headPt.x, headPt.y, 0, headPt.x, headPt.y, 6);
+        hGrad.addColorStop(0, 'rgba(255,255,255,0.95)');
+        hGrad.addColorStop(0.5, 'rgba(255,255,255,0.4)');
         hGrad.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = hGrad;
         ctx.fillRect(headPt.x - 10, headPt.y - 10, 20, 20);
+        // Outer bloom
+        const bloom = ctx.createRadialGradient(headPt.x, headPt.y, 0, headPt.x, headPt.y, 25);
+        bloom.addColorStop(0, 'rgba(200,230,255,0.2)');
+        bloom.addColorStop(1, 'rgba(200,230,255,0)');
+        ctx.fillStyle = bloom;
+        ctx.fillRect(headPt.x - 30, headPt.y - 30, 60, 60);
+      }
+
+      // ── Branch leading pulses ──
+      if (drawBranches && branchLen > 0 && branchLen < 1) {
+        const bl = Math.min(branchLen, 1);
+        // Left head
+        const lHead = leftPath(bl, w, h);
+        const lhGrad = ctx.createRadialGradient(lHead.x, lHead.y, 0, lHead.x, lHead.y, 5);
+        lhGrad.addColorStop(0, 'rgba(200,215,235,0.8)');
+        lhGrad.addColorStop(1, 'rgba(200,215,235,0)');
+        ctx.fillStyle = lhGrad;
+        ctx.fillRect(lHead.x - 8, lHead.y - 8, 16, 16);
+
+        // Right head
+        const rHead = rightPath(bl, w, h);
+        const rhGrad = ctx.createRadialGradient(rHead.x, rHead.y, 0, rHead.x, rHead.y, 5);
+        rhGrad.addColorStop(0, 'rgba(100,220,255,0.85)');
+        rhGrad.addColorStop(1, 'rgba(100,220,255,0)');
+        ctx.fillStyle = rhGrad;
+        ctx.fillRect(rHead.x - 8, rHead.y - 8, 16, 16);
       }
 
       // ── Endpoint indicators (choose phase) ──
-      if (ph === 'choose' && w > 0) {
+      if (ph === 'choose') {
         const chooseAlpha = Math.min((p - 0.85) / 0.15, 1);
         if (chooseAlpha > 0) {
-          // Left endpoint
           const lEnd = leftPath(1, w, h);
-          const lGrad = ctx.createRadialGradient(lEnd.x, lEnd.y, 0, lEnd.x, lEnd.y, 20);
-          lGrad.addColorStop(0, `rgba(180,200,220,${chooseAlpha * 0.08})`);
-          lGrad.addColorStop(1, 'rgba(180,200,220,0)');
+          const lGrad = ctx.createRadialGradient(lEnd.x, lEnd.y, 0, lEnd.x, lEnd.y, 25);
+          lGrad.addColorStop(0, `rgba(200,215,235,${chooseAlpha * 0.15})`);
+          lGrad.addColorStop(1, 'rgba(200,215,235,0)');
           ctx.fillStyle = lGrad;
-          ctx.fillRect(lEnd.x - 30, lEnd.y - 30, 60, 60);
+          ctx.fillRect(lEnd.x - 35, lEnd.y - 35, 70, 70);
 
-          // Right endpoint
           const rEnd = rightPath(1, w, h);
-          const rGrad = ctx.createRadialGradient(rEnd.x, rEnd.y, 0, rEnd.x, rEnd.y, 20);
-          rGrad.addColorStop(0, `rgba(130,210,255,${chooseAlpha * 0.1})`);
-          rGrad.addColorStop(1, 'rgba(130,210,255,0)');
+          const rGrad = ctx.createRadialGradient(rEnd.x, rEnd.y, 0, rEnd.x, rEnd.y, 25);
+          rGrad.addColorStop(0, `rgba(100,220,255,${chooseAlpha * 0.2})`);
+          rGrad.addColorStop(1, 'rgba(100,220,255,0)');
           ctx.fillStyle = rGrad;
-          ctx.fillRect(rEnd.x - 30, rEnd.y - 30, 60, 60);
+          ctx.fillRect(rEnd.x - 35, rEnd.y - 35, 70, 70);
         }
       }
+
+      ctx.restore();
 
       animId = requestAnimationFrame(animate);
     };
