@@ -75,11 +75,11 @@ function buildNetwork(): Branch[] {
     const ey = oy + Math.sin(angle) * len;
     const pts = curvePath(ox, oy, ex, ey, segs, wobble, rng);
 
-    // Time-based: each stage starts ~4s later, with randomized stagger within stage
-    const stageDelay = stage * 4.0;
-    const intraStagger = rng() * 3.5;
+    // Time-based: each stage starts ~5s later, spread over entire questionnaire (~60s total)
+    const stageDelay = stage * 5.5;
+    const intraStagger = rng() * 4.5;
     const startTime = stageDelay + intraStagger;
-    const duration = 3.0 + rng() * 4.0; // 3-7 seconds to fully draw
+    const duration = 4.0 + rng() * 5.0; // 4-9 seconds to fully draw
 
     branches.push({
       points: pts, stage, depth, width, hue,
