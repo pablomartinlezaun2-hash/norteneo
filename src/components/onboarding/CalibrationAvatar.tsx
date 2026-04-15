@@ -271,23 +271,32 @@ function NervousSystem({ buildStage }: { buildStage: number }) {
   // Partial nerve visibility: spine visible after stage 3, limbs after their stage
   const partialNerves = buildStage >= 3;
 
-  const lineGeometries = useMemo(() => {
+  const lineObjects = useMemo(() => {
     return NERVE_PATHS.map(path => {
       const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2]));
       const geo = new THREE.BufferGeometry().setFromPoints(points);
-      return geo;
+      const mat = new THREE.LineBasicMaterial({
+        color: NERVE_COLOR,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+      });
+      const line = new THREE.Line(geo, mat);
+      return line;
     });
   }, []);
 
+  useEffect(() => {
+    linesRef.current = lineObjects;
+  }, [lineObjects]);
+
   useFrame(() => {
-    linesRef.current.forEach((line, i) => {
-      if (!line) return;
+    lineObjects.forEach((line, i) => {
       const mat = line.material as THREE.LineBasicMaterial;
       let targetOpacity = 0;
       if (nervesActive) {
         targetOpacity = 0.5;
       } else if (partialNerves && i === 0) {
-        // Spine only
         targetOpacity = 0.15;
       }
       mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, 0.06);
@@ -296,20 +305,8 @@ function NervousSystem({ buildStage }: { buildStage: number }) {
 
   return (
     <group>
-      {lineGeometries.map((geo, i) => (
-        <primitive
-          key={i}
-          ref={(el: THREE.Line | null) => { linesRef.current[i] = el; }}
-          object={(() => {
-            const mat = new THREE.LineBasicMaterial({
-              color: NERVE_COLOR,
-              transparent: true,
-              opacity: 0,
-              depthWrite: false,
-            });
-            return new THREE.Line(geo, mat);
-          })()}
-        />
+      {lineObjects.map((obj, i) => (
+        <primitive key={i} object={obj} />
       ))}
 
       {/* Signal pulses */}
