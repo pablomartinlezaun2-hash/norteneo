@@ -625,6 +625,38 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col z-50 overflow-hidden">
+      {/* 3D Calibration Avatar — visible during questions */}
+      {!isIntro && !isComplete && (
+        <div className="flex-shrink-0 relative" style={{ height: '38vh', minHeight: 220, maxHeight: 320 }}>
+          <Suspense fallback={
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full border border-white/10 border-t-white/30 animate-spin" />
+            </div>
+          }>
+            <CalibrationAvatar buildStage={currentIdx} />
+          </Suspense>
+          {/* Stage label overlay */}
+          <motion.div
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10"
+            key={currentIdx}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <span
+              className="text-[7px] tracking-[0.35em] uppercase font-bold px-3 py-1 rounded-full"
+              style={{
+                color: `hsla(${step?.accentHue ?? 210},50%,70%,0.4)`,
+                background: 'rgba(0,0,0,0.5)',
+                border: '1px solid rgba(255,255,255,0.04)',
+              }}
+            >
+              CALIBRANDO · {step?.systemLabel}
+            </span>
+          </motion.div>
+        </div>
+      )}
+
       {/* Calibration pulse overlay */}
       <AnimatePresence>
         {showPulse && step && (
@@ -634,8 +666,8 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
 
       {/* ─── Progress System ─── */}
       {!isIntro && !isComplete && (
-        <div className="flex-shrink-0 px-6 pt-[max(env(safe-area-inset-top),16px)]">
-          <div className="flex items-center justify-between mb-3 mt-2">
+        <div className="flex-shrink-0 px-6 pt-2">
+          <div className="flex items-center justify-between mb-2">
             <motion.span
               key={step?.systemLabel}
               className="text-[8px] tracking-[0.3em] uppercase font-bold"
