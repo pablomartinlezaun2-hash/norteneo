@@ -75,11 +75,11 @@ function buildNetwork(): Branch[] {
     const ey = oy + Math.sin(angle) * len;
     const pts = curvePath(ox, oy, ex, ey, segs, wobble, rng);
 
-    // Time-based: each stage starts ~4s later, with randomized stagger within stage
-    const stageDelay = stage * 4.0;
-    const intraStagger = rng() * 3.5;
+    // Time-based: each stage starts ~5s later, spread over entire questionnaire (~60s total)
+    const stageDelay = stage * 5.5;
+    const intraStagger = rng() * 4.5;
     const startTime = stageDelay + intraStagger;
-    const duration = 3.0 + rng() * 4.0; // 3-7 seconds to fully draw
+    const duration = 4.0 + rng() * 5.0; // 4-9 seconds to fully draw
 
     branches.push({
       points: pts, stage, depth, width, hue,
@@ -198,6 +198,10 @@ function buildNetwork(): Branch[] {
 
 const NETWORK = buildNetwork();
 
+// Module-level: survives component remounts so growth never resets
+let globalStartTime = 0;
+let globalBranches: Branch[] | null = null;
+
 /* ── Interpolate point on branch ── */
 function ptOn(b: Branch, t: number): Pt {
   const pts = b.points;
@@ -213,7 +217,6 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
   const animRef = useRef(0);
   const branchesRef = useRef<Branch[]>([]);
   const pulsesRef = useRef<Pulse[]>([]);
-  const mountTime = useRef(0);
 
   const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) => {
     const dt = 1 / 60;
@@ -461,9 +464,14 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    mountTime.current = performance.now() / 1000;
-    branchesRef.current = NETWORK.map(b => ({ ...b, revealProgress: 0 }));
-    pulsesRef.current = [];
+    // Only init branches once globally — never reset
+    if (!globalStartTime) {
+      globalStartTime = performance.now() / 1000;
+    }
+    if (!globalBranches) {
+      globalBranches = NETWORK.map(b => ({ ...b, revealProgress: 0 }));
+    }
+    branchesRef.current = globalBranches;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -477,7 +485,7 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
 
     const loop = () => {
       const rect = canvas.getBoundingClientRect();
-      const elapsed = performance.now() / 1000 - mountTime.current;
+      const elapsed = performance.now() / 1000 - globalStartTime;
       draw(ctx, rect.width, rect.height, elapsed);
       animRef.current = requestAnimationFrame(loop);
     };
