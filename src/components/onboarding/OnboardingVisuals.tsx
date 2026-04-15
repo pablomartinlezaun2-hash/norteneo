@@ -634,76 +634,349 @@ export const TrainingHeroVisual = ({ accentColor }: { accentColor: string }) => 
   );
 };
 
-/* --- AI: Neural Constellation --- */
+/* --- AI: Cognitive Constellation Network --- */
 export const AIHeroVisual = ({ accentColor }: { accentColor: string }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    if (!ref.current) return;
-    const ctx = gsap.context(() => {
-      const edges = ref.current!.querySelectorAll('.nn-edge');
-      const nodes = ref.current!.querySelectorAll('.nn-node');
-      const pulses = ref.current!.querySelectorAll('.nn-pulse');
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      edges.forEach(e => {
-        const len = (e as SVGPathElement).getTotalLength?.() || (e as SVGLineElement).getTotalLength?.() || 100;
-        gsap.set(e, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-      });
-      gsap.set(nodes, { opacity: 0, scale: 0, transformOrigin: 'center' });
-      gsap.set(pulses, { opacity: 0, scale: 0, transformOrigin: 'center' });
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const SIZE = 320;
+    canvas.width = SIZE * dpr;
+    canvas.height = SIZE * dpr;
+    canvas.style.width = `${SIZE}px`;
+    canvas.style.height = `${SIZE}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const tl = gsap.timeline({ delay: 0.2 });
-      edges.forEach((e, i) => {
-        tl.to(e, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut' }, i * 0.06);
-      });
-      nodes.forEach((n, i) => {
-        tl.to(n, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, 0.3 + i * 0.05);
-      });
-      // Pulse glow on central node
-      pulses.forEach((p) => {
-        tl.to(p, { opacity: 0.3, scale: 1, duration: 0.8, ease: 'power2.out' }, 0.8);
-        tl.to(p, { opacity: 0.1, scale: 1.6, duration: 2.5, ease: 'sine.inOut', repeat: -1, yoyo: true }, '>');
-      });
-      // Subtle float
-      tl.to(ref.current!.querySelector('svg')!, {
-        y: -3, duration: 3, ease: 'sine.inOut', repeat: -1, yoyo: true,
-      }, 0);
-    }, ref);
-    return () => ctx.revert();
-  }, []);
+    const cx = SIZE / 2;
+    const cy = SIZE / 2;
+    let animId: number;
+    let start: number | null = null;
 
-  // More complex neural network
-  const nodes = [
-    { x: 80, y: 80, r: 5 },  // center
-    { x: 40, y: 40, r: 3 },
-    { x: 120, y: 40, r: 3 },
-    { x: 30, y: 90, r: 2.5 },
-    { x: 130, y: 90, r: 2.5 },
-    { x: 50, y: 130, r: 3 },
-    { x: 110, y: 130, r: 3 },
-    { x: 80, y: 30, r: 2 },
-    { x: 80, y: 130, r: 2 },
-  ];
-  const edges = [
-    [0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[1,7],[2,7],[1,3],[2,4],[3,5],[4,6],[5,8],[6,8],
-  ];
+    const hexToRgb = (hex: string) => ({
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+    });
+    const ac = hexToRgb(accentColor);
+    const rgba = (a: number) => `rgba(${ac.r},${ac.g},${ac.b},${a})`;
+    const wRgba = (a: number) => `rgba(255,255,255,${a})`;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const easeInOutQuart = (t: number) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+
+    // Phase timing
+    const P1 = 400;   // silence + atmosphere
+    const P2 = 1400;  // nodes appear scattered
+    const P3 = 2600;  // connections trace
+    const P4 = 3400;  // core activates
+    const P5 = 4000;  // system operational
+    const ALIVE = 4400;
+
+    // Node definitions: central + peripherals
+    interface NetNode {
+      x: number; y: number; r: number;
+      scatterX: number; scatterY: number;
+      appearDelay: number; // 0-1
+      importance: number; // 0-1, affects glow
+    }
+
+    const peripheral = [
+      { angle: -70, dist: 95, r: 3.2, imp: 0.7 },   // fatiga
+      { angle: -25, dist: 105, r: 2.8, imp: 0.6 },  // sueño
+      { angle: 20,  dist: 90, r: 3.0, imp: 0.65 },   // carga
+      { angle: 65,  dist: 100, r: 2.6, imp: 0.5 },  // adherencia
+      { angle: 110, dist: 95, r: 3.0, imp: 0.6 },   // rendimiento
+      { angle: 155, dist: 105, r: 2.5, imp: 0.45 },  // recuperación
+      { angle: 200, dist: 88, r: 2.8, imp: 0.55 },   // nutrición
+      { angle: 250, dist: 100, r: 2.4, imp: 0.4 },  // estrés
+      { angle: -110, dist: 80, r: 2.2, imp: 0.35 },  // HRV
+      { angle: -140, dist: 110, r: 2.0, imp: 0.3 },  // volumen
+      // Secondary cluster
+      { angle: 45,  dist: 55, r: 2.0, imp: 0.5 },
+      { angle: 135, dist: 50, r: 2.2, imp: 0.55 },
+      { angle: -45, dist: 58, r: 1.8, imp: 0.4 },
+      { angle: -135, dist: 52, r: 2.0, imp: 0.45 },
+    ];
+
+    const nodes: NetNode[] = [
+      // Central node (index 0)
+      { x: cx, y: cy, r: 5.5, scatterX: cx + (Math.random() - 0.5) * 40, scatterY: cy + (Math.random() - 0.5) * 40, appearDelay: 0.3, importance: 1.0 },
+      ...peripheral.map((p, i) => {
+        const rad = (p.angle * Math.PI) / 180;
+        const nx = cx + p.dist * Math.cos(rad);
+        const ny = cy + p.dist * Math.sin(rad);
+        const sAngle = rad + (Math.random() - 0.5) * 1.2;
+        const sDist = p.dist + 30 + Math.random() * 60;
+        return {
+          x: nx, y: ny, r: p.r,
+          scatterX: cx + sDist * Math.cos(sAngle),
+          scatterY: cy + sDist * Math.sin(sAngle),
+          appearDelay: 0.05 + (i / peripheral.length) * 0.7,
+          importance: p.imp,
+        };
+      }),
+    ];
+
+    // Connections: central to all, plus some inter-peripheral
+    interface Connection {
+      a: number; b: number;
+      traceDelay: number; // 0-1 within P3 phase
+      intensity: number;
+    }
+
+    const connections: Connection[] = [
+      // Central to each peripheral
+      ...nodes.slice(1).map((_, i) => ({
+        a: 0, b: i + 1,
+        traceDelay: i * 0.06,
+        intensity: 0.5 + nodes[i + 1].importance * 0.5,
+      })),
+      // Inter-peripheral (selective)
+      { a: 1, b: 2, traceDelay: 0.5, intensity: 0.3 },
+      { a: 2, b: 3, traceDelay: 0.55, intensity: 0.25 },
+      { a: 4, b: 5, traceDelay: 0.6, intensity: 0.3 },
+      { a: 6, b: 7, traceDelay: 0.65, intensity: 0.2 },
+      { a: 3, b: 11, traceDelay: 0.7, intensity: 0.35 },
+      { a: 5, b: 12, traceDelay: 0.72, intensity: 0.3 },
+      { a: 1, b: 13, traceDelay: 0.75, intensity: 0.25 },
+      { a: 8, b: 14, traceDelay: 0.78, intensity: 0.2 },
+      { a: 11, b: 12, traceDelay: 0.82, intensity: 0.3 },
+      { a: 13, b: 14, traceDelay: 0.85, intensity: 0.25 },
+    ];
+
+    // Signal pulses traveling along connections
+    interface SignalPulse {
+      connIdx: number;
+      progress: number; // 0-1
+      speed: number;
+      active: boolean;
+      direction: number; // 1 or -1
+    }
+    const signals: SignalPulse[] = [];
+
+    const animate = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const t = timestamp - start;
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      const isAlive = t > ALIVE;
+      const breathe = isAlive ? Math.sin(t * 0.0006) * 0.08 + 1 : 1;
+      const breatheSlow = isAlive ? Math.sin(t * 0.0004) * 0.05 + 1 : 1;
+
+      // ── Phase 1: Atmosphere ──
+      // Subtle radial field
+      const atmosAlpha = Math.min(t / 2000, 0.04);
+      const atmos = ctx.createRadialGradient(cx, cy, 10, cx, cy, 160);
+      atmos.addColorStop(0, rgba(atmosAlpha * 1.5));
+      atmos.addColorStop(0.5, rgba(atmosAlpha * 0.5));
+      atmos.addColorStop(1, 'transparent');
+      ctx.fillStyle = atmos;
+      ctx.fillRect(0, 0, SIZE, SIZE);
+
+      // ── Phase 2: Nodes appear as scattered signals ──
+      if (t > P1) {
+        const nodePhase = Math.min((t - P1) / (P2 - P1), 1);
+
+        nodes.forEach((node, i) => {
+          const localP = Math.max(0, Math.min((nodePhase - node.appearDelay) / 0.25, 1));
+          if (localP <= 0) return;
+
+          const appear = easeOutCubic(localP);
+          // During P2: still scattered; during P3+: converging
+          const convergeP = t > P2 ? easeInOutQuart(Math.min((t - P2) / 1200, 1)) : 0;
+          const nx = node.scatterX + (node.x - node.scatterX) * convergeP;
+          const ny = node.scatterY + (node.y - node.scatterY) * convergeP;
+
+          // Breathing offset in alive state
+          const bx = isAlive ? Math.sin(t * 0.0008 + i * 0.7) * 1.5 : 0;
+          const by = isAlive ? Math.cos(t * 0.001 + i * 0.5) * 1.2 : 0;
+          const fx = nx + bx;
+          const fy = ny + by;
+
+          // Store current position for connection drawing
+          (node as any)._cx = fx;
+          (node as any)._cy = fy;
+
+          // Influence halo (only after convergence)
+          if (convergeP > 0.5 && node.importance > 0.4) {
+            const haloR = (node.r + 8 + node.importance * 12) * breatheSlow;
+            const haloA = (convergeP - 0.5) * 2 * node.importance * 0.06 * breathe;
+            const halo = ctx.createRadialGradient(fx, fy, node.r, fx, fy, haloR);
+            halo.addColorStop(0, rgba(haloA));
+            halo.addColorStop(1, 'transparent');
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(fx, fy, haloR, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Node core
+          const nodeAlpha = appear * (0.4 + node.importance * 0.6) * breathe;
+          ctx.beginPath();
+          ctx.arc(fx, fy, node.r * appear, 0, Math.PI * 2);
+          ctx.fillStyle = i === 0 ? rgba(nodeAlpha) : rgba(nodeAlpha * 0.8);
+          ctx.fill();
+
+          // Tiny rim
+          if (appear > 0.8 && node.importance > 0.3) {
+            ctx.beginPath();
+            ctx.arc(fx, fy, node.r * appear + 1, 0, Math.PI * 2);
+            ctx.strokeStyle = rgba(nodeAlpha * 0.15);
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+          }
+        });
+      }
+
+      // ── Phase 3: Connections trace ──
+      if (t > P2 + 400) {
+        const connPhaseTotal = (t - P2 - 400) / (P3 - P2);
+
+        connections.forEach((conn, ci) => {
+          const localStart = conn.traceDelay;
+          const localP = Math.max(0, Math.min((connPhaseTotal - localStart) / 0.3, 1));
+          if (localP <= 0) return;
+
+          const na = nodes[conn.a];
+          const nb = nodes[conn.b];
+          const ax = (na as any)._cx ?? na.x;
+          const ay = (na as any)._cy ?? na.y;
+          const bx = (nb as any)._cx ?? nb.x;
+          const by = (nb as any)._cy ?? nb.y;
+
+          const trace = easeOutQuint(localP);
+          const ex = ax + (bx - ax) * trace;
+          const ey = ay + (by - ay) * trace;
+
+          const connAlpha = conn.intensity * 0.35 * breathe * (localP > 0.8 ? 1 : localP / 0.8);
+
+          // Connection line
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(ex, ey);
+          ctx.strokeStyle = rgba(connAlpha);
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+
+          // Trace head glow
+          if (trace < 1) {
+            const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 4);
+            g.addColorStop(0, rgba(0.6));
+            g.addColorStop(1, 'transparent');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+
+      // ── Phase 4: Core activation ──
+      if (t > P4 - 400) {
+        const coreP = easeOutCubic(Math.min((t - P4 + 400) / 800, 1));
+
+        // Core radial pulse
+        const coreR = 18 * coreP * breatheSlow;
+        const coreG = ctx.createRadialGradient(
+          (nodes[0] as any)._cx ?? cx, (nodes[0] as any)._cy ?? cy, 2,
+          (nodes[0] as any)._cx ?? cx, (nodes[0] as any)._cy ?? cy, coreR
+        );
+        coreG.addColorStop(0, rgba(0.25 * coreP * breathe));
+        coreG.addColorStop(0.6, rgba(0.08 * coreP * breathe));
+        coreG.addColorStop(1, 'transparent');
+        ctx.fillStyle = coreG;
+        ctx.beginPath();
+        ctx.arc((nodes[0] as any)._cx ?? cx, (nodes[0] as any)._cy ?? cy, coreR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Core ring
+        if (coreP > 0.5) {
+          const ringA = (coreP - 0.5) * 2 * 0.2 * breathe;
+          ctx.beginPath();
+          ctx.arc((nodes[0] as any)._cx ?? cx, (nodes[0] as any)._cy ?? cy, 12 * breatheSlow, 0, Math.PI * 2);
+          ctx.strokeStyle = rgba(ringA);
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+
+      // ── Phase 5: Signal pulses (alive state) ──
+      if (isAlive) {
+        // Spawn new signals periodically
+        if (Math.random() < 0.012) {
+          const ci = Math.floor(Math.random() * Math.min(connections.length, nodes.length));
+          signals.push({
+            connIdx: ci,
+            progress: 0,
+            speed: 0.003 + Math.random() * 0.004,
+            active: true,
+            direction: Math.random() > 0.5 ? 1 : -1,
+          });
+        }
+
+        // Update and draw signals
+        for (let si = signals.length - 1; si >= 0; si--) {
+          const s = signals[si];
+          s.progress += s.speed;
+          if (s.progress > 1) { signals.splice(si, 1); continue; }
+
+          const conn = connections[s.connIdx];
+          if (!conn) { signals.splice(si, 1); continue; }
+          const na = nodes[conn.a];
+          const nb = nodes[conn.b];
+          const ax = (na as any)._cx ?? na.x;
+          const ay = (na as any)._cy ?? na.y;
+          const bx = (nb as any)._cx ?? nb.x;
+          const by = (nb as any)._cy ?? nb.y;
+
+          const p = s.direction > 0 ? s.progress : 1 - s.progress;
+          const sx = ax + (bx - ax) * p;
+          const sy = ay + (by - ay) * p;
+          const alpha = Math.sin(s.progress * Math.PI) * 0.7;
+
+          const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, 3);
+          sg.addColorStop(0, rgba(alpha));
+          sg.addColorStop(1, 'transparent');
+          ctx.fillStyle = sg;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Periodic core expansion pulse
+        const pulsePhase = ((t - ALIVE) % 6000) / 6000;
+        if (pulsePhase < 0.15) {
+          const pp = pulsePhase / 0.15;
+          const pulseR = 8 + 50 * easeOutCubic(pp);
+          const pulseA = (1 - pp) * 0.05;
+          ctx.beginPath();
+          ctx.arc((nodes[0] as any)._cx ?? cx, (nodes[0] as any)._cy ?? cy, pulseR, 0, Math.PI * 2);
+          ctx.strokeStyle = rgba(pulseA);
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [accentColor]);
 
   return (
-    <div ref={ref} className="relative w-[200px] h-[200px]">
-      <svg viewBox="0 0 160 160" className="w-full h-full" fill="none">
-        {edges.map(([a, b], i) => (
-          <line
-            key={i} className="nn-edge"
-            x1={nodes[a].x} y1={nodes[a].y}
-            x2={nodes[b].x} y2={nodes[b].y}
-            stroke={accentColor} strokeWidth="0.8" strokeOpacity="0.4" opacity="0"
-          />
-        ))}
-        {/* Center pulse */}
-        <circle className="nn-pulse" cx={80} cy={80} r="16" fill={accentColor} opacity="0" />
-        {nodes.map((n, i) => (
-          <circle key={i} className="nn-node" cx={n.x} cy={n.y} r={n.r} fill={accentColor} opacity="0" />
-        ))}
-      </svg>
+    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px]">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full pointer-events-none"
+        style={{ width: 320, height: 320 }}
+      />
     </div>
   );
 };
