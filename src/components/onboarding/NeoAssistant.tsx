@@ -518,14 +518,7 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
           >
             {/* Header */}
             <div className="flex-shrink-0 pt-[max(env(safe-area-inset-top),20px)] px-6">
-              <motion.p
-                className="text-[10px] tracking-[0.2em] uppercase text-white/15 font-medium text-center mb-1.5 mt-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                Nivel de profundidad
-              </motion.p>
+              <div className="mt-6 mb-1.5" />
               <motion.h1
                 className="text-[22px] font-semibold tracking-[-0.02em] text-white/90 text-center"
                 initial={{ opacity: 0, y: 8 }}
