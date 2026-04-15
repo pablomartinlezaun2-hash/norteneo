@@ -1,9 +1,13 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { saveProfileToSupabase } from '@/lib/activateVB2';
 import { saveInitialMetrics } from '@/lib/saveInitialMetrics';
 import { mapVB1AnswersToProfile, mapVB1AnswersToMetrics } from '@/lib/questionnaireMapper';
+
+const CalibrationAvatar = lazy(() =>
+  import('./CalibrationAvatar').then(m => ({ default: m.CalibrationAvatar }))
+);
 
 /* ─── Types ─── */
 
@@ -621,6 +625,38 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col z-50 overflow-hidden">
+      {/* 3D Calibration Avatar — visible during questions */}
+      {!isIntro && !isComplete && (
+        <div className="flex-shrink-0 relative" style={{ height: '38vh', minHeight: 220, maxHeight: 320 }}>
+          <Suspense fallback={
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full border border-white/10 border-t-white/30 animate-spin" />
+            </div>
+          }>
+            <CalibrationAvatar buildStage={currentIdx} />
+          </Suspense>
+          {/* Stage label overlay */}
+          <motion.div
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10"
+            key={currentIdx}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <span
+              className="text-[7px] tracking-[0.35em] uppercase font-bold px-3 py-1 rounded-full"
+              style={{
+                color: `hsla(${step?.accentHue ?? 210},50%,70%,0.4)`,
+                background: 'rgba(0,0,0,0.5)',
+                border: '1px solid rgba(255,255,255,0.04)',
+              }}
+            >
+              CALIBRANDO · {step?.systemLabel}
+            </span>
+          </motion.div>
+        </div>
+      )}
+
       {/* Calibration pulse overlay */}
       <AnimatePresence>
         {showPulse && step && (
@@ -630,8 +666,8 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
 
       {/* ─── Progress System ─── */}
       {!isIntro && !isComplete && (
-        <div className="flex-shrink-0 px-6 pt-[max(env(safe-area-inset-top),16px)]">
-          <div className="flex items-center justify-between mb-3 mt-2">
+        <div className="flex-shrink-0 px-6 pt-2">
+          <div className="flex items-center justify-between mb-2">
             <motion.span
               key={step?.systemLabel}
               className="text-[8px] tracking-[0.3em] uppercase font-bold"
@@ -710,26 +746,12 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* NEO core */}
-                <motion.div
-                  className="relative mb-12"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, ease }}
-                >
-                  {/* Pulsing ring */}
-                  <motion.div
-                    className="absolute inset-[-18px] rounded-full"
-                    style={{
-                      border: '1px solid rgba(255,255,255,0.04)',
-                    }}
-                    animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.15, 0.5] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                  <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center backdrop-blur-sm">
-                    <span className="text-[18px] font-bold tracking-[0.15em] text-white/80">N</span>
-                  </div>
-                </motion.div>
+                {/* Avatar preview — shows empty platform */}
+                <div className="relative w-full mb-6" style={{ height: 200 }}>
+                  <Suspense fallback={null}>
+                    <CalibrationAvatar buildStage={-1} />
+                  </Suspense>
+                </div>
 
                 <motion.p
                   className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/20 mb-3"
@@ -741,20 +763,20 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 </motion.p>
 
                 <motion.h1
-                  className="text-[24px] font-bold tracking-[-0.03em] text-white/90 mb-3 leading-tight"
+                  className="text-[22px] font-bold tracking-[-0.03em] text-white/90 mb-3 leading-tight"
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5, ease }}
                 >
-                  8 variables del sistema
+                  Construyendo tu modelo
                 </motion.h1>
                 <motion.p
-                  className="text-[13px] text-white/25 font-light leading-relaxed mb-12 max-w-[260px]"
+                  className="text-[13px] text-white/25 font-light leading-relaxed mb-8 max-w-[260px]"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.55, duration: 0.5, ease }}
                 >
-                  NEO necesita calibrar tu punto de partida para ajustar el sistema.
+                  Cada respuesta calibra una capa de tu sistema fisiológico.
                 </motion.p>
 
                 <motion.button
@@ -862,32 +884,12 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* Success core */}
-                <motion.div
-                  className="relative mb-8"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, ease }}
-                >
-                  <motion.div
-                    className="absolute inset-[-16px] rounded-full"
-                    style={{ background: 'radial-gradient(circle, hsla(140,50%,60%,0.1) 0%, transparent 70%)' }}
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.15, 0.6] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                  <div className="w-14 h-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
-                    <motion.svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                      stroke="hsla(140,50%,70%,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    >
-                      <motion.path
-                        d="M5 13l4 4L19 7"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.6, delay: 0.3, ease }}
-                      />
-                    </motion.svg>
-                  </div>
-                </motion.div>
+                {/* Fully built avatar with nervous system */}
+                <div className="relative w-full mb-4" style={{ height: 280 }}>
+                  <Suspense fallback={null}>
+                    <CalibrationAvatar buildStage={8} />
+                  </Suspense>
+                </div>
 
                 <motion.p
                   className="text-[8px] tracking-[0.3em] uppercase font-bold text-white/15 mb-2"
@@ -907,12 +909,12 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   Sistema listo
                 </motion.h1>
                 <motion.p
-                  className="text-[13px] text-white/25 font-light mb-10 max-w-[260px]"
+                  className="text-[13px] text-white/25 font-light mb-8 max-w-[260px]"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
                 >
-                  NEO se adapta a tu perfil a partir de aquí.
+                  NEO ha construido tu modelo fisiológico.
                 </motion.p>
 
                 <motion.button
