@@ -1,113 +1,127 @@
 import { useRef, useEffect, useCallback } from 'react';
 
 /* ═══════════════════════════════════════════
-   CALIBRATION SPINE — Premium Neural Axis
-   Canvas-based physiological calibration visual
+   NEURAL CLOUD — Holographic Neural Mass
+   Canvas-based abstract neural intelligence
    ═══════════════════════════════════════════ */
 
 interface CalibrationAvatarProps {
-  buildStage: number; // -1=nothing, 0-7 progressive reveal, 8=complete
+  buildStage: number; // -1=nothing, 0-7 progressive, 8=complete
 }
 
 /* ── Easing ── */
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-const easeInOutQuart = (t: number) =>
-  t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
 
-/* ── Branch definitions ── */
-interface Branch {
-  /** Y position along spine (0=bottom, 1=top) */
-  yNorm: number;
-  /** Direction: -1=left, 1=right */
-  dir: number;
-  /** Length factor */
-  len: number;
-  /** Curvature */
-  curve: number;
-  /** Stage at which this branch appears */
-  stage: number;
-  /** Sub-branches */
-  subs?: { angle: number; len: number }[];
+/* ── Node in the neural cloud ── */
+interface NeuralNode {
+  x: number; // normalized 0-1
+  y: number;
+  z: number; // depth layer 0-1
+  radius: number;
+  phase: number;
+  driftX: number;
+  driftY: number;
+  stage: number; // reveal stage
+  connections: number[]; // indices of connected nodes
 }
 
-const BRANCHES: Branch[] = [
-  // Stage 0 — lower spine base
-  { yNorm: 0.08, dir: -1, len: 0.12, curve: 0.3, stage: 0 },
-  { yNorm: 0.08, dir: 1, len: 0.12, curve: 0.3, stage: 0 },
-  { yNorm: 0.14, dir: -1, len: 0.16, curve: 0.2, stage: 0, subs: [{ angle: -0.4, len: 0.5 }] },
-  { yNorm: 0.14, dir: 1, len: 0.16, curve: 0.2, stage: 0, subs: [{ angle: 0.4, len: 0.5 }] },
-  // Stage 1 — pelvis / lower legs
-  { yNorm: 0.05, dir: -1, len: 0.22, curve: 0.6, stage: 1 },
-  { yNorm: 0.05, dir: 1, len: 0.22, curve: 0.6, stage: 1 },
-  { yNorm: 0.18, dir: -1, len: 0.14, curve: -0.15, stage: 1 },
-  { yNorm: 0.18, dir: 1, len: 0.14, curve: -0.15, stage: 1 },
-  // Stage 2 — lower torso
-  { yNorm: 0.28, dir: -1, len: 0.2, curve: 0.1, stage: 2, subs: [{ angle: -0.3, len: 0.4 }, { angle: 0.2, len: 0.3 }] },
-  { yNorm: 0.28, dir: 1, len: 0.2, curve: 0.1, stage: 2, subs: [{ angle: 0.3, len: 0.4 }, { angle: -0.2, len: 0.3 }] },
-  { yNorm: 0.34, dir: -1, len: 0.15, curve: 0.25, stage: 2 },
-  { yNorm: 0.34, dir: 1, len: 0.15, curve: 0.25, stage: 2 },
-  // Stage 3 — mid torso
-  { yNorm: 0.42, dir: -1, len: 0.24, curve: 0.05, stage: 3, subs: [{ angle: -0.5, len: 0.35 }, { angle: -0.15, len: 0.5 }] },
-  { yNorm: 0.42, dir: 1, len: 0.24, curve: 0.05, stage: 3, subs: [{ angle: 0.5, len: 0.35 }, { angle: 0.15, len: 0.5 }] },
-  { yNorm: 0.50, dir: -1, len: 0.18, curve: -0.1, stage: 3, subs: [{ angle: -0.3, len: 0.4 }] },
-  { yNorm: 0.50, dir: 1, len: 0.18, curve: -0.1, stage: 3, subs: [{ angle: 0.3, len: 0.4 }] },
-  // Stage 4 — arms / upper torso
-  { yNorm: 0.56, dir: -1, len: 0.30, curve: 0.2, stage: 4, subs: [{ angle: -0.6, len: 0.45 }, { angle: -0.2, len: 0.55 }, { angle: 0.1, len: 0.3 }] },
-  { yNorm: 0.56, dir: 1, len: 0.30, curve: 0.2, stage: 4, subs: [{ angle: 0.6, len: 0.45 }, { angle: 0.2, len: 0.55 }, { angle: -0.1, len: 0.3 }] },
-  { yNorm: 0.64, dir: -1, len: 0.22, curve: 0.15, stage: 4, subs: [{ angle: -0.4, len: 0.4 }] },
-  { yNorm: 0.64, dir: 1, len: 0.22, curve: 0.15, stage: 4, subs: [{ angle: 0.4, len: 0.4 }] },
-  // Stage 5 — neck
-  { yNorm: 0.74, dir: -1, len: 0.10, curve: 0.3, stage: 5 },
-  { yNorm: 0.74, dir: 1, len: 0.10, curve: 0.3, stage: 5 },
-  { yNorm: 0.78, dir: -1, len: 0.08, curve: -0.2, stage: 5 },
-  { yNorm: 0.78, dir: 1, len: 0.08, curve: -0.2, stage: 5 },
-  // Stage 6 — head
-  { yNorm: 0.84, dir: -1, len: 0.16, curve: 0.4, stage: 6, subs: [{ angle: -0.5, len: 0.35 }, { angle: -0.1, len: 0.45 }] },
-  { yNorm: 0.84, dir: 1, len: 0.16, curve: 0.4, stage: 6, subs: [{ angle: 0.5, len: 0.35 }, { angle: 0.1, len: 0.45 }] },
-  { yNorm: 0.90, dir: -1, len: 0.12, curve: 0.5, stage: 6, subs: [{ angle: -0.3, len: 0.3 }] },
-  { yNorm: 0.90, dir: 1, len: 0.12, curve: 0.5, stage: 6, subs: [{ angle: 0.3, len: 0.3 }] },
-  { yNorm: 0.95, dir: -1, len: 0.07, curve: 0.6, stage: 6 },
-  { yNorm: 0.95, dir: 1, len: 0.07, curve: 0.6, stage: 6 },
-];
-
-/* ── Spine nodes (vertebrae-like markers along the axis) ── */
-const SPINE_NODES = [0.04, 0.1, 0.16, 0.22, 0.28, 0.34, 0.40, 0.46, 0.52, 0.58, 0.64, 0.70, 0.76, 0.82, 0.88, 0.94];
-
-/* ── Signal pulse state ── */
-interface Pulse {
-  branchIdx: number;
-  t: number; // 0..1 progress along branch
+/* ── Fast signal traveling along a connection ── */
+interface Signal {
+  fromIdx: number;
+  toIdx: number;
+  t: number; // 0-1 progress
   speed: number;
-  isSub: boolean;
-  subIdx: number;
+  hue: number;
 }
+
+/* ── Seed-based pseudo-random ── */
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+/* ── Generate organic neural cloud ── */
+function generateCloud(): NeuralNode[] {
+  const rng = seededRandom(42);
+  const nodes: NeuralNode[] = [];
+  const stageNodeCounts = [8, 10, 12, 14, 14, 10, 8, 6]; // per stage
+
+  for (let stage = 0; stage < 8; stage++) {
+    const count = stageNodeCounts[stage];
+    for (let i = 0; i < count; i++) {
+      // Organic cloud distribution — elliptical with irregularity
+      const angle = rng() * Math.PI * 2;
+      const dist = (0.08 + rng() * 0.35) * (0.7 + stage * 0.04);
+      const verticalBias = (stage / 7) * 0.7 + 0.15; // stages spread vertically
+      
+      nodes.push({
+        x: 0.5 + Math.cos(angle) * dist * (0.8 + rng() * 0.4),
+        y: verticalBias + (rng() - 0.5) * 0.18,
+        z: rng(),
+        radius: 1 + rng() * 2.5,
+        phase: rng() * Math.PI * 2,
+        driftX: (rng() - 0.5) * 0.003,
+        driftY: (rng() - 0.5) * 0.002,
+        stage,
+        connections: [],
+      });
+    }
+  }
+
+  // Build connections — connect nearby nodes
+  for (let i = 0; i < nodes.length; i++) {
+    const ni = nodes[i];
+    const dists: { idx: number; d: number }[] = [];
+    for (let j = 0; j < nodes.length; j++) {
+      if (i === j) continue;
+      const nj = nodes[j];
+      const dx = ni.x - nj.x;
+      const dy = ni.y - nj.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 0.25 && Math.abs(ni.stage - nj.stage) <= 2) {
+        dists.push({ idx: j, d });
+      }
+    }
+    dists.sort((a, b) => a.d - b.d);
+    ni.connections = dists.slice(0, 2 + Math.floor(rng() * 3)).map(d => d.idx);
+  }
+
+  return nodes;
+}
+
+const NODES = generateCloud();
 
 export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef(0);
   const startTime = useRef(0);
-  const prevStage = useRef(buildStage);
   const stageReveal = useRef<number[]>(new Array(8).fill(0));
-  const pulsesRef = useRef<Pulse[]>([]);
+  const signalsRef = useRef<Signal[]>([]);
   const flashRef = useRef(0);
+  const prevStage = useRef(buildStage);
 
-  // Generate new pulses when stage changes
+  // Trigger signals on stage change
   useEffect(() => {
     if (buildStage > prevStage.current) {
       flashRef.current = 1;
-      // Add new signal pulses for newly revealed branches
-      const newPulses: Pulse[] = [];
-      BRANCHES.forEach((b, i) => {
-        if (b.stage === buildStage) {
-          newPulses.push({ branchIdx: i, t: 0, speed: 0.4 + Math.random() * 0.3, isSub: false, subIdx: 0 });
-          if (b.subs) {
-            b.subs.forEach((_, si) => {
-              newPulses.push({ branchIdx: i, t: 0, speed: 0.3 + Math.random() * 0.25, isSub: true, subIdx: si });
-            });
-          }
+      // Burst of fast signals on newly revealed nodes
+      const newSignals: Signal[] = [];
+      NODES.forEach((node, i) => {
+        if (node.stage === buildStage && node.connections.length > 0) {
+          const target = node.connections[Math.floor(Math.random() * node.connections.length)];
+          newSignals.push({
+            fromIdx: i,
+            toIdx: target,
+            t: 0,
+            speed: 1.5 + Math.random() * 2,
+            hue: 200 + Math.random() * 40,
+          });
         }
       });
-      pulsesRef.current = [...pulsesRef.current, ...newPulses];
+      signalsRef.current = [...signalsRef.current, ...newSignals];
     }
     prevStage.current = buildStage;
   }, [buildStage]);
@@ -116,259 +130,207 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
     const dt = 1 / 60;
     ctx.clearRect(0, 0, w, h);
 
-    const cx = w / 2;
-    const padY = h * 0.06;
-    const spineTop = padY;
-    const spineBot = h - padY;
-    const spineH = spineBot - spineTop;
-    const maxBranchPx = w * 0.38;
-
-    // Update stage reveals
+    // Update stage reveals with smooth interpolation
     for (let i = 0; i < 8; i++) {
       const target = buildStage >= i ? 1 : 0;
-      stageReveal.current[i] += (target - stageReveal.current[i]) * 0.04;
+      stageReveal.current[i] += (target - stageReveal.current[i]) * 0.035;
     }
-    flashRef.current = Math.max(0, flashRef.current - dt * 2.5);
+    flashRef.current = Math.max(0, flashRef.current - dt * 2);
 
-    // Breathing
-    const breath = Math.sin(time * 1.2) * 0.5 + 0.5;
+    // Slow breathing
+    const breath = Math.sin(time * 0.8) * 0.5 + 0.5;
+    const breathSlow = Math.sin(time * 0.4) * 0.5 + 0.5;
 
     // ── Background atmosphere ──
-    const bgGrad = ctx.createRadialGradient(cx, h * 0.5, 0, cx, h * 0.5, h * 0.7);
-    bgGrad.addColorStop(0, `rgba(20,60,100,${0.03 + breath * 0.01})`);
+    const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.45, 0, w * 0.5, h * 0.45, h * 0.6);
+    bgGrad.addColorStop(0, `rgba(15,40,80,${0.04 + breathSlow * 0.02})`);
+    bgGrad.addColorStop(0.5, `rgba(10,25,60,${0.02})`);
     bgGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // ── Spine axis ──
-    // Calculate how much of the spine to show
-    let maxRevealY = 0;
-    for (let i = 0; i <= 7; i++) {
-      if (stageReveal.current[i] > 0.01) {
-        const stageMaxY = BRANCHES.filter(b => b.stage === i).reduce((mx, b) => Math.max(mx, b.yNorm), 0);
-        maxRevealY = Math.max(maxRevealY, stageMaxY * stageReveal.current[i]);
-      }
-    }
-    // Full spine visible at stage 7+
-    if (buildStage >= 7) maxRevealY = 1;
-    const revealPx = spineTop + spineH * (1 - maxRevealY);
-
-    // Spine glow
-    const spineGlow = ctx.createLinearGradient(cx, spineBot, cx, revealPx);
-    spineGlow.addColorStop(0, `rgba(80,160,220,${0.03 + breath * 0.02})`);
-    spineGlow.addColorStop(0.5, `rgba(80,160,220,${0.06 + breath * 0.02})`);
-    spineGlow.addColorStop(1, `rgba(100,180,240,${0.02})`);
-    ctx.beginPath();
-    ctx.moveTo(cx, spineBot);
-    ctx.lineTo(cx, Math.max(revealPx, spineTop));
-    ctx.strokeStyle = spineGlow;
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    // Spine core line
-    ctx.beginPath();
-    ctx.moveTo(cx, spineBot);
-    ctx.lineTo(cx, Math.max(revealPx, spineTop));
-    ctx.strokeStyle = `rgba(120,190,240,${0.25 + breath * 0.08})`;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // ── Spine nodes ──
-    SPINE_NODES.forEach(yN => {
-      const y = spineTop + spineH * (1 - yN);
-      if (y < revealPx - 5) return;
-      const nodeReveal = Math.min(1, Math.max(0, (spineBot - y) / (spineBot - revealPx)));
-      const alpha = nodeReveal * (0.15 + breath * 0.05);
-      ctx.beginPath();
-      ctx.arc(cx, y, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(120,190,240,${alpha})`;
-      ctx.fill();
-      // Tiny horizontal tick
-      ctx.beginPath();
-      ctx.moveTo(cx - 5, y);
-      ctx.lineTo(cx + 5, y);
-      ctx.strokeStyle = `rgba(120,190,240,${alpha * 0.5})`;
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-    });
-
-    // ── Branches ──
-    BRANCHES.forEach((branch, bIdx) => {
-      const reveal = stageReveal.current[branch.stage];
+    // ── Draw connections (filaments) ──
+    NODES.forEach((node, i) => {
+      const reveal = stageReveal.current[node.stage];
       if (reveal < 0.01) return;
 
-      const rootY = spineTop + spineH * (1 - branch.yNorm);
-      const branchLen = maxBranchPx * branch.len;
-      const endX = cx + branch.dir * branchLen * easeOutCubic(reveal);
-      const endY = rootY - branch.curve * branchLen * reveal;
-      const cpX = cx + branch.dir * branchLen * 0.5 * reveal;
-      const cpY = rootY - branch.curve * branchLen * 0.3 * reveal;
+      const nx = node.x * w + Math.sin(time * 0.7 + node.phase) * 3 * node.z;
+      const ny = node.y * h + Math.cos(time * 0.5 + node.phase * 1.3) * 2;
 
-      const alpha = reveal * (0.2 + (buildStage >= 7 ? breath * 0.08 : 0));
+      node.connections.forEach(ci => {
+        const cn = NODES[ci];
+        const cReveal = stageReveal.current[cn.stage];
+        if (cReveal < 0.01) return;
 
-      // Branch glow
-      ctx.beginPath();
-      ctx.moveTo(cx, rootY);
-      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
-      ctx.strokeStyle = `rgba(80,180,230,${alpha * 0.3})`;
-      ctx.lineWidth = 3;
-      ctx.stroke();
+        const cx2 = cn.x * w + Math.sin(time * 0.7 + cn.phase) * 3 * cn.z;
+        const cy2 = cn.y * h + Math.cos(time * 0.5 + cn.phase * 1.3) * 2;
 
-      // Branch line
-      ctx.beginPath();
-      ctx.moveTo(cx, rootY);
-      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
-      ctx.strokeStyle = `rgba(100,190,240,${alpha})`;
-      ctx.lineWidth = 0.7;
-      ctx.stroke();
+        const connReveal = Math.min(reveal, cReveal);
+        const depthAlpha = (1 - Math.abs(node.z - 0.5) * 0.6) * (1 - Math.abs(cn.z - 0.5) * 0.6);
+        const alpha = connReveal * depthAlpha * (0.06 + breath * 0.02);
 
-      // End node
-      if (reveal > 0.3) {
+        // Filament
         ctx.beginPath();
-        ctx.arc(endX, endY, 1.5 * reveal, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(140,210,255,${alpha * 0.6})`;
+        ctx.moveTo(nx, ny);
+        // Slight curve for organic feel
+        const midX = (nx + cx2) / 2 + Math.sin(time * 0.3 + i) * 4;
+        const midY = (ny + cy2) / 2 + Math.cos(time * 0.25 + i) * 3;
+        ctx.quadraticCurveTo(midX, midY, cx2, cy2);
+        ctx.strokeStyle = `rgba(100,180,240,${alpha})`;
+        ctx.lineWidth = 0.4 + connReveal * 0.3;
+        ctx.stroke();
+
+        // Glow filament
+        ctx.beginPath();
+        ctx.moveTo(nx, ny);
+        ctx.quadraticCurveTo(midX, midY, cx2, cy2);
+        ctx.strokeStyle = `rgba(80,160,230,${alpha * 0.3})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    });
+
+    // ── Draw nodes ──
+    NODES.forEach(node => {
+      const reveal = stageReveal.current[node.stage];
+      if (reveal < 0.01) return;
+
+      const nx = node.x * w + Math.sin(time * 0.7 + node.phase) * 3 * node.z;
+      const ny = node.y * h + Math.cos(time * 0.5 + node.phase * 1.3) * 2;
+      const depthFactor = 0.4 + node.z * 0.6;
+      const pulseSize = 1 + Math.sin(time * 1.5 + node.phase * 2) * 0.3;
+      const r = node.radius * reveal * depthFactor * pulseSize;
+
+      // Outer glow
+      const glow = ctx.createRadialGradient(nx, ny, 0, nx, ny, r * 5);
+      glow.addColorStop(0, `rgba(120,200,255,${reveal * depthFactor * 0.08})`);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.fillRect(nx - r * 5, ny - r * 5, r * 10, r * 10);
+
+      // Core
+      ctx.beginPath();
+      ctx.arc(nx, ny, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(160,220,255,${reveal * depthFactor * (0.3 + breath * 0.1)})`;
+      ctx.fill();
+
+      // Bright center
+      if (reveal > 0.5) {
+        ctx.beginPath();
+        ctx.arc(nx, ny, r * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(220,240,255,${reveal * depthFactor * 0.5})`;
         ctx.fill();
       }
+    });
 
-      // Sub-branches
-      if (branch.subs && reveal > 0.4) {
-        branch.subs.forEach(sub => {
-          const subReveal = Math.max(0, (reveal - 0.4) / 0.6);
-          const subLen = branchLen * sub.len * easeOutCubic(subReveal);
-          const subEndX = endX + Math.cos(sub.angle + (branch.dir > 0 ? 0 : Math.PI)) * subLen;
-          const subEndY = endY + Math.sin(sub.angle) * subLen;
-          const subAlpha = subReveal * alpha * 0.7;
+    // ── Fast signals (shooting stars) ──
+    const activeSignals: Signal[] = [];
+    signalsRef.current.forEach(sig => {
+      sig.t += dt * sig.speed;
+      if (sig.t > 1) return;
+      activeSignals.push(sig);
 
-          ctx.beginPath();
-          ctx.moveTo(endX, endY);
-          ctx.lineTo(subEndX, subEndY);
-          ctx.strokeStyle = `rgba(100,190,240,${subAlpha})`;
-          ctx.lineWidth = 0.4;
-          ctx.stroke();
+      const fromNode = NODES[sig.fromIdx];
+      const toNode = NODES[sig.toIdx];
+      if (!fromNode || !toNode) return;
 
-          if (subReveal > 0.5) {
-            ctx.beginPath();
-            ctx.arc(subEndX, subEndY, 1 * subReveal, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(140,210,255,${subAlpha * 0.5})`;
-            ctx.fill();
+      const fromReveal = stageReveal.current[fromNode.stage];
+      const toReveal = stageReveal.current[toNode.stage];
+      if (fromReveal < 0.3 || toReveal < 0.3) return;
+
+      const fx = fromNode.x * w + Math.sin(time * 0.7 + fromNode.phase) * 3 * fromNode.z;
+      const fy = fromNode.y * h + Math.cos(time * 0.5 + fromNode.phase * 1.3) * 2;
+      const tx = toNode.x * w + Math.sin(time * 0.7 + toNode.phase) * 3 * toNode.z;
+      const ty = toNode.y * h + Math.cos(time * 0.5 + toNode.phase * 1.3) * 2;
+
+      const t = easeOutCubic(sig.t);
+      const px = fx + (tx - fx) * t;
+      const py = fy + (ty - fy) * t;
+      const fade = Math.sin(sig.t * Math.PI);
+
+      // Signal glow
+      const sg = ctx.createRadialGradient(px, py, 0, px, py, 10);
+      sg.addColorStop(0, `hsla(${sig.hue},70%,75%,${fade * 0.6})`);
+      sg.addColorStop(1, 'transparent');
+      ctx.fillStyle = sg;
+      ctx.fillRect(px - 10, py - 10, 20, 20);
+
+      // Signal core
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${sig.hue},60%,85%,${fade * 0.9})`;
+      ctx.fill();
+
+      // Trail
+      const trailLen = 0.08;
+      const tt = Math.max(0, sig.t - trailLen);
+      const tPrev = easeOutCubic(tt);
+      const trailX = fx + (tx - fx) * tPrev;
+      const trailY = fy + (ty - fy) * tPrev;
+      ctx.beginPath();
+      ctx.moveTo(trailX, trailY);
+      ctx.lineTo(px, py);
+      ctx.strokeStyle = `hsla(${sig.hue},60%,70%,${fade * 0.3})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+    signalsRef.current = activeSignals;
+
+    // ── Ambient signals when fully built ──
+    if (buildStage >= 7) {
+      // Spawn random fast signals
+      if (Math.random() < 0.06) {
+        const fromIdx = Math.floor(Math.random() * NODES.length);
+        const node = NODES[fromIdx];
+        if (node.connections.length > 0) {
+          const toIdx = node.connections[Math.floor(Math.random() * node.connections.length)];
+          signalsRef.current.push({
+            fromIdx,
+            toIdx,
+            t: 0,
+            speed: 1.2 + Math.random() * 2.5,
+            hue: 195 + Math.random() * 50,
+          });
+        }
+      }
+
+      // Chain reactions — signal arrival spawns new signal
+      if (Math.random() < 0.03) {
+        const fromIdx = Math.floor(Math.random() * NODES.length);
+        const node = NODES[fromIdx];
+        node.connections.forEach(ci => {
+          const cn = NODES[ci];
+          if (cn.connections.length > 0 && Math.random() < 0.3) {
+            const next = cn.connections[Math.floor(Math.random() * cn.connections.length)];
+            signalsRef.current.push({
+              fromIdx: ci,
+              toIdx: next,
+              t: 0,
+              speed: 2 + Math.random() * 2,
+              hue: 210 + Math.random() * 30,
+            });
           }
         });
-      }
-    });
-
-    // ── Signal pulses ──
-    const activePulses: Pulse[] = [];
-    pulsesRef.current.forEach(p => {
-      p.t += dt * p.speed;
-      if (p.t > 1.2) return; // expired
-      activePulses.push(p);
-
-      const branch = BRANCHES[p.branchIdx];
-      if (!branch) return;
-      const reveal = stageReveal.current[branch.stage];
-      if (reveal < 0.3) return;
-
-      const rootY = spineTop + spineH * (1 - branch.yNorm);
-      const branchLen = maxBranchPx * branch.len;
-      const endX = cx + branch.dir * branchLen * easeOutCubic(reveal);
-      const endY = rootY - branch.curve * branchLen * reveal;
-
-      const tt = Math.min(1, p.t);
-      let px: number, py: number;
-
-      if (!p.isSub) {
-        // Along main branch
-        px = cx + (endX - cx) * easeInOutQuart(tt);
-        py = rootY + (endY - rootY) * easeInOutQuart(tt);
-      } else {
-        // Along sub-branch (starts at end of main)
-        const sub = branch.subs?.[p.subIdx];
-        if (!sub) return;
-        const subLen = branchLen * sub.len * easeOutCubic(Math.max(0, (reveal - 0.4) / 0.6));
-        const subEndX = endX + Math.cos(sub.angle + (branch.dir > 0 ? 0 : Math.PI)) * subLen;
-        const subEndY = endY + Math.sin(sub.angle) * subLen;
-        px = endX + (subEndX - endX) * easeInOutQuart(tt);
-        py = endY + (subEndY - endY) * easeInOutQuart(tt);
-      }
-
-      const fadeEdge = Math.sin(Math.min(1, p.t) * Math.PI);
-      const pulseAlpha = fadeEdge * 0.9 * reveal;
-
-      // Pulse glow
-      const pg = ctx.createRadialGradient(px, py, 0, px, py, 8);
-      pg.addColorStop(0, `rgba(160,220,255,${pulseAlpha * 0.5})`);
-      pg.addColorStop(1, 'transparent');
-      ctx.fillStyle = pg;
-      ctx.fillRect(px - 8, py - 8, 16, 16);
-
-      // Pulse core
-      ctx.beginPath();
-      ctx.arc(px, py, 2, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,235,255,${pulseAlpha})`;
-      ctx.fill();
-    });
-    pulsesRef.current = activePulses;
-
-    // ── Continuous ambient pulses (stage 7+) ──
-    if (buildStage >= 7) {
-      const pulseInterval = 1.5;
-      const phase = time % pulseInterval;
-      // Spine pulse traveling upward
-      const spineT = (phase / pulseInterval);
-      const pulseY = spineBot - spineH * easeInOutQuart(spineT);
-      const pAlpha = Math.sin(spineT * Math.PI) * 0.6;
-      
-      const spg = ctx.createRadialGradient(cx, pulseY, 0, cx, pulseY, 12);
-      spg.addColorStop(0, `rgba(160,220,255,${pAlpha * 0.4})`);
-      spg.addColorStop(1, 'transparent');
-      ctx.fillStyle = spg;
-      ctx.fillRect(cx - 12, pulseY - 12, 24, 24);
-
-      ctx.beginPath();
-      ctx.arc(cx, pulseY, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,235,255,${pAlpha})`;
-      ctx.fill();
-
-      // Random branch pulses
-      if (Math.random() < 0.02) {
-        const rIdx = Math.floor(Math.random() * BRANCHES.length);
-        pulsesRef.current.push({ branchIdx: rIdx, t: 0, speed: 0.5 + Math.random() * 0.3, isSub: false, subIdx: 0 });
-        if (BRANCHES[rIdx].subs && Math.random() > 0.5) {
-          const si = Math.floor(Math.random() * (BRANCHES[rIdx].subs?.length || 1));
-          pulsesRef.current.push({ branchIdx: rIdx, t: 0, speed: 0.35 + Math.random() * 0.2, isSub: true, subIdx: si });
-        }
       }
     }
 
     // ── Flash on new stage ──
     if (flashRef.current > 0.01) {
-      const fg = ctx.createRadialGradient(cx, h * 0.5, 0, cx, h * 0.5, h * 0.5);
-      fg.addColorStop(0, `rgba(120,200,255,${flashRef.current * 0.08})`);
+      const fg = ctx.createRadialGradient(w * 0.5, h * 0.45, 0, w * 0.5, h * 0.45, h * 0.5);
+      fg.addColorStop(0, `rgba(100,180,255,${flashRef.current * 0.06})`);
       fg.addColorStop(1, 'transparent');
       ctx.fillStyle = fg;
       ctx.fillRect(0, 0, w, h);
     }
 
-    // ── Top/bottom crown markers when fully calibrated ──
-    if (buildStage >= 7) {
-      const crownAlpha = stageReveal.current[7] * (0.15 + breath * 0.05);
-      // Top cross-hair
-      const ty = spineTop + 4;
-      ctx.beginPath();
-      ctx.moveTo(cx - 8, ty);
-      ctx.lineTo(cx + 8, ty);
-      ctx.strokeStyle = `rgba(140,210,255,${crownAlpha})`;
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-      // Bottom mark
-      const by = spineBot - 4;
-      ctx.beginPath();
-      ctx.moveTo(cx - 6, by);
-      ctx.lineTo(cx + 6, by);
-      ctx.strokeStyle = `rgba(140,210,255,${crownAlpha * 0.7})`;
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-    }
+    // ── Depth haze layers ──
+    // Front haze
+    const frontHaze = ctx.createRadialGradient(w * 0.5, h * 0.5, h * 0.1, w * 0.5, h * 0.5, h * 0.55);
+    frontHaze.addColorStop(0, 'transparent');
+    frontHaze.addColorStop(1, `rgba(0,0,0,${0.15 + breathSlow * 0.05})`);
+    ctx.fillStyle = frontHaze;
+    ctx.fillRect(0, 0, w, h);
+
   }, [buildStage]);
 
   useEffect(() => {
