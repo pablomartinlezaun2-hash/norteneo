@@ -1359,71 +1359,308 @@ export const NutritionHeroVisual = ({ accentColor }: { accentColor: string }) =>
   );
 };
 
-/* --- Progress: Trend Chart --- */
+/* ═══════════════════════════════════════════════════════
+   PROGRESS HERO — Premium Evolution Trajectory
+   Canvas-based precision trend visualization
+   ═══════════════════════════════════════════════════════ */
+
 export const ProgressHeroVisual = ({ accentColor }: { accentColor: string }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    if (!ref.current) return;
-    const ctx = gsap.context(() => {
-      const gridLines = ref.current!.querySelectorAll('.grid-ln');
-      const chartLine = ref.current!.querySelector('.chart-ln') as SVGPathElement;
-      const areaFill = ref.current!.querySelector('.chart-area') as SVGPathElement;
-      const endDot = ref.current!.querySelector('.end-dot') as SVGElement;
-      const endPulse = ref.current!.querySelector('.end-pulse') as SVGElement;
-      const dataPoints = ref.current!.querySelectorAll('.data-pt');
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      gsap.set(gridLines, { opacity: 0 });
-      if (chartLine) {
-        const len = chartLine.getTotalLength();
-        gsap.set(chartLine, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = 320;
+    const H = 260;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = `${W}px`;
+    canvas.style.height = `${H}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Parse accent color
+    const hexToRgb = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return { r, g, b };
+    };
+    const ac = hexToRgb(accentColor);
+    const rgba = (a: number) => `rgba(${ac.r},${ac.g},${ac.b},${a})`;
+
+    // Curve data — aspirational ascent with micro-corrections
+    const dataPoints = [
+      { x: 0.04, y: 0.82 },
+      { x: 0.12, y: 0.76 },
+      { x: 0.20, y: 0.70 },
+      { x: 0.28, y: 0.73 }, // dip
+      { x: 0.36, y: 0.62 },
+      { x: 0.44, y: 0.55 },
+      { x: 0.50, y: 0.58 }, // dip
+      { x: 0.58, y: 0.48 },
+      { x: 0.66, y: 0.40 },
+      { x: 0.74, y: 0.35 },
+      { x: 0.82, y: 0.30 },
+      { x: 0.90, y: 0.22 },
+      { x: 0.96, y: 0.16 },
+    ];
+
+    const chartL = 30;
+    const chartR = W - 20;
+    const chartT = 40;
+    const chartB = H - 40;
+    const chartW = chartR - chartL;
+    const chartH = chartB - chartT;
+
+    const toCanvas = (p: { x: number; y: number }) => ({
+      cx: chartL + p.x * chartW,
+      cy: chartT + p.y * chartH,
+    });
+
+    // Easing
+    const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
+    const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    // Phases (ms)
+    const P = {
+      gridStart: 200,
+      gridEnd: 1000,
+      traceStart: 800,
+      traceEnd: 3200,
+      dotsStart: 1600,
+      dotsEnd: 3600,
+      finalDotStart: 3400,
+      aliveStart: 4000,
+    };
+
+    const startTime = performance.now();
+    let animId: number;
+
+    // Baseline (average trend line)
+    const baselineY = 0.52;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      ctx.clearRect(0, 0, W, H);
+
+      // --- Phase 1: Grid reference lines ---
+      const gridP = Math.max(0, Math.min(1, (elapsed - P.gridStart) / (P.gridEnd - P.gridStart)));
+      if (gridP > 0) {
+        const gAlpha = easeOutQuart(gridP) * 0.06;
+        ctx.strokeStyle = `rgba(255,255,255,${gAlpha})`;
+        ctx.lineWidth = 0.4;
+        // Horizontal
+        for (let i = 0; i < 5; i++) {
+          const y = chartT + (chartH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(chartL, y);
+          ctx.lineTo(chartR, y);
+          ctx.stroke();
+        }
+        // Vertical subtle ticks
+        for (let i = 0; i < 7; i++) {
+          const x = chartL + (chartW / 6) * i;
+          ctx.beginPath();
+          ctx.moveTo(x, chartB);
+          ctx.lineTo(x, chartB + 4);
+          ctx.stroke();
+        }
       }
-      gsap.set(areaFill, { opacity: 0 });
-      gsap.set(endDot, { opacity: 0, scale: 0, transformOrigin: 'center' });
-      gsap.set(endPulse, { opacity: 0, scale: 0, transformOrigin: 'center' });
-      gsap.set(dataPoints, { opacity: 0, scale: 0, transformOrigin: 'center' });
 
-      const tl = gsap.timeline({ delay: 0.2 });
-      tl.to(gridLines, { opacity: 0.08, duration: 0.8, stagger: 0.03 }, 0);
-      if (chartLine) tl.to(chartLine, { strokeDashoffset: 0, duration: 1.4, ease: 'power2.inOut' }, 0.3);
-      tl.to(areaFill, { opacity: 0.08, duration: 0.8, ease: 'power2.out' }, 1.0);
-      dataPoints.forEach((d, i) => {
-        tl.to(d, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, 0.5 + i * 0.12);
-      });
-      tl.to(endDot, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, 1.5);
-      tl.to(endPulse, { opacity: 0.4, scale: 1, duration: 0.6 }, 1.6);
-      tl.to(endPulse, { opacity: 0.15, scale: 1.8, duration: 2.5, ease: 'sine.inOut', repeat: -1, yoyo: true }, '>');
-    }, ref);
-    return () => ctx.revert();
-  }, []);
+      // --- Baseline ---
+      const blP = Math.max(0, Math.min(1, (elapsed - P.gridStart) / 600));
+      if (blP > 0) {
+        const blAlpha = easeOutQuart(blP) * 0.08;
+        const blY = chartT + baselineY * chartH;
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = `rgba(255,255,255,${blAlpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(chartL, blY);
+        ctx.lineTo(chartL + chartW * easeOutQuart(blP), blY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-  const chartD = 'M 10 110 C 25 105, 35 95, 50 88 C 65 81, 70 90, 85 78 C 100 66, 108 72, 120 55 C 130 42, 138 38, 150 28';
-  const areaD = chartD + ' L 150 120 L 10 120 Z';
-  const points = [
-    { x: 50, y: 88 }, { x: 85, y: 78 }, { x: 120, y: 55 },
-  ];
+      // --- Phase 2+3: Curve trace ---
+      const traceP = Math.max(0, Math.min(1, (elapsed - P.traceStart) / (P.traceEnd - P.traceStart)));
+      if (traceP > 0) {
+        const progress = easeInOutCubic(traceP);
+        const pts = dataPoints.map(toCanvas);
+        const visibleCount = Math.max(2, Math.ceil(pts.length * progress));
+        const visiblePts = pts.slice(0, visibleCount);
+
+        // Partial last segment
+        if (visibleCount < pts.length && progress < 1) {
+          const frac = (pts.length * progress) - Math.floor(pts.length * progress);
+          const prev = pts[visibleCount - 1];
+          const next = pts[visibleCount];
+          if (next) {
+            visiblePts.push({
+              cx: prev.cx + (next.cx - prev.cx) * frac,
+              cy: prev.cy + (next.cy - prev.cy) * frac,
+            });
+          }
+        }
+
+        // Draw area fill (subtle gradient under curve)
+        if (visiblePts.length >= 2) {
+          const areaGrad = ctx.createLinearGradient(0, chartT, 0, chartB);
+          areaGrad.addColorStop(0, rgba(0.12 * progress));
+          areaGrad.addColorStop(0.6, rgba(0.04 * progress));
+          areaGrad.addColorStop(1, rgba(0));
+
+          ctx.beginPath();
+          ctx.moveTo(visiblePts[0].cx, visiblePts[0].cy);
+          for (let i = 1; i < visiblePts.length; i++) {
+            const prev = visiblePts[i - 1];
+            const curr = visiblePts[i];
+            const cpx = (prev.cx + curr.cx) / 2;
+            ctx.quadraticCurveTo(prev.cx + (cpx - prev.cx) * 0.8, prev.cy, cpx, (prev.cy + curr.cy) / 2);
+            ctx.quadraticCurveTo(curr.cx - (curr.cx - cpx) * 0.8, curr.cy, curr.cx, curr.cy);
+          }
+          const last = visiblePts[visiblePts.length - 1];
+          ctx.lineTo(last.cx, chartB);
+          ctx.lineTo(visiblePts[0].cx, chartB);
+          ctx.closePath();
+          ctx.fillStyle = areaGrad;
+          ctx.fill();
+        }
+
+        // Draw main curve
+        if (visiblePts.length >= 2) {
+          ctx.beginPath();
+          ctx.moveTo(visiblePts[0].cx, visiblePts[0].cy);
+          for (let i = 1; i < visiblePts.length; i++) {
+            const prev = visiblePts[i - 1];
+            const curr = visiblePts[i];
+            const cpx = (prev.cx + curr.cx) / 2;
+            ctx.quadraticCurveTo(prev.cx + (cpx - prev.cx) * 0.8, prev.cy, cpx, (prev.cy + curr.cy) / 2);
+            ctx.quadraticCurveTo(curr.cx - (curr.cx - cpx) * 0.8, curr.cy, curr.cx, curr.cy);
+          }
+          ctx.strokeStyle = rgba(0.9);
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          // Subtle glow on the line
+          ctx.strokeStyle = rgba(0.15);
+          ctx.lineWidth = 6;
+          ctx.stroke();
+        }
+      }
+
+      // --- Phase 4: Data milestone dots ---
+      const dotP = Math.max(0, Math.min(1, (elapsed - P.dotsStart) / (P.dotsEnd - P.dotsStart)));
+      if (dotP > 0) {
+        const pts = dataPoints.map(toCanvas);
+        // Only show milestone dots (not all)
+        const milestones = [0, 3, 6, 9, 12];
+        milestones.forEach((idx, mi) => {
+          const dp = Math.max(0, Math.min(1, (dotP - mi * 0.15) / 0.3));
+          if (dp <= 0 || idx >= pts.length) return;
+          const p = pts[idx];
+          const isLast = idx === dataPoints.length - 1;
+          const a = easeOutQuart(dp);
+
+          // Outer ring
+          ctx.beginPath();
+          ctx.arc(p.cx, p.cy, isLast ? 5 : 3, 0, Math.PI * 2);
+          ctx.strokeStyle = rgba(a * 0.5);
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+
+          // Inner dot
+          ctx.beginPath();
+          ctx.arc(p.cx, p.cy, isLast ? 2.5 : 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = rgba(a * 0.9);
+          ctx.fill();
+        });
+      }
+
+      // --- Phase 5: Final point hero + alive state ---
+      const finalP = Math.max(0, Math.min(1, (elapsed - P.finalDotStart) / 800));
+      if (finalP > 0) {
+        const lastPt = toCanvas(dataPoints[dataPoints.length - 1]);
+        const a = easeOutQuart(finalP);
+
+        // Radial confirmation wave
+        if (finalP > 0.3 && finalP < 1) {
+          const waveP = (finalP - 0.3) / 0.7;
+          ctx.beginPath();
+          ctx.arc(lastPt.cx, lastPt.cy, 8 + waveP * 20, 0, Math.PI * 2);
+          ctx.strokeStyle = rgba((1 - waveP) * 0.15);
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // Value label near final dot
+        if (a > 0.5) {
+          const labelA = Math.min(1, (a - 0.5) * 2);
+          ctx.font = `600 ${9}px -apple-system, system-ui, sans-serif`;
+          ctx.fillStyle = rgba(labelA * 0.7);
+          ctx.textAlign = 'center';
+          ctx.fillText('+12%', lastPt.cx, lastPt.cy - 14);
+        }
+      }
+
+      // --- Alive: breathing ---
+      if (elapsed > P.aliveStart) {
+        const aliveT = (elapsed - P.aliveStart) * 0.001;
+        const lastPt = toCanvas(dataPoints[dataPoints.length - 1]);
+        const breathe = 0.5 + 0.5 * Math.sin(aliveT * 0.8);
+
+        // Breathing halo
+        ctx.beginPath();
+        ctx.arc(lastPt.cx, lastPt.cy, 8 + breathe * 4, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(0.04 + breathe * 0.06);
+        ctx.fill();
+
+        // Steady core dot
+        ctx.beginPath();
+        ctx.arc(lastPt.cx, lastPt.cy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(0.95);
+        ctx.fill();
+
+        // Subtle scanline sweep (periodic)
+        const sweepCycle = aliveT % 6;
+        if (sweepCycle < 1.5) {
+          const sweepX = chartL + (sweepCycle / 1.5) * chartW;
+          const grad = ctx.createLinearGradient(sweepX - 15, 0, sweepX + 15, 0);
+          grad.addColorStop(0, rgba(0));
+          grad.addColorStop(0.5, rgba(0.06));
+          grad.addColorStop(1, rgba(0));
+          ctx.fillStyle = grad;
+          ctx.fillRect(sweepX - 15, chartT, 30, chartH);
+        }
+      }
+
+      // --- Axis labels (minimal) ---
+      if (gridP > 0.5) {
+        const labelA = Math.min(1, (gridP - 0.5) * 2) * 0.25;
+        ctx.font = `500 ${7}px -apple-system, system-ui, sans-serif`;
+        ctx.fillStyle = `rgba(255,255,255,${labelA})`;
+        ctx.textAlign = 'left';
+        ctx.fillText('SEM 1', chartL, chartB + 14);
+        ctx.textAlign = 'right';
+        ctx.fillText('SEM 12', chartR, chartB + 14);
+        ctx.textAlign = 'center';
+        ctx.fillText('HOY', chartR - 5, chartB + 14);
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [accentColor]);
 
   return (
-    <div ref={ref} className="relative w-[220px] h-[180px]">
-      <svg viewBox="0 0 160 130" className="w-full h-full" fill="none" strokeLinecap="round">
-        {/* Grid */}
-        {[40, 60, 80, 100].map((y, i) => (
-          <line key={`h${i}`} className="grid-ln" x1="8" y1={y} x2="152" y2={y} stroke="white" strokeWidth="0.3" opacity="0" />
-        ))}
-        {[30, 60, 90, 120, 150].map((x, i) => (
-          <line key={`v${i}`} className="grid-ln" x1={x} y1="25" x2={x} y2="115" stroke="white" strokeWidth="0.3" opacity="0" />
-        ))}
-        {/* Area fill */}
-        <path className="chart-area" d={areaD} fill={accentColor} opacity="0" />
-        {/* Line */}
-        <path className="chart-ln" d={chartD} stroke={accentColor} strokeWidth="2" opacity="0" />
-        {/* Data points */}
-        {points.map((p, i) => (
-          <circle key={i} className="data-pt" cx={p.x} cy={p.y} r="2.5" fill={accentColor} opacity="0" />
-        ))}
-        {/* End pulse */}
-        <circle className="end-pulse" cx="150" cy="28" r="10" fill={accentColor} opacity="0" />
-        <circle className="end-dot" cx="150" cy="28" r="3.5" fill={accentColor} opacity="0" />
-      </svg>
+    <div className="relative flex items-center justify-center" style={{ width: 320, height: 260 }}>
+      <canvas ref={canvasRef} className="relative z-10" />
     </div>
   );
 };
