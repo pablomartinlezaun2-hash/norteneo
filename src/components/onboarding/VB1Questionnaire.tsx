@@ -884,32 +884,12 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* Success core */}
-                <motion.div
-                  className="relative mb-8"
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, ease }}
-                >
-                  <motion.div
-                    className="absolute inset-[-16px] rounded-full"
-                    style={{ background: 'radial-gradient(circle, hsla(140,50%,60%,0.1) 0%, transparent 70%)' }}
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.15, 0.6] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                  <div className="w-14 h-14 rounded-2xl border border-white/[0.06] bg-white/[0.03] flex items-center justify-center">
-                    <motion.svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                      stroke="hsla(140,50%,70%,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    >
-                      <motion.path
-                        d="M5 13l4 4L19 7"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.6, delay: 0.3, ease }}
-                      />
-                    </motion.svg>
-                  </div>
-                </motion.div>
+                {/* Fully built avatar with nervous system */}
+                <div className="relative w-full mb-4" style={{ height: 280 }}>
+                  <Suspense fallback={null}>
+                    <CalibrationAvatar buildStage={8} />
+                  </Suspense>
+                </div>
 
                 <motion.p
                   className="text-[8px] tracking-[0.3em] uppercase font-bold text-white/15 mb-2"
@@ -929,12 +909,12 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   Sistema listo
                 </motion.h1>
                 <motion.p
-                  className="text-[13px] text-white/25 font-light mb-10 max-w-[260px]"
+                  className="text-[13px] text-white/25 font-light mb-8 max-w-[260px]"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
                 >
-                  NEO se adapta a tu perfil a partir de aquí.
+                  NEO ha construido tu modelo fisiológico.
                 </motion.p>
 
                 <motion.button
