@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VB1Questionnaire } from './VB1Questionnaire';
 import { VB2Questionnaire } from './VB2Questionnaire';
@@ -9,146 +9,40 @@ interface NeoAssistantProps {
   onSkip: () => void;
 }
 
-type Phase = 'boot' | 'intro' | 'compare' | 'questionnaire';
+type Phase = 'boot' | 'flow' | 'choose' | 'questionnaire';
 
 const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
-/* ─── Boot messages ─── */
-const BOOT_LINES = [
-  'Inicializando NEO',
-  'Detectando perfil',
-  'Calibrando sistema',
-  'Preparando modelos',
-];
+/* ═══════════════════════════════════════════════════════════════
+   BIFURCATION CANVAS — energy stream that splits into two paths
+   ═══════════════════════════════════════════════════════════════ */
 
-/* ─── Mini Dashboard Components ─── */
+interface StreamParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  branch: 'trunk' | 'left' | 'right';
+  brightness: number;
+}
 
-const VB1Dashboard = ({ animate }: { animate: boolean }) => (
-  <div className="w-full space-y-2.5">
-    {/* Simple metric row */}
-    <div className="flex gap-2">
-      {[65, 42, 78].map((v, i) => (
-        <motion.div
-          key={i}
-          className="flex-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={animate ? { opacity: 1, scale: 1 } : {}}
-          transition={{ delay: 0.1 + i * 0.12, duration: 0.5, ease }}
-        >
-          <div className="text-[9px] tracking-[0.12em] uppercase text-white/25 mb-1">
-            {['Sesiones', 'Volumen', 'Ritmo'][i]}
-          </div>
-          <motion.div
-            className="text-[17px] font-semibold text-white/80 tabular-nums"
-            initial={{ opacity: 0 }}
-            animate={animate ? { opacity: 1 } : {}}
-            transition={{ delay: 0.3 + i * 0.12, duration: 0.4 }}
-          >
-            {v}
-          </motion.div>
-        </motion.div>
-      ))}
-    </div>
-    {/* Simple bar chart */}
-    <motion.div
-      className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-3"
-      initial={{ opacity: 0, y: 6 }}
-      animate={animate ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: 0.5, duration: 0.5, ease }}
-    >
-      <div className="flex items-end gap-1.5 h-[32px]">
-        {[40, 60, 35, 70, 50, 65, 45].map((h, i) => (
-          <motion.div
-            key={i}
-            className="flex-1 rounded-sm bg-white/10"
-            initial={{ height: 0 }}
-            animate={animate ? { height: `${h}%` } : {}}
-            transition={{ delay: 0.6 + i * 0.05, duration: 0.4, ease }}
-          />
-        ))}
-      </div>
-    </motion.div>
-  </div>
-);
-
-const VB2Dashboard = ({ animate }: { animate: boolean }) => (
-  <div className="w-full space-y-2.5">
-    {/* Dense metric grid */}
-    <div className="grid grid-cols-3 gap-1.5">
-      {[
-        { label: 'RIR', value: '1.2' },
-        { label: 'Fatiga', value: '34%' },
-        { label: 'MRV', value: '18' },
-        { label: 'Tendencia', value: '+4%' },
-        { label: 'Readiness', value: '87' },
-        { label: 'Carga', value: '2.4k' },
-      ].map((m, i) => (
-        <motion.div
-          key={i}
-          className="rounded-md bg-white/[0.04] border border-white/[0.06] p-2"
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={animate ? { opacity: 1, scale: 1 } : {}}
-          transition={{ delay: 0.1 + i * 0.07, duration: 0.45, ease }}
-        >
-          <div className="text-[8px] tracking-[0.14em] uppercase text-white/20 mb-0.5">{m.label}</div>
-          <motion.div
-            className="text-[13px] font-semibold text-white/80 tabular-nums"
-            initial={{ opacity: 0 }}
-            animate={animate ? { opacity: 1 } : {}}
-            transition={{ delay: 0.25 + i * 0.07, duration: 0.35 }}
-          >
-            {m.value}
-          </motion.div>
-        </motion.div>
-      ))}
-    </div>
-    {/* Complex chart area */}
-    <motion.div
-      className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-3"
-      initial={{ opacity: 0, y: 6 }}
-      animate={animate ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: 0.55, duration: 0.5, ease }}
-    >
-      <div className="flex items-end gap-1 h-[28px] mb-2">
-        {[30, 55, 45, 80, 60, 75, 50, 85, 65, 70].map((h, i) => (
-          <motion.div
-            key={i}
-            className="flex-1 rounded-sm bg-white/15"
-            initial={{ height: 0 }}
-            animate={animate ? { height: `${h}%` } : {}}
-            transition={{ delay: 0.65 + i * 0.04, duration: 0.35, ease }}
-          />
-        ))}
-      </div>
-      {/* Data trace line */}
-      <svg viewBox="0 0 200 20" className="w-full h-3 overflow-visible">
-        <motion.path
-          d="M0,15 Q25,5 50,10 T100,8 T150,12 T200,6"
-          fill="none"
-          stroke="rgba(255,255,255,0.15)"
-          strokeWidth="1"
-          initial={{ pathLength: 0 }}
-          animate={animate ? { pathLength: 1 } : {}}
-          transition={{ delay: 0.8, duration: 0.8, ease }}
-        />
-        <motion.path
-          d="M0,18 Q30,12 60,14 T120,10 T200,4"
-          fill="none"
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth="0.8"
-          strokeDasharray="2 3"
-          initial={{ pathLength: 0 }}
-          animate={animate ? { pathLength: 1 } : {}}
-          transition={{ delay: 1, duration: 0.7, ease }}
-        />
-      </svg>
-    </motion.div>
-  </div>
-);
-
-/* ─── Boot Sequence Canvas ─── */
-const BootCanvas = ({ progress }: { progress: number }) => {
+const BifurcationCanvas = ({
+  progress,
+  phase,
+}: {
+  progress: number; // 0→1 overall animation progress
+  phase: 'boot' | 'flow' | 'choose';
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particlesRef = useRef<StreamParticle[]>([]);
+  const frameRef = useRef(0);
+  const progressRef = useRef(progress);
+  const phaseRef = useRef(phase);
+  progressRef.current = progress;
+  phaseRef.current = phase;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -156,111 +50,295 @@ const BootCanvas = ({ progress }: { progress: number }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = canvas.offsetWidth * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-    ctx.scale(dpr, dpr);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = 0;
+    let h = 0;
 
-    const w = canvas.offsetWidth;
-    const h = canvas.offsetHeight;
+    const resize = () => {
+      w = canvas.offsetWidth;
+      h = canvas.offsetHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
 
-    ctx.clearRect(0, 0, w, h);
+    // Path definitions — relative coords
+    const trunkPath = (t: number, _w: number, _h: number) => {
+      const startY = _h * 0.82;
+      const endY = _h * 0.42;
+      const y = startY + (endY - startY) * t;
+      const x = _w / 2 + Math.sin(t * Math.PI * 1.2) * 3;
+      return { x, y };
+    };
 
-    // Subtle grid
-    ctx.strokeStyle = `rgba(255,255,255,${0.02 * Math.min(progress * 2, 1)})`;
-    ctx.lineWidth = 0.5;
-    const gridSize = 40;
-    for (let x = 0; x < w; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    for (let y = 0; y < h; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
+    const leftPath = (t: number, _w: number, _h: number) => {
+      const startY = _h * 0.42;
+      const endY = _h * 0.22;
+      const y = startY + (endY - startY) * t;
+      const x = _w / 2 - t * (_w * 0.28) - Math.sin(t * Math.PI) * 8;
+      return { x, y };
+    };
 
-    // Center crosshair
-    const cx = w / 2;
-    const cy = h / 2;
-    const crossSize = 20 * progress;
-    ctx.strokeStyle = `rgba(255,255,255,${0.08 * progress})`;
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(cx - crossSize, cy);
-    ctx.lineTo(cx + crossSize, cy);
-    ctx.moveTo(cx, cy - crossSize);
-    ctx.lineTo(cx, cy + crossSize);
-    ctx.stroke();
+    const rightPath = (t: number, _w: number, _h: number) => {
+      const startY = _h * 0.42;
+      const endY = _h * 0.22;
+      const y = startY + (endY - startY) * t;
+      const x = _w / 2 + t * (_w * 0.28) + Math.sin(t * Math.PI) * 8;
+      return { x, y };
+    };
 
-    // Scanning circle
-    const radius = 60 * progress;
-    ctx.strokeStyle = `rgba(255,255,255,${0.04 * progress})`;
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2 * progress);
-    ctx.stroke();
-  }, [progress]);
+    let animId: number;
+
+    const spawnParticle = (branch: 'trunk' | 'left' | 'right') => {
+      const t = Math.random();
+      let pos: { x: number; y: number };
+      if (branch === 'trunk') pos = trunkPath(t, w, h);
+      else if (branch === 'left') pos = leftPath(t, w, h);
+      else pos = rightPath(t, w, h);
+
+      particlesRef.current.push({
+        x: pos.x + (Math.random() - 0.5) * 6,
+        y: pos.y + (Math.random() - 0.5) * 4,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: -0.2 - Math.random() * 0.4,
+        life: 0,
+        maxLife: 40 + Math.random() * 60,
+        size: 0.4 + Math.random() * 1.2,
+        branch,
+        brightness: 0.3 + Math.random() * 0.7,
+      });
+    };
+
+    const animate = () => {
+      frameRef.current++;
+      const p = progressRef.current;
+      const ph = phaseRef.current;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // ── Draw the main stream paths ──
+      const drawTrunk = p > 0;
+      const drawBranches = p > 0.35;
+      const trunkLen = Math.min(p / 0.4, 1);
+      const branchLen = Math.max(0, (p - 0.35) / 0.5);
+
+      if (drawTrunk && w > 0) {
+        // Trunk path
+        ctx.beginPath();
+        for (let t = 0; t <= trunkLen; t += 0.005) {
+          const pt = trunkPath(t, w, h);
+          if (t === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        const trunkAlpha = Math.min(p * 2, 0.35);
+        ctx.strokeStyle = `rgba(255,255,255,${trunkAlpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Glow
+        ctx.beginPath();
+        for (let t = 0; t <= trunkLen; t += 0.005) {
+          const pt = trunkPath(t, w, h);
+          if (t === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.strokeStyle = `rgba(255,255,255,${trunkAlpha * 0.15})`;
+        ctx.lineWidth = 6;
+        ctx.stroke();
+      }
+
+      if (drawBranches && w > 0) {
+        const bl = Math.min(branchLen, 1);
+
+        // Left branch — cooler/silver
+        ctx.beginPath();
+        for (let t = 0; t <= bl; t += 0.005) {
+          const pt = leftPath(t, w, h);
+          if (t === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        const lAlpha = bl * 0.3;
+        ctx.strokeStyle = `rgba(180,200,220,${lAlpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        // glow
+        ctx.strokeStyle = `rgba(180,200,220,${lAlpha * 0.12})`;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // Right branch — cyan/electric
+        ctx.beginPath();
+        for (let t = 0; t <= bl; t += 0.005) {
+          const pt = rightPath(t, w, h);
+          if (t === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        const rAlpha = bl * 0.35;
+        ctx.strokeStyle = `rgba(130,210,255,${rAlpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        // glow
+        ctx.strokeStyle = `rgba(130,210,255,${rAlpha * 0.15})`;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+      }
+
+      // ── Bifurcation point glow ──
+      if (p > 0.3 && w > 0) {
+        const forkPt = trunkPath(1, w, h);
+        const forkAlpha = Math.min((p - 0.3) / 0.3, 1) * 0.12;
+        const pulse = 1 + Math.sin(frameRef.current * 0.04) * 0.15;
+        const grad = ctx.createRadialGradient(forkPt.x, forkPt.y, 0, forkPt.x, forkPt.y, 30 * pulse);
+        grad.addColorStop(0, `rgba(255,255,255,${forkAlpha})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(forkPt.x - 40, forkPt.y - 40, 80, 80);
+      }
+
+      // ── Particles ──
+      // Spawn
+      if (ph !== 'boot') {
+        const spawnRate = ph === 'choose' ? 2 : 3;
+        for (let i = 0; i < spawnRate; i++) {
+          if (drawTrunk) spawnParticle('trunk');
+          if (drawBranches && branchLen > 0.1) {
+            spawnParticle('left');
+            spawnParticle('right');
+          }
+        }
+      }
+
+      // Update & draw
+      const alive: StreamParticle[] = [];
+      for (const pt of particlesRef.current) {
+        pt.life++;
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        if (pt.life < pt.maxLife) {
+          alive.push(pt);
+          const lifeRatio = pt.life / pt.maxLife;
+          const fade = lifeRatio < 0.2 ? lifeRatio / 0.2 : lifeRatio > 0.7 ? (1 - lifeRatio) / 0.3 : 1;
+          const alpha = fade * pt.brightness * 0.4;
+
+          let r = 255, g = 255, b = 255;
+          if (pt.branch === 'left') { r = 180; g = 200; b = 220; }
+          if (pt.branch === 'right') { r = 130; g = 210; b = 255; }
+
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+          ctx.fill();
+        }
+      }
+      particlesRef.current = alive;
+
+      // ── Leading pulse on trunk ──
+      if (drawTrunk && trunkLen < 1 && w > 0) {
+        const headPt = trunkPath(trunkLen, w, h);
+        const hGrad = ctx.createRadialGradient(headPt.x, headPt.y, 0, headPt.x, headPt.y, 8);
+        hGrad.addColorStop(0, 'rgba(255,255,255,0.6)');
+        hGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = hGrad;
+        ctx.fillRect(headPt.x - 10, headPt.y - 10, 20, 20);
+      }
+
+      // ── Endpoint indicators (choose phase) ──
+      if (ph === 'choose' && w > 0) {
+        const chooseAlpha = Math.min((p - 0.85) / 0.15, 1);
+        if (chooseAlpha > 0) {
+          // Left endpoint
+          const lEnd = leftPath(1, w, h);
+          const lGrad = ctx.createRadialGradient(lEnd.x, lEnd.y, 0, lEnd.x, lEnd.y, 20);
+          lGrad.addColorStop(0, `rgba(180,200,220,${chooseAlpha * 0.08})`);
+          lGrad.addColorStop(1, 'rgba(180,200,220,0)');
+          ctx.fillStyle = lGrad;
+          ctx.fillRect(lEnd.x - 30, lEnd.y - 30, 60, 60);
+
+          // Right endpoint
+          const rEnd = rightPath(1, w, h);
+          const rGrad = ctx.createRadialGradient(rEnd.x, rEnd.y, 0, rEnd.x, rEnd.y, 20);
+          rGrad.addColorStop(0, `rgba(130,210,255,${chooseAlpha * 0.1})`);
+          rGrad.addColorStop(1, 'rgba(130,210,255,0)');
+          ctx.fillStyle = rGrad;
+          ctx.fillRect(rEnd.x - 30, rEnd.y - 30, 60, 60);
+        }
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.6 }}
+      className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
     />
   );
 };
 
-/* ─── Main Component ─── */
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════════════════ */
+
 export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
   const [phase, setPhase] = useState<Phase>('boot');
-  const [bootLine, setBootLine] = useState(0);
-  const [bootProgress, setBootProgress] = useState(0);
+  const [flowProgress, setFlowProgress] = useState(0);
   const [selectedModel, setSelectedModel] = useState<'vb1' | 'vb2' | null>(null);
-  const [compareReady, setCompareReady] = useState(false);
+  const [bootText, setBootText] = useState(0);
 
-  // Boot sequence
+  const BOOT_TEXTS = ['Inicializando NEO', 'Analizando perfil', 'Preparando sistema'];
+
+  // Boot → flow transition
   useEffect(() => {
     if (phase !== 'boot') return;
+    const intervals = BOOT_TEXTS.map((_, i) =>
+      setTimeout(() => setBootText(i), i * 700)
+    );
+    const toFlow = setTimeout(() => setPhase('flow'), BOOT_TEXTS.length * 700 + 300);
+    return () => {
+      intervals.forEach(clearTimeout);
+      clearTimeout(toFlow);
+    };
+  }, [phase]);
 
+  // Flow animation → choose
+  useEffect(() => {
+    if (phase !== 'flow') return;
     let frame = 0;
-    const totalFrames = 120; // ~2s at 60fps
-    const lineInterval = totalFrames / BOOT_LINES.length;
-
+    const total = 150; // ~2.5s
+    let id: number;
     const tick = () => {
       frame++;
-      setBootProgress(frame / totalFrames);
-      const newLine = Math.min(Math.floor(frame / lineInterval), BOOT_LINES.length - 1);
-      setBootLine(newLine);
-
-      if (frame < totalFrames) {
-        requestAnimationFrame(tick);
+      setFlowProgress(frame / total);
+      if (frame < total) {
+        id = requestAnimationFrame(tick);
       } else {
-        setTimeout(() => setPhase('intro'), 400);
+        setTimeout(() => setPhase('choose'), 200);
       }
     };
-    requestAnimationFrame(tick);
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
   }, [phase]);
 
-  // Auto-advance from intro
+  // Keep progress at 1 during choose
   useEffect(() => {
-    if (phase !== 'intro') return;
-    const timer = setTimeout(() => {
-      setPhase('compare');
-      setTimeout(() => setCompareReady(true), 200);
-    }, 2400);
-    return () => clearTimeout(timer);
+    if (phase === 'choose') setFlowProgress(1);
   }, [phase]);
 
-  // Questionnaire flows
+  // Questionnaire routing
   if (phase === 'questionnaire' && selectedModel === 'vb1') {
-    return <VB1Questionnaire onComplete={onComplete} onBack={() => { setPhase('compare'); setSelectedModel(null); }} />;
+    return <VB1Questionnaire onComplete={onComplete} onBack={() => { setPhase('choose'); setSelectedModel(null); }} />;
   }
   if (phase === 'questionnaire' && selectedModel === 'vb2') {
-    return <VB2Questionnaire onComplete={onComplete} onBack={() => { setPhase('compare'); setSelectedModel(null); }} />;
+    return <VB2Questionnaire onComplete={onComplete} onBack={() => { setPhase('choose'); setSelectedModel(null); }} />;
   }
 
   const selectModel = (model: 'vb1' | 'vb2') => {
@@ -268,308 +346,213 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
     setPhase('questionnaire');
   };
 
+  const canvasPhase = phase === 'questionnaire' ? 'choose' : (phase as 'boot' | 'flow' | 'choose');
+
   return (
-    <div className="fixed inset-0 bg-black z-50 overflow-hidden">
-      {/* Skip button */}
+    <div className="fixed inset-0 bg-black z-50 overflow-hidden flex flex-col">
+      {/* Canvas — always present */}
+      <BifurcationCanvas progress={flowProgress} phase={canvasPhase} />
+
+      {/* Skip */}
       <motion.button
         onClick={onSkip}
-        className="absolute top-6 right-6 z-20 text-[11px] tracking-[0.16em] uppercase font-medium text-white/15 hover:text-white/40 transition-colors duration-300"
+        className="absolute top-5 right-5 z-20 text-[10px] tracking-[0.18em] uppercase font-medium text-white/15 hover:text-white/40 transition-colors"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.5 }}
+        transition={{ delay: 1.5, duration: 0.5 }}
       >
-        Saltar
+        Omitir
       </motion.button>
 
       <AnimatePresence mode="wait">
-        {/* ════════ PHASE 1: BOOT ════════ */}
+        {/* ════ BOOT ════ */}
         {phase === 'boot' && (
           <motion.div
             key="boot"
-            className="absolute inset-0 flex flex-col items-center justify-center"
+            className="absolute inset-0 flex flex-col items-center justify-center z-10"
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease }}
+            transition={{ duration: 0.6, ease }}
           >
-            <BootCanvas progress={bootProgress} />
-
-            {/* Logo */}
-            <motion.div
-              className="relative z-10 mb-12"
-              initial={{ opacity: 0, scale: 0.9 }}
+            <motion.span
+              className="text-[28px] font-bold tracking-[0.12em] text-white/90 mb-8 select-none"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, ease }}
             >
-              <span
-                className="text-[2.2rem] font-bold tracking-[0.1em] text-white/90 select-none"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              NEO
+            </motion.span>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={bootText}
+                className="text-[11px] tracking-[0.2em] uppercase text-white/20 font-medium"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease }}
               >
-                NEO
-              </span>
-            </motion.div>
-
-            {/* Boot lines */}
-            <div className="relative z-10 flex flex-col items-center gap-3">
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={bootLine}
-                  className="text-[11px] tracking-[0.2em] uppercase text-white/25 font-medium"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.25, ease }}
-                >
-                  {BOOT_LINES[bootLine]}
-                </motion.p>
-              </AnimatePresence>
-
-              {/* Progress bar */}
-              <div className="w-[120px] h-[1px] bg-white/[0.06] rounded-full overflow-hidden mt-2">
-                <motion.div
-                  className="h-full bg-white/20 rounded-full"
-                  style={{ width: `${bootProgress * 100}%` }}
-                />
-              </div>
-            </div>
+                {BOOT_TEXTS[bootText]}
+              </motion.p>
+            </AnimatePresence>
           </motion.div>
         )}
 
-        {/* ════════ PHASE 2: INTRO ════════ */}
-        {phase === 'intro' && (
+        {/* ════ FLOW (watching the bifurcation animate) ════ */}
+        {phase === 'flow' && (
           <motion.div
-            key="intro"
-            className="absolute inset-0 flex flex-col items-center justify-center px-8"
+            key="flow"
+            className="absolute inset-0 flex flex-col items-center z-10 pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease }}
           >
-            {/* Scanning line */}
+            {/* Top text — appears during flow */}
             <motion.div
-              className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"
-              initial={{ top: '30%' }}
-              animate={{ top: '70%' }}
-              transition={{ duration: 2, ease: 'linear', repeat: Infinity, repeatType: 'reverse' }}
-            />
-
-            <motion.div
-              className="relative z-10 flex flex-col items-center text-center max-w-[300px]"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.7, ease }}
+              className="mt-[15vh] text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: flowProgress > 0.15 ? 1 : 0, y: flowProgress > 0.15 ? 0 : 10 }}
+              transition={{ duration: 0.6, ease }}
             >
-              {/* Small system label */}
-              <motion.div
-                className="text-[10px] tracking-[0.25em] uppercase text-white/20 font-medium mb-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
+              <p className="text-[10px] tracking-[0.25em] uppercase text-white/15 font-medium mb-3">
                 Sistema adaptativo
-              </motion.div>
-
-              {/* Main headline – each word reveals */}
-              <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-white/90 leading-[1.2] mb-4">
-                <motion.span
-                  className="block"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6, ease }}
-                >
-                  NEO se adapta
-                </motion.span>
-                <motion.span
-                  className="block text-white/40"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6, ease }}
-                >
-                  a tu nivel
-                </motion.span>
-              </h1>
-
-              <motion.p
-                className="text-[13px] font-light leading-relaxed text-white/25"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1, duration: 0.6 }}
-              >
-                Dos niveles de profundidad.
+              </p>
+              <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-white/85 leading-tight">
+                Dos caminos.
                 <br />
-                Una decisión que define tu experiencia.
-              </motion.p>
+                <span className="text-white/40">Una decisión.</span>
+              </h1>
             </motion.div>
           </motion.div>
         )}
 
-        {/* ════════ PHASE 3: COMPARE ════════ */}
-        {phase === 'compare' && (
+        {/* ════ CHOOSE — final state, no scroll ════ */}
+        {phase === 'choose' && (
           <motion.div
-            key="compare"
-            className="absolute inset-0 flex flex-col overflow-y-auto"
+            key="choose"
+            className="absolute inset-0 flex flex-col z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease }}
+            transition={{ duration: 0.5, ease }}
           >
             {/* Header */}
-            <div className="flex-shrink-0 pt-14 pb-6 px-6 text-center">
-              <motion.div
-                className="text-[10px] tracking-[0.25em] uppercase text-white/15 font-medium mb-3"
+            <div className="flex-shrink-0 pt-[max(env(safe-area-inset-top),20px)] px-6">
+              <motion.p
+                className="text-[10px] tracking-[0.2em] uppercase text-white/15 font-medium text-center mb-1.5 mt-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
-                Selección de modelo
-              </motion.div>
+                Nivel de profundidad
+              </motion.p>
               <motion.h1
-                className="text-[24px] font-semibold tracking-[-0.02em] text-white/90"
-                initial={{ opacity: 0, y: 10 }}
+                className="text-[22px] font-semibold tracking-[-0.02em] text-white/90 text-center"
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6, ease }}
+                transition={{ delay: 0.3, duration: 0.5, ease }}
               >
-                Elige tu nivel
+                Elige tu camino
               </motion.h1>
             </div>
 
-            {/* Cards container */}
-            <div className="flex-1 px-5 pb-10 space-y-4">
+            {/* Spacer — canvas shows the bifurcation in this area */}
+            <div className="flex-1 min-h-0" />
 
-              {/* ── VB1 Card ── */}
-              <motion.div
-                className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={compareReady ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.1, duration: 0.6, ease }}
-              >
-                <div className="p-5 pb-4">
-                  {/* Tag + title */}
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <div className="h-5 px-2 rounded bg-white/[0.06] flex items-center">
-                      <span className="text-[9px] tracking-[0.14em] uppercase font-medium text-white/30">Esencial</span>
-                    </div>
-                  </div>
-                  <h2 className="text-[22px] font-semibold text-white/90 tracking-[-0.01em] mt-2">
-                    NEO VB1
-                  </h2>
-                  <p className="text-[13px] font-light text-white/30 mt-1 leading-snug">
-                    Empieza más rápido. Menos configuración, más claridad.
-                  </p>
-                </div>
-
-                {/* Mini dashboard */}
-                <div className="px-5 pb-4">
-                  <VB1Dashboard animate={compareReady} />
-                </div>
-
-                {/* Features */}
-                <div className="px-5 pb-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Seguimiento', 'Progreso', 'Nutrición básica'].map((f, i) => (
-                      <motion.span
-                        key={f}
-                        className="h-6 px-2.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[10px] font-medium text-white/30 flex items-center"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={compareReady ? { opacity: 1, scale: 1 } : {}}
-                        transition={{ delay: 0.7 + i * 0.08, duration: 0.4, ease }}
-                      >
-                        {f}
-                      </motion.span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* CTA */}
-                <div className="px-5 pb-5">
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => selectModel('vb1')}
-                    className="w-full h-[48px] rounded-xl bg-white/90 text-black text-[14px] font-semibold tracking-[0.01em] transition-colors hover:bg-white"
-                    initial={{ opacity: 0 }}
-                    animate={compareReady ? { opacity: 1 } : {}}
-                    transition={{ delay: 0.9, duration: 0.5 }}
-                  >
-                    Empezar con VB1
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* ── VB2 Card ── */}
-              <motion.div
-                className="rounded-2xl border border-white/[0.08] overflow-hidden relative"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={compareReady ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.3, duration: 0.6, ease }}
-              >
-                {/* Subtle top glow */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-                <div className="p-5 pb-4">
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <div className="h-5 px-2 rounded bg-white/[0.08] flex items-center">
-                      <span className="text-[9px] tracking-[0.14em] uppercase font-medium text-white/40">Avanzado</span>
-                    </div>
-                    <div className="h-5 px-2 rounded bg-white/[0.05] flex items-center">
-                      <span className="text-[9px] tracking-[0.12em] uppercase font-medium text-white/20">1:1</span>
-                    </div>
-                  </div>
-                  <h2 className="text-[22px] font-semibold text-white/90 tracking-[-0.01em] mt-2">
-                    NEO VB2
-                  </h2>
-                  <p className="text-[13px] font-light text-white/30 mt-1 leading-snug">
-                    Máxima precisión. Análisis profundo. Asesoría 1:1.
-                  </p>
-                </div>
-
-                {/* Dense dashboard */}
-                <div className="px-5 pb-4">
-                  <VB2Dashboard animate={compareReady} />
-                </div>
-
-                {/* Features */}
-                <div className="px-5 pb-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {['RIR Tracking', 'Autorregulación', 'Fatiga AI', 'Periodización', 'Asesoría 1:1'].map((f, i) => (
-                      <motion.span
-                        key={f}
-                        className="h-6 px-2.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[10px] font-medium text-white/30 flex items-center"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={compareReady ? { opacity: 1, scale: 1 } : {}}
-                        transition={{ delay: 0.8 + i * 0.06, duration: 0.4, ease }}
-                      >
-                        {f}
-                      </motion.span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Advisory note */}
-                <motion.div
-                  className="mx-5 mb-4 rounded-xl bg-white/[0.03] border border-white/[0.05] p-3"
-                  initial={{ opacity: 0 }}
-                  animate={compareReady ? { opacity: 1 } : {}}
-                  transition={{ delay: 1.1, duration: 0.5 }}
+            {/* Bottom selection — two compact cards side by side */}
+            <div className="flex-shrink-0 px-4 pb-[max(env(safe-area-inset-bottom),24px)]">
+              <div className="flex gap-3">
+                {/* VB1 */}
+                <motion.button
+                  onClick={() => selectModel('vb1')}
+                  className="flex-1 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 text-left active:scale-[0.97] transition-transform relative overflow-hidden"
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.5, duration: 0.6, ease }}
+                  whileTap={{ scale: 0.97 }}
                 >
-                  <p className="text-[11px] font-light leading-relaxed text-white/20">
-                    VB2 requiere más tiempo de configuración y compromiso. Incluye revisión manual y asesoría directa con Pablo.
-                  </p>
-                </motion.div>
+                  {/* Subtle identity — silver accent line */}
+                  <div className="absolute top-0 left-3 right-3 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                {/* CTA */}
-                <div className="px-5 pb-5">
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => selectModel('vb2')}
-                    className="w-full h-[48px] rounded-xl border border-white/[0.12] bg-white/[0.04] text-white/90 text-[14px] font-semibold tracking-[0.01em] transition-all hover:bg-white/[0.08] hover:border-white/[0.18]"
-                    initial={{ opacity: 0 }}
-                    animate={compareReady ? { opacity: 1 } : {}}
-                    transition={{ delay: 1.2, duration: 0.5 }}
-                  >
-                    Activar máxima precisión
-                  </motion.button>
-                </div>
-              </motion.div>
+                  {/* Mini visual — simple bars */}
+                  <div className="flex items-end gap-[3px] h-[28px] mb-3">
+                    {[35, 55, 40, 60, 45].map((barH, i) => (
+                      <motion.div
+                        key={i}
+                        className="flex-1 rounded-[2px] bg-white/[0.08]"
+                        initial={{ height: 0 }}
+                        animate={{ height: `${barH}%` }}
+                        transition={{ delay: 0.8 + i * 0.06, duration: 0.4, ease }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="text-[18px] font-semibold text-white/85 tracking-[-0.01em] mb-1">
+                    VB1
+                  </div>
+                  <p className="text-[11px] text-white/30 leading-snug font-light">
+                    Más simple.
+                    <br />
+                    Más directo.
+                  </p>
+
+                  {/* CTA bar */}
+                  <div className="mt-3 h-[36px] rounded-xl bg-white/[0.06] border border-white/[0.06] flex items-center justify-center">
+                    <span className="text-[11px] font-semibold text-white/50 tracking-[0.02em]">
+                      Entrar con VB1
+                    </span>
+                  </div>
+                </motion.button>
+
+                {/* VB2 */}
+                <motion.button
+                  onClick={() => selectModel('vb2')}
+                  className="flex-1 rounded-2xl border border-white/[0.1] bg-white/[0.035] p-4 text-left active:scale-[0.97] transition-transform relative overflow-hidden"
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.65, duration: 0.6, ease }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {/* Accent line — cyan tint */}
+                  <div className="absolute top-0 left-3 right-3 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+
+                  {/* Mini visual — dense grid */}
+                  <div className="grid grid-cols-3 gap-[3px] mb-3">
+                    {[65, 42, 78, 55, 80, 48].map((v, i) => (
+                      <motion.div
+                        key={i}
+                        className="h-[12px] rounded-[2px] bg-white/[0.06]"
+                        initial={{ opacity: 0, scaleX: 0 }}
+                        animate={{ opacity: 1, scaleX: 1 }}
+                        transition={{ delay: 0.9 + i * 0.05, duration: 0.35, ease }}
+                        style={{ transformOrigin: 'left' }}
+                      >
+                        <motion.div
+                          className="h-full rounded-[2px] bg-cyan-400/15"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${v}%` }}
+                          transition={{ delay: 1.0 + i * 0.05, duration: 0.4, ease }}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  <div className="text-[18px] font-semibold text-white/90 tracking-[-0.01em] mb-1">
+                    VB2
+                  </div>
+                  <p className="text-[11px] text-white/35 leading-snug font-light">
+                    Más precisión.
+                    <br />
+                    Más análisis.
+                  </p>
+
+                  {/* CTA bar — slightly more prominent */}
+                  <div className="mt-3 h-[36px] rounded-xl bg-white/[0.08] border border-cyan-400/10 flex items-center justify-center">
+                    <span className="text-[11px] font-semibold text-white/60 tracking-[0.02em]">
+                      Empezar VB2
+                    </span>
+                  </div>
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}
