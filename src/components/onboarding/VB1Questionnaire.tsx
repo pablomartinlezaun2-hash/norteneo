@@ -5,9 +5,7 @@ import { saveProfileToSupabase } from '@/lib/activateVB2';
 import { saveInitialMetrics } from '@/lib/saveInitialMetrics';
 import { mapVB1AnswersToProfile, mapVB1AnswersToMetrics } from '@/lib/questionnaireMapper';
 
-const CalibrationAvatar = lazy(() =>
-  import('./CalibrationAvatar').then(m => ({ default: m.CalibrationAvatar }))
-);
+import { CalibrationAvatar } from './CalibrationAvatar';
 
 /* ─── Types ─── */
 
