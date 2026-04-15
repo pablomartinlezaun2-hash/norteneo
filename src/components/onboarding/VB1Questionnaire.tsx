@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useNeoProfile } from '@/contexts/NeoProfileContext';
 import { saveProfileToSupabase } from '@/lib/activateVB2';
@@ -626,13 +626,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
       {/* 3D Calibration Avatar — visible during questions */}
       {!isIntro && !isComplete && (
         <div className="flex-shrink-0 relative" style={{ height: '38vh', minHeight: 220, maxHeight: 320 }}>
-          <Suspense fallback={
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-6 h-6 rounded-full border border-white/10 border-t-white/30 animate-spin" />
-            </div>
-          }>
-            <CalibrationAvatar buildStage={currentIdx} />
-          </Suspense>
+          <CalibrationAvatar buildStage={currentIdx} />
           {/* Stage label overlay */}
           <motion.div
             className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10"
@@ -744,11 +738,9 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* Avatar preview — shows empty platform */}
+                {/* Neural spine preview — empty state */}
                 <div className="relative w-full mb-6" style={{ height: 200 }}>
-                  <Suspense fallback={null}>
-                    <CalibrationAvatar buildStage={-1} />
-                  </Suspense>
+                  <CalibrationAvatar buildStage={-1} />
                 </div>
 
                 <motion.p
@@ -757,7 +749,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
-                  NEO · VB1 · CALIBRACIÓN
+                  NEO · LECTURA FISIOLÓGICA
                 </motion.p>
 
                 <motion.h1
@@ -766,7 +758,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5, ease }}
                 >
-                  Construyendo tu modelo
+                  Calibrando tu sistema
                 </motion.h1>
                 <motion.p
                   className="text-[13px] text-white/25 font-light leading-relaxed mb-8 max-w-[260px]"
@@ -774,7 +766,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.55, duration: 0.5, ease }}
                 >
-                  Cada respuesta calibra una capa de tu sistema fisiológico.
+                  Cada respuesta activa una capa de tu modelo fisiológico.
                 </motion.p>
 
                 <motion.button
@@ -882,11 +874,9 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* Fully built avatar with nervous system */}
+                {/* Fully calibrated neural system */}
                 <div className="relative w-full mb-4" style={{ height: 280 }}>
-                  <Suspense fallback={null}>
-                    <CalibrationAvatar buildStage={8} />
-                  </Suspense>
+                  <CalibrationAvatar buildStage={8} />
                 </div>
 
                 <motion.p
@@ -904,7 +894,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25, duration: 0.5, ease }}
                 >
-                  Sistema listo
+                  Señales activas
                 </motion.h1>
                 <motion.p
                   className="text-[13px] text-white/25 font-light mb-8 max-w-[260px]"
@@ -912,7 +902,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
                 >
-                  NEO ha construido tu modelo fisiológico.
+                  NEO ha calibrado tu modelo fisiológico.
                 </motion.p>
 
                 <motion.button
