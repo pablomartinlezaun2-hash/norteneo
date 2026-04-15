@@ -342,23 +342,23 @@ const WelcomeSlide = () => (
    ═══════════════════════════════════════════ */
 
 const TrainingSlide = ({ accent }: { accent: string }) => (
-  <div className="flex flex-col items-center gap-6">
+  <div className="flex flex-col items-center gap-5">
     <TrainingHeroVisual accentColor={accent} />
-    <div className="flex flex-col items-center gap-3 mt-2">
+    <div className="flex flex-col items-center gap-3 -mt-1">
       <TextReveal
         text="Precisión absoluta"
         as="h1"
-        className="text-[32px] md:text-[40px] font-bold tracking-[-0.03em] text-center leading-[1.08]"
+        className="text-[34px] md:text-[44px] font-bold tracking-[-0.04em] text-center leading-[1.05]"
         style_color="#F5F5F7"
-        delay={0.3}
+        delay={2.6}
       />
       <SubtitleReveal
-        text="Periodización avanzada, autoregulación inteligente y control total de cada serie, cada sesión, cada microciclo."
-        className="text-[14px] md:text-[15px] text-center max-w-[320px] leading-[1.65]"
-        delay={0.7}
+        text="Periodización avanzada, autorregulación inteligente y control total de cada serie, cada sesión, cada microciclo."
+        className="text-[13px] md:text-[15px] text-center max-w-[300px] leading-[1.7] tracking-[0.01em]"
+        delay={3.2}
       />
     </div>
-    <FeaturePills items={['Periodización', 'Autoregulación', 'Microciclos']} delay={1.2} color={accent} />
+    <FeaturePills items={['Periodización', 'Autorregulación', 'Microciclos']} delay={3.8} color={accent} />
   </div>
 );
 

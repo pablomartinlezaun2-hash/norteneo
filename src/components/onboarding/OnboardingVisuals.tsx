@@ -328,81 +328,318 @@ export const ClosingLogo = () => {
    HERO VISUALS — one per slide
    ═══════════════════════════════════════════════════════ */
 
-/* --- Training: Precision Rings --- */
+/* --- Training: Precision Calibration Instrument --- */
 export const TrainingHeroVisual = ({ accentColor }: { accentColor: string }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    if (!ref.current) return;
-    const ctx = gsap.context(() => {
-      const rings = ref.current!.querySelectorAll('.ring-arc');
-      const core = ref.current!.querySelector('.core-dot') as SVGElement;
-      const ticks = ref.current!.querySelectorAll('.tick-mark');
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      rings.forEach(r => {
-        const len = (r as SVGPathElement).getTotalLength();
-        gsap.set(r, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-      });
-      gsap.set(core, { opacity: 0, scale: 0, transformOrigin: 'center' });
-      gsap.set(ticks, { opacity: 0, scaleY: 0, transformOrigin: 'center bottom' });
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const SIZE = 320;
+    canvas.width = SIZE * dpr;
+    canvas.height = SIZE * dpr;
+    canvas.style.width = `${SIZE}px`;
+    canvas.style.height = `${SIZE}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const tl = gsap.timeline({ delay: 0.2 });
-      // Draw rings staggered
-      rings.forEach((r, i) => {
-        tl.to(r, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, i * 0.15);
-      });
-      // Core pulse
-      tl.to(core, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2)' }, 0.6);
-      // Ticks
-      ticks.forEach((t, i) => {
-        tl.to(t, { opacity: 0.6, scaleY: 1, duration: 0.3, ease: 'power2.out' }, 0.4 + i * 0.04);
-      });
-      // Breathing rotation
-      tl.to(ref.current!.querySelector('svg')!, {
-        rotation: 360, duration: 60, ease: 'none', repeat: -1,
-      }, 0);
-    }, ref);
-    return () => ctx.revert();
-  }, []);
+    const cx = SIZE / 2;
+    const cy = SIZE / 2;
+    let animId: number;
+    let start: number | null = null;
 
-  const cx = 80, cy = 80;
-  const arc = (r: number, start: number, end: number) => {
-    const s = (start * Math.PI) / 180;
-    const e = (end * Math.PI) / 180;
-    const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
-    const x2 = cx + r * Math.cos(e), y2 = cy + r * Math.sin(e);
-    const large = end - start > 180 ? 1 : 0;
-    return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
-  };
+    // Parse accent color for rgba usage
+    const hexToRgb = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return { r, g, b };
+    };
+    const ac = hexToRgb(accentColor);
+    const rgba = (a: number) => `rgba(${ac.r},${ac.g},${ac.b},${a})`;
 
-  // Generate tick marks around outer ring
-  const tickAngles = Array.from({ length: 36 }, (_, i) => i * 10);
+    // Easing
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const easeInOutQuart = (t: number) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+
+    // Config
+    const TICK_COUNT_OUTER = 120;
+    const TICK_COUNT_INNER = 60;
+    const MICRO_DOTS = 24;
+
+    // Phase timing (ms)
+    const P1_END = 600;   // darkness + atmosphere
+    const P2_END = 1400;  // ticks appear
+    const P3_END = 2800;  // rings trace
+    const P4_END = 3600;  // core stabilizes + sweeps
+    const P5_START = 3600; // breathing state
+
+    // Sweep angles for calibration reads
+    const sweeps = [
+      { ring: 108, speed: 0.4, offset: 0, len: 25 },
+      { ring: 86, speed: -0.3, offset: 1.2, len: 18 },
+      { ring: 62, speed: 0.55, offset: 2.5, len: 12 },
+    ];
+
+    const drawArc = (r: number, startDeg: number, endDeg: number, lineWidth: number, color: string) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, (startDeg * Math.PI) / 180, (endDeg * Math.PI) / 180);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    };
+
+    const animate = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const elapsed = timestamp - start;
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      // ── PHASE 1: Atmosphere (0–600ms) ──
+      // Subtle radial atmosphere
+      const atmosAlpha = Math.min(elapsed / P1_END, 1) * 0.06;
+      const atmosGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 150);
+      atmosGrad.addColorStop(0, rgba(atmosAlpha * 2));
+      atmosGrad.addColorStop(0.5, rgba(atmosAlpha));
+      atmosGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = atmosGrad;
+      ctx.fillRect(0, 0, SIZE, SIZE);
+
+      // ── PHASE 2: Peripheral ticks (600–1400ms) ──
+      if (elapsed > P1_END * 0.5) {
+        const tickProgress = easeOutCubic(Math.min((elapsed - P1_END * 0.5) / (P2_END - P1_END), 1));
+
+        // Outer ticks (r=130)
+        for (let i = 0; i < TICK_COUNT_OUTER; i++) {
+          const angle = (i / TICK_COUNT_OUTER) * Math.PI * 2 - Math.PI / 2;
+          const isMajor = i % 10 === 0;
+          const isMid = i % 5 === 0;
+          const tickDelay = (i / TICK_COUNT_OUTER) * 0.6;
+          const localProgress = easeOutCubic(Math.max(0, Math.min((tickProgress - tickDelay) / 0.4, 1)));
+
+          if (localProgress <= 0) continue;
+
+          const r1 = 130;
+          const r2 = isMajor ? 122 : isMid ? 125 : 127;
+          const lw = isMajor ? 1.2 : isMid ? 0.7 : 0.35;
+          const alpha = (isMajor ? 0.55 : isMid ? 0.3 : 0.12) * localProgress;
+
+          ctx.beginPath();
+          ctx.moveTo(cx + r1 * Math.cos(angle), cy + r1 * Math.sin(angle));
+          ctx.lineTo(cx + r2 * Math.cos(angle), cy + r2 * Math.sin(angle));
+          ctx.strokeStyle = rgba(alpha);
+          ctx.lineWidth = lw;
+          ctx.stroke();
+        }
+
+        // Inner ticks (r=72)
+        for (let i = 0; i < TICK_COUNT_INNER; i++) {
+          const angle = (i / TICK_COUNT_INNER) * Math.PI * 2 - Math.PI / 2;
+          const isMajor = i % 10 === 0;
+          const tickDelay = 0.3 + (i / TICK_COUNT_INNER) * 0.5;
+          const localProgress = easeOutCubic(Math.max(0, Math.min((tickProgress - tickDelay) / 0.4, 1)));
+
+          if (localProgress <= 0) continue;
+
+          const r1 = 72;
+          const r2 = isMajor ? 67 : 69.5;
+          const lw = isMajor ? 0.9 : 0.3;
+          const alpha = (isMajor ? 0.35 : 0.1) * localProgress;
+
+          ctx.beginPath();
+          ctx.moveTo(cx + r1 * Math.cos(angle), cy + r1 * Math.sin(angle));
+          ctx.lineTo(cx + r2 * Math.cos(angle), cy + r2 * Math.sin(angle));
+          ctx.strokeStyle = rgba(alpha);
+          ctx.lineWidth = lw;
+          ctx.stroke();
+        }
+
+        // Micro reference dots
+        for (let i = 0; i < MICRO_DOTS; i++) {
+          const angle = (i / MICRO_DOTS) * Math.PI * 2;
+          const dotDelay = 0.4 + (i / MICRO_DOTS) * 0.5;
+          const localProgress = easeOutCubic(Math.max(0, Math.min((tickProgress - dotDelay) / 0.3, 1)));
+          if (localProgress <= 0) continue;
+
+          const r = 140;
+          ctx.beginPath();
+          ctx.arc(cx + r * Math.cos(angle), cy + r * Math.sin(angle), 0.8, 0, Math.PI * 2);
+          ctx.fillStyle = rgba(0.15 * localProgress);
+          ctx.fill();
+        }
+      }
+
+      // ── PHASE 3: Ring traces (1400–2800ms) ──
+      if (elapsed > P2_END * 0.7) {
+        const ringT = Math.min((elapsed - P2_END * 0.7) / (P3_END - P2_END), 1);
+
+        // Ring 1 — outer main (r=108), 300° arc
+        const r1Progress = easeInOutQuart(Math.min(ringT / 0.7, 1));
+        if (r1Progress > 0) {
+          drawArc(108, -135, -135 + 300 * r1Progress, 1.8, rgba(0.65 * r1Progress));
+          // Laser head
+          if (r1Progress < 1) {
+            const headAngle = ((-135 + 300 * r1Progress) * Math.PI) / 180;
+            const hx = cx + 108 * Math.cos(headAngle);
+            const hy = cy + 108 * Math.sin(headAngle);
+            const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 8);
+            headGrad.addColorStop(0, rgba(0.9));
+            headGrad.addColorStop(0.5, rgba(0.3));
+            headGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = headGrad;
+            ctx.fillRect(hx - 8, hy - 8, 16, 16);
+          }
+        }
+
+        // Ring 2 — mid (r=86), 240° arc
+        const r2Progress = easeInOutQuart(Math.max(0, Math.min((ringT - 0.15) / 0.7, 1)));
+        if (r2Progress > 0) {
+          drawArc(86, 30, 30 + 240 * r2Progress, 1.2, rgba(0.4 * r2Progress));
+          if (r2Progress < 1) {
+            const headAngle = ((30 + 240 * r2Progress) * Math.PI) / 180;
+            const hx = cx + 86 * Math.cos(headAngle);
+            const hy = cy + 86 * Math.sin(headAngle);
+            const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 6);
+            headGrad.addColorStop(0, rgba(0.7));
+            headGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = headGrad;
+            ctx.fillRect(hx - 6, hy - 6, 12, 12);
+          }
+        }
+
+        // Ring 3 — inner (r=62), 180° arc
+        const r3Progress = easeInOutQuart(Math.max(0, Math.min((ringT - 0.3) / 0.7, 1)));
+        if (r3Progress > 0) {
+          drawArc(62, -60, -60 + 180 * r3Progress, 0.8, rgba(0.25 * r3Progress));
+          if (r3Progress < 1) {
+            const headAngle = ((-60 + 180 * r3Progress) * Math.PI) / 180;
+            const hx = cx + 62 * Math.cos(headAngle);
+            const hy = cy + 62 * Math.sin(headAngle);
+            const headGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 5);
+            headGrad.addColorStop(0, rgba(0.6));
+            headGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = headGrad;
+            ctx.fillRect(hx - 5, hy - 5, 10, 10);
+          }
+        }
+
+        // Ring 4 — subtle outer halo (r=118), 200° arc
+        const r4Progress = easeOutCubic(Math.max(0, Math.min((ringT - 0.2) / 0.8, 1)));
+        if (r4Progress > 0) {
+          drawArc(118, 45, 45 + 200 * r4Progress, 0.5, rgba(0.12 * r4Progress));
+        }
+      }
+
+      // ── PHASE 4: Core + calibration sweeps (2800–3600ms) ──
+      if (elapsed > P3_END * 0.85) {
+        const coreT = easeOutQuint(Math.min((elapsed - P3_END * 0.85) / 600, 1));
+
+        // Core circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6 * coreT, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(0.8 * coreT);
+        ctx.fill();
+
+        // Core inner glow
+        const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
+        coreGrad.addColorStop(0, rgba(0.3 * coreT));
+        coreGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = coreGrad;
+        ctx.fillRect(cx - 18, cy - 18, 36, 36);
+
+        // Core ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+        ctx.strokeStyle = rgba(0.15 * coreT);
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+
+        // Cross-hairs
+        const chLen = 22 * coreT;
+        ctx.strokeStyle = rgba(0.1 * coreT);
+        ctx.lineWidth = 0.4;
+        ctx.beginPath();
+        ctx.moveTo(cx - chLen, cy);
+        ctx.lineTo(cx - 8, cy);
+        ctx.moveTo(cx + 8, cy);
+        ctx.lineTo(cx + chLen, cy);
+        ctx.moveTo(cx, cy - chLen);
+        ctx.lineTo(cx, cy - 8);
+        ctx.moveTo(cx, cy + 8);
+        ctx.lineTo(cx, cy + chLen);
+        ctx.stroke();
+      }
+
+      // ── PHASE 5: Calibration sweeps + breathing (3600ms+) ──
+      if (elapsed > P4_END * 0.8) {
+        const breatheT = elapsed * 0.001;
+
+        // Calibration sweep lines rotating around rings
+        sweeps.forEach((s, si) => {
+          const sweepAlpha = easeOutCubic(Math.min((elapsed - P4_END * 0.8) / 800, 1));
+          const angle = breatheT * s.speed + s.offset;
+
+          // Sweep arc
+          const startDeg = (angle * 180) / Math.PI;
+          const endDeg = startDeg + s.len;
+          drawArc(s.ring, startDeg, endDeg, 1.5, rgba(0.25 * sweepAlpha));
+
+          // Sweep head dot
+          const headRad = (endDeg * Math.PI) / 180;
+          ctx.beginPath();
+          ctx.arc(cx + s.ring * Math.cos(headRad), cy + s.ring * Math.sin(headRad), 2, 0, Math.PI * 2);
+          ctx.fillStyle = rgba(0.6 * sweepAlpha);
+          ctx.fill();
+        });
+
+        // Breathing pulse on core
+        const breathe = Math.sin(breatheT * 1.5) * 0.15 + 0.85;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(0.7 * breathe);
+        ctx.fill();
+
+        // Outer glow pulse
+        const glowPulse = Math.sin(breatheT * 0.8) * 0.3 + 0.7;
+        const outerGlow = ctx.createRadialGradient(cx, cy, 80, cx, cy, 145);
+        outerGlow.addColorStop(0, 'transparent');
+        outerGlow.addColorStop(0.5, rgba(0.02 * glowPulse));
+        outerGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = outerGlow;
+        ctx.fillRect(0, 0, SIZE, SIZE);
+
+        // Micro-pulse on select ticks
+        const pulseIdx = Math.floor(breatheT * 3) % TICK_COUNT_OUTER;
+        for (let di = 0; di < 3; di++) {
+          const idx = (pulseIdx + di * 40) % TICK_COUNT_OUTER;
+          const angle = (idx / TICK_COUNT_OUTER) * Math.PI * 2 - Math.PI / 2;
+          const pr = 130;
+          const pulseA = (Math.sin(breatheT * 4 + di) + 1) / 2 * 0.4;
+          ctx.beginPath();
+          ctx.arc(cx + pr * Math.cos(angle), cy + pr * Math.sin(angle), 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = rgba(pulseA);
+          ctx.fill();
+        }
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [accentColor]);
 
   return (
-    <div ref={ref} className="relative w-[200px] h-[200px]">
-      <svg viewBox="0 0 160 160" className="w-full h-full" fill="none" strokeLinecap="round">
-        {/* Tick marks */}
-        {tickAngles.map((angle, i) => {
-          const r1 = 72, r2 = angle % 30 === 0 ? 68 : 70;
-          const rad = (angle * Math.PI) / 180;
-          return (
-            <line
-              key={i}
-              className="tick-mark"
-              x1={cx + r1 * Math.cos(rad)} y1={cy + r1 * Math.sin(rad)}
-              x2={cx + r2 * Math.cos(rad)} y2={cy + r2 * Math.sin(rad)}
-              stroke={accentColor} strokeWidth={angle % 30 === 0 ? 1.2 : 0.5} opacity="0"
-            />
-          );
-        })}
-        {/* Outer ring — 270° */}
-        <path className="ring-arc" d={arc(64, -135, 135)} stroke={accentColor} strokeWidth="2" opacity="0" />
-        {/* Middle ring — 210° */}
-        <path className="ring-arc" d={arc(52, -120, 90)} stroke={accentColor} strokeWidth="1.5" opacity="0" strokeOpacity="0.5" />
-        {/* Inner ring — 150° */}
-        <path className="ring-arc" d={arc(40, -90, 60)} stroke={accentColor} strokeWidth="1" opacity="0" strokeOpacity="0.3" />
-        {/* Core */}
-        <circle className="core-dot" cx={cx} cy={cy} r="4" fill={accentColor} opacity="0" />
-      </svg>
+    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px]">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full pointer-events-none"
+        style={{ width: 320, height: 320 }}
+      />
     </div>
   );
 };
