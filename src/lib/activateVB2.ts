@@ -29,7 +29,6 @@ export async function activateVB2(profileData?: ProfileDataFromQuestionnaire): P
     active_model: 'VB2',
     vb2_enabled: true,
     coach_id: COACH_PROFILE_ID,
-    role: 'athlete',
     updated_at: new Date().toISOString(),
   };
 
@@ -63,6 +62,7 @@ export async function activateVB2(profileData?: ProfileDataFromQuestionnaire): P
       .insert({
         user_id: user.id,
         email: user.email,
+        role: 'athlete',
         ...updates,
       });
     if (error) return { success: false, error: error.message };
@@ -83,7 +83,6 @@ export async function saveProfileToSupabase(
 
   const updates: Record<string, any> = {
     active_model: model,
-    role: 'athlete',
     updated_at: new Date().toISOString(),
   };
 
@@ -115,6 +114,7 @@ export async function saveProfileToSupabase(
       .insert({
         user_id: user.id,
         email: user.email,
+        role: 'athlete',
         ...updates,
       });
     if (error) return { success: false, error: error.message };
