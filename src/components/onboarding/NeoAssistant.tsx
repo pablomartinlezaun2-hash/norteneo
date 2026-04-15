@@ -390,15 +390,18 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
     };
   }, [phase]);
 
-  // Flow animation → choose
+  // Flow animation → choose (starts slow-mo, accelerates)
   useEffect(() => {
     if (phase !== 'flow') return;
     let frame = 0;
-    const total = 200; // ~3.3s for zoom effect
+    const total = 300; // longer total for slow start ~5s
     let id: number;
     const tick = () => {
       frame++;
-      setFlowProgress(frame / total);
+      // Ease-in cubic: starts very slow, accelerates toward the end
+      const linear = frame / total;
+      const eased = linear * linear * linear;
+      setFlowProgress(eased);
       if (frame < total) {
         id = requestAnimationFrame(tick);
       } else {
