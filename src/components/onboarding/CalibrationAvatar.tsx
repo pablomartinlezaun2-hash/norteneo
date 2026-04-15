@@ -1,474 +1,415 @@
-import { useRef, useMemo, useEffect, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
+import { useRef, useEffect, useCallback } from 'react';
 
 /* ═══════════════════════════════════════════
-   COLOR PALETTE
-   ═══════════════════════════════════════════ */
-
-const BODY_COLOR = new THREE.Color('#1a4466');
-const BODY_BRIGHT = new THREE.Color('#2a7aaa');
-const NERVE_COLOR = '#c4a040';
-const NERVE_BRIGHT = '#e8d060';
-
-/* ═══════════════════════════════════════════
-   BODY PART DEFINITIONS (8 stages)
-   All parts = sphere geometry with non-uniform scale
-   ═══════════════════════════════════════════ */
-
-type Part = {
-  pos: [number, number, number];
-  scale: [number, number, number];
-};
-
-const BODY_STAGES: Part[][] = [
-  // 0: Feet + Lower legs
-  [
-    { pos: [-0.12, -1.52, 0], scale: [0.045, 0.25, 0.04] },
-    { pos: [0.12, -1.52, 0], scale: [0.045, 0.25, 0.04] },
-    { pos: [-0.12, -1.8, 0.02], scale: [0.05, 0.022, 0.065] },
-    { pos: [0.12, -1.8, 0.02], scale: [0.05, 0.022, 0.065] },
-    { pos: [-0.12, -1.25, 0], scale: [0.038, 0.038, 0.035] },
-    { pos: [0.12, -1.25, 0], scale: [0.038, 0.038, 0.035] },
-  ],
-  // 1: Upper legs
-  [
-    { pos: [-0.14, -0.82, 0], scale: [0.058, 0.28, 0.052] },
-    { pos: [0.14, -0.82, 0], scale: [0.058, 0.28, 0.052] },
-    { pos: [-0.14, -1.13, 0], scale: [0.042, 0.042, 0.04] },
-    { pos: [0.14, -1.13, 0], scale: [0.042, 0.042, 0.04] },
-  ],
-  // 2: Pelvis
-  [
-    { pos: [0, -0.44, 0], scale: [0.2, 0.1, 0.12] },
-    { pos: [-0.1, -0.5, 0], scale: [0.06, 0.06, 0.055] },
-    { pos: [0.1, -0.5, 0], scale: [0.06, 0.06, 0.055] },
-  ],
-  // 3: Torso
-  [
-    { pos: [0, 0.0, 0], scale: [0.16, 0.2, 0.09] },
-    { pos: [0, 0.3, 0], scale: [0.18, 0.18, 0.1] },
-    { pos: [0, 0.52, 0], scale: [0.17, 0.12, 0.1] },
-  ],
-  // 4: Arms
-  [
-    { pos: [-0.27, 0.52, 0], scale: [0.05, 0.05, 0.048] },
-    { pos: [0.27, 0.52, 0], scale: [0.05, 0.05, 0.048] },
-    { pos: [-0.3, 0.22, 0], scale: [0.035, 0.17, 0.032] },
-    { pos: [0.3, 0.22, 0], scale: [0.035, 0.17, 0.032] },
-    { pos: [-0.3, 0.02, 0], scale: [0.032, 0.032, 0.03] },
-    { pos: [0.3, 0.02, 0], scale: [0.032, 0.032, 0.03] },
-    { pos: [-0.32, -0.15, 0], scale: [0.03, 0.15, 0.028] },
-    { pos: [0.32, -0.15, 0], scale: [0.03, 0.15, 0.028] },
-    { pos: [-0.33, -0.33, 0], scale: [0.022, 0.02, 0.012] },
-    { pos: [0.33, -0.33, 0], scale: [0.022, 0.02, 0.012] },
-  ],
-  // 5: Neck
-  [
-    { pos: [0, 0.68, 0], scale: [0.04, 0.06, 0.038] },
-  ],
-  // 6: Head
-  [
-    { pos: [0, 0.88, 0], scale: [0.1, 0.12, 0.1] },
-    { pos: [0, 0.82, 0.04], scale: [0.04, 0.03, 0.03] },
-  ],
-  // 7: Nervous system (no body parts - handled by NervousSystem)
-  [],
-];
-
-/* ═══════════════════════════════════════════
-   NERVE PATHS
-   ═══════════════════════════════════════════ */
-
-const NERVE_SPINE: [number, number, number][] = [
-  [0, -0.45, 0.04],
-  [0, -0.2, 0.04],
-  [0, 0.05, 0.04],
-  [0, 0.3, 0.04],
-  [0, 0.55, 0.04],
-  [0, 0.7, 0.04],
-  [0, 0.88, 0.04],
-];
-
-const NERVE_PATHS: [number, number, number][][] = [
-  NERVE_SPINE,
-  // Left leg
-  [[0, -0.45, 0.03], [-0.06, -0.55, 0.02], [-0.12, -0.75, 0.01], [-0.13, -1.0, 0], [-0.12, -1.3, 0], [-0.12, -1.55, 0]],
-  // Right leg
-  [[0, -0.45, 0.03], [0.06, -0.55, 0.02], [0.12, -0.75, 0.01], [0.13, -1.0, 0], [0.12, -1.3, 0], [0.12, -1.55, 0]],
-  // Left arm
-  [[0, 0.52, 0.03], [-0.12, 0.53, 0.02], [-0.27, 0.52, 0.01], [-0.3, 0.3, 0], [-0.31, 0.05, 0], [-0.33, -0.2, 0]],
-  // Right arm
-  [[0, 0.52, 0.03], [0.12, 0.53, 0.02], [0.27, 0.52, 0.01], [0.3, 0.3, 0], [0.31, 0.05, 0], [0.33, -0.2, 0]],
-  // Head branches
-  [[0, 0.85, 0.04], [-0.05, 0.92, 0.03], [-0.07, 0.95, 0.01]],
-  [[0, 0.85, 0.04], [0.05, 0.92, 0.03], [0.07, 0.95, 0.01]],
-  // Torso lateral nerves
-  [[0, 0.1, 0.04], [-0.1, 0.08, 0.02], [-0.15, 0.05, 0.01]],
-  [[0, 0.1, 0.04], [0.1, 0.08, 0.02], [0.15, 0.05, 0.01]],
-  [[0, 0.35, 0.04], [-0.12, 0.33, 0.02], [-0.16, 0.3, 0.01]],
-  [[0, 0.35, 0.04], [0.12, 0.33, 0.02], [0.16, 0.3, 0.01]],
-];
-
-/* ═══════════════════════════════════════════
-   BODY PART MESH
-   ═══════════════════════════════════════════ */
-
-function BodyPartMesh({
-  part,
-  revealProgress,
-}: {
-  part: Part;
-  revealProgress: number;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const wireRef = useRef<THREE.Mesh>(null);
-
-  useFrame(() => {
-    if (!meshRef.current) return;
-    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
-    mat.opacity = THREE.MathUtils.lerp(mat.opacity, revealProgress * 0.35, 0.08);
-    mat.emissiveIntensity = THREE.MathUtils.lerp(
-      mat.emissiveIntensity,
-      revealProgress > 0.5 && revealProgress < 0.95 ? 0.8 : 0.15,
-      0.05
-    );
-    if (wireRef.current) {
-      const wMat = wireRef.current.material as THREE.MeshBasicMaterial;
-      wMat.opacity = THREE.MathUtils.lerp(wMat.opacity, revealProgress * 0.12, 0.08);
-    }
-  });
-
-  return (
-    <group position={part.pos} scale={part.scale}>
-      {/* Solid translucent body */}
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[1, 16, 12]} />
-        <meshStandardMaterial
-          color={BODY_COLOR}
-          emissive={BODY_BRIGHT}
-          emissiveIntensity={0}
-          transparent
-          opacity={0}
-          roughness={0.3}
-          metalness={0.1}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* Wireframe overlay */}
-      <mesh ref={wireRef}>
-        <sphereGeometry args={[1.02, 12, 8]} />
-        <meshBasicMaterial
-          color="#4a9acc"
-          wireframe
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   BODY STAGE GROUP
-   ═══════════════════════════════════════════ */
-
-function BodyStage({
-  parts,
-  buildStage,
-  stageIndex,
-}: {
-  parts: Part[];
-  buildStage: number;
-  stageIndex: number;
-}) {
-  const [revealT, setRevealT] = useState(0);
-
-  useFrame((_, delta) => {
-    const target = buildStage >= stageIndex ? 1 : 0;
-    setRevealT(prev => THREE.MathUtils.lerp(prev, target, delta * 3));
-  });
-
-  if (revealT < 0.01) return null;
-
-  return (
-    <group>
-      {parts.map((p, i) => (
-        <BodyPartMesh
-          key={i}
-          part={p}
-          revealProgress={Math.max(0, Math.min(1, revealT - i * 0.05))}
-        />
-      ))}
-    </group>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   SIGNAL PULSE
-   ═══════════════════════════════════════════ */
-
-function SignalPulse({
-  path,
-  speed,
-  offset,
-  active,
-}: {
-  path: [number, number, number][];
-  speed: number;
-  offset: number;
-  active: boolean;
-}) {
-  const ref = useRef<THREE.Mesh>(null);
-  const vecA = useMemo(() => new THREE.Vector3(), []);
-  const vecB = useMemo(() => new THREE.Vector3(), []);
-
-  useFrame(({ clock }) => {
-    if (!ref.current || !active) {
-      if (ref.current) ref.current.visible = false;
-      return;
-    }
-    ref.current.visible = true;
-    const t = ((clock.elapsedTime * speed + offset) % 1);
-    const totalSegments = path.length - 1;
-    const rawIdx = t * totalSegments;
-    const idx = Math.floor(rawIdx);
-    const frac = rawIdx - idx;
-    const a = path[Math.min(idx, path.length - 1)];
-    const b = path[Math.min(idx + 1, path.length - 1)];
-    vecA.set(a[0], a[1], a[2]);
-    vecB.set(b[0], b[1], b[2]);
-    ref.current.position.lerpVectors(vecA, vecB, frac);
-    // Fade near edges
-    const edgeFade = Math.sin(t * Math.PI);
-    const mat = ref.current.material as THREE.MeshBasicMaterial;
-    mat.opacity = edgeFade * 0.9;
-  });
-
-  return (
-    <mesh ref={ref} visible={false}>
-      <sphereGeometry args={[0.012, 6, 6]} />
-      <meshBasicMaterial
-        color={NERVE_BRIGHT}
-        transparent
-        opacity={0}
-        depthWrite={false}
-      />
-    </mesh>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   NERVOUS SYSTEM
-   ═══════════════════════════════════════════ */
-
-function NervousSystem({ buildStage }: { buildStage: number }) {
-  const linesRef = useRef<(THREE.Line | null)[]>([]);
-  const nervesActive = buildStage >= 7;
-  // Partial nerve visibility: spine visible after stage 3, limbs after their stage
-  const partialNerves = buildStage >= 3;
-
-  const lineObjects = useMemo(() => {
-    return NERVE_PATHS.map(path => {
-      const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2]));
-      const geo = new THREE.BufferGeometry().setFromPoints(points);
-      const mat = new THREE.LineBasicMaterial({
-        color: NERVE_COLOR,
-        transparent: true,
-        opacity: 0,
-        depthWrite: false,
-      });
-      const line = new THREE.Line(geo, mat);
-      return line;
-    });
-  }, []);
-
-  useEffect(() => {
-    linesRef.current = lineObjects;
-  }, [lineObjects]);
-
-  useFrame(() => {
-    lineObjects.forEach((line, i) => {
-      const mat = line.material as THREE.LineBasicMaterial;
-      let targetOpacity = 0;
-      if (nervesActive) {
-        targetOpacity = 0.5;
-      } else if (partialNerves && i === 0) {
-        targetOpacity = 0.15;
-      }
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, 0.06);
-    });
-  });
-
-  return (
-    <group>
-      {lineObjects.map((obj, i) => (
-        <primitive key={i} object={obj} />
-      ))}
-
-      {/* Signal pulses */}
-      {NERVE_PATHS.map((path, i) => (
-        <SignalPulse
-          key={`sig-${i}`}
-          path={path}
-          speed={0.3 + i * 0.05}
-          offset={i * 0.15}
-          active={nervesActive || (partialNerves && i === 0)}
-        />
-      ))}
-      {/* Extra pulses on main spine */}
-      {nervesActive && (
-        <>
-          <SignalPulse path={NERVE_SPINE} speed={0.5} offset={0.5} active />
-          <SignalPulse path={NERVE_PATHS[1]} speed={0.4} offset={0.3} active />
-          <SignalPulse path={NERVE_PATHS[2]} speed={0.4} offset={0.7} active />
-        </>
-      )}
-    </group>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   ACTIVATION FLASH
-   Brief glow when a new stage reveals
-   ═══════════════════════════════════════════ */
-
-function ActivationFlash({ buildStage }: { buildStage: number }) {
-  const ref = useRef<THREE.PointLight>(null);
-  const prevStage = useRef(buildStage);
-  const flash = useRef(0);
-
-  useFrame((_, delta) => {
-    if (buildStage !== prevStage.current) {
-      prevStage.current = buildStage;
-      flash.current = 1.5;
-    }
-    flash.current = Math.max(0, flash.current - delta * 3);
-    if (ref.current) {
-      ref.current.intensity = flash.current * 2;
-      // Position flash near the latest body stage center
-      const stage = BODY_STAGES[Math.min(buildStage, 6)];
-      if (stage && stage.length > 0) {
-        const center = stage[0].pos;
-        ref.current.position.set(center[0], center[1], center[2] + 0.3);
-      }
-    }
-  });
-
-  return (
-    <pointLight
-      ref={ref}
-      color={NERVE_BRIGHT}
-      intensity={0}
-      distance={2}
-      decay={2}
-    />
-  );
-}
-
-/* ═══════════════════════════════════════════
-   GROUND GRID
-   ═══════════════════════════════════════════ */
-
-function GroundGrid() {
-  const ref = useRef<THREE.GridHelper>(null);
-  return (
-    <gridHelper
-      ref={ref}
-      args={[3, 20, '#1a2a3a', '#0a1520']}
-      position={[0, -1.9, 0]}
-    />
-  );
-}
-
-/* ═══════════════════════════════════════════
-   MAIN SCENE
-   ═══════════════════════════════════════════ */
-
-function AvatarScene({ buildStage }: { buildStage: number }) {
-  const controlsRef = useRef<any>(null);
-
-  return (
-    <>
-      {/* Lighting */}
-      <ambientLight intensity={0.15} color="#4488aa" />
-      <directionalLight position={[2, 3, 4]} intensity={0.4} color="#88bbdd" />
-      <directionalLight position={[-1, 2, -3]} intensity={0.15} color="#4466aa" />
-
-      {/* Fog for depth */}
-      <fog attach="fog" args={['#000000', 3, 8]} />
-
-      {/* Ground reference */}
-      <GroundGrid />
-
-      {/* Body stages */}
-      {BODY_STAGES.map((parts, i) =>
-        parts.length > 0 ? (
-          <BodyStage
-            key={i}
-            parts={parts}
-            buildStage={buildStage}
-            stageIndex={i}
-          />
-        ) : null
-      )}
-
-      {/* Nervous system */}
-      <NervousSystem buildStage={buildStage} />
-
-      {/* Flash on reveal */}
-      <ActivationFlash buildStage={buildStage} />
-
-      {/* Orbit controls */}
-      <OrbitControls
-        ref={controlsRef}
-        enableZoom={false}
-        enablePan={false}
-        minPolarAngle={Math.PI * 0.3}
-        maxPolarAngle={Math.PI * 0.7}
-        minAzimuthAngle={-Math.PI * 0.3}
-        maxAzimuthAngle={Math.PI * 0.3}
-        enableDamping
-        dampingFactor={0.08}
-        autoRotate
-        autoRotateSpeed={0.3}
-        makeDefault
-      />
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   EXPORTED COMPONENT
+   CALIBRATION SPINE — Premium Neural Axis
+   Canvas-based physiological calibration visual
    ═══════════════════════════════════════════ */
 
 interface CalibrationAvatarProps {
-  buildStage: number; // -1=nothing, 0-7=body stages
+  buildStage: number; // -1=nothing, 0-7 progressive reveal, 8=complete
+}
+
+/* ── Easing ── */
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInOutQuart = (t: number) =>
+  t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+
+/* ── Branch definitions ── */
+interface Branch {
+  /** Y position along spine (0=bottom, 1=top) */
+  yNorm: number;
+  /** Direction: -1=left, 1=right */
+  dir: number;
+  /** Length factor */
+  len: number;
+  /** Curvature */
+  curve: number;
+  /** Stage at which this branch appears */
+  stage: number;
+  /** Sub-branches */
+  subs?: { angle: number; len: number }[];
+}
+
+const BRANCHES: Branch[] = [
+  // Stage 0 — lower spine base
+  { yNorm: 0.08, dir: -1, len: 0.12, curve: 0.3, stage: 0 },
+  { yNorm: 0.08, dir: 1, len: 0.12, curve: 0.3, stage: 0 },
+  { yNorm: 0.14, dir: -1, len: 0.16, curve: 0.2, stage: 0, subs: [{ angle: -0.4, len: 0.5 }] },
+  { yNorm: 0.14, dir: 1, len: 0.16, curve: 0.2, stage: 0, subs: [{ angle: 0.4, len: 0.5 }] },
+  // Stage 1 — pelvis / lower legs
+  { yNorm: 0.05, dir: -1, len: 0.22, curve: 0.6, stage: 1 },
+  { yNorm: 0.05, dir: 1, len: 0.22, curve: 0.6, stage: 1 },
+  { yNorm: 0.18, dir: -1, len: 0.14, curve: -0.15, stage: 1 },
+  { yNorm: 0.18, dir: 1, len: 0.14, curve: -0.15, stage: 1 },
+  // Stage 2 — lower torso
+  { yNorm: 0.28, dir: -1, len: 0.2, curve: 0.1, stage: 2, subs: [{ angle: -0.3, len: 0.4 }, { angle: 0.2, len: 0.3 }] },
+  { yNorm: 0.28, dir: 1, len: 0.2, curve: 0.1, stage: 2, subs: [{ angle: 0.3, len: 0.4 }, { angle: -0.2, len: 0.3 }] },
+  { yNorm: 0.34, dir: -1, len: 0.15, curve: 0.25, stage: 2 },
+  { yNorm: 0.34, dir: 1, len: 0.15, curve: 0.25, stage: 2 },
+  // Stage 3 — mid torso
+  { yNorm: 0.42, dir: -1, len: 0.24, curve: 0.05, stage: 3, subs: [{ angle: -0.5, len: 0.35 }, { angle: -0.15, len: 0.5 }] },
+  { yNorm: 0.42, dir: 1, len: 0.24, curve: 0.05, stage: 3, subs: [{ angle: 0.5, len: 0.35 }, { angle: 0.15, len: 0.5 }] },
+  { yNorm: 0.50, dir: -1, len: 0.18, curve: -0.1, stage: 3, subs: [{ angle: -0.3, len: 0.4 }] },
+  { yNorm: 0.50, dir: 1, len: 0.18, curve: -0.1, stage: 3, subs: [{ angle: 0.3, len: 0.4 }] },
+  // Stage 4 — arms / upper torso
+  { yNorm: 0.56, dir: -1, len: 0.30, curve: 0.2, stage: 4, subs: [{ angle: -0.6, len: 0.45 }, { angle: -0.2, len: 0.55 }, { angle: 0.1, len: 0.3 }] },
+  { yNorm: 0.56, dir: 1, len: 0.30, curve: 0.2, stage: 4, subs: [{ angle: 0.6, len: 0.45 }, { angle: 0.2, len: 0.55 }, { angle: -0.1, len: 0.3 }] },
+  { yNorm: 0.64, dir: -1, len: 0.22, curve: 0.15, stage: 4, subs: [{ angle: -0.4, len: 0.4 }] },
+  { yNorm: 0.64, dir: 1, len: 0.22, curve: 0.15, stage: 4, subs: [{ angle: 0.4, len: 0.4 }] },
+  // Stage 5 — neck
+  { yNorm: 0.74, dir: -1, len: 0.10, curve: 0.3, stage: 5 },
+  { yNorm: 0.74, dir: 1, len: 0.10, curve: 0.3, stage: 5 },
+  { yNorm: 0.78, dir: -1, len: 0.08, curve: -0.2, stage: 5 },
+  { yNorm: 0.78, dir: 1, len: 0.08, curve: -0.2, stage: 5 },
+  // Stage 6 — head
+  { yNorm: 0.84, dir: -1, len: 0.16, curve: 0.4, stage: 6, subs: [{ angle: -0.5, len: 0.35 }, { angle: -0.1, len: 0.45 }] },
+  { yNorm: 0.84, dir: 1, len: 0.16, curve: 0.4, stage: 6, subs: [{ angle: 0.5, len: 0.35 }, { angle: 0.1, len: 0.45 }] },
+  { yNorm: 0.90, dir: -1, len: 0.12, curve: 0.5, stage: 6, subs: [{ angle: -0.3, len: 0.3 }] },
+  { yNorm: 0.90, dir: 1, len: 0.12, curve: 0.5, stage: 6, subs: [{ angle: 0.3, len: 0.3 }] },
+  { yNorm: 0.95, dir: -1, len: 0.07, curve: 0.6, stage: 6 },
+  { yNorm: 0.95, dir: 1, len: 0.07, curve: 0.6, stage: 6 },
+];
+
+/* ── Spine nodes (vertebrae-like markers along the axis) ── */
+const SPINE_NODES = [0.04, 0.1, 0.16, 0.22, 0.28, 0.34, 0.40, 0.46, 0.52, 0.58, 0.64, 0.70, 0.76, 0.82, 0.88, 0.94];
+
+/* ── Signal pulse state ── */
+interface Pulse {
+  branchIdx: number;
+  t: number; // 0..1 progress along branch
+  speed: number;
+  isSub: boolean;
+  subIdx: number;
 }
 
 export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef(0);
+  const startTime = useRef(0);
+  const prevStage = useRef(buildStage);
+  const stageReveal = useRef<number[]>(new Array(8).fill(0));
+  const pulsesRef = useRef<Pulse[]>([]);
+  const flashRef = useRef(0);
+
+  // Generate new pulses when stage changes
+  useEffect(() => {
+    if (buildStage > prevStage.current) {
+      flashRef.current = 1;
+      // Add new signal pulses for newly revealed branches
+      const newPulses: Pulse[] = [];
+      BRANCHES.forEach((b, i) => {
+        if (b.stage === buildStage) {
+          newPulses.push({ branchIdx: i, t: 0, speed: 0.4 + Math.random() * 0.3, isSub: false, subIdx: 0 });
+          if (b.subs) {
+            b.subs.forEach((_, si) => {
+              newPulses.push({ branchIdx: i, t: 0, speed: 0.3 + Math.random() * 0.25, isSub: true, subIdx: si });
+            });
+          }
+        }
+      });
+      pulsesRef.current = [...pulsesRef.current, ...newPulses];
+    }
+    prevStage.current = buildStage;
+  }, [buildStage]);
+
+  const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, time: number) => {
+    const dt = 1 / 60;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const padY = h * 0.06;
+    const spineTop = padY;
+    const spineBot = h - padY;
+    const spineH = spineBot - spineTop;
+    const maxBranchPx = w * 0.38;
+
+    // Update stage reveals
+    for (let i = 0; i < 8; i++) {
+      const target = buildStage >= i ? 1 : 0;
+      stageReveal.current[i] += (target - stageReveal.current[i]) * 0.04;
+    }
+    flashRef.current = Math.max(0, flashRef.current - dt * 2.5);
+
+    // Breathing
+    const breath = Math.sin(time * 1.2) * 0.5 + 0.5;
+
+    // ── Background atmosphere ──
+    const bgGrad = ctx.createRadialGradient(cx, h * 0.5, 0, cx, h * 0.5, h * 0.7);
+    bgGrad.addColorStop(0, `rgba(20,60,100,${0.03 + breath * 0.01})`);
+    bgGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // ── Spine axis ──
+    // Calculate how much of the spine to show
+    let maxRevealY = 0;
+    for (let i = 0; i <= 7; i++) {
+      if (stageReveal.current[i] > 0.01) {
+        const stageMaxY = BRANCHES.filter(b => b.stage === i).reduce((mx, b) => Math.max(mx, b.yNorm), 0);
+        maxRevealY = Math.max(maxRevealY, stageMaxY * stageReveal.current[i]);
+      }
+    }
+    // Full spine visible at stage 7+
+    if (buildStage >= 7) maxRevealY = 1;
+    const revealPx = spineTop + spineH * (1 - maxRevealY);
+
+    // Spine glow
+    const spineGlow = ctx.createLinearGradient(cx, spineBot, cx, revealPx);
+    spineGlow.addColorStop(0, `rgba(80,160,220,${0.03 + breath * 0.02})`);
+    spineGlow.addColorStop(0.5, `rgba(80,160,220,${0.06 + breath * 0.02})`);
+    spineGlow.addColorStop(1, `rgba(100,180,240,${0.02})`);
+    ctx.beginPath();
+    ctx.moveTo(cx, spineBot);
+    ctx.lineTo(cx, Math.max(revealPx, spineTop));
+    ctx.strokeStyle = spineGlow;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Spine core line
+    ctx.beginPath();
+    ctx.moveTo(cx, spineBot);
+    ctx.lineTo(cx, Math.max(revealPx, spineTop));
+    ctx.strokeStyle = `rgba(120,190,240,${0.25 + breath * 0.08})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // ── Spine nodes ──
+    SPINE_NODES.forEach(yN => {
+      const y = spineTop + spineH * (1 - yN);
+      if (y < revealPx - 5) return;
+      const nodeReveal = Math.min(1, Math.max(0, (spineBot - y) / (spineBot - revealPx)));
+      const alpha = nodeReveal * (0.15 + breath * 0.05);
+      ctx.beginPath();
+      ctx.arc(cx, y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(120,190,240,${alpha})`;
+      ctx.fill();
+      // Tiny horizontal tick
+      ctx.beginPath();
+      ctx.moveTo(cx - 5, y);
+      ctx.lineTo(cx + 5, y);
+      ctx.strokeStyle = `rgba(120,190,240,${alpha * 0.5})`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    });
+
+    // ── Branches ──
+    BRANCHES.forEach((branch, bIdx) => {
+      const reveal = stageReveal.current[branch.stage];
+      if (reveal < 0.01) return;
+
+      const rootY = spineTop + spineH * (1 - branch.yNorm);
+      const branchLen = maxBranchPx * branch.len;
+      const endX = cx + branch.dir * branchLen * easeOutCubic(reveal);
+      const endY = rootY - branch.curve * branchLen * reveal;
+      const cpX = cx + branch.dir * branchLen * 0.5 * reveal;
+      const cpY = rootY - branch.curve * branchLen * 0.3 * reveal;
+
+      const alpha = reveal * (0.2 + (buildStage >= 7 ? breath * 0.08 : 0));
+
+      // Branch glow
+      ctx.beginPath();
+      ctx.moveTo(cx, rootY);
+      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+      ctx.strokeStyle = `rgba(80,180,230,${alpha * 0.3})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Branch line
+      ctx.beginPath();
+      ctx.moveTo(cx, rootY);
+      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+      ctx.strokeStyle = `rgba(100,190,240,${alpha})`;
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+
+      // End node
+      if (reveal > 0.3) {
+        ctx.beginPath();
+        ctx.arc(endX, endY, 1.5 * reveal, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(140,210,255,${alpha * 0.6})`;
+        ctx.fill();
+      }
+
+      // Sub-branches
+      if (branch.subs && reveal > 0.4) {
+        branch.subs.forEach(sub => {
+          const subReveal = Math.max(0, (reveal - 0.4) / 0.6);
+          const subLen = branchLen * sub.len * easeOutCubic(subReveal);
+          const subEndX = endX + Math.cos(sub.angle + (branch.dir > 0 ? 0 : Math.PI)) * subLen;
+          const subEndY = endY + Math.sin(sub.angle) * subLen;
+          const subAlpha = subReveal * alpha * 0.7;
+
+          ctx.beginPath();
+          ctx.moveTo(endX, endY);
+          ctx.lineTo(subEndX, subEndY);
+          ctx.strokeStyle = `rgba(100,190,240,${subAlpha})`;
+          ctx.lineWidth = 0.4;
+          ctx.stroke();
+
+          if (subReveal > 0.5) {
+            ctx.beginPath();
+            ctx.arc(subEndX, subEndY, 1 * subReveal, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(140,210,255,${subAlpha * 0.5})`;
+            ctx.fill();
+          }
+        });
+      }
+    });
+
+    // ── Signal pulses ──
+    const activePulses: Pulse[] = [];
+    pulsesRef.current.forEach(p => {
+      p.t += dt * p.speed;
+      if (p.t > 1.2) return; // expired
+      activePulses.push(p);
+
+      const branch = BRANCHES[p.branchIdx];
+      if (!branch) return;
+      const reveal = stageReveal.current[branch.stage];
+      if (reveal < 0.3) return;
+
+      const rootY = spineTop + spineH * (1 - branch.yNorm);
+      const branchLen = maxBranchPx * branch.len;
+      const endX = cx + branch.dir * branchLen * easeOutCubic(reveal);
+      const endY = rootY - branch.curve * branchLen * reveal;
+
+      const tt = Math.min(1, p.t);
+      let px: number, py: number;
+
+      if (!p.isSub) {
+        // Along main branch
+        px = cx + (endX - cx) * easeInOutQuart(tt);
+        py = rootY + (endY - rootY) * easeInOutQuart(tt);
+      } else {
+        // Along sub-branch (starts at end of main)
+        const sub = branch.subs?.[p.subIdx];
+        if (!sub) return;
+        const subLen = branchLen * sub.len * easeOutCubic(Math.max(0, (reveal - 0.4) / 0.6));
+        const subEndX = endX + Math.cos(sub.angle + (branch.dir > 0 ? 0 : Math.PI)) * subLen;
+        const subEndY = endY + Math.sin(sub.angle) * subLen;
+        px = endX + (subEndX - endX) * easeInOutQuart(tt);
+        py = endY + (subEndY - endY) * easeInOutQuart(tt);
+      }
+
+      const fadeEdge = Math.sin(Math.min(1, p.t) * Math.PI);
+      const pulseAlpha = fadeEdge * 0.9 * reveal;
+
+      // Pulse glow
+      const pg = ctx.createRadialGradient(px, py, 0, px, py, 8);
+      pg.addColorStop(0, `rgba(160,220,255,${pulseAlpha * 0.5})`);
+      pg.addColorStop(1, 'transparent');
+      ctx.fillStyle = pg;
+      ctx.fillRect(px - 8, py - 8, 16, 16);
+
+      // Pulse core
+      ctx.beginPath();
+      ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,235,255,${pulseAlpha})`;
+      ctx.fill();
+    });
+    pulsesRef.current = activePulses;
+
+    // ── Continuous ambient pulses (stage 7+) ──
+    if (buildStage >= 7) {
+      const pulseInterval = 1.5;
+      const phase = time % pulseInterval;
+      // Spine pulse traveling upward
+      const spineT = (phase / pulseInterval);
+      const pulseY = spineBot - spineH * easeInOutQuart(spineT);
+      const pAlpha = Math.sin(spineT * Math.PI) * 0.6;
+      
+      const spg = ctx.createRadialGradient(cx, pulseY, 0, cx, pulseY, 12);
+      spg.addColorStop(0, `rgba(160,220,255,${pAlpha * 0.4})`);
+      spg.addColorStop(1, 'transparent');
+      ctx.fillStyle = spg;
+      ctx.fillRect(cx - 12, pulseY - 12, 24, 24);
+
+      ctx.beginPath();
+      ctx.arc(cx, pulseY, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,235,255,${pAlpha})`;
+      ctx.fill();
+
+      // Random branch pulses
+      if (Math.random() < 0.02) {
+        const rIdx = Math.floor(Math.random() * BRANCHES.length);
+        pulsesRef.current.push({ branchIdx: rIdx, t: 0, speed: 0.5 + Math.random() * 0.3, isSub: false, subIdx: 0 });
+        if (BRANCHES[rIdx].subs && Math.random() > 0.5) {
+          const si = Math.floor(Math.random() * (BRANCHES[rIdx].subs?.length || 1));
+          pulsesRef.current.push({ branchIdx: rIdx, t: 0, speed: 0.35 + Math.random() * 0.2, isSub: true, subIdx: si });
+        }
+      }
+    }
+
+    // ── Flash on new stage ──
+    if (flashRef.current > 0.01) {
+      const fg = ctx.createRadialGradient(cx, h * 0.5, 0, cx, h * 0.5, h * 0.5);
+      fg.addColorStop(0, `rgba(120,200,255,${flashRef.current * 0.08})`);
+      fg.addColorStop(1, 'transparent');
+      ctx.fillStyle = fg;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // ── Top/bottom crown markers when fully calibrated ──
+    if (buildStage >= 7) {
+      const crownAlpha = stageReveal.current[7] * (0.15 + breath * 0.05);
+      // Top cross-hair
+      const ty = spineTop + 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, ty);
+      ctx.lineTo(cx + 8, ty);
+      ctx.strokeStyle = `rgba(140,210,255,${crownAlpha})`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      // Bottom mark
+      const by = spineBot - 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, by);
+      ctx.lineTo(cx + 6, by);
+      ctx.strokeStyle = `rgba(140,210,255,${crownAlpha * 0.7})`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+  }, [buildStage]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    startTime.current = performance.now() / 1000;
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const loop = () => {
+      const rect = canvas.getBoundingClientRect();
+      const time = performance.now() / 1000 - startTime.current;
+      draw(ctx, rect.width, rect.height, time);
+      animRef.current = requestAnimationFrame(loop);
+    };
+    animRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', resize);
+    };
+  }, [draw]);
+
   return (
     <div className="w-full h-full relative">
-      <Canvas
-        camera={{
-          position: [0, -0.2, 3.2],
-          fov: 35,
-          near: 0.1,
-          far: 20,
-        }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance',
-        }}
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full"
         style={{ background: 'transparent' }}
-        dpr={[1, 2]}
-      >
-        <AvatarScene buildStage={buildStage} />
-      </Canvas>
+      />
     </div>
   );
 };
