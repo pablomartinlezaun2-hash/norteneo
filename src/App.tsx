@@ -39,9 +39,7 @@ const AuthRoute = () => {
 };
 
 const AppContent = () => {
-  const [showSplash, setShowSplash] = useState(() => {
-    return !sessionStorage.getItem('neo-splash-seen');
-  });
+  const [showSplash, setShowSplash] = useState(true);
 
   const handleSplashComplete = () => {
     setShowSplash(false);
