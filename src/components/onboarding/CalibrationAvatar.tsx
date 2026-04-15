@@ -209,11 +209,11 @@ function ptOn(b: Branch, t: number): Pt {
 }
 
 export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animRef = useRef(0);
-  const branchesRef = useRef<Branch[]>([]);
-  const pulsesRef = useRef<Pulse[]>([]);
+  // Persist state across remounts via module-level cache
   const mountTime = useRef(0);
+
+  // Module-level persistent elapsed time — survives remounts
+  const persistedElapsed = useRef(0);
 
   const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) => {
     const dt = 1 / 60;
