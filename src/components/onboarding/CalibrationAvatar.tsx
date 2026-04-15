@@ -1,24 +1,18 @@
 import { useRef, useEffect, useCallback } from 'react';
 
 /* ═══════════════════════════════════════════
-   NEURAL RIVER NETWORK — Organic Neural Growth
-   Canvas-based neural network that grows outward
-   from center in all directions like dendrites
+   NEURAL RIVER NETWORK — Continuous Organic Growth
+   Canvas-based neural network that grows continuously
+   from center outward, never stopping, never jumping.
+   Growth is TIME-BASED, not stage-gated.
    ═══════════════════════════════════════════ */
 
 interface CalibrationAvatarProps {
-  buildStage: number; // -1=nothing, 0-7 progressive, 8=complete
+  buildStage: number; // 0-8, controls target density
 }
-
-/* ── Easing ── */
-const easeInOutCubic = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 /* ── Point ── */
-interface Pt {
-  x: number;
-  y: number;
-}
+interface Pt { x: number; y: number; }
 
 /* ── Branch ── */
 interface Branch {
@@ -28,8 +22,8 @@ interface Branch {
   width: number;
   hue: number;
   revealProgress: number;
-  revealSpeed: number; // how fast it reveals (units per second)
-  revealed: boolean; // has started revealing
+  revealStartTime: number; // seconds after mount when this branch starts growing
+  revealDuration: number;  // seconds to fully reveal
   glowIntensity: number;
 }
 
@@ -47,10 +41,7 @@ interface Pulse {
 /* ── Seeded random ── */
 function sRng(seed: number) {
   let s = seed;
-  return () => {
-    s = (s * 16807) % 2147483647;
-    return (s - 1) / 2147483646;
-  };
+  return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
 }
 
 /* ── Generate smooth curved path ── */
@@ -61,150 +52,145 @@ function curvePath(
   const pts: Pt[] = [];
   for (let i = 0; i <= segs; i++) {
     const t = i / segs;
-    // Smooth cubic interpolation with organic wobble
-    const st = t * t * (3 - 2 * t); // smoothstep
+    const st = t * t * (3 - 2 * t);
     const wx = i > 0 && i < segs ? (rng() - 0.5) * wobble : 0;
     const wy = i > 0 && i < segs ? (rng() - 0.5) * wobble : 0;
-    pts.push({
-      x: sx + (ex - sx) * st + wx,
-      y: sy + (ey - sy) * st + wy,
-    });
+    pts.push({ x: sx + (ex - sx) * st + wx, y: sy + (ey - sy) * st + wy });
   }
   return pts;
 }
 
-/* ── Build a sprawling neural network from center ── */
+/* ── Build network ── */
 function buildNetwork(): Branch[] {
-  const rng = sRng(123);
+  const rng = sRng(777);
   const branches: Branch[] = [];
+  const cx = 0.50, cy = 0.48;
 
-  const cx = 0.50;
-  const cy = 0.48;
-
-  // Add a branch from origin in a direction
   const add = (
-    ox: number, oy: number,
-    angle: number, len: number,
-    stage: number, depth: number, width: number,
-    hue: number, segs: number = 8, wobble: number = 0.04
+    ox: number, oy: number, angle: number, len: number,
+    stage: number, depth: number, width: number, hue: number,
+    segs = 8, wobble = 0.04
   ): number => {
     const ex = ox + Math.cos(angle) * len;
     const ey = oy + Math.sin(angle) * len;
     const pts = curvePath(ox, oy, ex, ey, segs, wobble, rng);
+
+    // Time-based: each stage starts ~4s later, with randomized stagger within stage
+    const stageDelay = stage * 4.0;
+    const intraStagger = rng() * 3.5;
+    const startTime = stageDelay + intraStagger;
+    const duration = 3.0 + rng() * 4.0; // 3-7 seconds to fully draw
+
     branches.push({
-      points: pts,
-      stage,
-      depth,
-      width,
+      points: pts, stage, depth, width, hue,
       revealProgress: 0,
-      revealSpeed: 0.12 + rng() * 0.08, // slow: takes ~5-8 seconds
-      revealed: false,
-      hue,
+      revealStartTime: startTime,
+      revealDuration: duration,
       glowIntensity: 0.6 + rng() * 0.4,
     });
     return branches.length - 1;
   };
 
-  // Get endpoint of a branch
   const endOf = (idx: number): Pt => {
     const pts = branches[idx].points;
     return pts[pts.length - 1];
   };
-
-  // Get midpoint of a branch
-  const midOf = (idx: number, t: number = 0.5): Pt => {
+  const midOf = (idx: number, t = 0.5): Pt => {
     const pts = branches[idx].points;
     const fi = t * (pts.length - 1);
-    const i = Math.floor(fi);
-    const f = fi - i;
+    const i = Math.floor(fi); const f = fi - i;
     const a = pts[Math.min(i, pts.length - 1)];
     const b = pts[Math.min(i + 1, pts.length - 1)];
     return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
   };
 
-  // ═══ STAGE 0: Core star — 5 primary directions from center ═══
-  const s0a = add(cx, cy, -Math.PI * 0.5, 0.18, 0, 0.1, 2.2, 210, 10, 0.035);  // up
-  const s0b = add(cx, cy, -Math.PI * 0.8, 0.16, 0, 0.12, 2.0, 205, 9, 0.04);   // up-left
-  const s0c = add(cx, cy, -Math.PI * 0.2, 0.17, 0, 0.12, 2.0, 215, 9, 0.04);   // up-right
-  const s0d = add(cx, cy, Math.PI * 0.7, 0.14, 0, 0.15, 1.8, 200, 8, 0.03);    // down-left
-  const s0e = add(cx, cy, Math.PI * 0.3, 0.15, 0, 0.15, 1.8, 220, 8, 0.03);    // down-right
+  // ═══ STAGE 0: 6 primary directions ═══
+  const s0a = add(cx, cy, -Math.PI * 0.5, 0.18, 0, 0.08, 2.5, 210, 12, 0.03);
+  const s0b = add(cx, cy, -Math.PI * 0.78, 0.16, 0, 0.1, 2.2, 205, 10, 0.035);
+  const s0c = add(cx, cy, -Math.PI * 0.22, 0.17, 0, 0.1, 2.2, 215, 10, 0.035);
+  const s0d = add(cx, cy, Math.PI * 0.65, 0.15, 0, 0.12, 2.0, 200, 9, 0.03);
+  const s0e = add(cx, cy, Math.PI * 0.35, 0.16, 0, 0.12, 2.0, 220, 9, 0.03);
+  const s0f = add(cx, cy, Math.PI, 0.12, 0, 0.14, 1.8, 208, 8, 0.025);
 
-  // ═══ STAGE 1: Each primary extends + first side branches ═══
+  // ═══ STAGE 1: Extensions + side branches ═══
   const e0a = endOf(s0a);
-  const s1a = add(e0a.x, e0a.y, -1.3, 0.12, 1, 0.2, 1.5, 208, 7, 0.035);
-  const s1b = add(e0a.x, e0a.y, -1.8, 0.10, 1, 0.22, 1.4, 202, 7, 0.03);
+  const s1a = add(e0a.x, e0a.y, -1.3, 0.13, 1, 0.18, 1.6, 208, 8, 0.035);
+  const s1b = add(e0a.x, e0a.y, -1.85, 0.11, 1, 0.2, 1.4, 202, 7, 0.03);
   const e0b = endOf(s0b);
-  const s1c = add(e0b.x, e0b.y, -2.3, 0.13, 1, 0.2, 1.5, 200, 7, 0.04);
+  const s1c = add(e0b.x, e0b.y, -2.4, 0.14, 1, 0.18, 1.6, 200, 8, 0.04);
+  add(e0b.x, e0b.y, -2.9, 0.09, 1, 0.25, 1.1, 198, 6, 0.025);
   const e0c = endOf(s0c);
-  const s1d = add(e0c.x, e0c.y, -0.5, 0.11, 1, 0.2, 1.5, 218, 7, 0.035);
-  // Side branches from mid-primary
-  const m0d = midOf(s0d, 0.6);
-  add(m0d.x, m0d.y, Math.PI * 0.95, 0.09, 1, 0.3, 1.2, 195, 6, 0.03);
-  const m0e = midOf(s0e, 0.6);
-  add(m0e.x, m0e.y, Math.PI * 0.05, 0.10, 1, 0.3, 1.2, 225, 6, 0.03);
+  const s1d = add(e0c.x, e0c.y, -0.4, 0.12, 1, 0.18, 1.6, 218, 8, 0.035);
+  add(e0c.x, e0c.y, 0.1, 0.08, 1, 0.25, 1.1, 222, 6, 0.025);
+  const m0d = midOf(s0d, 0.55);
+  add(m0d.x, m0d.y, Math.PI * 0.9, 0.10, 1, 0.28, 1.2, 195, 6, 0.03);
+  const m0e = midOf(s0e, 0.55);
+  add(m0e.x, m0e.y, Math.PI * 0.1, 0.11, 1, 0.28, 1.2, 225, 6, 0.03);
 
-  // ═══ STAGE 2: More ramification ═══
+  // ═══ STAGE 2 ═══
   const e1a = endOf(s1a);
-  const s2a = add(e1a.x, e1a.y, -1.0, 0.10, 2, 0.3, 1.2, 212, 6, 0.035);
-  add(e1a.x, e1a.y, -1.7, 0.08, 2, 0.35, 1.0, 205, 5, 0.03);
+  const s2a = add(e1a.x, e1a.y, -1.0, 0.11, 2, 0.28, 1.3, 212, 7, 0.035);
+  add(e1a.x, e1a.y, -1.6, 0.08, 2, 0.32, 1.0, 205, 5, 0.03);
   const e1c = endOf(s1c);
-  add(e1c.x, e1c.y, -2.6, 0.09, 2, 0.3, 1.1, 198, 6, 0.03);
-  add(e1c.x, e1c.y, -1.9, 0.07, 2, 0.35, 0.9, 210, 5, 0.025);
+  add(e1c.x, e1c.y, -2.6, 0.10, 2, 0.28, 1.2, 198, 7, 0.03);
+  add(e1c.x, e1c.y, -2.0, 0.07, 2, 0.33, 0.9, 210, 5, 0.025);
   const e1d = endOf(s1d);
-  add(e1d.x, e1d.y, -0.2, 0.10, 2, 0.28, 1.2, 220, 6, 0.035);
-  add(e1d.x, e1d.y, 0.5, 0.08, 2, 0.32, 1.0, 225, 5, 0.03);
-  // Downward growth
+  add(e1d.x, e1d.y, -0.15, 0.11, 2, 0.26, 1.3, 220, 7, 0.035);
+  add(e1d.x, e1d.y, 0.6, 0.08, 2, 0.3, 1.0, 225, 5, 0.03);
   const e0d = endOf(s0d);
-  add(e0d.x, e0d.y, Math.PI * 0.8, 0.10, 2, 0.25, 1.3, 195, 6, 0.04);
+  add(e0d.x, e0d.y, Math.PI * 0.75, 0.11, 2, 0.22, 1.4, 195, 7, 0.04);
   const e0e = endOf(s0e);
-  add(e0e.x, e0e.y, Math.PI * 0.2, 0.11, 2, 0.25, 1.3, 228, 6, 0.04);
+  add(e0e.x, e0e.y, Math.PI * 0.25, 0.12, 2, 0.22, 1.4, 228, 7, 0.04);
+  const e0f = endOf(s0f);
+  add(e0f.x, e0f.y, Math.PI * 0.85, 0.09, 2, 0.3, 1.0, 203, 6, 0.03);
+  add(e0f.x, e0f.y, Math.PI * 1.15, 0.10, 2, 0.3, 1.0, 212, 6, 0.03);
 
   // ═══ STAGE 3: Denser sub-branching ═══
-  const stage3Sources = [s2a, s1b, s1c, s1d, s0d, s0e];
+  const stage3Sources = [s2a, s1b, s1c, s1d, s0d, s0e, s0f];
   stage3Sources.forEach(srcIdx => {
     const ep = endOf(srcIdx);
-    const baseAngle = Math.atan2(ep.y - cy, ep.x - cx);
-    add(ep.x, ep.y, baseAngle + (rng() - 0.5) * 1.2, 0.06 + rng() * 0.05, 3, 0.35 + rng() * 0.15, 0.8 + rng() * 0.3, 200 + rng() * 25, 5, 0.025);
-    const mp = midOf(srcIdx, 0.4 + rng() * 0.3);
-    add(mp.x, mp.y, baseAngle + (rng() - 0.5) * 2.0, 0.05 + rng() * 0.04, 3, 0.4 + rng() * 0.15, 0.6 + rng() * 0.3, 200 + rng() * 25, 4, 0.02);
+    const ba = Math.atan2(ep.y - cy, ep.x - cx);
+    add(ep.x, ep.y, ba + (rng() - 0.5) * 1.2, 0.06 + rng() * 0.06, 3, 0.33 + rng() * 0.15, 0.8 + rng() * 0.4, 200 + rng() * 25, 6, 0.025);
+    const mp = midOf(srcIdx, 0.35 + rng() * 0.3);
+    add(mp.x, mp.y, ba + (rng() - 0.5) * 2.0, 0.05 + rng() * 0.05, 3, 0.38 + rng() * 0.15, 0.6 + rng() * 0.3, 200 + rng() * 25, 5, 0.02);
   });
 
-  // ═══ STAGE 4: Finer dendrites ═══
-  for (let i = 0; i < 12; i++) {
-    const src = branches[Math.floor(rng() * Math.min(branches.length, 25))];
+  // ═══ STAGE 4 ═══
+  for (let i = 0; i < 14; i++) {
+    const src = branches[Math.floor(rng() * Math.min(branches.length, 30))];
     const ep = src.points[src.points.length - 1];
-    const angle = Math.atan2(ep.y - cy, ep.x - cx) + (rng() - 0.5) * 1.5;
-    add(ep.x, ep.y, angle, 0.04 + rng() * 0.04, 4, 0.4 + rng() * 0.2, 0.5 + rng() * 0.3, 200 + rng() * 30, 4, 0.02);
+    const a = Math.atan2(ep.y - cy, ep.x - cx) + (rng() - 0.5) * 1.5;
+    add(ep.x, ep.y, a, 0.04 + rng() * 0.05, 4, 0.38 + rng() * 0.2, 0.5 + rng() * 0.35, 200 + rng() * 30, 5, 0.02);
   }
 
-  // ═══ STAGE 5: Even finer ═══
-  for (let i = 0; i < 14; i++) {
+  // ═══ STAGE 5 ═══
+  for (let i = 0; i < 16; i++) {
     const pool = branches.filter(b => b.stage <= 3);
     const src = pool[Math.floor(rng() * pool.length)];
-    const t = 0.3 + rng() * 0.6;
+    const t = 0.25 + rng() * 0.6;
     const mp = midOf(branches.indexOf(src), t);
-    const angle = Math.atan2(mp.y - cy, mp.x - cx) + (rng() - 0.5) * 2.0;
-    add(mp.x, mp.y, angle, 0.03 + rng() * 0.04, 5, 0.5 + rng() * 0.2, 0.35 + rng() * 0.2, 205 + rng() * 25, 3, 0.018);
+    const a = Math.atan2(mp.y - cy, mp.x - cx) + (rng() - 0.5) * 2.0;
+    add(mp.x, mp.y, a, 0.03 + rng() * 0.045, 5, 0.45 + rng() * 0.2, 0.35 + rng() * 0.25, 205 + rng() * 25, 4, 0.018);
   }
 
-  // ═══ STAGE 6: Micro-dendrites ═══
-  for (let i = 0; i < 16; i++) {
+  // ═══ STAGE 6 ═══
+  for (let i = 0; i < 18; i++) {
     const pool = branches.filter(b => b.stage <= 4);
     const src = pool[Math.floor(rng() * pool.length)];
     const t = 0.2 + rng() * 0.7;
     const mp = midOf(branches.indexOf(src), t);
-    const angle = (rng()) * Math.PI * 2;
-    add(mp.x, mp.y, angle, 0.02 + rng() * 0.03, 6, 0.6 + rng() * 0.2, 0.2 + rng() * 0.15, 208 + rng() * 20, 3, 0.015);
+    const a = rng() * Math.PI * 2;
+    add(mp.x, mp.y, a, 0.02 + rng() * 0.035, 6, 0.55 + rng() * 0.2, 0.2 + rng() * 0.18, 208 + rng() * 20, 3, 0.015);
   }
 
-  // ═══ STAGE 7: Ultra-fine final layer ═══
-  for (let i = 0; i < 18; i++) {
+  // ═══ STAGE 7 ═══
+  for (let i = 0; i < 20; i++) {
     const pool = branches.filter(b => b.stage <= 5);
     const src = pool[Math.floor(rng() * pool.length)];
     const t = 0.15 + rng() * 0.75;
     const mp = midOf(branches.indexOf(src), t);
-    const angle = (rng()) * Math.PI * 2;
-    add(mp.x, mp.y, angle, 0.015 + rng() * 0.025, 7, 0.7 + rng() * 0.2, 0.12 + rng() * 0.12, 210 + rng() * 15, 2, 0.012);
+    const a = rng() * Math.PI * 2;
+    add(mp.x, mp.y, a, 0.015 + rng() * 0.028, 7, 0.65 + rng() * 0.2, 0.12 + rng() * 0.14, 210 + rng() * 15, 2, 0.012);
   }
 
   return branches;
@@ -216,8 +202,7 @@ const NETWORK = buildNetwork();
 function ptOn(b: Branch, t: number): Pt {
   const pts = b.points;
   const idx = Math.min(t, 1) * (pts.length - 1);
-  const i = Math.floor(idx);
-  const f = idx - i;
+  const i = Math.floor(idx); const f = idx - i;
   const a = pts[Math.min(i, pts.length - 1)];
   const bb = pts[Math.min(i + 1, pts.length - 1)];
   return { x: a.x + (bb.x - a.x) * f, y: a.y + (bb.y - a.y) * f };
@@ -226,98 +211,45 @@ function ptOn(b: Branch, t: number): Pt {
 export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef(0);
-  const startTime = useRef(0);
   const branchesRef = useRef<Branch[]>([]);
   const pulsesRef = useRef<Pulse[]>([]);
-  const prevStage = useRef(-2);
-  const flashRef = useRef(0);
+  const mountTime = useRef(0);
 
-  // Init branches on mount
-  useEffect(() => {
-    branchesRef.current = NETWORK.map(b => ({
-      ...b,
-      revealProgress: 0,
-      revealed: false,
-    }));
-  }, []);
-
-  // Stage change: mark branches to start revealing (slowly, continuously)
-  useEffect(() => {
-    if (buildStage === prevStage.current) return;
-
-    const branches = branchesRef.current;
-    if (!branches.length) return;
-
-    if (buildStage > prevStage.current) {
-      flashRef.current = 0.8;
-    }
-
-    // Mark all branches up to current stage to start revealing
-    branches.forEach(branch => {
-      if (branch.stage <= buildStage && !branch.revealed) {
-        branch.revealed = true;
-        // Stagger start slightly for organic feel — already-passed stages reveal faster
-        if (branch.stage < buildStage) {
-          branch.revealSpeed = 0.5 + Math.random() * 0.3; // fast catch-up
-        }
-        // Current stage: slow beautiful reveal
-        // revealSpeed already set in buildNetwork
-      }
-    });
-
-    // Spawn some fast pulses on already-revealed branches for excitement
-    if (buildStage > 0) {
-      branches.forEach((branch, i) => {
-        if (branch.stage < buildStage && branch.revealProgress > 0.5 && Math.random() < 0.3) {
-          pulsesRef.current.push({
-            branchIdx: i,
-            t: 0,
-            speed: 1.5 + Math.random() * 2,
-            type: 'fast',
-            brightness: 0.7 + Math.random() * 0.3,
-            hue: branch.hue + (Math.random() - 0.5) * 15,
-            trailLen: 0.07,
-          });
-        }
-      });
-    }
-
-    prevStage.current = buildStage;
-  }, [buildStage]);
-
-  const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, time: number) => {
+  const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) => {
     const dt = 1 / 60;
     ctx.clearRect(0, 0, w, h);
 
     const branches = branchesRef.current;
     if (!branches.length) return;
 
-    const breath = Math.sin(time * 0.5) * 0.5 + 0.5;
-    const breathSlow = Math.sin(time * 0.25) * 0.5 + 0.5;
-
-    flashRef.current = Math.max(0, flashRef.current - dt * 1.2);
+    const breath = Math.sin(elapsed * 0.5) * 0.5 + 0.5;
+    const breathSlow = Math.sin(elapsed * 0.25) * 0.5 + 0.5;
 
     // ── Background atmosphere ──
     const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, h * 0.65);
-    bgGrad.addColorStop(0, `rgba(10,30,70,${0.07 + breathSlow * 0.03})`);
-    bgGrad.addColorStop(0.6, `rgba(5,15,45,${0.03})`);
+    bgGrad.addColorStop(0, `rgba(8,25,65,${0.08 + breathSlow * 0.03})`);
+    bgGrad.addColorStop(0.6, `rgba(4,12,40,${0.03})`);
     bgGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // ── Update reveal progress (smooth continuous growth) ──
+    // ── Update reveal: PURELY TIME-BASED, continuous ──
     branches.forEach(branch => {
-      if (branch.revealed && branch.revealProgress < 1) {
-        branch.revealProgress = Math.min(1, branch.revealProgress + dt * branch.revealSpeed);
+      if (elapsed < branch.revealStartTime) {
+        branch.revealProgress = 0;
+        return;
       }
+      const t = (elapsed - branch.revealStartTime) / branch.revealDuration;
+      // Smooth ease-in-out
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      branch.revealProgress = Math.min(1, Math.max(0, eased));
     });
 
-    // ── Draw helper: path up to revealProgress ──
-    const drawPath = (branch: Branch, maxT?: number) => {
+    // ── Draw path helper ──
+    const drawPath = (branch: Branch) => {
       const pts = branch.points;
-      const rp = maxT !== undefined ? Math.min(maxT, branch.revealProgress) : branch.revealProgress;
-      if (rp < 0.005) return;
-
+      const rp = branch.revealProgress;
+      if (rp < 0.003) return;
       const totalPts = pts.length - 1;
       const drawEnd = rp * totalPts;
       const drawIdx = Math.floor(drawEnd);
@@ -328,107 +260,89 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
       for (let i = 1; i <= drawIdx && i < pts.length; i++) {
         ctx.lineTo(pts[i].x * w, pts[i].y * h);
       }
-      // Fractional last segment
       if (drawIdx < totalPts) {
-        const a = pts[drawIdx];
-        const b = pts[drawIdx + 1];
-        ctx.lineTo(
-          (a.x + (b.x - a.x) * frac) * w,
-          (a.y + (b.y - a.y) * frac) * h
-        );
+        const a = pts[drawIdx], b = pts[drawIdx + 1];
+        ctx.lineTo((a.x + (b.x - a.x) * frac) * w, (a.y + (b.y - a.y) * frac) * h);
       }
     };
 
-    // ── Sort by depth for painter's order ──
-    const sortedIndices = branches
-      .map((_, i) => i)
-      .sort((a, b) => branches[b].depth - branches[a].depth);
+    // ── Sort by depth ──
+    const sorted = branches.map((_, i) => i).sort((a, b) => branches[b].depth - branches[a].depth);
 
-    // ── Draw branches ──
-    sortedIndices.forEach(bi => {
+    // ── Draw branches with triple-layer glow ──
+    sorted.forEach(bi => {
       const branch = branches[bi];
-      if (branch.revealProgress < 0.005) return;
+      if (branch.revealProgress < 0.003) return;
 
-      const dAlpha = 1 - branch.depth * 0.55;
+      const da = 1 - branch.depth * 0.5;
       const rp = branch.revealProgress;
-      const breathMod = 1 + breath * 0.12 * branch.glowIntensity;
+      const bm = 1 + breath * 0.15 * branch.glowIntensity;
 
-      // Wide glow
+      // Wide diffuse glow
       drawPath(branch);
-      ctx.strokeStyle = `hsla(${branch.hue},70%,50%,${0.05 * dAlpha * rp})`;
-      ctx.lineWidth = (branch.width * 8 + 6) * breathMod;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
+      ctx.strokeStyle = `hsla(${branch.hue},75%,55%,${0.07 * da * rp})`;
+      ctx.lineWidth = (branch.width * 10 + 8) * bm;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
 
       // Medium glow
       drawPath(branch);
-      ctx.strokeStyle = `hsla(${branch.hue},65%,58%,${0.14 * dAlpha * rp})`;
-      ctx.lineWidth = (branch.width * 3 + 2) * breathMod;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
+      ctx.strokeStyle = `hsla(${branch.hue},70%,62%,${0.18 * da * rp})`;
+      ctx.lineWidth = (branch.width * 3.5 + 2.5) * bm;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
 
-      // Core
+      // Core line
       drawPath(branch);
-      ctx.strokeStyle = `hsla(${branch.hue},55%,75%,${(0.35 + breath * 0.1) * dAlpha * rp})`;
-      ctx.lineWidth = branch.width * breathMod;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
+      ctx.strokeStyle = `hsla(${branch.hue},60%,80%,${(0.45 + breath * 0.12) * da * rp})`;
+      ctx.lineWidth = branch.width * 1.1 * bm;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
 
       // Hot center for thick branches
-      if (branch.width > 1.0) {
+      if (branch.width > 1.2) {
         drawPath(branch);
-        ctx.strokeStyle = `hsla(${branch.hue},35%,92%,${0.2 * dAlpha * rp})`;
-        ctx.lineWidth = Math.max(0.5, branch.width * 0.25) * breathMod;
-        ctx.lineCap = 'round';
-        ctx.stroke();
+        ctx.strokeStyle = `hsla(${branch.hue},35%,94%,${0.25 * da * rp})`;
+        ctx.lineWidth = Math.max(0.4, branch.width * 0.22) * bm;
+        ctx.lineCap = 'round'; ctx.stroke();
       }
 
-      // ── Reveal head glow (bright dot at the growing tip) ──
-      if (branch.revealProgress > 0.01 && branch.revealProgress < 0.98) {
+      // ── Growing tip glow ──
+      if (branch.revealProgress > 0.01 && branch.revealProgress < 0.97) {
         const tip = ptOn(branch, branch.revealProgress);
-        const tx = tip.x * w;
-        const ty = tip.y * h;
-        const headSize = branch.width * 2.5;
+        const tx = tip.x * w, ty = tip.y * h;
+        const hs = branch.width * 3;
 
-        // Glow
-        const hg = ctx.createRadialGradient(tx, ty, 0, tx, ty, headSize * 4);
-        hg.addColorStop(0, `hsla(${branch.hue},60%,80%,${0.5 * dAlpha})`);
-        hg.addColorStop(0.4, `hsla(${branch.hue},65%,65%,${0.15 * dAlpha})`);
+        const hg = ctx.createRadialGradient(tx, ty, 0, tx, ty, hs * 5);
+        hg.addColorStop(0, `hsla(${branch.hue},65%,85%,${0.6 * da})`);
+        hg.addColorStop(0.3, `hsla(${branch.hue},70%,70%,${0.2 * da})`);
         hg.addColorStop(1, 'transparent');
         ctx.fillStyle = hg;
-        ctx.fillRect(tx - headSize * 4, ty - headSize * 4, headSize * 8, headSize * 8);
+        ctx.fillRect(tx - hs * 5, ty - hs * 5, hs * 10, hs * 10);
 
-        // Bright core
         ctx.beginPath();
-        ctx.arc(tx, ty, headSize * 0.5, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${branch.hue},40%,95%,${0.7 * dAlpha})`;
+        ctx.arc(tx, ty, hs * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${branch.hue},45%,96%,${0.8 * da})`;
         ctx.fill();
       }
     });
 
     // ── Junction nodes ──
     branches.forEach(branch => {
-      if (branch.revealProgress < 0.15) return;
+      if (branch.revealProgress < 0.12) return;
       const pt = branch.points[0];
-      const px = pt.x * w;
-      const py = pt.y * h;
-      const dAlpha = 1 - branch.depth * 0.45;
-      const ns = branch.width * 1.0;
-      const pulse = 1 + Math.sin(time * 1.0 + branch.hue * 0.15) * 0.25;
+      const px = pt.x * w, py = pt.y * h;
+      const da = 1 - branch.depth * 0.4;
+      const ns = branch.width * 1.2;
+      const pulse = 1 + Math.sin(elapsed * 1.2 + branch.hue * 0.15) * 0.3;
 
-      const ng = ctx.createRadialGradient(px, py, 0, px, py, ns * 4 * pulse);
-      ng.addColorStop(0, `hsla(${branch.hue},55%,78%,${0.25 * dAlpha * branch.revealProgress})`);
-      ng.addColorStop(0.4, `hsla(${branch.hue},60%,60%,${0.08 * dAlpha * branch.revealProgress})`);
+      const ng = ctx.createRadialGradient(px, py, 0, px, py, ns * 5 * pulse);
+      ng.addColorStop(0, `hsla(${branch.hue},60%,82%,${0.3 * da * branch.revealProgress})`);
+      ng.addColorStop(0.35, `hsla(${branch.hue},65%,65%,${0.1 * da * branch.revealProgress})`);
       ng.addColorStop(1, 'transparent');
       ctx.fillStyle = ng;
-      ctx.fillRect(px - ns * 4 * pulse, py - ns * 4 * pulse, ns * 8 * pulse, ns * 8 * pulse);
+      ctx.fillRect(px - ns * 5 * pulse, py - ns * 5 * pulse, ns * 10 * pulse, ns * 10 * pulse);
 
       ctx.beginPath();
-      ctx.arc(px, py, ns * 0.35, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${branch.hue},40%,88%,${0.4 * dAlpha * branch.revealProgress * (0.75 + breath * 0.25)})`;
+      ctx.arc(px, py, ns * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${branch.hue},42%,90%,${0.45 * da * branch.revealProgress * (0.7 + breath * 0.3)})`;
       ctx.fill();
     });
 
@@ -437,19 +351,15 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
     pulsesRef.current.forEach(pulse => {
       pulse.t += dt * pulse.speed;
       if (pulse.t > 1) {
-        // Chain to next branch
-        if (pulse.type === 'fast' && Math.random() < 0.25) {
-          const revealed = branches.filter((b, i) => b.revealProgress > 0.5 && i !== pulse.branchIdx);
-          if (revealed.length > 0) {
-            const nb = revealed[Math.floor(Math.random() * revealed.length)];
-            const ni = branches.indexOf(nb);
+        if (pulse.type === 'fast' && Math.random() < 0.2) {
+          const pool = branches.filter((b, i) => b.revealProgress > 0.6 && i !== pulse.branchIdx);
+          if (pool.length) {
+            const nb = pool[Math.floor(Math.random() * pool.length)];
             activePulses.push({
-              branchIdx: ni, t: 0,
-              speed: 1.8 + Math.random() * 2.5,
-              type: 'fast',
+              branchIdx: branches.indexOf(nb), t: 0,
+              speed: 2 + Math.random() * 3, type: 'fast',
               brightness: 0.5 + Math.random() * 0.3,
-              hue: nb.hue + (Math.random() - 0.5) * 15,
-              trailLen: 0.06,
+              hue: nb.hue + (Math.random() - 0.5) * 15, trailLen: 0.06,
             });
           }
         }
@@ -462,24 +372,20 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
 
       const drawT = Math.min(pulse.t, branch.revealProgress);
       const pt = ptOn(branch, drawT);
-      const px = pt.x * w;
-      const py = pt.y * h;
-
+      const px = pt.x * w, py = pt.y * h;
       const fade = Math.sin(Math.min(pulse.t / Math.max(branch.revealProgress, 0.01), 1) * Math.PI);
-      const sz = pulse.type === 'fast' ? 2.5 : 3.5;
+      const sz = pulse.type === 'fast' ? 2.8 : 4;
 
-      // Glow
-      const pg = ctx.createRadialGradient(px, py, 0, px, py, sz * 5);
-      pg.addColorStop(0, `hsla(${pulse.hue},65%,78%,${fade * pulse.brightness * 0.55})`);
-      pg.addColorStop(0.5, `hsla(${pulse.hue},60%,65%,${fade * pulse.brightness * 0.12})`);
+      const pg = ctx.createRadialGradient(px, py, 0, px, py, sz * 6);
+      pg.addColorStop(0, `hsla(${pulse.hue},70%,82%,${fade * pulse.brightness * 0.6})`);
+      pg.addColorStop(0.45, `hsla(${pulse.hue},65%,68%,${fade * pulse.brightness * 0.15})`);
       pg.addColorStop(1, 'transparent');
       ctx.fillStyle = pg;
-      ctx.fillRect(px - sz * 5, py - sz * 5, sz * 10, sz * 10);
+      ctx.fillRect(px - sz * 6, py - sz * 6, sz * 12, sz * 12);
 
-      // Core
       ctx.beginPath();
-      ctx.arc(px, py, sz * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${pulse.hue},45%,92%,${fade * pulse.brightness * 0.9})`;
+      ctx.arc(px, py, sz * 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${pulse.hue},50%,95%,${fade * pulse.brightness * 0.9})`;
       ctx.fill();
 
       // Trail
@@ -487,90 +393,67 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
       const tp = ptOn(branch, ts);
       const tg = ctx.createLinearGradient(tp.x * w, tp.y * h, px, py);
       tg.addColorStop(0, 'transparent');
-      tg.addColorStop(1, `hsla(${pulse.hue},60%,75%,${fade * pulse.brightness * 0.45})`);
+      tg.addColorStop(1, `hsla(${pulse.hue},65%,78%,${fade * pulse.brightness * 0.5})`);
       ctx.beginPath();
       ctx.moveTo(tp.x * w, tp.y * h);
-      const steps = 5;
-      for (let s = 1; s <= steps; s++) {
-        const sp = ptOn(branch, ts + (drawT - ts) * (s / steps));
+      for (let s = 1; s <= 5; s++) {
+        const sp = ptOn(branch, ts + (drawT - ts) * (s / 5));
         ctx.lineTo(sp.x * w, sp.y * h);
       }
       ctx.strokeStyle = tg;
-      ctx.lineWidth = pulse.type === 'fast' ? 0.8 : 1.5;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+      ctx.lineWidth = pulse.type === 'fast' ? 1.0 : 1.8;
+      ctx.lineCap = 'round'; ctx.stroke();
     });
     pulsesRef.current = activePulses;
 
-    // ── Ambient pulses ──
-    if (buildStage >= 2) {
+    // ── Spawn ambient pulses ──
+    const revealedPool = branches.filter(b => b.revealProgress > 0.7);
+    if (revealedPool.length > 2) {
       // Slow
-      if (Math.random() < 0.015) {
-        const pool = branches.filter(b => b.revealProgress > 0.8);
-        if (pool.length > 0) {
-          const b = pool[Math.floor(Math.random() * pool.length)];
-          const bi = branches.indexOf(b);
-          pulsesRef.current.push({
-            branchIdx: bi, t: 0,
-            speed: 0.15 + Math.random() * 0.15,
-            type: 'slow',
-            brightness: 0.35 + Math.random() * 0.25,
-            hue: b.hue + (Math.random() - 0.5) * 10,
-            trailLen: 0.2,
-          });
-        }
+      if (Math.random() < 0.018) {
+        const b = revealedPool[Math.floor(Math.random() * revealedPool.length)];
+        pulsesRef.current.push({
+          branchIdx: branches.indexOf(b), t: 0,
+          speed: 0.12 + Math.random() * 0.15, type: 'slow',
+          brightness: 0.35 + Math.random() * 0.25,
+          hue: b.hue + (Math.random() - 0.5) * 10, trailLen: 0.22,
+        });
       }
       // Fast
-      if (Math.random() < (buildStage >= 5 ? 0.05 : 0.025)) {
-        const pool = branches.filter(b => b.revealProgress > 0.8);
-        if (pool.length > 0) {
-          const b = pool[Math.floor(Math.random() * pool.length)];
-          const bi = branches.indexOf(b);
-          pulsesRef.current.push({
-            branchIdx: bi, t: 0,
-            speed: 2 + Math.random() * 3,
-            type: 'fast',
-            brightness: 0.6 + Math.random() * 0.4,
-            hue: b.hue + (Math.random() - 0.5) * 20,
-            trailLen: 0.05 + Math.random() * 0.04,
-          });
-        }
+      if (Math.random() < (revealedPool.length > 40 ? 0.06 : 0.03)) {
+        const b = revealedPool[Math.floor(Math.random() * revealedPool.length)];
+        pulsesRef.current.push({
+          branchIdx: branches.indexOf(b), t: 0,
+          speed: 2.5 + Math.random() * 3.5, type: 'fast',
+          brightness: 0.6 + Math.random() * 0.4,
+          hue: b.hue + (Math.random() - 0.5) * 20, trailLen: 0.05 + Math.random() * 0.04,
+        });
       }
     }
 
-    // ── Central core glow ──
-    if (buildStage >= 0) {
-      const coreAlpha = Math.min(1, branches.filter(b => b.stage === 0).reduce((a, b) => a + b.revealProgress, 0) / 3);
-      const cg = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, 25 + breath * 8);
-      cg.addColorStop(0, `hsla(210,50%,80%,${0.25 * coreAlpha})`);
-      cg.addColorStop(0.3, `hsla(210,60%,65%,${0.1 * coreAlpha})`);
+    // ── Central core ──
+    const coreAlpha = Math.min(1, branches.filter(b => b.stage === 0).reduce((acc, b) => acc + b.revealProgress, 0) / 3);
+    if (coreAlpha > 0.01) {
+      const cg = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, 30 + breath * 10);
+      cg.addColorStop(0, `hsla(210,55%,85%,${0.3 * coreAlpha})`);
+      cg.addColorStop(0.25, `hsla(210,65%,68%,${0.12 * coreAlpha})`);
       cg.addColorStop(1, 'transparent');
       ctx.fillStyle = cg;
-      ctx.fillRect(w * 0.5 - 40, h * 0.48 - 40, 80, 80);
+      ctx.fillRect(w * 0.5 - 45, h * 0.48 - 45, 90, 90);
 
       ctx.beginPath();
-      ctx.arc(w * 0.5, h * 0.48, 2 + breath * 0.5, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(210,40%,92%,${0.5 * coreAlpha})`;
+      ctx.arc(w * 0.5, h * 0.48, 2.5 + breath * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(210,45%,95%,${0.55 * coreAlpha})`;
       ctx.fill();
     }
 
-    // ── Flash ──
-    if (flashRef.current > 0.01) {
-      const fg = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, h * 0.45);
-      fg.addColorStop(0, `rgba(80,160,255,${flashRef.current * 0.06})`);
-      fg.addColorStop(1, 'transparent');
-      ctx.fillStyle = fg;
-      ctx.fillRect(0, 0, w, h);
-    }
-
     // ── Vignette ──
-    const vig = ctx.createRadialGradient(w * 0.5, h * 0.48, h * 0.15, w * 0.5, h * 0.48, h * 0.6);
+    const vig = ctx.createRadialGradient(w * 0.5, h * 0.48, h * 0.18, w * 0.5, h * 0.48, h * 0.6);
     vig.addColorStop(0, 'transparent');
-    vig.addColorStop(1, `rgba(0,0,0,${0.25 + breathSlow * 0.05})`);
+    vig.addColorStop(1, `rgba(0,0,0,${0.22 + breathSlow * 0.05})`);
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, w, h);
-
-  }, [buildStage]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -578,21 +461,9 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    startTime.current = performance.now() / 1000;
-
-    // Re-init branches
-    branchesRef.current = NETWORK.map(b => ({ ...b, revealProgress: 0, revealed: false }));
+    mountTime.current = performance.now() / 1000;
+    branchesRef.current = NETWORK.map(b => ({ ...b, revealProgress: 0 }));
     pulsesRef.current = [];
-
-    // Instant reveal for already-passed stages
-    if (buildStage >= 0) {
-      branchesRef.current.forEach(branch => {
-        if (branch.stage <= buildStage) {
-          branch.revealed = true;
-          branch.revealProgress = 1;
-        }
-      });
-    }
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -606,8 +477,8 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
 
     const loop = () => {
       const rect = canvas.getBoundingClientRect();
-      const time = performance.now() / 1000 - startTime.current;
-      draw(ctx, rect.width, rect.height, time);
+      const elapsed = performance.now() / 1000 - mountTime.current;
+      draw(ctx, rect.width, rect.height, elapsed);
       animRef.current = requestAnimationFrame(loop);
     };
     animRef.current = requestAnimationFrame(loop);
@@ -620,11 +491,7 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
 
   return (
     <div className="w-full h-full relative">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full"
-        style={{ background: 'transparent' }}
-      />
+      <canvas ref={canvasRef} className="w-full h-full" style={{ background: 'transparent' }} />
     </div>
   );
 };
