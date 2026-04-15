@@ -464,9 +464,14 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    mountTime.current = performance.now() / 1000;
-    branchesRef.current = NETWORK.map(b => ({ ...b, revealProgress: 0 }));
-    pulsesRef.current = [];
+    // Only init branches once globally — never reset
+    if (!globalStartTime) {
+      globalStartTime = performance.now() / 1000;
+    }
+    if (!globalBranches) {
+      globalBranches = NETWORK.map(b => ({ ...b, revealProgress: 0 }));
+    }
+    branchesRef.current = globalBranches;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -480,7 +485,7 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
 
     const loop = () => {
       const rect = canvas.getBoundingClientRect();
-      const elapsed = performance.now() / 1000 - mountTime.current;
+      const elapsed = performance.now() / 1000 - globalStartTime;
       draw(ctx, rect.width, rect.height, elapsed);
       animRef.current = requestAnimationFrame(loop);
     };
