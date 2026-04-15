@@ -434,20 +434,40 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
       }
     }
 
-    // ── Central core ──
-    const coreAlpha = Math.min(1, branches.filter(b => b.stage === 0).reduce((acc, b) => acc + b.revealProgress, 0) / 3);
+    // ── Central origin neurons: permanent and always visible once born ──
+    const stageZeroBranches = branches.filter(b => b.stage === 0);
+    const coreAlpha = Math.min(1, stageZeroBranches.reduce((acc, b) => acc + Math.max(b.revealProgress, 0), 0) / 2.8);
     if (coreAlpha > 0.01) {
-      const cg = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, 30 + breath * 10);
-      cg.addColorStop(0, `hsla(210,55%,85%,${0.3 * coreAlpha})`);
-      cg.addColorStop(0.25, `hsla(210,65%,68%,${0.12 * coreAlpha})`);
+      const cg = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, 36 + breath * 12);
+      cg.addColorStop(0, `hsla(210,60%,88%,${0.42 * coreAlpha})`);
+      cg.addColorStop(0.2, `hsla(208,72%,72%,${0.2 * coreAlpha})`);
       cg.addColorStop(1, 'transparent');
       ctx.fillStyle = cg;
-      ctx.fillRect(w * 0.5 - 45, h * 0.48 - 45, 90, 90);
+      ctx.fillRect(w * 0.5 - 56, h * 0.48 - 56, 112, 112);
 
       ctx.beginPath();
-      ctx.arc(w * 0.5, h * 0.48, 2.5 + breath * 0.6, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(210,45%,95%,${0.55 * coreAlpha})`;
+      ctx.arc(w * 0.5, h * 0.48, 3.2 + breath * 0.8, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(210,50%,97%,${0.9 * coreAlpha})`;
       ctx.fill();
+
+      stageZeroBranches.forEach((branch) => {
+        if (branch.revealProgress < 0.08) return;
+        const origin = branch.points[0];
+        const ox = origin.x * w;
+        const oy = origin.y * h;
+        const radius = 2.2 + branch.width * 0.75 + breath * 0.35;
+        const og = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius * 6);
+        og.addColorStop(0, `hsla(${branch.hue},68%,88%,${0.55 * coreAlpha})`);
+        og.addColorStop(0.32, `hsla(${branch.hue},72%,72%,${0.2 * coreAlpha})`);
+        og.addColorStop(1, 'transparent');
+        ctx.fillStyle = og;
+        ctx.fillRect(ox - radius * 6, oy - radius * 6, radius * 12, radius * 12);
+
+        ctx.beginPath();
+        ctx.arc(ox, oy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${branch.hue},48%,97%,${0.78 * coreAlpha})`;
+        ctx.fill();
+      });
     }
 
     // ── Vignette ──
