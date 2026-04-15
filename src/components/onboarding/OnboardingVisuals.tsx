@@ -73,49 +73,220 @@ export const SubtitleReveal = ({ text, className, delay = 0 }: SubtitleRevealPro
 };
 
 /* ═══════════════════════════════════════════════════════
-   WELCOME LOGO — precision laser reveal
+   WELCOME LOGO — particle convergence + laser formation
+   Premium hero animation: scattered particles converge
+   into the NEO wordmark, with laser trace and micro-glow.
    ═══════════════════════════════════════════════════════ */
 
 export const WelcomeLogo = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+  const logoTextRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    const ctx = gsap.context(() => {
-      const laser = containerRef.current!.querySelector('.laser') as HTMLElement;
-      const logoMask = containerRef.current!.querySelector('.logo-mask') as HTMLElement;
-      const logoInner = containerRef.current!.querySelector('.logo-inner') as HTMLElement;
-      const glow = containerRef.current!.querySelector('.logo-glow') as HTMLElement;
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+    const ctx2d = canvas.getContext('2d');
+    if (!ctx2d) return;
 
-      gsap.set(laser, { scaleX: 0, transformOrigin: 'left center' });
-      gsap.set(logoMask, { clipPath: 'inset(0 100% 0 0)' });
-      gsap.set(logoInner, { opacity: 0 });
-      gsap.set(glow, { opacity: 0, scale: 0.8 });
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = 360;
+    const H = 160;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = `${W}px`;
+    canvas.style.height = `${H}px`;
+    ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const tl = gsap.timeline({ delay: 0.4 });
-      tl.to(laser, { scaleX: 1, duration: 1.2, ease: 'power3.inOut' });
-      tl.to(logoInner, { opacity: 1, duration: 0.01 }, 0.5);
-      tl.to(logoMask, { clipPath: 'inset(0 0% 0 0)', duration: 0.8, ease: 'power3.inOut' }, 0.5);
-      tl.to(laser, { opacity: 0, duration: 0.5 }, 1.1);
-      tl.to(glow, { opacity: 1, scale: 1, duration: 1.4, ease: 'power2.out' }, 1.0);
-      tl.to(glow, { opacity: 0.5, scale: 1.02, duration: 3, ease: 'sine.inOut', repeat: -1, yoyo: true }, '>');
-    }, containerRef);
-    return () => ctx.revert();
+    // Sample target points from text
+    const offscreen = document.createElement('canvas');
+    offscreen.width = W * 2;
+    offscreen.height = H * 2;
+    const offCtx = offscreen.getContext('2d')!;
+    offCtx.fillStyle = '#fff';
+    offCtx.font = `bold ${56 * 2}px system-ui, -apple-system, sans-serif`;
+    offCtx.textAlign = 'center';
+    offCtx.textBaseline = 'middle';
+    offCtx.letterSpacing = `${56 * 0.06 * 2}px`;
+    offCtx.fillText('NEO', W, H);
+    const imageData = offCtx.getImageData(0, 0, W * 2, H * 2);
+
+    const targets: { x: number; y: number }[] = [];
+    const step = 3;
+    for (let y = 0; y < H * 2; y += step) {
+      for (let x = 0; x < W * 2; x += step) {
+        if (imageData.data[(y * W * 2 + x) * 4 + 3] > 128) {
+          targets.push({ x: x / 2, y: y / 2 });
+        }
+      }
+    }
+
+    // Limit particle count for performance
+    const MAX_PARTICLES = 420;
+    const shuffled = targets.sort(() => Math.random() - 0.5).slice(0, MAX_PARTICLES);
+
+    interface Particle {
+      x: number; y: number;
+      tx: number; ty: number;
+      sx: number; sy: number;
+      delay: number;
+      size: number;
+    }
+
+    const particles: Particle[] = shuffled.map(t => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 120 + Math.random() * 200;
+      return {
+        x: W / 2 + Math.cos(angle) * dist,
+        y: H / 2 + Math.sin(angle) * dist,
+        sx: W / 2 + Math.cos(angle) * dist,
+        sy: H / 2 + Math.sin(angle) * dist,
+        tx: t.x,
+        ty: t.y,
+        delay: Math.random() * 0.35,
+        size: 0.6 + Math.random() * 1.0,
+      };
+    });
+
+    let start: number | null = null;
+    let animId: number;
+    const CONVERGE_DURATION = 2200; // ms
+    const HOLD_BEFORE_GLOW = 400;
+
+    let glowTriggered = false;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const easeInOutQuart = (t: number) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+
+    const animate = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const elapsed = timestamp - start;
+
+      ctx2d.clearRect(0, 0, W, H);
+
+      // Draw laser scan line
+      const laserProgress = Math.min(elapsed / 1200, 1);
+      if (laserProgress < 1) {
+        const lx = laserProgress * W;
+        const grad = ctx2d.createLinearGradient(lx - 60, H / 2, lx + 10, H / 2);
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(0.6, 'rgba(255,255,255,0.15)');
+        grad.addColorStop(1, 'rgba(255,255,255,0.6)');
+        ctx2d.strokeStyle = grad;
+        ctx2d.lineWidth = 1;
+        ctx2d.beginPath();
+        ctx2d.moveTo(Math.max(0, lx - 60), H / 2);
+        ctx2d.lineTo(lx, H / 2);
+        ctx2d.stroke();
+
+        // Vertical scan line
+        ctx2d.strokeStyle = `rgba(255,255,255,${0.08 * (1 - laserProgress)})`;
+        ctx2d.lineWidth = 0.5;
+        ctx2d.beginPath();
+        ctx2d.moveTo(lx, 0);
+        ctx2d.lineTo(lx, H);
+        ctx2d.stroke();
+      }
+
+      // Draw particles
+      let allSettled = true;
+      particles.forEach(p => {
+        const pElapsed = Math.max(0, elapsed - p.delay * CONVERGE_DURATION);
+        const raw = Math.min(pElapsed / CONVERGE_DURATION, 1);
+        const t = easeInOutQuart(raw);
+
+        p.x = p.sx + (p.tx - p.sx) * t;
+        p.y = p.sy + (p.ty - p.sy) * t;
+
+        if (raw < 1) allSettled = false;
+
+        // Trail line from origin
+        if (raw < 0.7 && raw > 0) {
+          ctx2d.strokeStyle = `rgba(255,255,255,${0.04 * (1 - raw)})`;
+          ctx2d.lineWidth = 0.3;
+          ctx2d.beginPath();
+          ctx2d.moveTo(p.sx, p.sy);
+          ctx2d.lineTo(p.x, p.y);
+          ctx2d.stroke();
+        }
+
+        // Particle glow
+        const alpha = raw < 0.3 ? 0.2 + raw * 2 : 0.8;
+        const size = raw < 1 ? p.size * (0.5 + t * 0.5) : p.size;
+
+        // Micro-glow halo
+        if (raw > 0.7) {
+          ctx2d.beginPath();
+          ctx2d.arc(p.x, p.y, size + 2, 0, Math.PI * 2);
+          ctx2d.fillStyle = `rgba(255,255,255,${0.03 * (raw - 0.7) / 0.3})`;
+          ctx2d.fill();
+        }
+
+        ctx2d.beginPath();
+        ctx2d.arc(p.x, p.y, size, 0, Math.PI * 2);
+        ctx2d.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx2d.fill();
+      });
+
+      // Breathing pulse after settled
+      if (allSettled && !glowTriggered) {
+        glowTriggered = true;
+        // Trigger glow & text reveals via GSAP
+        if (glowRef.current && logoTextRef.current) {
+          const tl = gsap.timeline();
+          tl.to(glowRef.current, { opacity: 0.6, scale: 1, duration: 1.0, ease: 'power2.out' });
+          tl.to(glowRef.current, { opacity: 0.25, scale: 1.02, duration: 3, ease: 'sine.inOut', repeat: -1, yoyo: true }, '>');
+        }
+      }
+
+      // Breathing effect on settled particles
+      if (allSettled) {
+        const breathe = Math.sin(elapsed * 0.0015) * 0.06;
+        particles.forEach(p => {
+          const bx = p.tx + (p.tx - W / 2) * breathe;
+          const by = p.ty + (p.ty - H / 2) * breathe;
+          ctx2d.beginPath();
+          ctx2d.arc(bx, by, p.size, 0, Math.PI * 2);
+          ctx2d.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx2d.fill();
+        });
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   return (
     <div ref={containerRef} className="flex flex-col items-center relative">
-      <div className="laser absolute w-52 h-[1px] bg-gradient-to-r from-transparent via-white to-transparent top-1/2 -translate-y-1/2" />
-      <div className="relative">
-        <div className="logo-glow absolute inset-[-28px] rounded-[40px] bg-[#ffffff08] blur-[32px]" />
-        <div className="logo-mask">
-          <div className="logo-inner">
-            <span className="text-[56px] font-bold tracking-[0.06em] text-white select-none leading-none">
-              NEO
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* Ambient glow behind logo */}
+      <div
+        ref={glowRef}
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: 240,
+          height: 100,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%) scale(0.7)',
+          background: 'radial-gradient(ellipse, rgba(255,255,255,0.08) 0%, transparent 70%)',
+          opacity: 0,
+          filter: 'blur(30px)',
+        }}
+      />
+      {/* Canvas for particle animation */}
+      <canvas
+        ref={canvasRef}
+        className="relative z-10 pointer-events-none"
+        style={{ width: 360, height: 160 }}
+      />
+      {/* Hidden text ref for accessibility */}
+      <div ref={logoTextRef} className="sr-only">NEO</div>
     </div>
   );
 };

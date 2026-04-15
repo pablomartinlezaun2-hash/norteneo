@@ -316,19 +316,22 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
    ═══════════════════════════════════════════ */
 
 const WelcomeSlide = () => (
-  <div className="flex flex-col items-center gap-10">
+  <div className="flex flex-col items-center gap-8">
+    {/* Hero visual: particle convergence forming NEO */}
     <WelcomeLogo />
-    <div className="flex flex-col items-center gap-4 mt-2">
+
+    {/* Subtitle — enters after particles settle (~2.8s) */}
+    <div className="flex flex-col items-center gap-5 mt-1">
       <TextReveal
         text="El rendimiento, rediseñado."
-        className="text-[17px] md:text-[19px] tracking-[0.04em] text-center font-medium"
-        style_color="rgba(255,255,255,0.45)"
-        delay={1.6}
+        className="text-[18px] md:text-[21px] tracking-[0.05em] text-center font-medium"
+        style_color="rgba(255,255,255,0.5)"
+        delay={2.8}
       />
       <SubtitleReveal
-        text="Planificación. Ejecución. Evolución."
-        className="text-[13px] tracking-[0.12em] uppercase text-center"
-        delay={2.2}
+        text="PLANIFICACIÓN. EJECUCIÓN. EVOLUCIÓN."
+        className="text-[11px] tracking-[0.22em] uppercase text-center font-semibold"
+        delay={3.6}
       />
     </div>
   </div>
