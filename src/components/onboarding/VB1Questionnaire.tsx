@@ -643,7 +643,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 border: '1px solid rgba(255,255,255,0.04)',
               }}
             >
-              CALIBRANDO · {step?.systemLabel}
+              SINAPSIS · {step?.systemLabel}
             </span>
           </motion.div>
         </div>
@@ -738,7 +738,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* Neural spine preview — empty state */}
+                {/* Neural cloud preview — dormant state */}
                 <div className="relative w-full mb-6" style={{ height: 200 }}>
                   <CalibrationAvatar buildStage={-1} />
                 </div>
@@ -749,7 +749,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
-                  NEO · LECTURA FISIOLÓGICA
+                  NEO · RED FISIOLÓGICA
                 </motion.p>
 
                 <motion.h1
@@ -758,7 +758,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5, ease }}
                 >
-                  Calibrando tu sistema
+                  Calibración neural
                 </motion.h1>
                 <motion.p
                   className="text-[13px] text-white/25 font-light leading-relaxed mb-8 max-w-[260px]"
@@ -766,7 +766,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.55, duration: 0.5, ease }}
                 >
-                  Cada respuesta activa una capa de tu modelo fisiológico.
+                  Cada respuesta activa nuevas conexiones en tu modelo.
                 </motion.p>
 
                 <motion.button
@@ -874,7 +874,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                 exit="exit"
                 className="w-full max-w-[340px] flex flex-col items-center text-center"
               >
-                {/* Fully calibrated neural system */}
+                {/* Fully active neural cloud */}
                 <div className="relative w-full mb-4" style={{ height: 280 }}>
                   <CalibrationAvatar buildStage={8} />
                 </div>
@@ -885,7 +885,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  CALIBRACIÓN COMPLETADA
+                  SINAPSIS ACTIVAS
                 </motion.p>
 
                 <motion.h1
@@ -894,7 +894,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25, duration: 0.5, ease }}
                 >
-                  Señales activas
+                  Red calibrada
                 </motion.h1>
                 <motion.p
                   className="text-[13px] text-white/25 font-light mb-8 max-w-[260px]"
@@ -902,7 +902,7 @@ export const VB1Questionnaire = ({ onComplete, onBack }: VB1QuestionnaireProps) 
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
                 >
-                  NEO ha calibrado tu modelo fisiológico.
+                  NEO ha mapeado tu inteligencia fisiológica.
                 </motion.p>
 
                 <motion.button
