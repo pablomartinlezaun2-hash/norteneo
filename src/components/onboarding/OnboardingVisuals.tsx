@@ -981,64 +981,380 @@ export const AIHeroVisual = ({ accentColor }: { accentColor: string }) => {
   );
 };
 
-/* --- Nutrition: Macro Ring System --- */
+/* --- Nutrition: Metabolic Orbital Synchronisation Console --- */
 export const NutritionHeroVisual = ({ accentColor }: { accentColor: string }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   useEffect(() => {
-    if (!ref.current) return;
-    const ctx = gsap.context(() => {
-      const arcs = ref.current!.querySelectorAll('.macro-arc');
-      const labels = ref.current!.querySelectorAll('.macro-label');
-      const center = ref.current!.querySelector('.macro-center') as SVGElement;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      arcs.forEach(a => {
-        const len = (a as SVGPathElement).getTotalLength();
-        gsap.set(a, { strokeDasharray: len, strokeDashoffset: len, opacity: 1 });
-      });
-      gsap.set(labels, { opacity: 0 });
-      gsap.set(center, { opacity: 0, scale: 0, transformOrigin: 'center' });
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const SIZE = 320;
+    canvas.width = SIZE * dpr;
+    canvas.height = SIZE * dpr;
+    canvas.style.width = `${SIZE}px`;
+    canvas.style.height = `${SIZE}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const tl = gsap.timeline({ delay: 0.2 });
-      arcs.forEach((a, i) => {
-        tl.to(a, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, i * 0.2);
-      });
-      tl.to(center, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2)' }, 0.5);
-      labels.forEach((l, i) => {
-        tl.to(l, { opacity: 0.7, duration: 0.4, ease: 'power2.out' }, 0.7 + i * 0.1);
-      });
-      tl.to(ref.current!.querySelector('svg')!, {
-        y: -3, duration: 3, ease: 'sine.inOut', repeat: -1, yoyo: true,
-      }, 0);
-    }, ref);
-    return () => ctx.revert();
-  }, []);
+    const cx = SIZE / 2;
+    const cy = SIZE / 2;
+    let animId: number;
+    let start: number | null = null;
 
-  const cx = 80, cy = 80;
-  const arcPath = (r: number, start: number, end: number) => {
-    const s = (start * Math.PI) / 180;
-    const e = (end * Math.PI) / 180;
-    const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
-    const x2 = cx + r * Math.cos(e), y2 = cy + r * Math.sin(e);
-    const large = end - start > 180 ? 1 : 0;
-    return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
-  };
+    const hexToRgb = (hex: string) => ({
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+    });
+    const ac = hexToRgb(accentColor);
+    const rgba = (a: number) => `rgba(${ac.r},${ac.g},${ac.b},${a})`;
+    const wRgba = (a: number) => `rgba(255,255,255,${a})`;
+    // Secondary tones for layers
+    const rgba2 = (a: number) => `rgba(${Math.min(ac.r + 30, 255)},${Math.min(ac.g + 15, 255)},${ac.b},${a})`;
+    const rgba3 = (a: number) => `rgba(${Math.max(ac.r - 20, 0)},${ac.g},${Math.min(ac.b + 30, 255)},${a})`;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const easeInOutQuart = (t: number) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+    const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
+
+    // Phase timing
+    const P1 = 400;   // silence
+    const P2 = 1200;  // reference marks appear
+    const P3 = 2400;  // arcs trace
+    const P4 = 3200;  // sync pulses + nodes activate
+    const P5 = 3800;  // core stabilises
+    const ALIVE = 4200;
+
+    // Orbital arcs definition
+    interface OrbitalArc {
+      r: number;
+      startDeg: number;
+      spanDeg: number;
+      width: number;
+      colorFn: (a: number) => string;
+      traceOffset: number; // 0-1 stagger within P3
+      label: string;
+    }
+
+    const arcs: OrbitalArc[] = [
+      { r: 130, startDeg: -60, spanDeg: 200, width: 1.2, colorFn: rgba, traceOffset: 0, label: 'PRO' },
+      { r: 130, startDeg: 170, spanDeg: 80, width: 0.6, colorFn: rgba, traceOffset: 0.3, label: '' },
+      { r: 108, startDeg: -110, spanDeg: 250, width: 1.0, colorFn: rgba2, traceOffset: 0.08, label: 'CHO' },
+      { r: 108, startDeg: 170, spanDeg: 60, width: 0.5, colorFn: rgba2, traceOffset: 0.35, label: '' },
+      { r: 86, startDeg: -30, spanDeg: 180, width: 0.9, colorFn: rgba3, traceOffset: 0.15, label: 'FAT' },
+      { r: 86, startDeg: 180, spanDeg: 100, width: 0.5, colorFn: rgba3, traceOffset: 0.38, label: '' },
+      { r: 64, startDeg: -140, spanDeg: 220, width: 0.7, colorFn: rgba, traceOffset: 0.22, label: 'SUP' },
+      { r: 64, startDeg: 110, spanDeg: 70, width: 0.4, colorFn: rgba, traceOffset: 0.42, label: '' },
+    ];
+
+    // Sync nodes on arcs
+    interface SyncNode {
+      arcIdx: number;
+      angleDeg: number;
+      r: number;
+      size: number;
+      pulseDelay: number;
+    }
+
+    const syncNodes: SyncNode[] = [
+      { arcIdx: 0, angleDeg: 40, r: 130, size: 2.8, pulseDelay: 0 },
+      { arcIdx: 0, angleDeg: -30, r: 130, size: 2.2, pulseDelay: 0.2 },
+      { arcIdx: 2, angleDeg: -80, r: 108, size: 2.5, pulseDelay: 0.1 },
+      { arcIdx: 2, angleDeg: 60, r: 108, size: 2.0, pulseDelay: 0.3 },
+      { arcIdx: 4, angleDeg: 10, r: 86, size: 2.4, pulseDelay: 0.15 },
+      { arcIdx: 4, angleDeg: 120, r: 86, size: 1.8, pulseDelay: 0.35 },
+      { arcIdx: 6, angleDeg: -100, r: 64, size: 2.2, pulseDelay: 0.25 },
+      { arcIdx: 6, angleDeg: 30, r: 64, size: 1.6, pulseDelay: 0.4 },
+    ];
+
+    // Cross-layer sync lines
+    const syncLines = [
+      { from: 0, to: 2 }, { from: 1, to: 3 },
+      { from: 2, to: 4 }, { from: 4, to: 6 },
+      { from: 5, to: 7 }, { from: 3, to: 5 },
+    ];
+
+    const drawArc = (r: number, startRad: number, endRad: number, lw: number, color: string) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, startRad, endRad);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    };
+
+    // Tick marks for each orbital ring
+    const TICKS_PER_RING = [48, 36, 28, 20];
+
+    const animate = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const t = timestamp - start;
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      const isAlive = t > ALIVE;
+      const breathe = isAlive ? Math.sin(t * 0.0007) * 0.05 + 1 : 1;
+      const breatheSlow = isAlive ? Math.sin(t * 0.0004) * 0.03 + 1 : 1;
+
+      // ── Atmosphere ──
+      const atmosA = Math.min(t / 3000, 0.035);
+      const atmos = ctx.createRadialGradient(cx, cy, 15, cx, cy, 160);
+      atmos.addColorStop(0, rgba(atmosA * 2));
+      atmos.addColorStop(0.5, rgba(atmosA * 0.6));
+      atmos.addColorStop(1, 'transparent');
+      ctx.fillStyle = atmos;
+      ctx.fillRect(0, 0, SIZE, SIZE);
+
+      // ── Phase 2: Reference ticks on orbital rings ──
+      if (t > P1) {
+        const tickP = easeOutCubic(Math.min((t - P1) / (P2 - P1), 1));
+        const ringRadii = [130, 108, 86, 64];
+
+        ringRadii.forEach((r, ri) => {
+          const numTicks = TICKS_PER_RING[ri];
+          for (let i = 0; i < numTicks; i++) {
+            const angle = (i / numTicks) * Math.PI * 2 - Math.PI / 2;
+            const stagger = (i / numTicks);
+            const localP = easeOutCubic(Math.max(0, Math.min((tickP - stagger * 0.4 - ri * 0.1) / 0.4, 1)));
+            if (localP <= 0) continue;
+
+            const isMajor = i % (numTicks / 4) === 0;
+            const isMinor = i % (numTicks / 12) === 0;
+            const outerR = r + 3;
+            const innerR = isMajor ? r - 4 : isMinor ? r - 2 : r - 1;
+            const lw = isMajor ? 0.8 : isMinor ? 0.4 : 0.2;
+            const alpha = (isMajor ? 0.25 : isMinor ? 0.12 : 0.05) * localP * breathe;
+
+            ctx.beginPath();
+            ctx.moveTo(cx + outerR * Math.cos(angle), cy + outerR * Math.sin(angle));
+            ctx.lineTo(cx + innerR * Math.cos(angle), cy + innerR * Math.sin(angle));
+            ctx.strokeStyle = wRgba(alpha);
+            ctx.lineWidth = lw;
+            ctx.stroke();
+          }
+        });
+      }
+
+      // ── Phase 3: Orbital arcs trace ──
+      if (t > P2 * 0.8) {
+        const arcPhaseTotal = Math.min((t - P2 * 0.8) / (P3 - P2), 1);
+
+        arcs.forEach((arc) => {
+          const localP = Math.max(0, Math.min((arcPhaseTotal - arc.traceOffset) / 0.5, 1));
+          if (localP <= 0) return;
+
+          const trace = easeInOutQuart(localP);
+          const startRad = (arc.startDeg * Math.PI) / 180;
+          const endRad = startRad + (arc.spanDeg * Math.PI / 180) * trace;
+          const alpha = 0.45 * localP * breathe;
+
+          drawArc(arc.r * breatheSlow, startRad, endRad, arc.width, arc.colorFn(alpha));
+
+          // Trace head glow during draw
+          if (trace < 1 && trace > 0) {
+            const hx = cx + arc.r * Math.cos(endRad);
+            const hy = cy + arc.r * Math.sin(endRad);
+            const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 5);
+            g.addColorStop(0, arc.colorFn(0.7));
+            g.addColorStop(1, 'transparent');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+
+      // ── Phase 4: Sync nodes activate ──
+      if (t > P3 * 0.8) {
+        const nodeP = Math.min((t - P3 * 0.8) / (P4 - P3), 1);
+
+        syncNodes.forEach((node, ni) => {
+          const localP = easeOutCubic(Math.max(0, Math.min((nodeP - node.pulseDelay) / 0.3, 1)));
+          if (localP <= 0) return;
+
+          const rad = (node.angleDeg * Math.PI) / 180;
+          const nx = cx + node.r * breatheSlow * Math.cos(rad);
+          const ny = cy + node.r * breatheSlow * Math.sin(rad);
+
+          // Breathing offset in alive state
+          const bx = isAlive ? Math.sin(t * 0.0009 + ni * 1.1) * 0.8 : 0;
+          const by = isAlive ? Math.cos(t * 0.0007 + ni * 0.9) * 0.6 : 0;
+          const fx = nx + bx;
+          const fy = ny + by;
+
+          // Store position
+          (node as any)._fx = fx;
+          (node as any)._fy = fy;
+
+          // Halo
+          if (localP > 0.5) {
+            const haloR = (node.size + 6) * breathe;
+            const haloA = (localP - 0.5) * 2 * 0.08;
+            const halo = ctx.createRadialGradient(fx, fy, node.size, fx, fy, haloR);
+            halo.addColorStop(0, rgba(haloA));
+            halo.addColorStop(1, 'transparent');
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(fx, fy, haloR, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Node dot
+          ctx.beginPath();
+          ctx.arc(fx, fy, node.size * localP, 0, Math.PI * 2);
+          ctx.fillStyle = rgba(0.6 * localP * breathe);
+          ctx.fill();
+        });
+
+        // Sync lines between layers
+        if (nodeP > 0.4) {
+          const lineP = easeOutQuint(Math.min((nodeP - 0.4) / 0.5, 1));
+
+          syncLines.forEach((sl, si) => {
+            const nA = syncNodes[sl.from];
+            const nB = syncNodes[sl.to];
+            const ax = (nA as any)._fx ?? cx;
+            const ay = (nA as any)._fy ?? cy;
+            const bx = (nB as any)._fx ?? cx;
+            const by = (nB as any)._fy ?? cy;
+
+            const stagger = si * 0.12;
+            const localLine = easeOutCubic(Math.max(0, Math.min((lineP - stagger) / 0.4, 1)));
+            if (localLine <= 0) return;
+
+            const ex = ax + (bx - ax) * localLine;
+            const ey = ay + (by - ay) * localLine;
+
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(ex, ey);
+            ctx.strokeStyle = rgba(0.1 * localLine * breathe);
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+
+            // Trace head
+            if (localLine < 1) {
+              const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 3);
+              g.addColorStop(0, rgba(0.5));
+              g.addColorStop(1, 'transparent');
+              ctx.fillStyle = g;
+              ctx.beginPath();
+              ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+        }
+      }
+
+      // ── Phase 5: Core stabilisation ──
+      if (t > P4) {
+        const coreP = easeOutCubic(Math.min((t - P4) / (P5 - P4), 1));
+
+        // Core nucleus
+        const coreR = 14 * coreP * breatheSlow;
+        const coreG = ctx.createRadialGradient(cx, cy, 2, cx, cy, coreR);
+        coreG.addColorStop(0, rgba(0.35 * coreP * breathe));
+        coreG.addColorStop(0.5, rgba(0.12 * coreP * breathe));
+        coreG.addColorStop(1, 'transparent');
+        ctx.fillStyle = coreG;
+        ctx.beginPath();
+        ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Core dot
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3 * coreP, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(0.7 * coreP * breathe);
+        ctx.fill();
+
+        // Core ring
+        if (coreP > 0.5) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, 8 * breatheSlow, 0, Math.PI * 2);
+          ctx.strokeStyle = rgba(0.15 * (coreP - 0.5) * 2 * breathe);
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // Cross-hairs
+        if (coreP > 0.7) {
+          const chA = (coreP - 0.7) / 0.3 * 0.12 * breathe;
+          const chLen = 20;
+          [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach(angle => {
+            ctx.beginPath();
+            ctx.moveTo(cx + 12 * Math.cos(angle), cy + 12 * Math.sin(angle));
+            ctx.lineTo(cx + chLen * Math.cos(angle), cy + chLen * Math.sin(angle));
+            ctx.strokeStyle = rgba(chA);
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+          });
+        }
+
+        // Radial connection lines from core to inner ring
+        if (coreP > 0.8) {
+          const rcA = (coreP - 0.8) / 0.2 * 0.06 * breathe;
+          for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(cx + 22 * Math.cos(angle), cy + 22 * Math.sin(angle));
+            ctx.lineTo(cx + 58 * Math.cos(angle), cy + 58 * Math.sin(angle));
+            ctx.strokeStyle = rgba(rcA);
+            ctx.lineWidth = 0.2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // ── Alive state: coordinated sync pulses ──
+      if (isAlive) {
+        // Orbital sweep — one per layer, slow
+        const sweepLayers = [130, 108, 86, 64];
+        sweepLayers.forEach((r, li) => {
+          const sweepPeriod = 8000 + li * 2000;
+          const sweepAngle = ((t - ALIVE + li * 500) % sweepPeriod) / sweepPeriod * Math.PI * 2 - Math.PI / 2;
+          const sx = cx + r * breatheSlow * Math.cos(sweepAngle);
+          const sy = cy + r * breatheSlow * Math.sin(sweepAngle);
+          const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, 4);
+          sg.addColorStop(0, rgba(0.25 * breathe));
+          sg.addColorStop(1, 'transparent');
+          ctx.fillStyle = sg;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Periodic radial sync wave
+        const wavePeriod = 7000;
+        const wavePhase = ((t - ALIVE) % wavePeriod) / wavePeriod;
+        if (wavePhase < 0.2) {
+          const wp = wavePhase / 0.2;
+          const waveR = 20 + 120 * easeOutCubic(wp);
+          const waveA = (1 - wp) * 0.04;
+          ctx.beginPath();
+          ctx.arc(cx, cy, waveR, 0, Math.PI * 2);
+          ctx.strokeStyle = rgba(waveA);
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [accentColor]);
 
   return (
-    <div ref={ref} className="relative w-[200px] h-[200px]">
-      <svg viewBox="0 0 160 160" className="w-full h-full" fill="none" strokeLinecap="round">
-        {/* Outer: Protein — 240° */}
-        <path className="macro-arc" d={arcPath(64, -150, 90)} stroke="#2DD4BF" strokeWidth="3" opacity="0" />
-        {/* Middle: Carbs — 180° */}
-        <path className="macro-arc" d={arcPath(52, -120, 60)} stroke={accentColor} strokeWidth="2.5" opacity="0" />
-        {/* Inner: Fats — 120° */}
-        <path className="macro-arc" d={arcPath(40, -80, 40)} stroke="#5EEAD4" strokeWidth="2" opacity="0" />
-        {/* Center */}
-        <circle className="macro-center" cx={cx} cy={cy} r="4" fill={accentColor} opacity="0" />
-        {/* Labels */}
-        <text className="macro-label" x="140" y="50" fill="#2DD4BF" fontSize="7" fontWeight="500" opacity="0">PRO</text>
-        <text className="macro-label" x="140" y="80" fill={accentColor} fontSize="7" fontWeight="500" opacity="0">CHO</text>
-        <text className="macro-label" x="140" y="110" fill="#5EEAD4" fontSize="7" fontWeight="500" opacity="0">FAT</text>
-      </svg>
+    <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px]">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full pointer-events-none"
+        style={{ width: 320, height: 320 }}
+      />
     </div>
   );
 };

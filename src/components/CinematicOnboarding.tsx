@@ -392,23 +392,23 @@ const AISlide = ({ accent }: { accent: string }) => (
    ═══════════════════════════════════════════ */
 
 const NutritionSlide = ({ accent }: { accent: string }) => (
-  <div className="flex flex-col items-center gap-6">
+  <div className="flex flex-col items-center gap-5">
     <NutritionHeroVisual accentColor={accent} />
-    <div className="flex flex-col items-center gap-3 mt-2">
+    <div className="flex flex-col items-center gap-3 -mt-1">
       <TextReveal
         text="Nutrición sincronizada"
         as="h1"
-        className="text-[32px] md:text-[40px] font-bold tracking-[-0.03em] text-center leading-[1.08]"
+        className="text-[34px] md:text-[44px] font-bold tracking-[-0.04em] text-center leading-[1.05]"
         style_color="#F5F5F7"
-        delay={0.3}
+        delay={2.8}
       />
       <SubtitleReveal
         text="Macros, suplementación y comidas integradas con tu entrenamiento. Todo conectado."
-        className="text-[14px] md:text-[15px] text-center max-w-[320px] leading-[1.65]"
-        delay={0.7}
+        className="text-[13px] md:text-[15px] text-center max-w-[300px] leading-[1.7] tracking-[0.01em]"
+        delay={3.4}
       />
     </div>
-    <FeaturePills items={['Macros', 'Suplementos', 'Recetas']} delay={1.2} color={accent} />
+    <FeaturePills items={['Macros', 'Suplementos', 'Recetas']} delay={4.0} color={accent} />
   </div>
 );
 
