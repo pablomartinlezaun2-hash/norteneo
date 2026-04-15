@@ -394,7 +394,7 @@ export const NeoAssistant = ({ onComplete, onSkip }: NeoAssistantProps) => {
   useEffect(() => {
     if (phase !== 'flow') return;
     let frame = 0;
-    const total = 150; // ~2.5s
+    const total = 200; // ~3.3s for zoom effect
     let id: number;
     const tick = () => {
       frame++;
