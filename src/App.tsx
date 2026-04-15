@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,28 +39,19 @@ const AuthRoute = () => {
 };
 
 const AppContent = () => {
-  const [showSplash, setShowSplash] = useState(true);
-  const [hasSeenSplash, setHasSeenSplash] = useState(false);
-
-  useEffect(() => {
-    // Check if user has seen splash this session
-    const seen = sessionStorage.getItem('neo-splash-seen');
-    if (seen) {
-      setShowSplash(false);
-      setHasSeenSplash(true);
-    }
-  }, []);
+  const [showSplash, setShowSplash] = useState(() => {
+    return !sessionStorage.getItem('neo-splash-seen');
+  });
 
   const handleSplashComplete = () => {
     setShowSplash(false);
-    setHasSeenSplash(true);
     sessionStorage.setItem('neo-splash-seen', 'true');
   };
 
   return (
     <>
       <SupplementNotificationToast />
-      {showSplash && !hasSeenSplash && (
+      {showSplash && (
         <SplashScreen onComplete={handleSplashComplete} />
       )}
       <Routes>
