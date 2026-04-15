@@ -198,6 +198,10 @@ function buildNetwork(): Branch[] {
 
 const NETWORK = buildNetwork();
 
+// Module-level: survives component remounts so growth never resets
+let globalStartTime = 0;
+let globalBranches: Branch[] | null = null;
+
 /* ── Interpolate point on branch ── */
 function ptOn(b: Branch, t: number): Pt {
   const pts = b.points;
@@ -213,8 +217,6 @@ export const CalibrationAvatar = ({ buildStage }: CalibrationAvatarProps) => {
   const animRef = useRef(0);
   const branchesRef = useRef<Branch[]>([]);
   const pulsesRef = useRef<Pulse[]>([]);
-  const mountTime = useRef(0);
-  const persistedElapsed = useRef(0);
 
   const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) => {
     const dt = 1 / 60;
