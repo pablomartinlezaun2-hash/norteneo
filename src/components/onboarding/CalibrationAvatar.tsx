@@ -297,19 +297,19 @@ function NervousSystem({ buildStage }: { buildStage: number }) {
   return (
     <group>
       {lineGeometries.map((geo, i) => (
-        <line_
+        <primitive
           key={i}
           ref={(el: THREE.Line | null) => { linesRef.current[i] = el; }}
-          geometry={geo}
-        >
-          <lineBasicMaterial
-            color={NERVE_COLOR}
-            transparent
-            opacity={0}
-            depthWrite={false}
-            linewidth={1}
-          />
-        </line_>
+          object={(() => {
+            const mat = new THREE.LineBasicMaterial({
+              color: NERVE_COLOR,
+              transparent: true,
+              opacity: 0,
+              depthWrite: false,
+            });
+            return new THREE.Line(geo, mat);
+          })()}
+        />
       ))}
 
       {/* Signal pulses */}
