@@ -1,4 +1,3 @@
-import { } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NeoProfileProvider } from "@/contexts/NeoProfileContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { SplashScreen } from "@/components/SplashScreen";
 import { SupplementNotificationToast } from "@/components/nutrition/SupplementNotificationToast";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
 import Index from "./pages/Index";
