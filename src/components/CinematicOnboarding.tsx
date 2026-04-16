@@ -122,6 +122,7 @@ interface CinematicOnboardingProps {
 }
 
 export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) => {
+  const [showSplash, setShowSplash] = useState(true);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
   const touchStartX = useRef(0);
