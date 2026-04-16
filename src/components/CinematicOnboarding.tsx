@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
+import { SplashScreen } from './SplashScreen';
 import {
   WelcomeLogo, ClosingLogo, TextReveal, SubtitleReveal,
   TrainingHeroVisual, AIHeroVisual, NutritionHeroVisual, ProgressHeroVisual,
@@ -105,7 +106,6 @@ interface SlideConfig {
 }
 
 const SLIDES: SlideConfig[] = [
-  { id: 'welcome',   accentColor: '#ffffff',  accentGlow: '#ffffff' },
   { id: 'training',  accentColor: '#60A5FA',  accentGlow: '#3B82F6' },
   { id: 'ai',        accentColor: '#67E8F9',  accentGlow: '#22D3EE' },
   { id: 'nutrition',  accentColor: '#34D399',  accentGlow: '#10B981' },
@@ -122,6 +122,7 @@ interface CinematicOnboardingProps {
 }
 
 export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) => {
+  const [showSplash, setShowSplash] = useState(true);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
   const touchStartX = useRef(0);
@@ -187,6 +188,10 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
       transition: { duration: 0.45, ease },
     }),
   }), []);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   return (
     <div
@@ -262,12 +267,11 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
           exit="exit"
           className="absolute inset-0 flex flex-col items-center justify-center px-7"
         >
-          {current === 0 && <WelcomeSlide />}
-          {current === 1 && <TrainingSlide accent={slide.accentColor} />}
-          {current === 2 && <AISlide accent={slide.accentColor} />}
-          {current === 3 && <NutritionSlide accent={slide.accentColor} />}
-          {current === 4 && <ProgressSlide accent={slide.accentColor} />}
-          {current === 5 && <StartSlide onStart={onComplete} />}
+          {current === 0 && <TrainingSlide accent={slide.accentColor} />}
+          {current === 1 && <AISlide accent={slide.accentColor} />}
+          {current === 2 && <NutritionSlide accent={slide.accentColor} />}
+          {current === 3 && <ProgressSlide accent={slide.accentColor} />}
+          {current === 4 && <StartSlide onStart={onComplete} />}
         </motion.div>
       </AnimatePresence>
 
