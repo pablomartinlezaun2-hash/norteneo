@@ -106,7 +106,6 @@ interface SlideConfig {
 }
 
 const SLIDES: SlideConfig[] = [
-  { id: 'welcome',   accentColor: '#ffffff',  accentGlow: '#ffffff' },
   { id: 'training',  accentColor: '#60A5FA',  accentGlow: '#3B82F6' },
   { id: 'ai',        accentColor: '#67E8F9',  accentGlow: '#22D3EE' },
   { id: 'nutrition',  accentColor: '#34D399',  accentGlow: '#10B981' },
