@@ -558,20 +558,20 @@ function SubtitleOverlay({ visible }: { visible: boolean }) {
   const cue = activeCue !== null ? TRANSCRIPT_CUES[activeCue] : null;
 
   return (
-    <div className="absolute inset-0 flex items-end justify-center pb-[13%] z-30 pointer-events-none">
+    <div className="absolute inset-0 flex items-end justify-center pb-[18%] z-30 pointer-events-none">
       <AnimatePresence>
         {cue && (
           <motion.p
             key={cue.text}
             className={`text-center uppercase font-medium select-none ${
               cue.final
-                ? 'text-[13px] tracking-[0.28em]'
-                : 'text-[10.5px] tracking-[0.32em]'
+                ? 'text-[15px] tracking-[0.26em]'
+                : 'text-[12.5px] tracking-[0.3em]'
             }`}
             style={{
               color: cue.final
-                ? 'rgba(210, 232, 248, 0.72)'
-                : 'rgba(200, 218, 235, 0.48)',
+                ? 'rgba(215, 235, 250, 0.82)'
+                : 'rgba(205, 222, 240, 0.62)',
             }}
             initial={{ opacity: 0, y: 4, filter: 'blur(4px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
