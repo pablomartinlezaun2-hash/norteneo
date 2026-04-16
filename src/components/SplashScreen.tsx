@@ -563,7 +563,7 @@ function SubtitleOverlay({ visible }: { visible: boolean }) {
   }, [visible]);
 
   return (
-    <div className="absolute inset-0 flex items-end justify-center pb-[28%] z-30 pointer-events-none">
+    <div className="absolute inset-0 flex items-end justify-center pb-[47%] z-30 pointer-events-none">
       {/* Regular cues */}
       <AnimatePresence>
         {activeCue !== null && !showWelcome && (() => {
