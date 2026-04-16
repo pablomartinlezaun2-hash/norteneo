@@ -525,7 +525,8 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 const TRANSCRIPT_CUES = [
   { text: 'INICIANDO SISTEMA', start: 600, end: 2200 },
   { text: 'ACTIVANDO RED NEURONAL', start: 3200, end: 6400 },
-  { text: 'BIENVENIDO A NEO', start: 7400, end: 8900, final: true },
+  { text: 'BIENVENIDO', start: 6900, end: 8000 },
+  { text: 'A NEO', start: 8000, end: 9200, final: true },
 ];
 
 function SubtitleOverlay({ visible }: { visible: boolean }) {
@@ -573,11 +574,11 @@ function SubtitleOverlay({ visible }: { visible: boolean }) {
                 ? 'rgba(215, 235, 250, 0.82)'
                 : 'rgba(205, 222, 240, 0.62)',
             }}
-            initial={{ opacity: 0, y: 4, filter: 'blur(4px)' }}
+            initial={{ opacity: 0, y: 4, filter: cue.final ? 'blur(2px)' : 'blur(4px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -2, filter: 'blur(3px)' }}
             transition={{
-              duration: cue.final ? 0.55 : 0.38,
+              duration: cue.final ? 0.45 : 0.38,
               ease: [0.25, 0.46, 0.45, 0.94],
             }}
           >
