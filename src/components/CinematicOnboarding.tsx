@@ -267,12 +267,11 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
           exit="exit"
           className="absolute inset-0 flex flex-col items-center justify-center px-7"
         >
-          {current === 0 && <WelcomeSlide />}
-          {current === 1 && <TrainingSlide accent={slide.accentColor} />}
-          {current === 2 && <AISlide accent={slide.accentColor} />}
-          {current === 3 && <NutritionSlide accent={slide.accentColor} />}
-          {current === 4 && <ProgressSlide accent={slide.accentColor} />}
-          {current === 5 && <StartSlide onStart={onComplete} />}
+          {current === 0 && <TrainingSlide accent={slide.accentColor} />}
+          {current === 1 && <AISlide accent={slide.accentColor} />}
+          {current === 2 && <NutritionSlide accent={slide.accentColor} />}
+          {current === 3 && <ProgressSlide accent={slide.accentColor} />}
+          {current === 4 && <StartSlide onStart={onComplete} />}
         </motion.div>
       </AnimatePresence>
 
