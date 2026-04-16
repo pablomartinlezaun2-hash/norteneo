@@ -525,27 +525,33 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 const TRANSCRIPT_CUES = [
   { text: 'INICIANDO SISTEMA', start: 600, end: 2200 },
   { text: 'ACTIVANDO RED NEURONAL', start: 3200, end: 6400 },
-  { text: 'BIENVENIDO', start: 6900, end: 8000 },
-  { text: 'A NEO', start: 8000, end: 9200, final: true },
+  { text: 'BIENVENIDO', start: 6900, end: 9200, welcome: true },
+  { text: 'A NEO', start: 8000, end: 9200, final: true, append: true },
 ];
 
 function SubtitleOverlay({ visible }: { visible: boolean }) {
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showANeo, setShowANeo] = useState(false);
   const [activeCue, setActiveCue] = useState<number | null>(null);
   const timersRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!visible) {
       setActiveCue(null);
+      setShowWelcome(false);
+      setShowANeo(false);
       return;
     }
 
     const timers: number[] = [];
 
     TRANSCRIPT_CUES.forEach((cue, i) => {
-      // Show
-      timers.push(window.setTimeout(() => setActiveCue(i), cue.start));
-      // Hide (unless it's the final cue — let it linger)
-      if (!cue.final) {
+      if ((cue as any).welcome) {
+        timers.push(window.setTimeout(() => setShowWelcome(true), cue.start));
+      } else if ((cue as any).append) {
+        timers.push(window.setTimeout(() => setShowANeo(true), cue.start));
+      } else {
+        timers.push(window.setTimeout(() => setActiveCue(i), cue.start));
         timers.push(window.setTimeout(() => setActiveCue((prev) => (prev === i ? null : prev)), cue.end));
       }
     });
@@ -556,33 +562,52 @@ function SubtitleOverlay({ visible }: { visible: boolean }) {
     };
   }, [visible]);
 
-  const cue = activeCue !== null ? TRANSCRIPT_CUES[activeCue] : null;
-
   return (
-    <div className="absolute inset-0 flex items-end justify-center pb-[21%] z-30 pointer-events-none">
+    <div className="absolute inset-0 flex items-end justify-center pb-[28%] z-30 pointer-events-none">
+      {/* Regular cues */}
       <AnimatePresence>
-        {cue && (
+        {activeCue !== null && !showWelcome && (() => {
+          const cue = TRANSCRIPT_CUES[activeCue];
+          return (
+            <motion.p
+              key={cue.text}
+              className="text-center uppercase font-medium select-none text-[12.5px] tracking-[0.3em]"
+              style={{ color: 'rgba(205, 222, 240, 0.62)' }}
+              initial={{ opacity: 0, y: 4, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -2, filter: 'blur(3px)' }}
+              transition={{ duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+              {cue.text}
+            </motion.p>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* BIENVENIDO ... A NEO (persistent, appending) */}
+      <AnimatePresence>
+        {showWelcome && (
           <motion.p
-            key={cue.text}
-            className={`text-center uppercase font-medium select-none ${
-              cue.final
-                ? 'text-[15px] tracking-[0.26em]'
-                : 'text-[12.5px] tracking-[0.3em]'
-            }`}
-            style={{
-              color: cue.final
-                ? 'rgba(215, 235, 250, 0.82)'
-                : 'rgba(205, 222, 240, 0.62)',
-            }}
-            initial={{ opacity: 0, y: 4, filter: cue.final ? 'blur(2px)' : 'blur(4px)' }}
+            key="welcome-line"
+            className="text-center uppercase font-medium select-none text-[15px] tracking-[0.26em]"
+            style={{ color: 'rgba(215, 235, 250, 0.82)' }}
+            initial={{ opacity: 0, y: 4, filter: 'blur(2px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -2, filter: 'blur(3px)' }}
-            transition={{
-              duration: cue.final ? 0.45 : 0.38,
-              ease: [0.25, 0.46, 0.45, 0.94],
-            }}
+            transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            {cue.text}
+            BIENVENIDO{' '}
+            <AnimatePresence>
+              {showANeo && (
+                <motion.span
+                  key="a-neo"
+                  initial={{ opacity: 0, filter: 'blur(3px)' }}
+                  animate={{ opacity: 1, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                >
+                  A NEO
+                </motion.span>
+              )}
+            </AnimatePresence>
           </motion.p>
         )}
       </AnimatePresence>
