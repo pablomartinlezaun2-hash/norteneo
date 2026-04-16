@@ -521,46 +521,68 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   );
 };
 
-/* ── Subtitle overlay (appears at ~9s) ── */
+/* ── Synced transcript overlay ── */
+const TRANSCRIPT_CUES = [
+  { text: 'INICIANDO SISTEMA', start: 600, end: 1900 },
+  { text: 'SINCRONIZANDO SEÑALES', start: 2400, end: 4200 },
+  { text: 'ACTIVANDO RED NEURONAL', start: 4900, end: 6900 },
+  { text: 'BIENVENIDO A NEO', start: 7600, end: 8800, final: true },
+];
+
 function SubtitleOverlay({ visible }: { visible: boolean }) {
-  const [show, setShow] = useState(false);
-  const [showTagline, setShowTagline] = useState(false);
+  const [activeCue, setActiveCue] = useState<number | null>(null);
+  const timersRef = useRef<number[]>([]);
 
   useEffect(() => {
-    if (!visible) return;
-    const t1 = setTimeout(() => setShow(true), 8800);
-    const t2 = setTimeout(() => setShowTagline(true), 9400);
+    if (!visible) {
+      setActiveCue(null);
+      return;
+    }
+
+    const timers: number[] = [];
+
+    TRANSCRIPT_CUES.forEach((cue, i) => {
+      // Show
+      timers.push(window.setTimeout(() => setActiveCue(i), cue.start));
+      // Hide (unless it's the final cue — let it linger)
+      if (!cue.final) {
+        timers.push(window.setTimeout(() => setActiveCue((prev) => (prev === i ? null : prev)), cue.end));
+      }
+    });
+
+    timersRef.current = timers;
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      timers.forEach((t) => window.clearTimeout(t));
     };
   }, [visible]);
 
+  const cue = activeCue !== null ? TRANSCRIPT_CUES[activeCue] : null;
+
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-end pb-[18%] z-30 pointer-events-none">
+    <div className="absolute inset-0 flex items-end justify-center pb-[13%] z-30 pointer-events-none">
       <AnimatePresence>
-        {show && (
+        {cue && (
           <motion.p
-            className="text-[13px] font-medium tracking-[0.12em]"
-            style={{ color: 'rgba(255,255,255,0.45)' }}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            key={cue.text}
+            className={`text-center uppercase font-medium select-none ${
+              cue.final
+                ? 'text-[13px] tracking-[0.28em]'
+                : 'text-[10.5px] tracking-[0.32em]'
+            }`}
+            style={{
+              color: cue.final
+                ? 'rgba(210, 232, 248, 0.72)'
+                : 'rgba(200, 218, 235, 0.48)',
+            }}
+            initial={{ opacity: 0, y: 4, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -2, filter: 'blur(3px)' }}
+            transition={{
+              duration: cue.final ? 0.55 : 0.38,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
           >
-            El rendimiento, rediseñado.
-          </motion.p>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showTagline && (
-          <motion.p
-            className="mt-4 text-[10px] tracking-[0.3em] uppercase font-medium"
-            style={{ color: 'rgba(255,255,255,0.2)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            Planificación. Ejecución. Evolución.
+            {cue.text}
           </motion.p>
         )}
       </AnimatePresence>
