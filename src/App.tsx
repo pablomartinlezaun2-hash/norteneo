@@ -39,19 +39,9 @@ const AuthRoute = () => {
 };
 
 const AppContent = () => {
-  const [showSplash, setShowSplash] = useState(true);
-
-  const handleSplashComplete = () => {
-    setShowSplash(false);
-    sessionStorage.setItem('neo-splash-seen', 'true');
-  };
-
   return (
     <>
       <SupplementNotificationToast />
-      {showSplash && (
-        <SplashScreen onComplete={handleSplashComplete} />
-      )}
       <Routes>
         <Route path="/auth" element={<AuthRoute />} />
         <Route
