@@ -559,7 +559,7 @@ function SubtitleOverlay({ visible }: { visible: boolean }) {
   const cue = activeCue !== null ? TRANSCRIPT_CUES[activeCue] : null;
 
   return (
-    <div className="absolute inset-0 flex items-end justify-center pb-[18%] z-30 pointer-events-none">
+    <div className="absolute inset-0 flex items-end justify-center pb-[21%] z-30 pointer-events-none">
       <AnimatePresence>
         {cue && (
           <motion.p
