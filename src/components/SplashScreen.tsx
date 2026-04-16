@@ -523,10 +523,9 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
 /* ── Synced transcript overlay ── */
 const TRANSCRIPT_CUES = [
-  { text: 'INICIANDO SISTEMA', start: 600, end: 1900 },
-  { text: 'SINCRONIZANDO SEÑALES', start: 2400, end: 4200 },
-  { text: 'ACTIVANDO RED NEURONAL', start: 4900, end: 6900 },
-  { text: 'BIENVENIDO A NEO', start: 7600, end: 8800, final: true },
+  { text: 'INICIANDO SISTEMA', start: 600, end: 2200 },
+  { text: 'ACTIVANDO RED NEURONAL', start: 3200, end: 6400 },
+  { text: 'BIENVENIDO A NEO', start: 7400, end: 8900, final: true },
 ];
 
 function SubtitleOverlay({ visible }: { visible: boolean }) {
