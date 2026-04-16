@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { SplashScreen } from './SplashScreen';
-import gsap from 'gsap';
 import {
   WelcomeLogo, ClosingLogo, TextReveal, SubtitleReveal,
   TrainingHeroVisual, AIHeroVisual, NutritionHeroVisual, ProgressHeroVisual,
