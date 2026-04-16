@@ -1,434 +1,504 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
-const B = {
-  WAIT_END: 1.2,
-  SINGULARITY_END: 2.8,
-  ENTRY_END: 4.8,
-  PEAK_END: 6.6,
-  FORM_END: 7.6,
-  COPY_END: 8.5,
-  DONE: 8.9,
+/* ────────── constants ────────── */
+const TOTAL_DURATION = 9.5; // seconds
+const PHASE = {
+  INIT_END: 1.5,
+  SINGULARITY_END: 3.0,
+  TUNNEL_END: 5.5,
+  MAX_SPEED_END: 7.0,
+  BURST_END: 8.0,
+  LOGO_END: 9.2,
 };
 
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+const PARTICLE_COUNT = 260;
+const STREAK_COUNT = 80;
+
+/* ────────── helpers ────────── */
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const easeIn3 = (t: number) => t * t * t;
-const easeOut3 = (t: number) => 1 - (1 - t) ** 3;
-const easeOut4 = (t: number) => 1 - (1 - t) ** 4;
-const easeInOut3 = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
-const smoothstep = (from: number, to: number, value: number) => {
-  const t = clamp01((value - from) / (to - from));
-  return t * t * (3 - 2 * t);
-};
+const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
+const easeInCubic = (t: number) => t * t * t;
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInOutCubic = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-const color = {
-  black: (a = 1) => `hsla(0, 0%, 0%, ${a})`,
-  white: (a = 1) => `hsla(0, 0%, 100%, ${a})`,
-  silver: (a = 1) => `hsla(210, 18%, 86%, ${a})`,
-  frost: (a = 1) => `hsla(205, 34%, 78%, ${a})`,
-  cyan: (a = 1) => `hsla(195, 56%, 74%, ${a})`,
-};
-
-interface SpacePoint {
-  x0: number;
-  y0: number;
+interface Particle {
+  x: number;
+  y: number;
   z: number;
+  baseX: number;
+  baseY: number;
   speed: number;
   size: number;
   alpha: number;
-  seed: number;
+  angle: number;
+  radius: number;
 }
 
-interface LogoPoint {
-  ox: number;
-  oy: number;
-  tx: number;
-  ty: number;
-  seed: number;
+interface Streak {
+  angle: number;
+  length: number;
+  speed: number;
+  dist: number;
+  alpha: number;
+  width: number;
 }
 
-function sampleLogoPoints(canvasWidth: number) {
-  const fontSize = Math.min(canvasWidth * 0.255, 94);
-  const sampleCanvas = document.createElement('canvas');
-  sampleCanvas.width = Math.ceil(fontSize * 3.35);
-  sampleCanvas.height = Math.ceil(fontSize * 1.5);
+interface LogoPixel {
+  x: number;
+  y: number;
+}
 
-  const ctx = sampleCanvas.getContext('2d');
-  if (!ctx) return { fontSize, points: [] as Array<{ tx: number; ty: number }> };
-
-  ctx.clearRect(0, 0, sampleCanvas.width, sampleCanvas.height);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `900 ${fontSize}px Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+function sampleTextPixels(
+  text: string,
+  w: number,
+  h: number,
+  fontSize: number
+): LogoPixel[] {
+  const offscreen = document.createElement('canvas');
+  offscreen.width = w;
+  offscreen.height = h;
+  const ctx = offscreen.getContext('2d')!;
+  ctx.fillStyle = '#fff';
+  ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('NEO', sampleCanvas.width / 2, sampleCanvas.height / 2);
+  ctx.fillText(text, w / 2, h / 2);
 
-  const data = ctx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
-  const points: Array<{ tx: number; ty: number }> = [];
-
-  for (let y = 0; y < sampleCanvas.height; y += 3) {
-    for (let x = 0; x < sampleCanvas.width; x += 3) {
-      if (data[(y * sampleCanvas.width + x) * 4 + 3] > 180) {
-        points.push({
-          tx: x - sampleCanvas.width / 2,
-          ty: y - sampleCanvas.height / 2,
-        });
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const pixels: LogoPixel[] = [];
+  const step = 3; // sample every 3 pixels for density
+  for (let y = 0; y < h; y += step) {
+    for (let x = 0; x < w; x += step) {
+      const i = (y * w + x) * 4;
+      if (data[i + 3] > 128) {
+        pixels.push({ x: x - w / 2, y: y - h / 2 });
       }
     }
   }
-
-  return { fontSize, points };
+  return pixels;
 }
 
+/* ────────── component ────────── */
 export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'pre' | 'run' | 'out'>('pre');
+  const [phase, setPhase] = useState<'prescreen' | 'animating' | 'done'>('prescreen');
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef<number>(0);
-  const startRef = useRef(0);
-  const doneRef = useRef(false);
-  const spaceRef = useRef<SpacePoint[]>([]);
-  const logoRef = useRef<LogoPoint[]>([]);
-  const logoFontRef = useRef(88);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startTimeRef = useRef(0);
+  const rafRef = useRef(0);
+  const particlesRef = useRef<Particle[]>([]);
+  const streaksRef = useRef<Streak[]>([]);
+  const logoPixelsRef = useRef<LogoPixel[]>([]);
+  const logoParticlesRef = useRef<{ x: number; y: number; tx: number; ty: number; vx: number; vy: number; alpha: number }[]>([]);
+  const doneCalledRef = useRef(false);
 
-  const timings = useMemo(
-    () => ({
-      subtitle: (B.COPY_END + 0.05) * 1000,
-      tagline: (B.COPY_END + 0.45) * 1000,
-    }),
-    []
-  );
+  // Pre-compute logo pixels once we know canvas size
+  const initLogoPixels = useCallback((cw: number, ch: number) => {
+    const fontSize = Math.min(cw * 0.28, 120);
+    const sampleW = Math.floor(cw * 0.6);
+    const sampleH = Math.floor(fontSize * 1.6);
+    const raw = sampleTextPixels('NEO', sampleW, sampleH, fontSize);
+    logoPixelsRef.current = raw;
+
+    // Create logo particles scattered
+    logoParticlesRef.current = raw.map((p) => ({
+      x: (Math.random() - 0.5) * cw * 1.5,
+      y: (Math.random() - 0.5) * ch * 1.5,
+      tx: p.x,
+      ty: p.y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.5) * 4,
+      alpha: 0,
+    }));
+  }, []);
+
+  const initParticles = useCallback((cw: number, ch: number) => {
+    const particles: Particle[] = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * Math.max(cw, ch) * 0.6;
+      particles.push({
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+        z: Math.random() * 1000,
+        baseX: Math.cos(angle) * radius,
+        baseY: Math.sin(angle) * radius,
+        speed: 0.2 + Math.random() * 0.8,
+        size: 0.5 + Math.random() * 1.5,
+        alpha: 0.1 + Math.random() * 0.4,
+        angle,
+        radius,
+      });
+    }
+    particlesRef.current = particles;
+
+    const streaks: Streak[] = [];
+    for (let i = 0; i < STREAK_COUNT; i++) {
+      streaks.push({
+        angle: Math.random() * Math.PI * 2,
+        length: 20 + Math.random() * 60,
+        speed: 2 + Math.random() * 5,
+        dist: 50 + Math.random() * 300,
+        alpha: 0.05 + Math.random() * 0.25,
+        width: 0.5 + Math.random() * 1.5,
+      });
+    }
+    streaksRef.current = streaks;
+  }, []);
+
+  const startAnimation = useCallback(() => {
+    // Play intro audio
+    try {
+      const audio = new Audio('/audio/neo-intro.mp3');
+      audio.volume = 0.7;
+      audio.play().catch(() => {});
+    } catch (_) {}
+    setPhase('animating');
+    startTimeRef.current = performance.now();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    canvas.width = cw * dpr;
+    canvas.height = ch * dpr;
+    const ctx = canvas.getContext('2d')!;
+    ctx.scale(dpr, dpr);
+
+    initParticles(cw, ch);
+    initLogoPixels(cw, ch);
+
+    const loop = () => {
+      const elapsed = (performance.now() - startTimeRef.current) / 1000;
+      render(ctx, cw, ch, elapsed);
+
+      if (elapsed < TOTAL_DURATION + 1.5) {
+        rafRef.current = requestAnimationFrame(loop);
+      } else if (!doneCalledRef.current) {
+        doneCalledRef.current = true;
+        setPhase('done');
+        setTimeout(() => onComplete(), 400);
+      }
+    };
+    rafRef.current = requestAnimationFrame(loop);
+  }, [initParticles, initLogoPixels, onComplete]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || phase === 'pre') return;
-
-    let ctx: CanvasRenderingContext2D | null = null;
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-
-    const resetPoint = (point: SpacePoint) => {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.max(width, height) * (0.22 + Math.random() * 0.92);
-      point.x0 = Math.cos(angle) * radius;
-      point.y0 = Math.sin(angle) * radius;
-      point.z = 140 + Math.random() * 980;
-      point.speed = 0.42 + Math.random() * 0.9;
-      point.size = 0.65 + Math.random() * 1.2;
-      point.alpha = 0.1 + Math.random() * 0.28;
-      point.seed = Math.random() * Math.PI * 2;
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
+  }, []);
 
-    const initScene = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      ctx = canvas.getContext('2d', { alpha: false });
-      if (!ctx) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  /* ────────── render loop ────────── */
+  const render = useCallback(
+    (ctx: CanvasRenderingContext2D, cw: number, ch: number, t: number) => {
+      const cx = cw / 2;
+      const cy = ch / 2;
 
-      const stars = Array.from({ length: 170 }, () => {
-        const point = {
-          x0: 0,
-          y0: 0,
-          z: 0,
-          speed: 0,
-          size: 0,
-          alpha: 0,
-          seed: 0,
-        };
-        resetPoint(point);
-        return point;
-      });
-      spaceRef.current = stars;
+      // Background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, cw, ch);
 
-      const { fontSize, points } = sampleLogoPoints(width);
-      logoFontRef.current = fontSize;
-      const originRadius = Math.max(width, height) * 0.18;
-      logoRef.current = points.map((point) => {
-        const angle = Math.atan2(point.ty || 1, point.tx || 1) + (Math.random() - 0.5) * 0.42;
-        const radius = originRadius + Math.random() * (originRadius * 0.85);
-        return {
-          ox: Math.cos(angle) * radius + point.tx * 0.16,
-          oy: Math.sin(angle) * radius + point.ty * 0.16,
-          tx: point.tx,
-          ty: point.ty,
-          seed: Math.random() * Math.PI * 2,
-        };
-      });
-    };
+      /* ── Phase 1: Initialization (0 – 1.5s) ── */
+      if (t < PHASE.SINGULARITY_END) {
+        const p1 = clamp01(t / PHASE.INIT_END);
+        const initAlpha = easeInCubic(p1) * 0.3;
 
-    const drawBackdrop = (time: number, cx: number, cy: number, diag: number) => {
-      if (!ctx) return;
+        // Subtle noise particles drifting toward center
+        particlesRef.current.forEach((pt) => {
+          const pull = t < PHASE.INIT_END ? p1 * 0.02 : 0.02 + clamp01((t - PHASE.INIT_END) / 1.5) * 0.08;
+          pt.x = lerp(pt.x, 0, pull * pt.speed);
+          pt.y = lerp(pt.y, 0, pull * pt.speed);
 
-      const wait = smoothstep(0, B.WAIT_END, time);
-      const singularity = smoothstep(B.WAIT_END * 0.45, B.SINGULARITY_END, time);
-      const travel = smoothstep(B.SINGULARITY_END, B.PEAK_END, time);
+          const sx = cx + pt.x;
+          const sy = cy + pt.y;
+          const dist = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+          const maxDist = Math.max(cw, ch) * 0.5;
+          const distFade = clamp01(1 - dist / maxDist);
 
-      ctx.fillStyle = color.black();
-      ctx.fillRect(0, 0, width, height);
-
-      for (let index = 0; index < 42; index += 1) {
-        const point = spaceRef.current[index];
-        if (!point) continue;
-        const drift = 0.94 - singularity * 0.16;
-        const sx = cx + point.x0 * 0.13 * drift + Math.cos(point.seed + time * 0.12) * 1.2;
-        const sy = cy + point.y0 * 0.13 * drift + Math.sin(point.seed + time * 0.11) * 1.2;
-        const alpha = point.alpha * 0.13 * (1 - travel * 0.35);
-        ctx.beginPath();
-        ctx.arc(sx, sy, 0.45, 0, Math.PI * 2);
-        ctx.fillStyle = color.silver(alpha);
-        ctx.fill();
-      }
-
-      const coreRadius = 4 + wait * 6 + singularity * 24;
-      const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreRadius * 3.8);
-      coreGlow.addColorStop(0, color.white(0.02 + singularity * 0.08));
-      coreGlow.addColorStop(0.38, color.frost(0.028 + singularity * 0.08));
-      coreGlow.addColorStop(1, color.black(0));
-      ctx.fillStyle = coreGlow;
-      ctx.fillRect(cx - coreRadius * 4, cy - coreRadius * 4, coreRadius * 8, coreRadius * 8);
-
-      for (let i = 0; i < 3; i += 1) {
-        const ringProgress = clamp01(singularity - i * 0.12);
-        if (ringProgress <= 0) continue;
-        const radius = 10 + i * 12 + (1 - easeOut4(ringProgress)) * 36;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, radius * 1.08, radius * 0.78, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = color.cyan((0.025 + ringProgress * 0.06) * (1 - i * 0.18));
-        ctx.lineWidth = 0.7 - i * 0.08;
-        ctx.stroke();
-      }
-
-      const horizontalGlow = 30 + singularity * 110 + travel * 50;
-      const lineGradient = ctx.createLinearGradient(cx - horizontalGlow, cy, cx + horizontalGlow, cy);
-      lineGradient.addColorStop(0, color.black(0));
-      lineGradient.addColorStop(0.5, color.frost(0.04 + singularity * 0.12));
-      lineGradient.addColorStop(1, color.black(0));
-      ctx.fillStyle = lineGradient;
-      ctx.fillRect(cx - horizontalGlow, cy - 0.5, horizontalGlow * 2, 1);
-
-      const vignette = ctx.createRadialGradient(cx, cy, Math.min(width, height) * 0.06, cx, cy, diag * 0.62);
-      vignette.addColorStop(0, color.black(0));
-      vignette.addColorStop(1, color.black(0.76));
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, width, height);
-    };
-
-    const drawTravel = (time: number, cx: number, cy: number) => {
-      if (!ctx || time < B.SINGULARITY_END || time > B.FORM_END) return;
-
-      const entry = smoothstep(B.SINGULARITY_END, B.ENTRY_END, time);
-      const peak = smoothstep(B.ENTRY_END, B.PEAK_END, time);
-      const release = smoothstep(B.PEAK_END, B.FORM_END, time);
-      const speed = 0.7 + easeIn3(entry) * 6.8 + peak * 11.2 - release * 2.6;
-
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-
-      for (const point of spaceRef.current) {
-        point.z -= speed * point.speed * 11;
-        if (point.z < 18) resetPoint(point);
-
-        const perspective = 260 / point.z;
-        const sx = cx + point.x0 * perspective;
-        const sy = cy + point.y0 * perspective;
-        if (sx < -60 || sx > width + 60 || sy < -60 || sy > height + 60) continue;
-
-        const dx = sx - cx;
-        const dy = sy - cy;
-        const distance = Math.hypot(dx, dy) || 1;
-        const streak = Math.min(42, speed * perspective * 11);
-        const opacity = point.alpha * clamp01(perspective * 1.55) * (0.22 + entry * 0.46 + peak * 0.22);
-
-        if (streak > 0.8) {
           ctx.beginPath();
-          ctx.moveTo(sx, sy);
-          ctx.lineTo(sx - (dx / distance) * streak, sy - (dy / distance) * streak);
-          ctx.strokeStyle = color.frost(opacity * 0.8);
-          ctx.lineWidth = Math.max(0.42, point.size * perspective * 0.55);
-          ctx.stroke();
-        }
+          ctx.arc(sx, sy, pt.size * (0.5 + distFade * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(200, 220, 240, ${pt.alpha * initAlpha * distFade})`;
+          ctx.fill();
+        });
 
-        ctx.beginPath();
-        ctx.arc(sx, sy, Math.max(0.28, point.size * perspective * 0.46), 0, Math.PI * 2);
-        ctx.fillStyle = color.white(opacity * 0.95);
-        ctx.fill();
-      }
+        // Central glow building
+        const glowSize = 30 + p1 * 40;
+        const singP = clamp01((t - PHASE.INIT_END) / 1.5);
+        const glowIntensity = initAlpha + singP * 0.15;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowSize + singP * 60);
+        grad.addColorStop(0, `rgba(180, 210, 235, ${glowIntensity})`);
+        grad.addColorStop(0.4, `rgba(140, 180, 210, ${glowIntensity * 0.4})`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, cw, ch);
 
-      ctx.restore();
-
-      const compressionRadius = 26 + entry * 80 + peak * 90;
-      const compression = ctx.createRadialGradient(cx, cy, 0, cx, cy, compressionRadius * 2.2);
-      compression.addColorStop(0, color.frost(0.05 + peak * 0.13));
-      compression.addColorStop(0.4, color.cyan(0.015 + peak * 0.05));
-      compression.addColorStop(1, color.black(0));
-      ctx.fillStyle = compression;
-      ctx.fillRect(cx - compressionRadius * 2.5, cy - compressionRadius * 2.5, compressionRadius * 5, compressionRadius * 5);
-    };
-
-    const drawCreation = (time: number, cx: number, cy: number, diag: number) => {
-      if (!ctx || time < B.PEAK_END) return;
-
-      const burst = smoothstep(B.PEAK_END, B.FORM_END, time);
-      const formation = smoothstep(B.PEAK_END + 0.08, B.FORM_END, time);
-      const settle = smoothstep(B.FORM_END, B.COPY_END, time);
-      const hold = smoothstep(B.COPY_END, B.DONE, time);
-      const flash = burst < 0.15 ? easeOut4(burst / 0.15) : 1 - smoothstep(0.15, 0.52, burst);
-
-      if (flash > 0.001) {
-        const radius = diag * (0.08 + burst * 0.24);
-        const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-        glow.addColorStop(0, color.white(flash * 0.9));
-        glow.addColorStop(0.2, color.frost(flash * 0.38));
-        glow.addColorStop(0.5, color.cyan(flash * 0.1));
-        glow.addColorStop(1, color.black(0));
-        ctx.fillStyle = glow;
-        ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
-
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, radius * 0.56, radius * 0.4, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = color.white(flash * 0.36);
-        ctx.lineWidth = 1.1;
-        ctx.stroke();
-      }
-
-      const convergence = easeInOut3(formation);
-      if (convergence > 0) {
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-
-        for (const point of logoRef.current) {
-          const previous = Math.max(0, convergence - 0.06);
-          const px = lerp(point.ox, point.tx, previous);
-          const py = lerp(point.oy, point.ty, previous);
-          const x = lerp(point.ox, point.tx, convergence) + Math.sin(point.seed + time * 3.4) * (1 - convergence) * 5.5;
-          const y = lerp(point.oy, point.ty, convergence) + Math.cos(point.seed + time * 3.1) * (1 - convergence) * 5.5;
-
-          if (convergence < 0.94) {
+        // Singularity rings (phase 2)
+        if (t > PHASE.INIT_END) {
+          const ringProgress = singP;
+          for (let i = 0; i < 3; i++) {
+            const ringT = clamp01(ringProgress - i * 0.15);
+            if (ringT <= 0) continue;
+            const r = 15 + i * 25 + (1 - easeOutCubic(ringT)) * 80;
             ctx.beginPath();
-            ctx.moveTo(cx + px, cy + py);
-            ctx.lineTo(cx + x, cy + y);
-            ctx.strokeStyle = color.frost((0.05 + convergence * 0.18) * (1 - convergence * 0.45));
-            ctx.lineWidth = 0.55;
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(160, 200, 220, ${ringT * 0.15 * (1 - i * 0.2)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      /* ── Phase 3-4: Tunnel / Max Speed (3.0 – 7.0s) ── */
+      if (t >= PHASE.SINGULARITY_END && t < PHASE.BURST_END) {
+        const tunnelT = clamp01((t - PHASE.SINGULARITY_END) / (PHASE.MAX_SPEED_END - PHASE.SINGULARITY_END));
+        const speedMult = easeInCubic(tunnelT) * 8 + 0.5;
+        const maxSpeedT = clamp01((t - PHASE.MAX_SPEED_END) / (PHASE.BURST_END - PHASE.MAX_SPEED_END));
+
+        // Z-axis particles (flying through space)
+        particlesRef.current.forEach((pt) => {
+          pt.z -= speedMult * pt.speed * 16;
+          if (pt.z < 1) {
+            pt.z = 800 + Math.random() * 200;
+            pt.baseX = (Math.random() - 0.5) * cw * 1.2;
+            pt.baseY = (Math.random() - 0.5) * ch * 1.2;
+          }
+
+          const perspective = 400 / pt.z;
+          const sx = cx + pt.baseX * perspective;
+          const sy = cy + pt.baseY * perspective;
+
+          if (sx < -10 || sx > cw + 10 || sy < -10 || sy > ch + 10) return;
+
+          // Streak effect at high speed
+          const streakLen = Math.min(speedMult * 2 * perspective, 40);
+          const angle2 = Math.atan2(pt.baseY, pt.baseX);
+
+          const alpha = clamp01(perspective * 0.8) * pt.alpha * (0.4 + tunnelT * 0.6);
+
+          if (streakLen > 3) {
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(
+              sx - Math.cos(angle2) * streakLen,
+              sy - Math.sin(angle2) * streakLen
+            );
+            const streakAlpha = alpha * 0.7;
+            ctx.strokeStyle = `rgba(190, 215, 235, ${streakAlpha})`;
+            ctx.lineWidth = pt.size * perspective * 0.5;
             ctx.stroke();
           }
 
           ctx.beginPath();
-          ctx.arc(cx + x, cy + y, 0.42 + convergence * 0.28, 0, Math.PI * 2);
-          ctx.fillStyle = color.white(0.18 + convergence * 0.55);
+          ctx.arc(sx, sy, Math.max(0.5, pt.size * perspective * 0.8), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(200, 225, 245, ${alpha})`;
           ctx.fill();
+        });
+
+        // Radial speed streaks
+        const streakAlphaBase = 0.05 + tunnelT * 0.25 + maxSpeedT * 0.2;
+        streaksRef.current.forEach((s) => {
+          s.dist += s.speed * speedMult * 0.8;
+          if (s.dist > Math.max(cw, ch) * 0.7) {
+            s.dist = 10 + Math.random() * 30;
+            s.angle = Math.random() * Math.PI * 2;
+          }
+
+          const x1 = cx + Math.cos(s.angle) * s.dist;
+          const y1 = cy + Math.sin(s.angle) * s.dist;
+          const len = s.length * (0.3 + tunnelT * 0.7 + maxSpeedT * 0.5);
+          const x2 = cx + Math.cos(s.angle) * (s.dist + len);
+          const y2 = cy + Math.sin(s.angle) * (s.dist + len);
+
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = `rgba(180, 205, 225, ${s.alpha * streakAlphaBase})`;
+          ctx.lineWidth = s.width;
+          ctx.stroke();
+        });
+
+        // Central void
+        const voidR = 8 + tunnelT * 15;
+        const voidGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, voidR + 30);
+        voidGrad.addColorStop(0, `rgba(20, 30, 40, ${0.6 + tunnelT * 0.3})`);
+        voidGrad.addColorStop(0.5, `rgba(10, 15, 20, ${0.2})`);
+        voidGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = voidGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, voidR + 30, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Peripheral glow/vignette
+        const vigGrad = ctx.createRadialGradient(cx, cy, Math.min(cw, ch) * 0.2, cx, cy, Math.max(cw, ch) * 0.7);
+        vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        vigGrad.addColorStop(1, `rgba(0,0,0,${0.4 + tunnelT * 0.3})`);
+        ctx.fillStyle = vigGrad;
+        ctx.fillRect(0, 0, cw, ch);
+      }
+
+      /* ── Phase 5: Creation burst (7.0 – 8.0s) ── */
+      if (t >= PHASE.MAX_SPEED_END && t < PHASE.LOGO_END) {
+        const burstT = clamp01((t - PHASE.MAX_SPEED_END) / (PHASE.BURST_END - PHASE.MAX_SPEED_END));
+        const fadeT = clamp01((t - PHASE.BURST_END) / 0.4);
+
+        // Flash
+        const flashAlpha = burstT < 0.3
+          ? easeOutCubic(burstT / 0.3) * 0.7
+          : lerp(0.7, 0, easeInCubic(clamp01((burstT - 0.3) / 0.7)));
+
+        if (flashAlpha > 0.01) {
+          const flashGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(cw, ch) * 0.5 * (0.3 + burstT * 0.7));
+          flashGrad.addColorStop(0, `rgba(210, 230, 245, ${flashAlpha})`);
+          flashGrad.addColorStop(0.3, `rgba(160, 200, 225, ${flashAlpha * 0.5})`);
+          flashGrad.addColorStop(0.7, `rgba(100, 150, 180, ${flashAlpha * 0.15})`);
+          flashGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = flashGrad;
+          ctx.fillRect(0, 0, cw, ch);
         }
 
-        ctx.restore();
+        // Expanding ring
+        const ringR = burstT * Math.max(cw, ch) * 0.4;
+        const ringAlpha = (1 - burstT) * 0.4;
+        if (ringAlpha > 0.01) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(180, 210, 230, ${ringAlpha})`;
+          ctx.lineWidth = 2 - burstT;
+          ctx.stroke();
+        }
+
+        // Logo particle convergence
+        if (t > PHASE.MAX_SPEED_END + 0.5) {
+          const convT = clamp01((t - (PHASE.MAX_SPEED_END + 0.5)) / 1.8);
+          const convEased = easeInOutCubic(convT);
+
+          logoParticlesRef.current.forEach((lp) => {
+            lp.x = lerp(lp.x, lp.tx, convEased * 0.15 + convEased * convEased * 0.1);
+            lp.y = lerp(lp.y, lp.ty, convEased * 0.15 + convEased * convEased * 0.1);
+            lp.alpha = lerp(lp.alpha, 1, convEased * 0.12);
+
+            const sx = cx + lp.x;
+            const sy = cy + lp.y;
+
+            if (sx < -20 || sx > cw + 20 || sy < -20 || sy > ch + 20) return;
+
+            ctx.beginPath();
+            ctx.arc(sx, sy, 1.2 + convEased * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(210, 230, 245, ${lp.alpha * 0.7})`;
+            ctx.fill();
+          });
+        }
       }
 
-      const logoReveal = smoothstep(0.34, 0.92, convergence + settle * 0.2);
-      if (logoReveal > 0) {
-        const scale = 1 + (1 - logoReveal) * 0.035 + Math.sin(time * 1.9) * 0.002 * hold;
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.scale(scale, scale);
-        ctx.font = `900 ${logoFontRef.current}px Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = color.cyan((0.16 + (1 - hold) * 0.12) * logoReveal);
-        ctx.shadowBlur = 10 + (1 - logoReveal) * 16;
-        ctx.fillStyle = color.white(easeOut3(logoReveal));
-        ctx.fillText('NEO', 0, 0);
-        ctx.restore();
+      /* ── Phase 6-7: Logo formation & final state (8.0s+) ── */
+      if (t >= PHASE.BURST_END) {
+        const formT = clamp01((t - PHASE.BURST_END) / 1.2);
+        const formEased = easeOutCubic(formT);
+        const stableT = clamp01((t - PHASE.LOGO_END) / 0.6);
+
+        // Continue converging particles
+        logoParticlesRef.current.forEach((lp) => {
+          lp.x = lerp(lp.x, lp.tx, 0.15 + formEased * 0.15);
+          lp.y = lerp(lp.y, lp.ty, 0.15 + formEased * 0.15);
+          lp.alpha = lerp(lp.alpha, 1, 0.1);
+
+          const sx = cx + lp.x;
+          const sy = cy + lp.y;
+          if (sx < -20 || sx > cw + 20 || sy < -20 || sy > ch + 20) return;
+
+          const pSize = 1.2 + formEased * 0.5;
+          ctx.beginPath();
+          ctx.arc(sx, sy, pSize, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(220, 235, 248, ${lp.alpha * (0.5 + formEased * 0.5)})`;
+          ctx.fill();
+        });
+
+        // Solid text fade-in on top
+        if (formT > 0.4) {
+          const textAlpha = easeOutCubic(clamp01((formT - 0.4) / 0.6));
+          const fontSize = Math.min(cw * 0.28, 120);
+          ctx.save();
+          ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = `rgba(255, 255, 255, ${textAlpha})`;
+
+          // Subtle glow behind text
+          if (textAlpha > 0.3) {
+            ctx.shadowColor = `rgba(170, 210, 235, ${textAlpha * 0.5})`;
+            ctx.shadowBlur = 30 + (1 - formT) * 20;
+          }
+
+          ctx.fillText('NEO', cx, cy);
+          ctx.restore();
+        }
+
+        // Breathing glow in final state
+        if (stableT > 0) {
+          const breath = Math.sin(t * 1.5) * 0.05 + 0.1;
+          const glowGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 80);
+          glowGrad.addColorStop(0, `rgba(170, 210, 235, ${breath * stableT})`);
+          glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = glowGrad;
+          ctx.fillRect(cx - 80, cy - 80, 160, 160);
+        }
       }
+    },
+    []
+  );
 
-      if (settle > 0) {
-        const breath = (0.04 + Math.sin(time * 1.7) * 0.015) * (0.45 + hold * 0.55);
-        const halo = ctx.createRadialGradient(cx, cy, 8, cx, cy, 74);
-        halo.addColorStop(0, color.cyan(breath));
-        halo.addColorStop(1, color.black(0));
-        ctx.fillStyle = halo;
-        ctx.fillRect(cx - 74, cy - 74, 148, 148);
-      }
-    };
-
-    const render = () => {
-      if (!ctx) return;
-      const time = (performance.now() - startRef.current) / 1000;
-      const cx = width / 2;
-      const cy = height / 2;
-      const diag = Math.hypot(width, height);
-
-      drawBackdrop(time, cx, cy, diag);
-      drawTravel(time, cx, cy);
-      drawCreation(time, cx, cy, diag);
-
-      if (time < B.DONE + 0.2) {
-        frameRef.current = requestAnimationFrame(render);
-      } else if (!doneRef.current) {
-        doneRef.current = true;
-        setPhase('out');
-        window.setTimeout(onComplete, 240);
-      }
-    };
-
-    initScene();
-    startRef.current = performance.now();
-    frameRef.current = requestAnimationFrame(render);
-
-    const handleResize = () => initScene();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      cancelAnimationFrame(frameRef.current);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [onComplete, phase]);
-
-  const handleStart = () => {
-    const audio = new Audio('/audio/neo-intro.mp3');
-    audio.volume = 0.7;
-    audio.play().catch(() => {});
-    audioRef.current = audio;
-    setPhase('run');
-  };
+  /* ── Final overlay text (subtitle + tagline) ── */
+  const showSubtitle = phase === 'animating' || phase === 'done';
 
   return (
     <AnimatePresence>
-      {phase !== 'out' ? (
+      {phase !== 'done' ? (
         <motion.div
-          className="fixed inset-0 z-[100] bg-background"
+          className="fixed inset-0 z-[100] bg-black"
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           {/* Pre-screen */}
           <AnimatePresence>
-            {phase === 'pre' && (
+            {phase === 'prescreen' && (
               <motion.div
-                className="absolute inset-0 z-20 flex flex-col items-center justify-center"
+                className="absolute inset-0 flex flex-col items-center justify-center z-20"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.4 }}
               >
                 <motion.p
-                  className="mb-10 text-[11px] font-medium uppercase tracking-[0.35em] text-foreground/25"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-[13px] tracking-[0.25em] uppercase font-medium mb-10"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
                 >
                   Sube el volumen
                 </motion.p>
                 <motion.button
-                  onClick={handleStart}
-                  className="rounded-full border border-foreground/10 bg-foreground/[0.02] px-7 py-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-foreground/70"
-                  initial={{ opacity: 0, y: 8 }}
+                  onClick={startAnimation}
+                  className="px-8 py-3 rounded-full border text-sm font-semibold tracking-[0.15em] uppercase transition-all duration-300"
+                  style={{
+                    borderColor: 'rgba(255,255,255,0.15)',
+                    color: 'rgba(255,255,255,0.8)',
+                    background: 'rgba(255,255,255,0.03)',
+                  }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.25 }}
-                  whileTap={{ scale: 0.96 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  whileHover={{
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    background: 'rgba(255,255,255,0.06)',
+                    scale: 1.03,
+                  }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   Estoy listo
                 </motion.button>
@@ -436,66 +506,63 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             )}
           </AnimatePresence>
 
-          <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-          <CopyOverlay visible={phase === 'run'} timings={timings} />
+          {/* Canvas */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full"
+            style={{ opacity: phase === 'animating' ? 1 : 0 }}
+          />
+
+          {/* Overlay text – subtitle & tagline */}
+          <SubtitleOverlay visible={phase === 'animating'} />
         </motion.div>
       ) : null}
     </AnimatePresence>
   );
 };
 
-function CopyOverlay({
-  visible,
-  timings,
-}: {
-  visible: boolean;
-  timings: { subtitle: number; tagline: number };
-}) {
-  const [showSubtitle, setShowSubtitle] = useState(false);
+/* ── Subtitle overlay (appears at ~9s) ── */
+function SubtitleOverlay({ visible }: { visible: boolean }) {
+  const [show, setShow] = useState(false);
   const [showTagline, setShowTagline] = useState(false);
 
   useEffect(() => {
-    setShowSubtitle(false);
-    setShowTagline(false);
     if (!visible) return;
-
-    const subtitleTimer = window.setTimeout(() => setShowSubtitle(true), timings.subtitle);
-    const taglineTimer = window.setTimeout(() => setShowTagline(true), timings.tagline);
-
+    const t1 = setTimeout(() => setShow(true), 8800);
+    const t2 = setTimeout(() => setShowTagline(true), 9400);
     return () => {
-      window.clearTimeout(subtitleTimer);
-      window.clearTimeout(taglineTimer);
+      clearTimeout(t1);
+      clearTimeout(t2);
     };
-  }, [timings, visible]);
+  }, [visible]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-end pb-[18%]">
+    <div className="absolute inset-0 flex flex-col items-center justify-end pb-[18%] z-30 pointer-events-none">
       <AnimatePresence>
-        {showSubtitle ? (
+        {show && (
           <motion.p
-            className="text-[13px] font-medium tracking-[0.08em] text-foreground/50"
-            initial={{ opacity: 0, y: 5, filter: 'blur(3px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.48, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="text-[13px] font-medium tracking-[0.12em]"
+            style={{ color: 'rgba(255,255,255,0.45)' }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
             El rendimiento, rediseñado.
           </motion.p>
-        ) : null}
+        )}
       </AnimatePresence>
-
       <AnimatePresence>
-        {showTagline ? (
+        {showTagline && (
           <motion.p
-            className="mt-3 text-[9px] font-medium uppercase tracking-[0.34em] text-foreground/20"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.52, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="mt-4 text-[10px] tracking-[0.3em] uppercase font-medium"
+            style={{ color: 'rgba(255,255,255,0.2)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
           >
-            Planificación · Ejecución · Evolución
+            Planificación. Ejecución. Evolución.
           </motion.p>
-        ) : null}
+        )}
       </AnimatePresence>
     </div>
   );
