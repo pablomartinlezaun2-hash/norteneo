@@ -189,6 +189,10 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
     }),
   }), []);
 
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   return (
     <div
       className="fixed inset-0 z-[200] overflow-hidden bg-black"
