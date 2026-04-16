@@ -86,7 +86,7 @@ function sampleLogoPoints(canvasWidth: number) {
 }
 
 export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<'run' | 'out'>('run');
+  const [phase, setPhase] = useState<'pre' | 'run' | 'out'>('pre');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number>(0);
   const startRef = useRef(0);
@@ -94,6 +94,7 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const spaceRef = useRef<SpacePoint[]>([]);
   const logoRef = useRef<LogoPoint[]>([]);
   const logoFontRef = useRef(88);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const timings = useMemo(
     () => ({
@@ -105,7 +106,7 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || phase === 'pre') return;
 
     let ctx: CanvasRenderingContext2D | null = null;
     let width = 0;
@@ -387,7 +388,15 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       cancelAnimationFrame(frameRef.current);
       window.removeEventListener('resize', handleResize);
     };
-  }, [onComplete]);
+  }, [onComplete, phase]);
+
+  const handleStart = () => {
+    const audio = new Audio('/audio/neo-intro.mp3');
+    audio.volume = 0.7;
+    audio.play().catch(() => {});
+    audioRef.current = audio;
+    setPhase('run');
+  };
 
   return (
     <AnimatePresence>
@@ -397,6 +406,36 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
+          {/* Pre-screen */}
+          <AnimatePresence>
+            {phase === 'pre' && (
+              <motion.div
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center"
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.p
+                  className="mb-10 text-[11px] font-medium uppercase tracking-[0.35em] text-foreground/25"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  Sube el volumen
+                </motion.p>
+                <motion.button
+                  onClick={handleStart}
+                  className="rounded-full border border-foreground/10 bg-foreground/[0.02] px-7 py-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-foreground/70"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: 0.25 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  Estoy listo
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
           <CopyOverlay visible={phase === 'run'} timings={timings} />
         </motion.div>
