@@ -799,7 +799,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
               {/* Audio briefing — premium voice summary */}
               {daysWithData.length > 0 && (
                 <AudioBriefingPlayer
-                  microcycleId={microcycleId || `${dateRange.start}_${dateRange.end}`}
+                  microcycleId={microcycleId || `${microcycleStart || 'mc'}_${dateRange.length}`}
                   adherence={microcycleAvg}
                   trainingAcc={Math.round(
                     daysWithData.reduce((a, d) => a + d.trainingAcc, 0) / daysWithData.length
