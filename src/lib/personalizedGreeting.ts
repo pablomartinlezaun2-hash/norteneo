@@ -15,13 +15,7 @@ export async function fetchPersonalizedGreeting(
   firstName: string,
   opts: { locale?: string; voiceVersion?: string } = {}
 ): Promise<GreetingResponse | null> {
-  if (!firstName?.trim()) {
-    console.warn("[greeting] no firstName provided to fetcher");
-    return null;
-  }
-
-  const t0 = performance.now();
-  console.info(`[greeting] requesting clip for name="${firstName}"`);
+  if (!firstName?.trim()) return null;
 
   try {
     const { data, error } = await supabase.functions.invoke(
@@ -35,24 +29,21 @@ export async function fetchPersonalizedGreeting(
       }
     );
 
-    const elapsed = Math.round(performance.now() - t0);
-
     if (error) {
-      console.warn(`[greeting] invoke error after ${elapsed}ms`, error);
+      console.warn("[greeting] invoke error", error);
+      return null;
+    }
+    if ((data as { fallback?: boolean })?.fallback) {
+      console.info("[greeting] backend signaled fallback", data);
       return null;
     }
     if (!data?.audioUrl) {
-      console.warn(`[greeting] no audioUrl in response after ${elapsed}ms`, data);
+      console.warn("[greeting] no audioUrl in response", data);
       return null;
     }
-
-    console.info(
-      `[greeting] received audio cached=${data.cached} backendMs=${data.durationMs ?? "n/a"} totalMs=${elapsed}`
-    );
     return data as GreetingResponse;
   } catch (e) {
-    const elapsed = Math.round(performance.now() - t0);
-    console.warn(`[greeting] fetch failed after ${elapsed}ms`, e);
+    console.warn("[greeting] fetch failed", e);
     return null;
   }
 }

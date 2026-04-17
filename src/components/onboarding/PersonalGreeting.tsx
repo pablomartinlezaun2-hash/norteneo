@@ -16,16 +16,14 @@ interface PersonalGreetingProps {
  *  - Si la API tarda > LOADING_THRESHOLD_MS, se muestra microespera elegante.
  *  - Si la API falla o el audio no puede reproducirse, se muestra el saludo
  *    visual durante VISUAL_FALLBACK_MS y se continúa hacia la intro.
- *  - Watchdog global MAX_TOTAL_MS: nunca se queda bloqueado, pero se
- *    extiende automáticamente si el audio empieza a sonar.
+ *  - Watchdog global MAX_TOTAL_MS: nunca se queda bloqueado.
  */
 
 const LOADING_THRESHOLD_MS = 600;     // Tiempo antes de mostrar la microespera
-const PREP_MAX_MS = 5000;             // Máx tiempo en estado "preparing"
+const PREP_MAX_MS = 4500;             // Máx tiempo en estado "preparing"
 const VISUAL_FALLBACK_MS = 2400;      // Duración del saludo cuando no hay audio
 const POST_AUDIO_TAIL_MS = 600;       // Cola visual tras terminar el audio
-const PREPARE_WATCHDOG_MS = 9000;     // Watchdog mientras esperamos audio
-const PLAYING_WATCHDOG_MS = 12000;    // Watchdog absoluto durante reproducción
+const MAX_TOTAL_MS = 8000;            // Watchdog global
 
 type Phase = 'preparing' | 'greeting' | 'fading';
 
@@ -41,32 +39,17 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
   const [prepIndex, setPrepIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const completedRef = useRef(false);
-  const phaseRef = useRef<Phase>('preparing');
-  const watchdogRef = useRef<number | undefined>(undefined);
 
-  phaseRef.current = phase;
-
-  const safeComplete = (reason: string) => {
+  const safeComplete = () => {
     if (completedRef.current) return;
     completedRef.current = true;
-    console.info(`[greeting] complete → main intro starts (reason=${reason})`);
     onComplete();
   };
 
-  const armWatchdog = (ms: number, reason: string) => {
-    if (watchdogRef.current) window.clearTimeout(watchdogRef.current);
-    watchdogRef.current = window.setTimeout(() => {
-      console.warn(`[greeting] watchdog fired (${reason}) after ${ms}ms`);
-      safeComplete(`watchdog:${reason}`);
-    }, ms);
-  };
-
-  // Watchdog inicial — nunca quedarnos bloqueados durante "preparing"
+  // Watchdog global — nunca quedarnos bloqueados
   useEffect(() => {
-    armWatchdog(PREPARE_WATCHDOG_MS, 'preparing');
-    return () => {
-      if (watchdogRef.current) window.clearTimeout(watchdogRef.current);
-    };
+    const watchdog = setTimeout(safeComplete, MAX_TOTAL_MS);
+    return () => clearTimeout(watchdog);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -92,16 +75,13 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
     let cancelled = false;
     let prepTimeoutId: number | undefined;
 
-    console.info(`[greeting] mount with firstName="${firstName}"`);
-
-    const startVisualFallback = (reason: string) => {
+    const startVisualFallback = () => {
       if (cancelled) return;
-      console.info(`[greeting] visual fallback (${reason}) duration=${VISUAL_FALLBACK_MS}ms`);
       setPhase('greeting');
       window.setTimeout(() => {
         if (!cancelled) {
           setPhase('fading');
-          window.setTimeout(() => safeComplete('fallback-end'), 400);
+          window.setTimeout(safeComplete, 400);
         }
       }, VISUAL_FALLBACK_MS);
     };
@@ -115,27 +95,20 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
 
       const onEnded = () => {
         if (cancelled) return;
-        console.info('[greeting] audio ended → tail then fade');
         window.setTimeout(() => {
           if (!cancelled) {
             setPhase('fading');
-            window.setTimeout(() => safeComplete('audio-end'), 400);
+            window.setTimeout(safeComplete, 400);
           }
         }, POST_AUDIO_TAIL_MS);
       };
-      const onError = (e: Event) => {
-        console.warn('[greeting] audio playback failed → visual fallback', e);
-        startVisualFallback('audio-error');
-      };
-      const onPlaying = () => {
-        // El audio sonó: extendemos el watchdog para no cortarlo a mitad
-        armWatchdog(PLAYING_WATCHDOG_MS, 'playing');
-        console.info('[greeting] audio playing');
+      const onError = () => {
+        console.warn('[greeting] audio playback failed → visual fallback');
+        startVisualFallback();
       };
 
       audio.addEventListener('ended', onEnded);
       audio.addEventListener('error', onError);
-      audio.addEventListener('playing', onPlaying, { once: true });
 
       // Mostramos el texto justo antes de iniciar la reproducción
       setPhase('greeting');
@@ -144,15 +117,16 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise.catch((e) => {
           console.warn('[greeting] play() rejected', e);
-          startVisualFallback('play-rejected');
+          startVisualFallback();
         });
       }
     };
 
     // Cap de espera para la API: si tarda más de PREP_MAX_MS → fallback
     prepTimeoutId = window.setTimeout(() => {
-      if (!cancelled && phaseRef.current === 'preparing') {
-        startVisualFallback('api-timeout');
+      if (!cancelled && phase === 'preparing') {
+        console.warn('[greeting] API timeout → visual fallback');
+        startVisualFallback();
       }
     }, PREP_MAX_MS);
 
@@ -163,14 +137,13 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
         if (res?.audioUrl) {
           startWithAudio(res.audioUrl);
         } else {
-          startVisualFallback('no-audio-url');
+          startVisualFallback();
         }
       })
-      .catch((e) => {
+      .catch(() => {
         if (cancelled) return;
         if (prepTimeoutId) window.clearTimeout(prepTimeoutId);
-        console.warn('[greeting] fetch threw', e);
-        startVisualFallback('fetch-throw');
+        startVisualFallback();
       });
 
     return () => {
