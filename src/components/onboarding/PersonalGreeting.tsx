@@ -91,6 +91,9 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
       const audio = new Audio(url);
       audio.preload = 'auto';
       audio.volume = 0.95;
+      audio.muted = false;
+      // @ts-expect-error - playsInline existe en HTMLMediaElement (iOS Safari)
+      audio.playsInline = true;
       audioRef.current = audio;
 
       const onEnded = () => {
@@ -110,15 +113,32 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
       audio.addEventListener('ended', onEnded);
       audio.addEventListener('error', onError);
 
-      // Mostramos el texto justo antes de iniciar la reproducción
-      setPhase('greeting');
-
+      // CRÍTICO: llamar play() ANTES del setState para preservar la cadena
+      // de activación de usuario (evita NotAllowedError en Safari/iOS).
       const playPromise = audio.play();
+
       if (playPromise && typeof playPromise.then === 'function') {
-        playPromise.catch((e) => {
-          console.warn('[greeting] play() rejected', e);
-          startVisualFallback();
-        });
+        playPromise
+          .then(() => {
+            if (!cancelled) setPhase('greeting');
+          })
+          .catch((e) => {
+            console.warn('[greeting] play() rejected', e);
+            // Intento de recuperación: reproducir muteado y desmutear
+            audio.muted = true;
+            audio
+              .play()
+              .then(() => {
+                audio.muted = false;
+                if (!cancelled) setPhase('greeting');
+              })
+              .catch((e2) => {
+                console.warn('[greeting] muted retry failed', e2);
+                startVisualFallback();
+              });
+          });
+      } else {
+        setPhase('greeting');
       }
     };
 
