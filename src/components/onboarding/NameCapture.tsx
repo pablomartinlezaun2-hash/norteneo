@@ -1,16 +1,31 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  validateFirstName,
+  saveFirstName,
+  FIRST_NAME_MAX,
+} from '@/lib/firstName';
 
 interface NameCaptureProps {
   onSubmit: (firstName: string) => void;
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  empty: 'Escribe tu nombre para continuar.',
+  too_short: 'Necesita al menos 2 letras.',
+  too_long: `Máximo ${FIRST_NAME_MAX} caracteres.`,
+  invalid_chars: 'Solo letras, espacios, guiones o apóstrofes.',
+};
+
 /**
  * Pre-roll fase 1: Captura del nombre del usuario.
+ * Valida, normaliza y persiste (localStorage + perfil si hay sesión).
  * NO modifica la intro principal. Es una capa previa.
  */
 export const NameCapture = ({ onSubmit }: NameCaptureProps) => {
   const [name, setName] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -18,17 +33,30 @@ export const NameCapture = ({ onSubmit }: NameCaptureProps) => {
     return () => clearTimeout(t);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validation = useMemo(() => validateFirstName(name), [name]);
+  const isValid = validation.valid;
+  const errorMsg =
+    !isValid && showError
+      ? ERROR_MESSAGES[(validation as { error: string }).error] ?? null
+      : null;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+    if (showError) setShowError(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    // Solo el primer nombre, capitalizado
-    const firstName = trimmed.split(/\s+/)[0];
-    const formatted = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-    try {
-      localStorage.setItem('neo-first-name', formatted);
-    } catch {
-      // ignore storage errors
+    if (!isValid) {
+      setShowError(true);
+      return;
+    }
+    setSubmitting(true);
+    const formatted = await saveFirstName(name);
+    setSubmitting(false);
+    if (!formatted) {
+      setShowError(true);
+      return;
     }
     onSubmit(formatted);
   };
@@ -83,35 +111,65 @@ export const NameCapture = ({ onSubmit }: NameCaptureProps) => {
             ref={inputRef}
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleChange}
             placeholder="Tu nombre"
             autoComplete="given-name"
-            maxLength={32}
+            maxLength={FIRST_NAME_MAX}
+            aria-invalid={!!errorMsg}
+            aria-describedby={errorMsg ? 'name-error' : undefined}
             className="w-full bg-transparent border-0 border-b text-center text-[22px] font-medium py-3 outline-none transition-colors duration-300 placeholder:font-normal"
             style={{
               color: '#fff',
-              borderColor: 'rgba(255,255,255,0.18)',
+              borderColor: errorMsg
+                ? 'rgba(248,113,113,0.55)'
+                : 'rgba(255,255,255,0.18)',
               caretColor: '#fff',
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)')}
-            onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)')}
+            onFocus={(e) => {
+              if (!errorMsg)
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.55)';
+            }}
+            onBlur={(e) => {
+              if (!errorMsg)
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)';
+            }}
           />
+
+          {/* Mensaje de error reservando altura para evitar saltos */}
+          <div className="h-5 mt-2 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              {errorMsg && (
+                <motion.p
+                  id="name-error"
+                  key={errorMsg}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.25 }}
+                  className="text-[11px] tracking-[0.04em]"
+                  style={{ color: 'rgba(248,113,113,0.85)' }}
+                >
+                  {errorMsg}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
 
         <motion.button
           type="submit"
-          disabled={!name.trim()}
+          disabled={!isValid || submitting}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1, duration: 0.6, ease }}
           whileTap={{ scale: 0.97 }}
-          className="mt-2 px-8 h-11 rounded-full text-[12px] tracking-[0.18em] uppercase font-semibold transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="mt-1 px-8 h-11 rounded-full text-[12px] tracking-[0.18em] uppercase font-semibold transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
           style={{
-            background: name.trim() ? '#fff' : 'rgba(255,255,255,0.08)',
-            color: name.trim() ? '#000' : 'rgba(255,255,255,0.4)',
+            background: isValid ? '#fff' : 'rgba(255,255,255,0.08)',
+            color: isValid ? '#000' : 'rgba(255,255,255,0.4)',
           }}
         >
-          Continuar
+          {submitting ? 'Guardando…' : 'Continuar'}
         </motion.button>
       </motion.form>
     </div>
