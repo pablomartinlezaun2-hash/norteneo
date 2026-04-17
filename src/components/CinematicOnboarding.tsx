@@ -130,7 +130,9 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
   const storedName = (() => {
     try { return localStorage.getItem('neo-first-name') || ''; } catch { return ''; }
   })();
-  const [preRoll, setPreRoll] = useState<PreRollPhase>(storedName ? 'done' : 'name');
+  // Si ya existe nombre guardado, saltamos NameCapture pero SIEMPRE reproducimos
+  // el saludo personalizado (Bloque A) antes de la intro principal.
+  const [preRoll, setPreRoll] = useState<PreRollPhase>(storedName ? 'greeting' : 'name');
   const [firstName, setFirstName] = useState<string>(storedName);
 
   // ── Bloque B (intro principal existente, INTACTA) ──
