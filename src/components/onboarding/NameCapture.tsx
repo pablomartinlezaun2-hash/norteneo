@@ -35,8 +35,10 @@ export const NameCapture = ({ onSubmit }: NameCaptureProps) => {
 
   const validation = useMemo(() => validateFirstName(name), [name]);
   const isValid = validation.valid;
-  const errorMsg =
-    !validation.valid && showError ? ERROR_MESSAGES[validation.error] : null;
+  const errorMsg = useMemo(() => {
+    if (validation.valid || !showError) return null;
+    return ERROR_MESSAGES[validation.error] ?? null;
+  }, [validation, showError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
