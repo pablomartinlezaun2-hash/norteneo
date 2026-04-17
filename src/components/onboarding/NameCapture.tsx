@@ -58,6 +58,7 @@ export const NameCapture = ({ onSubmit }: NameCaptureProps) => {
       setShowError(true);
       return;
     }
+    console.info(`[onboarding] firstName captured="${formatted}"`);
     onSubmit(formatted);
   };
 

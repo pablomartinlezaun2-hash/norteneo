@@ -216,7 +216,10 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
     return (
       <PersonalGreeting
         firstName={firstName}
-        onComplete={() => setPreRoll('done')}
+        onComplete={() => {
+          console.info('[onboarding] pre-roll done → main intro (Splash + slides) takes over INTACT');
+          setPreRoll('done');
+        }}
       />
     );
   }
