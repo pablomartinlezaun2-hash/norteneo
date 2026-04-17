@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPersonalizedGreeting } from '@/lib/personalizedGreeting';
+import { welcomeWord } from '@/lib/genderFromName';
 
 interface PersonalGreetingProps {
   firstName: string;
