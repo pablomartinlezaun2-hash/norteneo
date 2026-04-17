@@ -33,6 +33,10 @@ export async function fetchPersonalizedGreeting(
       console.warn("[greeting] invoke error", error);
       return null;
     }
+    if ((data as { fallback?: boolean })?.fallback) {
+      console.info("[greeting] backend signaled fallback", data);
+      return null;
+    }
     if (!data?.audioUrl) {
       console.warn("[greeting] no audioUrl in response", data);
       return null;
