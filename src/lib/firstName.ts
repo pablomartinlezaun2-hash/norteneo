@@ -19,9 +19,17 @@ const VALID_NAME_REGEX = /^[\p{L}][\p{L}\s'-]*$/u;
 export const FIRST_NAME_MIN = 2;
 export const FIRST_NAME_MAX = 32;
 
-export type FirstNameValidation =
-  | { valid: true; value: string }
-  | { valid: false; error: "empty" | "too_short" | "too_long" | "invalid_chars" };
+export type FirstNameError = "empty" | "too_short" | "too_long" | "invalid_chars";
+
+export interface FirstNameValidationOk {
+  valid: true;
+  value: string;
+}
+export interface FirstNameValidationErr {
+  valid: false;
+  error: FirstNameError;
+}
+export type FirstNameValidation = FirstNameValidationOk | FirstNameValidationErr;
 
 /**
  * Normaliza un nombre: trim, colapso de espacios, toma el primer token,
