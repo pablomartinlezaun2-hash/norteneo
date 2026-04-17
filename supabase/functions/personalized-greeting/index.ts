@@ -45,10 +45,45 @@ async function md5Hex(text: string): Promise<string> {
     .join("");
 }
 
+// Female names that don't follow the -a rule, plus common ambiguous cases.
+const FEMALE_NAMES = new Set([
+  "carmen", "pilar", "isabel", "mercedes", "dolores", "concepcion", "consuelo",
+  "rocio", "belen", "maria", "esther", "raquel", "soledad", "inmaculada",
+  "milagros", "asuncion", "encarnacion", "nieves", "sol", "mar", "luz",
+  "beatriz", "cruz", "estefani", "estefany", "jennifer", "jenifer",
+]);
+const MALE_NAMES_ENDING_A = new Set([
+  "luca", "noa", "elias", "isaias", "jeremias", "matias", "tobias",
+  "andrea", "joshua",
+]);
+const MALE_SUFFIXES_2 = ["os", "on", "or", "el", "an", "en", "in", "un"];
+
+function detectGender(rawName: string): "f" | "m" | "u" {
+  if (!rawName) return "u";
+  const first = rawName
+    .trim()
+    .split(/\s+/)[0]
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+  if (!first) return "u";
+  if (FEMALE_NAMES.has(first)) return "f";
+  if (MALE_NAMES_ENDING_A.has(first)) return "m";
+  const last = first.slice(-1);
+  const last2 = first.slice(-2);
+  if (last === "a") return "f";
+  if (["ia", "ina", "ela", "isa", "ana", "ena"].includes(last2)) return "f";
+  if (MALE_SUFFIXES_2.includes(last2)) return "m";
+  if (last === "o") return "m";
+  return "u";
+}
+
 function buildGreetingText(firstName: string, locale: string): string {
   const clean = firstName.trim().replace(/[^\p{L}\p{N}\s'-]/gu, "");
+  const word = detectGender(clean) === "f" ? "Bienvenida" : "Bienvenido";
   // Spanish-only for now (locale reserved for future variants)
-  return `Bienvenido, ${clean}.`;
+  return `${word}, ${clean}.`;
 }
 
 Deno.serve(async (req) => {

@@ -252,7 +252,7 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
               className="text-[11px] tracking-[0.32em] uppercase font-medium"
               style={{ color: 'rgba(255,255,255,0.42)' }}
             >
-              Bienvenido
+              {welcomeWord(firstName)}
             </motion.span>
 
             <motion.h1
