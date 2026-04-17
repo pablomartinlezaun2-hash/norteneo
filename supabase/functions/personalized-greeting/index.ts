@@ -171,16 +171,27 @@ Deno.serve(async (req) => {
 
   if (!ttsRes.ok) {
     const errText = await ttsRes.text();
+    const isAuthOrBilling = ttsRes.status === 401 || ttsRes.status === 402;
+    const reason = isAuthOrBilling
+      ? "elevenlabs_auth_or_billing"
+      : "elevenlabs_upstream_error";
     console.error(
-      `[greeting] ElevenLabs error status=${ttsRes.status} body=${errText.slice(
+      `[greeting] ElevenLabs error status=${ttsRes.status} reason=${reason} body=${errText.slice(
         0,
         300
       )}`
     );
+    // Return 200 + fallback flag so the client uses the visual fallback
+    // gracefully instead of surfacing a 502 to the user.
     return new Response(
-      JSON.stringify({ error: "TTS generation failed" }),
+      JSON.stringify({
+        fallback: true,
+        error: "TTS_UNAVAILABLE",
+        reason,
+        upstreamStatus: ttsRes.status,
+      }),
       {
-        status: 502,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
