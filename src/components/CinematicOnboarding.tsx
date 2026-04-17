@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { SplashScreen } from './SplashScreen';
+import { NameCapture } from './onboarding/NameCapture';
+import { PersonalGreeting } from './onboarding/PersonalGreeting';
 import {
   WelcomeLogo, ClosingLogo, TextReveal, SubtitleReveal,
   TrainingHeroVisual, AIHeroVisual, NutritionHeroVisual, ProgressHeroVisual,
@@ -121,7 +123,17 @@ interface CinematicOnboardingProps {
   onComplete: () => void;
 }
 
+type PreRollPhase = 'name' | 'greeting' | 'done';
+
 export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) => {
+  // ── Pre-roll personalizado (Bloque A) — capa previa, NO modifica la intro principal ──
+  const storedName = (() => {
+    try { return localStorage.getItem('neo-first-name') || ''; } catch { return ''; }
+  })();
+  const [preRoll, setPreRoll] = useState<PreRollPhase>(storedName ? 'done' : 'name');
+  const [firstName, setFirstName] = useState<string>(storedName);
+
+  // ── Bloque B (intro principal existente, INTACTA) ──
   const [showSplash, setShowSplash] = useState(true);
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
