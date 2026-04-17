@@ -201,6 +201,27 @@ export const CinematicOnboarding = ({ onComplete }: CinematicOnboardingProps) =>
     }),
   }), []);
 
+  // ── BLOQUE A — Pre-roll personalizado (capa previa) ──
+  if (preRoll === 'name') {
+    return (
+      <NameCapture
+        onSubmit={(name) => {
+          setFirstName(name);
+          setPreRoll('greeting');
+        }}
+      />
+    );
+  }
+  if (preRoll === 'greeting') {
+    return (
+      <PersonalGreeting
+        firstName={firstName}
+        onComplete={() => setPreRoll('done')}
+      />
+    );
+  }
+
+  // ── BLOQUE B — Intro principal existente (INTACTA: SplashScreen + slides) ──
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
