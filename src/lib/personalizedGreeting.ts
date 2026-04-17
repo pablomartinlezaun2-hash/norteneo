@@ -24,7 +24,7 @@ export async function fetchPersonalizedGreeting(
         body: {
           firstName: firstName.trim(),
           locale: opts.locale ?? "es",
-          voiceVersion: opts.voiceVersion ?? "v1",
+          voiceVersion: opts.voiceVersion ?? "v2",
         },
       }
     );
