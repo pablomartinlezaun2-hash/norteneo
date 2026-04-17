@@ -24,6 +24,7 @@ import {
 } from '../nutrition/adherenceCalculations';
 import { useAdherenceSettings, calcDynamicAdherence } from '@/hooks/useAdherenceSettings';
 import { cn } from '@/lib/utils';
+import { AudioBriefingPlayer } from './AudioBriefingPlayer';
 
 /* No mock data — all data comes from the database */
 
@@ -794,6 +795,21 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
                 <span className="text-sm font-bold text-foreground">Resumen IA del Microciclo</span>
               </div>
               <div className="text-sm text-foreground leading-relaxed whitespace-pre-line">{microcycleSummary}</div>
+
+              {/* Audio briefing — premium voice summary */}
+              {daysWithData.length > 0 && (
+                <AudioBriefingPlayer
+                  microcycleId={microcycleId || `${microcycleStart || 'mc'}_${dateRange.length}`}
+                  adherence={microcycleAvg}
+                  trainingAcc={Math.round(
+                    daysWithData.reduce((a, d) => a + d.trainingAcc, 0) / daysWithData.length
+                  )}
+                  nutrition={Math.round(
+                    daysWithData.reduce((a, d) => a + d.nutritionAcc, 0) / daysWithData.length
+                  )}
+                  hasNutrition={daysWithData.some(d => d.foodLogs.length > 0)}
+                />
+              )}
 
               {/* Critical alerts — clickable */}
               {criticalAlerts.length > 0 && (
