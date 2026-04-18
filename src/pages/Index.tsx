@@ -115,6 +115,7 @@ const Index = () => {
     reserveGreetingAudio();
     localStorage.removeItem('neo-welcome-seen');
     localStorage.removeItem('neo-cinematic-seen');
+    localStorage.removeItem('neo-first-name');
     setShowCinematic(true);
     setHasSeenWelcome(false);
   };
