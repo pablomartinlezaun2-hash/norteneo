@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPersonalizedGreeting } from '@/lib/personalizedGreeting';
 import { welcomeWord } from '@/lib/genderFromName';
+import { consumeReservedGreetingAudio, prepareGestureAudioElement } from '@/lib/gestureAudio';
 
 interface PersonalGreetingProps {
   firstName: string;
@@ -89,12 +90,12 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
 
     const startWithAudio = (url: string) => {
       if (cancelled) return;
-      const audio = new Audio(url);
+      const reservedAudio = consumeReservedGreetingAudio();
+      const audio = prepareGestureAudioElement(reservedAudio ?? audioRef.current);
+      audio.src = url;
       audio.preload = 'auto';
       audio.volume = 0.95;
       audio.muted = false;
-      // @ts-expect-error - playsInline existe en HTMLMediaElement (iOS Safari)
-      audio.playsInline = true;
       audioRef.current = audio;
 
       const onEnded = () => {
@@ -111,11 +112,9 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
         startVisualFallback();
       };
 
-      audio.addEventListener('ended', onEnded);
-      audio.addEventListener('error', onError);
+      audio.onended = onEnded;
+      audio.onerror = onError;
 
-      // CRÍTICO: llamar play() ANTES del setState para preservar la cadena
-      // de activación de usuario (evita NotAllowedError en Safari/iOS).
       const playPromise = audio.play();
 
       if (playPromise && typeof playPromise.then === 'function') {
@@ -125,7 +124,6 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
           })
           .catch((e) => {
             console.warn('[greeting] play() rejected', e);
-            // Intento de recuperación: reproducir muteado y desmutear
             audio.muted = true;
             audio
               .play()
@@ -174,9 +172,10 @@ export const PersonalGreeting = ({ firstName, onComplete }: PersonalGreetingProp
       if (a) {
         try {
           a.pause();
+          a.onended = null;
+          a.onerror = null;
           a.src = '';
         } catch {
-          // ignore
         }
       }
     };
