@@ -5,6 +5,7 @@ import {
   saveFirstName,
   FIRST_NAME_MAX,
 } from '@/lib/firstName';
+import { reserveGreetingAudio } from '@/lib/gestureAudio';
 
 interface NameCaptureProps {
   onSubmit: (firstName: string) => void;
@@ -51,6 +52,8 @@ export const NameCapture = ({ onSubmit }: NameCaptureProps) => {
       setShowError(true);
       return;
     }
+
+    reserveGreetingAudio();
     setSubmitting(true);
     const formatted = await saveFirstName(name);
     setSubmitting(false);

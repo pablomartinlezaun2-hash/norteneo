@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Headphones, Play, Pause, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { prepareGestureAudioElement } from '@/lib/gestureAudio';
 
 interface AudioBriefingPlayerProps {
   microcycleId: string;
@@ -41,23 +42,43 @@ export const AudioBriefingPlayer = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Cleanup on unmount
+  const releaseAudio = () => {
+    if (!audioRef.current) return;
+    audioRef.current.pause();
+    audioRef.current.src = '';
+    audioRef.current.onloadedmetadata = null;
+    audioRef.current.ontimeupdate = null;
+    audioRef.current.onended = null;
+    audioRef.current.onerror = null;
+    audioRef.current = null;
+  };
+
+  const bindAudioEvents = (audio: HTMLAudioElement) => {
+    audio.onloadedmetadata = () => {
+      setDuration(audio.duration || 0);
+    };
+    audio.ontimeupdate = () => {
+      setProgress(audio.currentTime || 0);
+    };
+    audio.onended = () => {
+      setStatus('ready');
+      setProgress(0);
+      audio.currentTime = 0;
+    };
+    audio.onerror = () => {
+      setStatus('error');
+      setErrorMsg('Error al cargar el audio');
+    };
+  };
+
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
-      }
+      releaseAudio();
     };
   }, []);
 
-  // Reset when microcycle changes
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    releaseAudio();
     setStatus('idle');
     setAudioUrl(null);
     setDuration(0);
@@ -65,8 +86,13 @@ export const AudioBriefingPlayer = ({
     setErrorMsg(null);
   }, [microcycleId]);
 
-  const ensureAudio = async (): Promise<HTMLAudioElement | null> => {
-    if (audioRef.current && audioUrl) return audioRef.current;
+  const ensureAudio = async (
+    preparedAudio: HTMLAudioElement
+  ): Promise<HTMLAudioElement | null> => {
+    if (audioUrl && preparedAudio.src === audioUrl) {
+      bindAudioEvents(preparedAudio);
+      return preparedAudio;
+    }
 
     setStatus('loading');
     setErrorMsg(null);
@@ -96,27 +122,19 @@ export const AudioBriefingPlayer = ({
       const url = data.audioUrl as string;
       setAudioUrl(url);
 
-      const audio = new Audio(url);
-      audio.preload = 'auto';
-      audio.addEventListener('loadedmetadata', () => {
-        setDuration(audio.duration || 0);
-      });
-      audio.addEventListener('timeupdate', () => {
-        setProgress(audio.currentTime || 0);
-      });
-      audio.addEventListener('ended', () => {
-        setStatus('ready');
-        setProgress(0);
-      });
-      audio.addEventListener('error', () => {
-        setStatus('error');
-        setErrorMsg('Error al cargar el audio');
-      });
+      preparedAudio.src = url;
+      preparedAudio.volume = 0.95;
+      preparedAudio.muted = false;
+      bindAudioEvents(preparedAudio);
+      preparedAudio.load();
 
-      audioRef.current = audio;
+      if (preparedAudio.readyState >= 1) {
+        setDuration(preparedAudio.duration || 0);
+      }
+
       setStatus('ready');
-      return audio;
-    } catch (e: any) {
+      return preparedAudio;
+    } catch (e) {
       console.error('[briefing] generate error', e);
       setStatus('error');
       setErrorMsg('No se pudo generar el briefing');
@@ -125,24 +143,30 @@ export const AudioBriefingPlayer = ({
   };
 
   const handleToggle = async () => {
-    let audio = audioRef.current;
-    if (!audio) {
-      audio = await ensureAudio();
-      if (!audio) return;
+    const preparedAudio = prepareGestureAudioElement(audioRef.current);
+    audioRef.current = preparedAudio;
+
+    let audio = preparedAudio;
+    if (!audioUrl || !audio.src) {
+      const ensuredAudio = await ensureAudio(preparedAudio);
+      if (!ensuredAudio) return;
+      audio = ensuredAudio;
     }
 
     if (status === 'playing') {
       audio.pause();
       setStatus('paused');
-    } else {
-      try {
-        await audio.play();
-        setStatus('playing');
-      } catch (err) {
-        console.error('[briefing] play blocked', err);
-        setStatus('error');
-        setErrorMsg('Toca de nuevo para reproducir');
-      }
+      return;
+    }
+
+    try {
+      await audio.play();
+      setStatus('playing');
+      setErrorMsg(null);
+    } catch (err) {
+      console.error('[briefing] play blocked', err);
+      setStatus('error');
+      setErrorMsg('El navegador ha bloqueado el audio. Toca de nuevo.');
     }
   };
 
@@ -159,7 +183,6 @@ export const AudioBriefingPlayer = ({
       className="rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-3.5 space-y-3"
     >
       <div className="flex items-center gap-3">
-        {/* Play button */}
         <button
           onClick={handleToggle}
           disabled={isLoading}
@@ -212,7 +235,6 @@ export const AudioBriefingPlayer = ({
           </AnimatePresence>
         </button>
 
-        {/* Title + status */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <Headphones className="w-3.5 h-3.5 text-muted-foreground" />
@@ -232,7 +254,6 @@ export const AudioBriefingPlayer = ({
         </div>
       </div>
 
-      {/* Progress bar — only when audio is available */}
       {audioUrl && !isError && (
         <div className="h-1 rounded-full bg-muted overflow-hidden">
           <motion.div

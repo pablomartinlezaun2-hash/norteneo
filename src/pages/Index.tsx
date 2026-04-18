@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeriodizationBadge } from '@/components/PeriodizationBadge';
 import { NeoHelpChat } from '@/components/NeoHelpChat';
+import { reserveGreetingAudio } from '@/lib/gestureAudio';
 
 const ease: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
@@ -111,6 +112,7 @@ const Index = () => {
   }
 
   const handleRestartTour = () => {
+    reserveGreetingAudio();
     localStorage.removeItem('neo-welcome-seen');
     localStorage.removeItem('neo-cinematic-seen');
     setShowCinematic(true);
