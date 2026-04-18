@@ -82,8 +82,9 @@ function detectGender(rawName: string): "f" | "m" | "u" {
 function buildGreetingText(firstName: string, locale: string): string {
   const clean = firstName.trim().replace(/[^\p{L}\p{N}\s'-]/gu, "");
   const word = detectGender(clean) === "f" ? "Bienvenida" : "Bienvenido";
-  // Spanish-only for now (locale reserved for future variants)
-  return `${word}, ${clean}.`;
+  // Spanish-only for now (locale reserved for future variants).
+  // Comma + ellipsis introduce a natural pause between greeting and name.
+  return `${word}... ${clean}.`;
 }
 
 Deno.serve(async (req) => {
@@ -194,11 +195,11 @@ Deno.serve(async (req) => {
         text,
         model_id: ELEVENLABS_MODEL_ID,
         voice_settings: {
-          stability: 0.55,
-          similarity_boost: 0.8,
-          style: 0.25,
+          stability: 0.7,
+          similarity_boost: 0.85,
+          style: 0.15,
           use_speaker_boost: true,
-          speed: 1.0,
+          speed: 0.88,
         },
       }),
     }
