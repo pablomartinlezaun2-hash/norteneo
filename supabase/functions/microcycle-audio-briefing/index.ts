@@ -24,7 +24,7 @@ const corsHeaders = {
 };
 
 const BUCKET = "microcycle-briefings";
-const SCRIPT_VERSION = "v1";
+const SCRIPT_VERSION = "v2";
 
 const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 const ELEVENLABS_VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID");
