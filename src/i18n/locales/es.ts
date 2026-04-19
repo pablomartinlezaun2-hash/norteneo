@@ -53,6 +53,18 @@ export const es = {
     errorApple: 'Error al iniciar sesión con Apple',
     errorConnectGoogle: 'Error al conectar con Google',
     errorConnectApple: 'Error al conectar con Apple',
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    forgotSubtitle: 'Te enviaremos un enlace para restablecerla',
+    sendResetLink: 'Enviar enlace de recuperación',
+    resetEmailSent: 'Te hemos enviado un email con instrucciones para restablecer tu contraseña. Revisa tu bandeja de entrada.',
+    backToLogin: 'Volver a iniciar sesión',
+    resetSubtitle: 'Establece tu nueva contraseña',
+    newPassword: 'Nueva contraseña',
+    confirmPassword: 'Confirmar contraseña',
+    passwordsDoNotMatch: 'Las contraseñas no coinciden',
+    updatePassword: 'Actualizar contraseña',
+    passwordResetSuccess: '¡Contraseña actualizada! Redirigiendo al inicio de sesión...',
+    invalidResetLink: 'El enlace de recuperación no es válido o ha caducado. Solicita uno nuevo.',
   },
 
   // Profile
