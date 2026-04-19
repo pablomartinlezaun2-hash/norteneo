@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,6 +216,13 @@ const Auth = () => {
                 disabled={loading}
               />
             </div>
+            {isLogin && (
+              <div className="flex justify-end">
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  {t('auth.forgotPassword')}
+                </Link>
+              </div>
+            )}
           </motion.div>
 
           {error && (

@@ -12,6 +12,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import MuscleDetail from "./pages/MuscleDetail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ const AppContent = () => {
       <SupplementNotificationToast />
       <Routes>
         <Route path="/auth" element={<AuthRoute />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/"
           element={
