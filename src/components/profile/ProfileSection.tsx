@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { supabase } from '@/integrations/supabase/client';
-import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Trash2, Play } from 'lucide-react';
+import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Trash2, Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ThemeSelector } from './ThemeSelector';
@@ -208,6 +208,17 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
       {/* Support */}
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
         <SupportSection />
+      </motion.div>
+
+      {/* Solar Launcher (experimental) */}
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.23 }}>
+        <button
+          onClick={() => navigate('/launcher')}
+          className="w-full h-11 rounded-xl border border-border hover:bg-muted/40 transition-colors flex items-center justify-center gap-2 text-caption font-medium text-muted-foreground"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Explorar (Sistema solar)
+        </button>
       </motion.div>
 
       {/* Restart Tour */}
