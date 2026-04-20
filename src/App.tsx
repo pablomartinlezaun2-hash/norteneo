@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import MuscleDetail from "./pages/MuscleDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import SolarLauncher from "./pages/SolarLauncher";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,14 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <MuscleDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/launcher"
+          element={
+            <ProtectedRoute>
+              <SolarLauncher />
             </ProtectedRoute>
           }
         />
