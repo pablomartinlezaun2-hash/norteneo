@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Exercise } from '@/types/database';
 import { useSetLogs } from '@/hooks/useSetLogs';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
+import { useSetValidation } from '@/contexts/SetValidationContext';
 import { SetProgressChart } from './SetProgressChart';
 import { SetForm } from './SetForm';
 import { SetLogList } from './SetLogList';
 import { LazyVimeoEmbed } from './LazyVimeoEmbed';
+import { SetValidationBannerStack } from './SetValidationBanner';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { 
@@ -32,6 +34,8 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
 
   const { logs, addLog, deleteLog, getLogsBySetNumber, getLastLogForSet, getBestWeightForSet } = useSetLogs(exercise.id);
   const { note, saveNote } = useExerciseNotes(exercise.id);
+  const { alertsForExercise, validateSet, acknowledge } = useSetValidation();
+  const exerciseAlerts = alertsForExercise(exercise.id);
 
   useEffect(() => {
     if (note) setNoteText(note.note);
@@ -41,6 +45,25 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
     weight: number; reps: number; partialReps: number; rir: number | null; isWarmup: boolean;
   }) => {
     const result = await addLog(setNumber, data.weight, data.reps, data.partialReps, data.rir, data.isWarmup);
+    if (!result.error && !data.isWarmup) {
+      // Real-time validation: use prior non-warmup sets of this exercise in the
+      // current session as in-session reference for load-drop detection.
+      const sessionPrior = logs
+        .filter(l => !l.is_warmup)
+        .map(l => ({ weight: l.weight, reps: l.reps, rir: l.rir }));
+      validateSet({
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        setNumber,
+        totalSetsPlanned: exercise.series,
+        weight: data.weight,
+        reps: data.reps,
+        rir: data.rir,
+        isWarmup: data.isWarmup,
+        pautadoRepsRaw: exercise.reps,
+        previousSetsThisSession: sessionPrior,
+      });
+    }
     return { error: result.error };
   };
 
