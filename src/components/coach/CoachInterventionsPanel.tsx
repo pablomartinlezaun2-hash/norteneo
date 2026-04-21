@@ -28,6 +28,7 @@ import {
   Pause,
   RefreshCw,
   AlertCircle,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,6 +85,38 @@ export const CoachInterventionsPanel = ({
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<Record<string, string | null>>({});
   const [previewPlaying, setPreviewPlaying] = useState<string | null>(null);
   const previewRef = useRef<HTMLAudioElement | null>(null);
+  const [creatingTest, setCreatingTest] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
+
+  /** Crea un evento de intervención de prueba (low_sleep) para validar el flujo. */
+  const handleCreateTestEvent = async () => {
+    setTestError(null);
+    setCreatingTest(true);
+    try {
+      const { error: insErr } = await (supabase as any)
+        .from("coach_intervention_events")
+        .insert({
+          coach_id: coachProfileId,
+          athlete_id: athleteProfileId,
+          event_type: "low_sleep",
+          severity: "medium",
+          summary: "Evento de prueba: sueño bajo (4.5 h anoche)",
+          metadata: {
+            sleep_hours: 4.5,
+            test: true,
+            athlete_first_name: athleteFirstName,
+          },
+          status: "pending",
+        });
+      if (insErr) throw insErr;
+      await refetch();
+    } catch (err: any) {
+      console.error("[CoachInterventionsPanel] create test event error", err);
+      setTestError(err?.message ?? "No se pudo crear el evento de prueba");
+    } finally {
+      setCreatingTest(false);
+    }
+  };
 
   const athleteFirstName = useMemo(
     () =>
@@ -359,20 +392,50 @@ export const CoachInterventionsPanel = ({
     return <p className="text-[11px] text-red-400/70 py-2">{error}</p>;
   }
 
+  const TestEventButton = (
+    <button
+      type="button"
+      onClick={handleCreateTestEvent}
+      disabled={creatingTest}
+      className={cn(
+        "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-colors border border-dashed",
+        "border-border/30 text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]",
+        creatingTest && "opacity-60 cursor-wait",
+      )}
+      title="Crea un evento low_sleep para probar el flujo de audio/texto"
+    >
+      {creatingTest ? (
+        <Loader2 className="w-3 h-3 animate-spin" />
+      ) : (
+        <FlaskConical className="w-3 h-3" />
+      )}
+      Crear evento de prueba
+    </button>
+  );
+
   if (activeEvents.length === 0 && archivedEvents.length === 0) {
     return (
-      <div className="rounded-xl border border-border/15 bg-foreground/[0.02] p-4 text-center">
-        <Sparkles className="w-4 h-4 text-muted-foreground/30 mx-auto mb-1.5" />
+      <div className="rounded-xl border border-border/15 bg-foreground/[0.02] p-4 text-center space-y-2">
+        <Sparkles className="w-4 h-4 text-muted-foreground/30 mx-auto" />
         <p className="text-[11px] text-muted-foreground/60">Sin eventos relevantes</p>
-        <p className="text-[10px] text-muted-foreground/40 mt-0.5 leading-relaxed">
+        <p className="text-[10px] text-muted-foreground/40 leading-relaxed">
           NEO mostrará aquí incidencias e hitos que merezca la pena comentar.
         </p>
+        <div className="flex justify-center pt-1">{TestEventButton}</div>
+        {testError && <p className="text-[10px] text-red-400/70">{testError}</p>}
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground/50 font-semibold">
+          {activeEvents.length} {activeEvents.length === 1 ? "evento activo" : "eventos activos"}
+        </p>
+        {TestEventButton}
+      </div>
+      {testError && <p className="text-[10px] text-red-400/70">{testError}</p>}
       {activeEvents.map((event) => {
         const sev = severityConfig[event.severity];
         const isExpanded = expandedId === event.id;
