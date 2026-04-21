@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.personalized-greeting]
 verify_jwt = false
+
+[functions.coach-seed-fake-athletes]
+verify_jwt = false
+
+[functions.coach-auto-dispatch]
+verify_jwt = false
