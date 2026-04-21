@@ -362,6 +362,78 @@ export type Database = {
           },
         ]
       }
+      coach_intervention_events: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          dismissed_at: string | null
+          event_type: string
+          generated_message: string | null
+          id: string
+          metadata: Json | null
+          sent_at: string | null
+          sent_message_id: string | null
+          severity: string
+          source_alert_id: string | null
+          source_table: string | null
+          status: string
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          event_type: string
+          generated_message?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          sent_message_id?: string | null
+          severity?: string
+          source_alert_id?: string | null
+          source_table?: string | null
+          status?: string
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          event_type?: string
+          generated_message?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          sent_message_id?: string | null
+          severity?: string
+          source_alert_id?: string | null
+          source_table?: string | null
+          status?: string
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_intervention_events_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_intervention_events_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_messages: {
         Row: {
           athlete_id: string

@@ -12,6 +12,7 @@ import { CoachAthlete } from '@/hooks/useCoachAthletes';
 import { useAthleteDetail } from '@/hooks/useAthleteDetail';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChatView } from './ChatView';
+import { CoachInterventionsPanel } from './CoachInterventionsPanel';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 

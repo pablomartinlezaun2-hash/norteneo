@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, MessageCircle, Link2, ClipboardCheck, X } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, MessageCircle, Link2, ClipboardCheck, X, Sparkles } from 'lucide-react';
 import { useCoachChat, MessageContextType, ReviewData } from '@/hooks/useCoachChat';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +40,20 @@ const CONTEXT_LABELS: Record<string, string> = {
   adherence: 'Adherencia',
   fatigue: 'Fatiga',
   review: 'Revisión',
+  intervention: 'Intervención',
+};
+
+const INTERVENTION_EVENT_LABELS: Record<string, string> = {
+  reps_out_of_range: 'Reps fuera de rango',
+  missing_set: 'Serie faltante',
+  load_drop: 'Caída de carga',
+  performance_drop: 'Caída de rendimiento',
+  low_sleep: 'Sueño bajo',
+  high_fatigue: 'Fatiga alta',
+  low_protein: 'Proteína baja',
+  calorie_off_target: 'Calorías fuera de objetivo',
+  low_adherence: 'Mala adherencia',
+  progress_milestone: 'Progreso relevante',
 };
 
 export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack, embedded = false }: ChatViewProps) => {
@@ -185,7 +199,9 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                   const isNextSameSender = group.messages[i + 1]?.sender_id === msg.sender_id;
                   const isPrevSameSender = i > 0 && group.messages[i - 1]?.sender_id === msg.sender_id;
                   const isReview = msg.context_type === 'review' && msg.metadata;
-                  const hasContext = msg.context_type && msg.context_type !== 'review';
+                  const isIntervention = msg.context_type === 'intervention';
+                  const interventionMeta = isIntervention ? (msg.metadata as any) : null;
+                  const hasContext = msg.context_type && msg.context_type !== 'review' && msg.context_type !== 'intervention';
 
                   // System message
                   if (msg.is_system_message) {
@@ -232,6 +248,33 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                             {renderReviewCard(msg)}
                             <p className={cn("text-[9px] mt-2.5 tabular-nums", isMine ? "text-background/40 text-right" : "text-muted-foreground/30")}>
                               {formatTime(msg.created_at)}
+                            </p>
+                          </div>
+                        ) : isIntervention ? (
+                          <div className={cn(
+                            "rounded-2xl px-4 py-3 border shadow-sm",
+                            isMine
+                              ? "bg-foreground text-background border-foreground/80"
+                              : "bg-card/60 text-foreground border-border/30 ring-1 ring-foreground/[0.03]"
+                          )}>
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <Sparkles className={cn("w-3 h-3", isMine ? "text-background/60" : "text-foreground/50")} />
+                              <span className={cn("text-[9px] uppercase tracking-wider font-bold", isMine ? "text-background/60" : "text-muted-foreground/60")}>
+                                Intervención del coach
+                              </span>
+                              {interventionMeta?.event_type && INTERVENTION_EVENT_LABELS[interventionMeta.event_type] && (
+                                <span className={cn(
+                                  "ml-auto px-1.5 py-px rounded text-[9px] font-semibold",
+                                  isMine ? "bg-background/15 text-background/70" : "bg-foreground/[0.06] text-muted-foreground/70"
+                                )}>
+                                  {INTERVENTION_EVENT_LABELS[interventionMeta.event_type]}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[13px] leading-[1.5] whitespace-pre-wrap break-words">{msg.message}</p>
+                            <p className={cn("text-[9px] mt-2 tabular-nums", isMine ? "text-background/40 text-right" : "text-muted-foreground/30")}>
+                              {formatTime(msg.created_at)}
+                              {isMine && msg.read_at && <span className="ml-1 opacity-60">· leído</span>}
                             </p>
                           </div>
                         ) : (
