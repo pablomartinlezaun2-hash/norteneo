@@ -199,7 +199,9 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                   const isNextSameSender = group.messages[i + 1]?.sender_id === msg.sender_id;
                   const isPrevSameSender = i > 0 && group.messages[i - 1]?.sender_id === msg.sender_id;
                   const isReview = msg.context_type === 'review' && msg.metadata;
-                  const hasContext = msg.context_type && msg.context_type !== 'review';
+                  const isIntervention = msg.context_type === 'intervention';
+                  const interventionMeta = isIntervention ? (msg.metadata as any) : null;
+                  const hasContext = msg.context_type && msg.context_type !== 'review' && msg.context_type !== 'intervention';
 
                   // System message
                   if (msg.is_system_message) {
