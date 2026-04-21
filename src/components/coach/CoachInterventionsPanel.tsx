@@ -245,12 +245,16 @@ export const CoachInterventionsPanel = ({
       }
 
       // Crear draft (o actualizar si ya hay row para este evento)
+      // Eventos "virtuales" (id con prefijo "virtual:") no existen aún en la
+      // tabla coach_intervention_events, así que pasamos null para evitar
+      // errores 22P02 (uuid inválido) en la FK.
+      const isVirtualEvent = event.id.startsWith("virtual:");
       let row = audioRows[event.id];
       if (!row) {
         row = await audio.createDraft({
           athleteProfileId: event.athlete_id,
           script,
-          interventionEventId: event.id,
+          interventionEventId: isVirtualEvent ? null : event.id,
         });
       } else {
         await audio.updateScript(row.id, script);
