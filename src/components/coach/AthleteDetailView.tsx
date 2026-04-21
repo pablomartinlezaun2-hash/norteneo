@@ -484,7 +484,20 @@ export const AthleteDetailView = ({ athlete, onBack }: AthleteDetailViewProps) =
             </div>
           </SlimAccordionItem>
 
-          {/* 9. Comunicación */}
+          {/* 9. Intervenciones (texto + audio) */}
+          {athlete.coach_id && (
+            <SlimAccordionItem value="interventions" icon={Zap} label="Intervenciones">
+              <CoachInterventionsPanel
+                athleteProfileId={athlete.id}
+                athleteDisplayName={athlete.full_name ?? null}
+                athleteFullName={athlete.full_name ?? null}
+                athleteEmail={athlete.email ?? null}
+                coachProfileId={athlete.coach_id}
+              />
+            </SlimAccordionItem>
+          )}
+
+          {/* 10. Comunicación */}
           {athlete.coach_id && (
             <SlimAccordionItem value="chat" icon={MessageCircle} label="Comunicación">
               <div className="grid grid-cols-4 gap-1.5 mb-3">
