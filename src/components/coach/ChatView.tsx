@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Loader2, MessageCircle, Link2, ClipboardCheck, X, Sparkles } from 'lucide-react';
+import { AudioMessagePlayer } from './AudioMessagePlayer';
+import { useCoachAudio } from '@/hooks/useCoachAudio';
 import { useCoachChat, MessageContextType, ReviewData } from '@/hooks/useCoachChat';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
