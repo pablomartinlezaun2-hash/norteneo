@@ -281,6 +281,13 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                               {isMine && msg.read_at && <span className="ml-1 opacity-60">· leído</span>}
                             </p>
                           </div>
+                        ) : isAudio && audioMeta?.audio_id ? (
+                          <AudioMessagePlayer
+                            audioId={audioMeta.audio_id}
+                            durationSeconds={audioMeta.duration_seconds}
+                            isMine={isMine}
+                            eventLabel={audioMeta.event_type ? INTERVENTION_EVENT_LABELS[audioMeta.event_type] : null}
+                          />
                         ) : (
                           /* Normal message */
                           <div
