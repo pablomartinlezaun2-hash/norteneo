@@ -1,21 +1,19 @@
 /**
- * CoachInterventionsPanel — Fase 1 del sistema de intervenciones.
+ * CoachInterventionsPanel — Panel de intervenciones (texto + audio premium).
  *
- * Muestra los eventos relevantes detectados por NEO para un atleta.
  * El coach puede:
- *   1. Generar un mensaje (con saludo personalizado obligatorio).
- *   2. Editar el texto antes de enviar.
- *   3. Enviarlo al chat interno del atleta.
+ *   1. Generar mensaje escrito (con saludo personalizado obligatorio).
+ *   2. Generar audio de voz (script via IA → TTS ElevenLabs → preview → envío).
+ *   3. Editar antes de enviar.
  *   4. Descartar eventos.
  *
- * El mensaje se guarda en `coach_messages` con `context_type='intervention'`
- * y queda enlazado al evento origen en `coach_intervention_events`.
+ * El modo audio se sugiere visualmente para eventos en `isAudioRecommendedFor`,
+ * pero está disponible para todos.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AlertTriangle,
   Send,
   Edit3,
   Sparkles,
@@ -24,6 +22,12 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
+  Mic,
+  Type as TypeIcon,
+  Play,
+  Pause,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +43,8 @@ import {
   resolveAthleteFirstName,
   ensureGreeting,
 } from "@/lib/coachCopy";
+import { useCoachAudio, type CoachAudioRow } from "@/hooks/useCoachAudio";
+import { isAudioRecommendedFor } from "@/lib/coachAudioPolicy";
 
 interface CoachInterventionsPanelProps {
   athleteProfileId: string;
@@ -48,25 +54,12 @@ interface CoachInterventionsPanelProps {
   coachProfileId: string;
 }
 
+type Mode = "text" | "audio";
+
 const severityConfig: Record<InterventionSeverity, { dot: string; ring: string; label: string; pill: string }> = {
-  high: {
-    dot: "bg-red-400",
-    ring: "border-red-500/25 bg-red-500/[0.04]",
-    label: "Alta",
-    pill: "bg-red-500/15 text-red-400",
-  },
-  medium: {
-    dot: "bg-yellow-400",
-    ring: "border-yellow-500/25 bg-yellow-500/[0.04]",
-    label: "Media",
-    pill: "bg-yellow-500/15 text-yellow-400",
-  },
-  low: {
-    dot: "bg-emerald-400",
-    ring: "border-emerald-500/20 bg-emerald-500/[0.03]",
-    label: "Baja",
-    pill: "bg-emerald-500/15 text-emerald-400",
-  },
+  high: { dot: "bg-red-400", ring: "border-red-500/25 bg-red-500/[0.04]", label: "Alta", pill: "bg-red-500/15 text-red-400" },
+  medium: { dot: "bg-yellow-400", ring: "border-yellow-500/25 bg-yellow-500/[0.04]", label: "Media", pill: "bg-yellow-500/15 text-yellow-400" },
+  low: { dot: "bg-emerald-400", ring: "border-emerald-500/20 bg-emerald-500/[0.03]", label: "Baja", pill: "bg-emerald-500/15 text-emerald-400" },
 };
 
 export const CoachInterventionsPanel = ({
@@ -78,10 +71,19 @@ export const CoachInterventionsPanel = ({
 }: CoachInterventionsPanelProps) => {
   const { events, loading, error, refetch, upsertEvent, dismissEvent } =
     useCoachInterventionEvents(athleteProfileId);
+  const audio = useCoachAudio(coachProfileId);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<Record<string, Mode>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
+  // Estado audio por evento
+  const [audioRows, setAudioRows] = useState<Record<string, CoachAudioRow | null>>({});
+  const [audioBusy, setAudioBusy] = useState<Record<string, "script" | "tts" | "send" | null>>({});
+  const [audioErrors, setAudioErrors] = useState<Record<string, string | null>>({});
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<Record<string, string | null>>({});
+  const [previewPlaying, setPreviewPlaying] = useState<string | null>(null);
+  const previewRef = useRef<HTMLAudioElement | null>(null);
 
   const athleteFirstName = useMemo(
     () =>
@@ -96,20 +98,29 @@ export const CoachInterventionsPanel = ({
   const activeEvents = events.filter((e) => e.status === "pending" || e.status === "drafted");
   const archivedEvents = events.filter((e) => e.status === "sent" || e.status === "dismissed");
 
-  const handleGenerate = (event: CoachInterventionEvent) => {
+  const setEventMode = (eventId: string, m: Mode) => {
+    setMode((prev) => ({ ...prev, [eventId]: m }));
+  };
+
+  const getMode = (eventId: string, eventType: CoachInterventionEvent["event_type"]): Mode => {
+    if (mode[eventId]) return mode[eventId];
+    return isAudioRecommendedFor(eventType) ? "audio" : "text";
+  };
+
+  // ---------- TEXTO ----------
+  const handleGenerateText = (event: CoachInterventionEvent) => {
     const text = generateInterventionMessage(event.event_type, athleteFirstName, event.metadata ?? {});
     setDrafts((d) => ({ ...d, [event.id]: text }));
     setExpandedId(event.id);
   };
 
-  const handleSend = async (event: CoachInterventionEvent) => {
+  const handleSendText = async (event: CoachInterventionEvent) => {
     const draft = drafts[event.id] ?? event.generated_message ?? "";
     const finalText = ensureGreeting(draft, athleteFirstName);
     if (!finalText.trim()) return;
     setSending(event.id);
 
     try {
-      // 1) Find or create conversation
       let conversationId: string | null = null;
       const { data: existingConv } = await (supabase as any)
         .from("coach_conversations")
@@ -132,7 +143,6 @@ export const CoachInterventionsPanel = ({
 
       if (!conversationId) throw new Error("No se pudo crear la conversación");
 
-      // 2) Insert message in coach_messages
       const { data: msg, error: msgErr } = await (supabase as any)
         .from("coach_messages")
         .insert({
@@ -155,7 +165,6 @@ export const CoachInterventionsPanel = ({
 
       if (msgErr) throw msgErr;
 
-      // 3) Update conversation preview
       await (supabase as any)
         .from("coach_conversations")
         .update({
@@ -165,7 +174,6 @@ export const CoachInterventionsPanel = ({
         })
         .eq("id", conversationId);
 
-      // 4) Persist intervention event with sent status
       await upsertEvent(event, {
         generated_message: finalText,
         status: "sent",
@@ -181,9 +189,161 @@ export const CoachInterventionsPanel = ({
       setExpandedId(null);
       await refetch();
     } catch (err) {
-      console.error("[CoachInterventionsPanel] send error", err);
+      console.error("[CoachInterventionsPanel] send text error", err);
     } finally {
       setSending(null);
+    }
+  };
+
+  // ---------- AUDIO ----------
+  const handleGenerateAudio = async (event: CoachInterventionEvent) => {
+    setAudioErrors((e) => ({ ...e, [event.id]: null }));
+    setAudioBusy((b) => ({ ...b, [event.id]: "script" }));
+    try {
+      const baseText =
+        drafts[event.id] ??
+        event.generated_message ??
+        generateInterventionMessage(event.event_type, athleteFirstName, event.metadata ?? {});
+
+      const script = await audio.generateScript(event, athleteFirstName, baseText);
+      if (!script) {
+        setAudioErrors((e) => ({ ...e, [event.id]: audio.error || "Error generando script" }));
+        return;
+      }
+
+      // Crear draft (o actualizar si ya hay row para este evento)
+      let row = audioRows[event.id];
+      if (!row) {
+        row = await audio.createDraft({
+          athleteProfileId: event.athlete_id,
+          script,
+          interventionEventId: event.id,
+        });
+      } else {
+        await audio.updateScript(row.id, script);
+        row = { ...row, script, status: "pending", storage_path: null, duration_seconds: null };
+      }
+      if (!row) {
+        setAudioErrors((e) => ({ ...e, [event.id]: audio.error || "No se pudo crear el draft" }));
+        return;
+      }
+      setAudioRows((r) => ({ ...r, [event.id]: row }));
+      setAudioPreviewUrl((p) => ({ ...p, [event.id]: null }));
+      setExpandedId(event.id);
+    } finally {
+      setAudioBusy((b) => ({ ...b, [event.id]: null }));
+    }
+  };
+
+  const handleSynthesize = async (event: CoachInterventionEvent) => {
+    const row = audioRows[event.id];
+    if (!row) return;
+    setAudioErrors((e) => ({ ...e, [event.id]: null }));
+    setAudioBusy((b) => ({ ...b, [event.id]: "tts" }));
+    try {
+      // Asegurar script actualizado
+      const currentScript = drafts[event.id] ?? row.script;
+      if (currentScript !== row.script) {
+        await audio.updateScript(row.id, currentScript);
+        setAudioRows((r) => ({ ...r, [event.id]: { ...row, script: currentScript } }));
+      }
+      const result = await audio.synthesize(row.id);
+      if (!result.ok) {
+        setAudioErrors((e) => ({ ...e, [event.id]: audio.error || "Error sintetizando audio" }));
+        return;
+      }
+      setAudioPreviewUrl((p) => ({ ...p, [event.id]: result.signedUrl }));
+      setAudioRows((r) => {
+        const cur = r[event.id];
+        if (!cur) return r;
+        return {
+          ...r,
+          [event.id]: {
+            ...cur,
+            status: "ready",
+            duration_seconds: result.durationSeconds,
+          },
+        };
+      });
+    } finally {
+      setAudioBusy((b) => ({ ...b, [event.id]: null }));
+    }
+  };
+
+  const handleTogglePreview = async (eventId: string) => {
+    const url = audioPreviewUrl[eventId];
+    if (!url) return;
+    if (previewPlaying === eventId && previewRef.current) {
+      previewRef.current.pause();
+      setPreviewPlaying(null);
+      return;
+    }
+    if (previewRef.current) {
+      previewRef.current.pause();
+    }
+    const a = new Audio(url);
+    previewRef.current = a;
+    a.addEventListener("ended", () => setPreviewPlaying(null));
+    a.addEventListener("error", () => setPreviewPlaying(null));
+    try {
+      await a.play();
+      setPreviewPlaying(eventId);
+    } catch {
+      setPreviewPlaying(null);
+    }
+  };
+
+  const handleSendAudio = async (event: CoachInterventionEvent) => {
+    const row = audioRows[event.id];
+    if (!row) return;
+    setAudioBusy((b) => ({ ...b, [event.id]: "send" }));
+    setAudioErrors((e) => ({ ...e, [event.id]: null }));
+    try {
+      // Si aún no se ha sintetizado, hacerlo primero
+      let synthRow = row;
+      if (row.status !== "ready" && row.status !== "sent") {
+        const result = await audio.synthesize(row.id);
+        if (!result.ok) {
+          setAudioErrors((e) => ({ ...e, [event.id]: audio.error || "Error sintetizando" }));
+          return;
+        }
+        synthRow = {
+          ...row,
+          status: "ready",
+          duration_seconds: result.durationSeconds,
+        };
+        setAudioRows((r) => ({ ...r, [event.id]: synthRow }));
+      }
+
+      const { error: sendErr } = await audio.sendToAthlete({
+        audio: synthRow,
+        eventType: event.event_type,
+        eventSummary: event.summary,
+      });
+      if (sendErr) {
+        setAudioErrors((e) => ({ ...e, [event.id]: sendErr }));
+        return;
+      }
+
+      // Limpiar y refrescar
+      if (previewRef.current && previewPlaying === event.id) {
+        previewRef.current.pause();
+        setPreviewPlaying(null);
+      }
+      setAudioRows((r) => {
+        const next = { ...r };
+        delete next[event.id];
+        return next;
+      });
+      setAudioPreviewUrl((p) => {
+        const next = { ...p };
+        delete next[event.id];
+        return next;
+      });
+      setExpandedId(null);
+      await refetch();
+    } finally {
+      setAudioBusy((b) => ({ ...b, [event.id]: null }));
     }
   };
 
@@ -216,8 +376,15 @@ export const CoachInterventionsPanel = ({
       {activeEvents.map((event) => {
         const sev = severityConfig[event.severity];
         const isExpanded = expandedId === event.id;
+        const currentMode = getMode(event.id, event.event_type);
+        const audioRow = audioRows[event.id] ?? null;
+        const audioRecommended = isAudioRecommendedFor(event.event_type);
         const draftText = drafts[event.id] ?? event.generated_message ?? "";
-        const hasDraft = Boolean(draftText.trim());
+        const hasTextDraft = currentMode === "text" && Boolean(draftText.trim());
+        const hasAudioDraft = currentMode === "audio" && Boolean(audioRow);
+        const busy = audioBusy[event.id];
+        const audioErr = audioErrors[event.id];
+        const previewUrl = audioPreviewUrl[event.id];
 
         return (
           <div
@@ -239,6 +406,12 @@ export const CoachInterventionsPanel = ({
                   <span className={cn("px-1.5 py-px rounded text-[9px] font-bold", sev.pill)}>
                     {sev.label}
                   </span>
+                  {audioRecommended && (
+                    <span className="px-1.5 py-px rounded text-[9px] font-semibold bg-foreground/10 text-foreground/70 flex items-center gap-1">
+                      <Mic className="w-2.5 h-2.5" />
+                      Audio sugerido
+                    </span>
+                  )}
                   {event.status === "drafted" && (
                     <span className="px-1.5 py-px rounded text-[9px] font-semibold bg-foreground/10 text-foreground/60">
                       Borrador
@@ -266,63 +439,240 @@ export const CoachInterventionsPanel = ({
                   transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className="overflow-hidden"
                 >
-                  <div className="px-3 pb-3 space-y-2 border-t border-border/10 pt-2.5">
-                    {!hasDraft ? (
+                  <div className="px-3 pb-3 space-y-2.5 border-t border-border/10 pt-2.5">
+                    {/* Mode selector */}
+                    <div className="flex items-center gap-1 p-0.5 rounded-lg bg-foreground/[0.04] border border-border/15 w-fit">
                       <button
-                        onClick={() => handleGenerate(event)}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background py-2 text-[11px] font-semibold transition-opacity hover:opacity-90"
+                        onClick={() => setEventMode(event.id, "text")}
+                        className={cn(
+                          "flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-colors",
+                          currentMode === "text"
+                            ? "bg-foreground text-background"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
                       >
-                        <Sparkles className="w-3 h-3" />
-                        Generar mensaje
+                        <TypeIcon className="w-2.5 h-2.5" />
+                        Texto
                       </button>
-                    ) : (
-                      <>
-                        <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1">
-                            <Edit3 className="w-2.5 h-2.5" />
-                            Vista previa · editable
-                          </label>
-                          <Textarea
-                            value={draftText}
-                            onChange={(e) =>
-                              setDrafts((d) => ({ ...d, [event.id]: e.target.value }))
-                            }
-                            rows={4}
-                            className="w-full text-[12px] leading-relaxed bg-background/40 border-border/20 focus-visible:ring-1 focus-visible:ring-foreground/20 focus-visible:ring-offset-0 resize-none"
-                          />
-                          <p className="text-[9px] text-muted-foreground/40 leading-relaxed">
-                            Recuerda mantener el saludo inicial. Si lo borras, se añadirá automáticamente al enviar.
-                          </p>
-                        </div>
+                      <button
+                        onClick={() => setEventMode(event.id, "audio")}
+                        className={cn(
+                          "flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-colors",
+                          currentMode === "audio"
+                            ? "bg-foreground text-background"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <Mic className="w-2.5 h-2.5" />
+                        Audio
+                      </button>
+                    </div>
 
-                        <div className="flex items-center gap-1.5">
+                    {/* MODO TEXTO */}
+                    {currentMode === "text" && (
+                      <>
+                        {!hasTextDraft ? (
                           <button
-                            onClick={() => handleSend(event)}
-                            disabled={sending === event.id || !draftText.trim()}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background py-2 text-[11px] font-semibold disabled:opacity-30 transition-opacity"
-                          >
-                            {sending === event.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Send className="w-3 h-3" />
-                            )}
-                            Enviar al atleta
-                          </button>
-                          <button
-                            onClick={() => handleGenerate(event)}
-                            className="px-2.5 py-2 rounded-lg bg-foreground/[0.04] border border-border/20 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                            title="Regenerar"
+                            onClick={() => handleGenerateText(event)}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background py-2 text-[11px] font-semibold transition-opacity hover:opacity-90"
                           >
                             <Sparkles className="w-3 h-3" />
+                            Generar mensaje
                           </button>
-                          <button
-                            onClick={() => dismissEvent(event)}
-                            className="px-2.5 py-2 rounded-lg bg-foreground/[0.04] border border-border/20 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                            title="Descartar"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
+                        ) : (
+                          <>
+                            <div className="space-y-1">
+                              <label className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1">
+                                <Edit3 className="w-2.5 h-2.5" />
+                                Vista previa · editable
+                              </label>
+                              <Textarea
+                                value={draftText}
+                                onChange={(e) =>
+                                  setDrafts((d) => ({ ...d, [event.id]: e.target.value }))
+                                }
+                                rows={4}
+                                className="w-full text-[12px] leading-relaxed bg-background/40 border-border/20 focus-visible:ring-1 focus-visible:ring-foreground/20 focus-visible:ring-offset-0 resize-none"
+                              />
+                              <p className="text-[9px] text-muted-foreground/40 leading-relaxed">
+                                Recuerda mantener el saludo inicial. Si lo borras, se añadirá automáticamente al enviar.
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleSendText(event)}
+                                disabled={sending === event.id || !draftText.trim()}
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background py-2 text-[11px] font-semibold disabled:opacity-30 transition-opacity"
+                              >
+                                {sending === event.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Send className="w-3 h-3" />
+                                )}
+                                Enviar al atleta
+                              </button>
+                              <button
+                                onClick={() => handleGenerateText(event)}
+                                className="px-2.5 py-2 rounded-lg bg-foreground/[0.04] border border-border/20 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                                title="Regenerar"
+                              >
+                                <Sparkles className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => dismissEvent(event)}
+                                className="px-2.5 py-2 rounded-lg bg-foreground/[0.04] border border-border/20 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                                title="Descartar"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {/* MODO AUDIO */}
+                    {currentMode === "audio" && (
+                      <>
+                        {!hasAudioDraft ? (
+                          <div className="space-y-2">
+                            <button
+                              onClick={() => handleGenerateAudio(event)}
+                              disabled={busy === "script"}
+                              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background py-2 text-[11px] font-semibold disabled:opacity-50 transition-opacity hover:opacity-90"
+                            >
+                              {busy === "script" ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="w-3 h-3" />
+                              )}
+                              Generar script de voz
+                            </button>
+                            <p className="text-[9px] text-muted-foreground/50 leading-relaxed text-center">
+                              NEO escribirá un guion breve para tu voz. Lo podrás editar y previsualizar antes de enviarlo.
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="space-y-1">
+                              <label className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-semibold flex items-center gap-1">
+                                <Mic className="w-2.5 h-2.5" />
+                                Script de voz · editable
+                              </label>
+                              <Textarea
+                                value={drafts[event.id] ?? audioRow!.script}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  setDrafts((d) => ({ ...d, [event.id]: v }));
+                                  // invalidar preview si se cambia tras sintetizar
+                                  if (audioPreviewUrl[event.id]) {
+                                    setAudioPreviewUrl((p) => ({ ...p, [event.id]: null }));
+                                    setAudioRows((r) => {
+                                      const cur = r[event.id];
+                                      return cur ? { ...r, [event.id]: { ...cur, status: "pending" } } : r;
+                                    });
+                                  }
+                                }}
+                                rows={4}
+                                className="w-full text-[12px] leading-relaxed bg-background/40 border-border/20 focus-visible:ring-1 focus-visible:ring-foreground/20 focus-visible:ring-offset-0 resize-none"
+                              />
+                              <p className="text-[9px] text-muted-foreground/40 leading-relaxed">
+                                El audio empezará con un saludo personalizado para {athleteFirstName ?? "el atleta"}.
+                              </p>
+                            </div>
+
+                            {/* Preview */}
+                            {previewUrl ? (
+                              <div className="flex items-center gap-2 rounded-lg bg-foreground/[0.04] border border-border/15 px-2.5 py-2">
+                                <button
+                                  onClick={() => handleTogglePreview(event.id)}
+                                  className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center transition-transform active:scale-95"
+                                  aria-label={previewPlaying === event.id ? "Pausar" : "Reproducir"}
+                                >
+                                  {previewPlaying === event.id ? (
+                                    <Pause className="w-3 h-3" fill="currentColor" />
+                                  ) : (
+                                    <Play className="w-3 h-3 ml-0.5" fill="currentColor" />
+                                  )}
+                                </button>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] font-semibold text-foreground/80">Preview</p>
+                                  <p className="text-[9px] text-muted-foreground/50">
+                                    ~{audioRow!.duration_seconds ?? "?"}s · revisa antes de enviar
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => handleSynthesize(event)}
+                                  disabled={busy === "tts"}
+                                  className="p-1.5 rounded-md bg-foreground/[0.06] text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Re-sintetizar"
+                                >
+                                  {busy === "tts" ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <RefreshCw className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleSynthesize(event)}
+                                disabled={busy === "tts"}
+                                className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-foreground/[0.04] border border-border/20 text-foreground py-2 text-[11px] font-semibold disabled:opacity-50 transition-colors hover:bg-foreground/[0.08]"
+                              >
+                                {busy === "tts" ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    Sintetizando voz...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="w-3 h-3" fill="currentColor" />
+                                    Generar y previsualizar
+                                  </>
+                                )}
+                              </button>
+                            )}
+
+                            {audioErr && (
+                              <div className="flex items-start gap-1.5 rounded-md bg-red-500/[0.06] border border-red-500/20 px-2 py-1.5">
+                                <AlertCircle className="w-3 h-3 text-red-400/80 mt-0.5 flex-shrink-0" />
+                                <p className="text-[10px] text-red-400/90 leading-snug">{audioErr}</p>
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleSendAudio(event)}
+                                disabled={busy === "send" || busy === "tts"}
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-foreground text-background py-2 text-[11px] font-semibold disabled:opacity-30 transition-opacity"
+                              >
+                                {busy === "send" ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Send className="w-3 h-3" />
+                                )}
+                                Enviar audio
+                              </button>
+                              <button
+                                onClick={() => handleGenerateAudio(event)}
+                                disabled={busy === "script"}
+                                className="px-2.5 py-2 rounded-lg bg-foreground/[0.04] border border-border/20 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                                title="Regenerar script"
+                              >
+                                <Sparkles className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => dismissEvent(event)}
+                                className="px-2.5 py-2 rounded-lg bg-foreground/[0.04] border border-border/20 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                                title="Descartar"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
