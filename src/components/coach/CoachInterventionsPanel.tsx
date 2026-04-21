@@ -28,6 +28,7 @@ import {
   Pause,
   RefreshCw,
   AlertCircle,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,6 +85,38 @@ export const CoachInterventionsPanel = ({
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<Record<string, string | null>>({});
   const [previewPlaying, setPreviewPlaying] = useState<string | null>(null);
   const previewRef = useRef<HTMLAudioElement | null>(null);
+  const [creatingTest, setCreatingTest] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
+
+  /** Crea un evento de intervención de prueba (low_sleep) para validar el flujo. */
+  const handleCreateTestEvent = async () => {
+    setTestError(null);
+    setCreatingTest(true);
+    try {
+      const { error: insErr } = await (supabase as any)
+        .from("coach_intervention_events")
+        .insert({
+          coach_id: coachProfileId,
+          athlete_id: athleteProfileId,
+          event_type: "low_sleep",
+          severity: "medium",
+          summary: "Evento de prueba: sueño bajo (4.5 h anoche)",
+          metadata: {
+            sleep_hours: 4.5,
+            test: true,
+            athlete_first_name: athleteFirstName,
+          },
+          status: "pending",
+        });
+      if (insErr) throw insErr;
+      await refetch();
+    } catch (err: any) {
+      console.error("[CoachInterventionsPanel] create test event error", err);
+      setTestError(err?.message ?? "No se pudo crear el evento de prueba");
+    } finally {
+      setCreatingTest(false);
+    }
+  };
 
   const athleteFirstName = useMemo(
     () =>
