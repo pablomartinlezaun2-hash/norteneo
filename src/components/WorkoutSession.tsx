@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { WorkoutSession as WorkoutSessionType } from '@/data/workouts';
 import { ExerciseCard } from './ExerciseCard';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle2 } from 'lucide-react';
+import { useSetValidation } from '@/contexts/SetValidationContext';
+import { useAllSetLogs } from '@/hooks/useAllSetLogs';
+import { SetValidationBanner } from './SetValidationBanner';
 
 interface WorkoutSessionProps {
   session: WorkoutSessionType;
@@ -13,19 +17,48 @@ interface WorkoutSessionProps {
 export const WorkoutSessionComponent = ({ session, onComplete }: WorkoutSessionProps) => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const { alerts, checkExerciseCompletion, acknowledge } = useSetValidation();
+  const { logs } = useAllSetLogs();
 
   const handleCheckboxChange = (checked: boolean) => {
     setIsCompleted(checked);
   };
 
-  const handleComplete = () => {
-    if (isCompleted) {
-      onComplete(session.id);
-      setIsCompleted(false);
-      setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 2000);
-    }
+  const runSessionCompletenessCheck = () => {
+    // For each exercise in the session, check if planned sets were completed.
+    // Counts only non-warmup logs that exist in the local state.
+    session.exercises.forEach((ex, idx) => {
+      // exercise id from data/workouts is a string identifier, may not match DB exercise id.
+      // We rely on the exercise name + planned series count.
+      const exId = (ex as unknown as { id?: string }).id ?? `${session.id}:${idx}`;
+      const exName = ex.name;
+      const planned = ex.series ?? 0;
+      const effectiveLogged = logs.filter(
+        l => l.exercise_id === exId && !l.is_warmup,
+      ).length;
+      checkExerciseCompletion({
+        exerciseId: exId,
+        exerciseName: exName,
+        totalSetsPlanned: planned,
+        effectiveSetsLogged: effectiveLogged,
+      });
+    });
   };
+
+  const handleComplete = () => {
+    if (!isCompleted) return;
+    // Surface any missing-set warnings BEFORE confirming. These banners are
+    // persistent: navigation is not blocked, but the user sees them clearly.
+    runSessionCompletenessCheck();
+
+    onComplete(session.id);
+    setIsCompleted(false);
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 2000);
+  };
+
+  // Surface session-level alerts (missing sets) at the top of the session.
+  const sessionLevelAlerts = alerts.filter(a => a.kind === 'missing_sets');
 
   return (
     <div className="space-y-4">
@@ -35,6 +68,16 @@ export const WorkoutSessionComponent = ({ session, onComplete }: WorkoutSessionP
           <p className="text-sm text-muted-foreground">{session.exercises.length} ejercicios</p>
         </div>
       </div>
+
+      {sessionLevelAlerts.length > 0 && (
+        <div className="space-y-2">
+          <AnimatePresence mode="popLayout">
+            {sessionLevelAlerts.map(a => (
+              <SetValidationBanner key={a.id} alert={a} onAccept={acknowledge} />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
       <div className="space-y-3">
         {session.exercises.map((exercise, index) => (
