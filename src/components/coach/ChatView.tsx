@@ -200,8 +200,10 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                   const isPrevSameSender = i > 0 && group.messages[i - 1]?.sender_id === msg.sender_id;
                   const isReview = msg.context_type === 'review' && msg.metadata;
                   const isIntervention = msg.context_type === 'intervention';
+                  const isAudio = msg.context_type === 'audio';
                   const interventionMeta = isIntervention ? (msg.metadata as any) : null;
-                  const hasContext = msg.context_type && msg.context_type !== 'review' && msg.context_type !== 'intervention';
+                  const audioMeta = isAudio ? (msg.metadata as any) : null;
+                  const hasContext = msg.context_type && !['review','intervention','audio'].includes(msg.context_type);
 
                   // System message
                   if (msg.is_system_message) {
