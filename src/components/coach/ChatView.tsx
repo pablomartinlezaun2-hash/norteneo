@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Loader2, MessageCircle, Link2, ClipboardCheck, X, Sparkles } from 'lucide-react';
+import { AudioMessagePlayer } from './AudioMessagePlayer';
+import { useCoachAudio } from '@/hooks/useCoachAudio';
 import { useCoachChat, MessageContextType, ReviewData } from '@/hooks/useCoachChat';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -200,8 +202,10 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                   const isPrevSameSender = i > 0 && group.messages[i - 1]?.sender_id === msg.sender_id;
                   const isReview = msg.context_type === 'review' && msg.metadata;
                   const isIntervention = msg.context_type === 'intervention';
+                  const isAudio = msg.context_type === 'audio';
                   const interventionMeta = isIntervention ? (msg.metadata as any) : null;
-                  const hasContext = msg.context_type && msg.context_type !== 'review' && msg.context_type !== 'intervention';
+                  const audioMeta = isAudio ? (msg.metadata as any) : null;
+                  const hasContext = msg.context_type && !['review','intervention','audio'].includes(msg.context_type);
 
                   // System message
                   if (msg.is_system_message) {
@@ -277,6 +281,13 @@ export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack
                               {isMine && msg.read_at && <span className="ml-1 opacity-60">· leído</span>}
                             </p>
                           </div>
+                        ) : isAudio && audioMeta?.audio_id ? (
+                          <AudioMessagePlayer
+                            audioId={audioMeta.audio_id}
+                            durationSeconds={audioMeta.duration_seconds}
+                            isMine={isMine}
+                            eventLabel={audioMeta.event_type ? INTERVENTION_EVENT_LABELS[audioMeta.event_type] : null}
+                          />
                         ) : (
                           /* Normal message */
                           <div

@@ -10,6 +10,7 @@ export type MessageContextType =
   | 'fatigue'
   | 'review'
   | 'intervention'
+  | 'audio'
   | null;
 
 export interface ReviewData {
