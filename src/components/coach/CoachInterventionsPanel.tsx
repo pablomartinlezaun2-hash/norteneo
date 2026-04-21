@@ -88,6 +88,16 @@ export const CoachInterventionsPanel = ({
   const [creatingTest, setCreatingTest] = useState(false);
   const [testError, setTestError] = useState<string | null>(null);
 
+  const athleteFirstName = useMemo(
+    () =>
+      resolveAthleteFirstName({
+        display_name: athleteDisplayName,
+        full_name: athleteFullName,
+        email: athleteEmail,
+      }),
+    [athleteDisplayName, athleteFullName, athleteEmail],
+  );
+
   /** Crea un evento de intervención de prueba (low_sleep) para validar el flujo. */
   const handleCreateTestEvent = async () => {
     setTestError(null);
@@ -117,16 +127,6 @@ export const CoachInterventionsPanel = ({
       setCreatingTest(false);
     }
   };
-
-  const athleteFirstName = useMemo(
-    () =>
-      resolveAthleteFirstName({
-        display_name: athleteDisplayName,
-        full_name: athleteFullName,
-        email: athleteEmail,
-      }),
-    [athleteDisplayName, athleteFullName, athleteEmail],
-  );
 
   const activeEvents = events.filter((e) => e.status === "pending" || e.status === "drafted");
   const archivedEvents = events.filter((e) => e.status === "sent" || e.status === "dismissed");
