@@ -37,7 +37,9 @@ export interface CoachAudioRow {
   created_at: string;
 }
 
-const FALLBACK_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"; // George
+// Voz por defecto en cliente (solo es un placeholder; el TTS real usa
+// ELEVENLABS_VOICE_ID del proyecto, la misma voz del briefing de rendimiento).
+const FALLBACK_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"; // George (sólo si el secret no está configurado)
 
 export function useCoachAudio(coachProfileId: string | null) {
   const [busyId, setBusyId] = useState<string | null>(null);
