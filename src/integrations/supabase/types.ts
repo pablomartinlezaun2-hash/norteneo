@@ -316,6 +316,7 @@ export type Database = {
       }
       coach_audio_messages: {
         Row: {
+          asset_id: string | null
           athlete_id: string
           coach_id: string
           coach_message_id: string | null
@@ -334,6 +335,7 @@ export type Database = {
           voice_id: string
         }
         Insert: {
+          asset_id?: string | null
           athlete_id: string
           coach_id: string
           coach_message_id?: string | null
@@ -352,6 +354,7 @@ export type Database = {
           voice_id: string
         }
         Update: {
+          asset_id?: string | null
           athlete_id?: string
           coach_id?: string
           coach_message_id?: string | null
@@ -370,6 +373,13 @@ export type Database = {
           voice_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "coach_audio_messages_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "coach_message_assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coach_audio_messages_athlete_id_fkey"
             columns: ["athlete_id"]
@@ -513,8 +523,203 @@ export type Database = {
           },
         ]
       }
+      coach_message_assets: {
+        Row: {
+          athlete_id: string
+          avatar_id: string | null
+          body_text: string | null
+          coach_id: string
+          created_at: string
+          duration_seconds: number | null
+          error_message: string | null
+          generation_status: string
+          id: string
+          intervention_event_id: string | null
+          kind: string
+          metadata: Json | null
+          storage_bucket: string | null
+          storage_path: string | null
+          updated_at: string
+          voice_id: string | null
+        }
+        Insert: {
+          athlete_id: string
+          avatar_id?: string | null
+          body_text?: string | null
+          coach_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          generation_status?: string
+          id?: string
+          intervention_event_id?: string | null
+          kind: string
+          metadata?: Json | null
+          storage_bucket?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          voice_id?: string | null
+        }
+        Update: {
+          athlete_id?: string
+          avatar_id?: string | null
+          body_text?: string | null
+          coach_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          generation_status?: string
+          id?: string
+          intervention_event_id?: string | null
+          kind?: string
+          metadata?: Json | null
+          storage_bucket?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          voice_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_message_assets_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_assets_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_assets_intervention_event_id_fkey"
+            columns: ["intervention_event_id"]
+            isOneToOne: false
+            referencedRelation: "coach_intervention_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_message_deliveries: {
+        Row: {
+          asset_id: string
+          athlete_id: string
+          channel: string
+          coach_audio_message_id: string | null
+          coach_id: string
+          coach_message_id: string | null
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          external_message_id: string | null
+          external_payload: Json | null
+          external_provider: string | null
+          failed_at: string | null
+          id: string
+          intervention_event_id: string | null
+          read_at: string | null
+          retry_count: number
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          athlete_id: string
+          channel: string
+          coach_audio_message_id?: string | null
+          coach_id: string
+          coach_message_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          external_message_id?: string | null
+          external_payload?: Json | null
+          external_provider?: string | null
+          failed_at?: string | null
+          id?: string
+          intervention_event_id?: string | null
+          read_at?: string | null
+          retry_count?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          athlete_id?: string
+          channel?: string
+          coach_audio_message_id?: string | null
+          coach_id?: string
+          coach_message_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          external_message_id?: string | null
+          external_payload?: Json | null
+          external_provider?: string | null
+          failed_at?: string | null
+          id?: string
+          intervention_event_id?: string | null
+          read_at?: string | null
+          retry_count?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_message_deliveries_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "coach_message_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_deliveries_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_deliveries_coach_audio_message_id_fkey"
+            columns: ["coach_audio_message_id"]
+            isOneToOne: false
+            referencedRelation: "coach_audio_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_deliveries_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_deliveries_coach_message_id_fkey"
+            columns: ["coach_message_id"]
+            isOneToOne: false
+            referencedRelation: "coach_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_message_deliveries_intervention_event_id_fkey"
+            columns: ["intervention_event_id"]
+            isOneToOne: false
+            referencedRelation: "coach_intervention_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_messages: {
         Row: {
+          asset_id: string | null
           athlete_id: string
           coach_id: string
           context_type: string | null
@@ -529,6 +734,7 @@ export type Database = {
           sender_role: string
         }
         Insert: {
+          asset_id?: string | null
           athlete_id: string
           coach_id: string
           context_type?: string | null
@@ -543,6 +749,7 @@ export type Database = {
           sender_role: string
         }
         Update: {
+          asset_id?: string | null
           athlete_id?: string
           coach_id?: string
           context_type?: string | null
@@ -557,6 +764,13 @@ export type Database = {
           sender_role?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "coach_messages_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "coach_message_assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coach_messages_athlete_id_fkey"
             columns: ["athlete_id"]
@@ -2487,6 +2701,23 @@ export type Database = {
           vb2_enabled: boolean
           weight: number
           years_training: string
+        }[]
+      }
+      get_pending_external_deliveries: {
+        Args: { _limit?: number }
+        Returns: {
+          asset_body_text: string
+          asset_id: string
+          asset_kind: string
+          asset_storage_bucket: string
+          asset_storage_path: string
+          athlete_id: string
+          channel: string
+          coach_id: string
+          delivery_id: string
+          retry_count: number
+          scheduled_at: string
+          status: string
         }[]
       }
       get_profile_id: { Args: { _auth_uid: string }; Returns: string }
