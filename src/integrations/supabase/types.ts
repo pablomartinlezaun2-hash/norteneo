@@ -314,6 +314,85 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_audio_messages: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          coach_message_id: string | null
+          created_at: string
+          duration_seconds: number | null
+          error_message: string | null
+          id: string
+          intervention_event_id: string | null
+          listened_at: string | null
+          model_id: string
+          script: string
+          sent_at: string | null
+          status: string
+          storage_path: string | null
+          updated_at: string
+          voice_id: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          coach_message_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          intervention_event_id?: string | null
+          listened_at?: string | null
+          model_id?: string
+          script: string
+          sent_at?: string | null
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+          voice_id: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          coach_message_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          intervention_event_id?: string | null
+          listened_at?: string | null
+          model_id?: string
+          script?: string
+          sent_at?: string | null
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+          voice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_audio_messages_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_audio_messages_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_audio_messages_intervention_event_id_fkey"
+            columns: ["intervention_event_id"]
+            isOneToOne: false
+            referencedRelation: "coach_intervention_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_conversations: {
         Row: {
           athlete_id: string
