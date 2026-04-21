@@ -189,6 +189,12 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
             </div>
 
             <SetForm setNumber={activeSetTab} onSubmit={(data) => handleAddLog(activeSetTab, data)} lastLog={getLastLogForSet(activeSetTab)} neoRecommendedRir={neoRecommendedRir} />
+
+            {/* Real-time validation banners (persistent until acknowledged) */}
+            {exerciseAlerts.length > 0 && (
+              <SetValidationBannerStack alerts={exerciseAlerts} onAccept={acknowledge} />
+            )}
+
             <div className="pt-2"><SetProgressChart logs={logs} setNumber={activeSetTab} /></div>
             <SetLogList logs={getLogsBySetNumber(activeSetTab)} onDelete={deleteLog} />
           </div>
