@@ -2,7 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export type MessageContextType = 'training' | 'alert' | 'nutrition' | 'adherence' | 'fatigue' | 'review' | null;
+export type MessageContextType =
+  | 'training'
+  | 'alert'
+  | 'nutrition'
+  | 'adherence'
+  | 'fatigue'
+  | 'review'
+  | 'intervention'
+  | null;
 
 export interface ReviewData {
   estado: string;

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, MessageCircle, Link2, ClipboardCheck, X } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, MessageCircle, Link2, ClipboardCheck, X, Sparkles } from 'lucide-react';
 import { useCoachChat, MessageContextType, ReviewData } from '@/hooks/useCoachChat';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +40,20 @@ const CONTEXT_LABELS: Record<string, string> = {
   adherence: 'Adherencia',
   fatigue: 'Fatiga',
   review: 'Revisión',
+  intervention: 'Intervención',
+};
+
+const INTERVENTION_EVENT_LABELS: Record<string, string> = {
+  reps_out_of_range: 'Reps fuera de rango',
+  missing_set: 'Serie faltante',
+  load_drop: 'Caída de carga',
+  performance_drop: 'Caída de rendimiento',
+  low_sleep: 'Sueño bajo',
+  high_fatigue: 'Fatiga alta',
+  low_protein: 'Proteína baja',
+  calorie_off_target: 'Calorías fuera de objetivo',
+  low_adherence: 'Mala adherencia',
+  progress_milestone: 'Progreso relevante',
 };
 
 export const ChatView = ({ athleteProfileId, coachProfileId, athleteName, onBack, embedded = false }: ChatViewProps) => {
