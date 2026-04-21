@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NeoProfileProvider } from "@/contexts/NeoProfileContext";
+import { SetValidationProvider } from "@/contexts/SetValidationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SupplementNotificationToast } from "@/components/nutrition/SupplementNotificationToast";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
@@ -82,14 +83,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <NeoProfileProvider>
-        <TooltipProvider>
-          <ThemeInitializer />
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
+        <SetValidationProvider>
+          <TooltipProvider>
+            <ThemeInitializer />
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </SetValidationProvider>
       </NeoProfileProvider>
     </AuthProvider>
   </QueryClientProvider>

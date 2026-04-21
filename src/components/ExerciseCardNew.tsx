@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Exercise } from '@/types/database';
 import { useSetLogs } from '@/hooks/useSetLogs';
 import { useExerciseNotes } from '@/hooks/useExerciseNotes';
+import { useSetValidation } from '@/contexts/SetValidationContext';
 import { SetProgressChart } from './SetProgressChart';
 import { SetForm } from './SetForm';
 import { SetLogList } from './SetLogList';
 import { LazyVimeoEmbed } from './LazyVimeoEmbed';
+import { SetValidationBannerStack } from './SetValidationBanner';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { 
@@ -32,6 +34,8 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
 
   const { logs, addLog, deleteLog, getLogsBySetNumber, getLastLogForSet, getBestWeightForSet } = useSetLogs(exercise.id);
   const { note, saveNote } = useExerciseNotes(exercise.id);
+  const { alertsForExercise, validateSet, acknowledge } = useSetValidation();
+  const exerciseAlerts = alertsForExercise(exercise.id);
 
   useEffect(() => {
     if (note) setNoteText(note.note);
@@ -41,6 +45,25 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
     weight: number; reps: number; partialReps: number; rir: number | null; isWarmup: boolean;
   }) => {
     const result = await addLog(setNumber, data.weight, data.reps, data.partialReps, data.rir, data.isWarmup);
+    if (!result.error && !data.isWarmup) {
+      // Real-time validation: use prior non-warmup sets of this exercise in the
+      // current session as in-session reference for load-drop detection.
+      const sessionPrior = logs
+        .filter(l => !l.is_warmup)
+        .map(l => ({ weight: l.weight, reps: l.reps, rir: l.rir }));
+      validateSet({
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        setNumber,
+        totalSetsPlanned: exercise.series,
+        weight: data.weight,
+        reps: data.reps,
+        rir: data.rir,
+        isWarmup: data.isWarmup,
+        pautadoRepsRaw: exercise.reps,
+        previousSetsThisSession: sessionPrior,
+      });
+    }
     return { error: result.error };
   };
 
@@ -106,10 +129,30 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
             </div>
           )}
         </div>
-        <div className="shrink-0 text-muted-foreground">
+        <div className="shrink-0 flex items-center gap-2 text-muted-foreground">
+          {exerciseAlerts.length > 0 && (
+            <span
+              className={cn(
+                'h-2 w-2 rounded-full animate-pulse',
+                exerciseAlerts.some(a => a.severity === 'strong')
+                  ? 'bg-destructive'
+                  : exerciseAlerts.some(a => a.severity === 'moderate')
+                    ? 'bg-orange-500'
+                    : 'bg-amber-500',
+              )}
+              aria-label={`${exerciseAlerts.length} avisos sin aceptar`}
+            />
+          )}
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </div>
       </button>
+
+      {/* When collapsed, surface alerts so they cannot be missed */}
+      {!isExpanded && exerciseAlerts.length > 0 && (
+        <div className="px-4 pb-4 -mt-1">
+          <SetValidationBannerStack alerts={exerciseAlerts} onAccept={acknowledge} />
+        </div>
+      )}
 
       {isExpanded && (
         <div className="border-t border-border">
@@ -166,6 +209,12 @@ export const ExerciseCardNew = ({ exercise, index, neoRecommendedRir }: Exercise
             </div>
 
             <SetForm setNumber={activeSetTab} onSubmit={(data) => handleAddLog(activeSetTab, data)} lastLog={getLastLogForSet(activeSetTab)} neoRecommendedRir={neoRecommendedRir} />
+
+            {/* Real-time validation banners (persistent until acknowledged) */}
+            {exerciseAlerts.length > 0 && (
+              <SetValidationBannerStack alerts={exerciseAlerts} onAccept={acknowledge} />
+            )}
+
             <div className="pt-2"><SetProgressChart logs={logs} setNumber={activeSetTab} /></div>
             <SetLogList logs={getLogsBySetNumber(activeSetTab)} onDelete={deleteLog} />
           </div>
