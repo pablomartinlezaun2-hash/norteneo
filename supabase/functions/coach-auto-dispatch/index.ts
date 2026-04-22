@@ -202,7 +202,7 @@ async function processOne(
   }
 
   // ===== TEXTO =====
-  const text = buildTextMessage(firstName, event.event_type, event.summary);
+  const text = buildTextMessage(firstName, event.event_type, event.summary, coachName);
 
   const { data: msg, error: msgErr } = await admin
     .from("coach_messages")
