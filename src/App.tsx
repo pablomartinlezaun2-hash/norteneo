@@ -16,6 +16,7 @@ import MuscleDetail from "./pages/MuscleDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import SolarLauncher from "./pages/SolarLauncher";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -48,8 +49,9 @@ const AppContent = () => {
         <Route path="/auth" element={<AuthRoute />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/" element={<Landing />} />
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedRoute>
               <Index />
