@@ -33,9 +33,9 @@ const AuthRoute = () => {
     );
   }
   
-  // If user is authenticated, redirect to home
+  // If user is authenticated, redirect to app
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
   
   return <Auth />;
