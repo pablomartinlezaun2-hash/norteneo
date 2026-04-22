@@ -37,6 +37,8 @@ export default function NeoInteractiveCore({
   onAccess,
 }: NeoProps) {
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
+  const [isSplineLoaded, setIsSplineLoaded] = useState(false);
+  const [showSplineFallback, setShowSplineFallback] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
 
   // Cierra cualquier preview al clicar fuera
@@ -48,6 +50,19 @@ export default function NeoInteractiveCore({
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
   }, []);
+
+  useEffect(() => {
+    if (isSplineLoaded) {
+      setShowSplineFallback(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowSplineFallback(true);
+    }, 4500);
+
+    return () => window.clearTimeout(timer);
+  }, [isSplineLoaded]);
 
   const toggle = (key: OrbitKey) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -61,8 +76,31 @@ export default function NeoInteractiveCore({
       {/* ── ESCENA 3D ─────────────────────────── */}
       <div className="neo-scene">
         <Suspense fallback={<div className="neo-loader" />}>
-          <Spline scene={sceneUrl} style={{ width: "100%", height: "100%" }} />
+          <Spline
+            scene={sceneUrl}
+            onLoad={() => setIsSplineLoaded(true)}
+            style={{ width: "100%", height: "100%" }}
+          />
         </Suspense>
+        {!isSplineLoaded && (
+          <div className={`neo-scene-status ${showSplineFallback ? "is-visible" : ""}`}>
+            <div className="neo-scene-status__panel">
+              <div className="neo-scene-status__eyebrow">
+                {showSplineFallback ? "escena 3D no disponible" : "cargando escena 3D"}
+              </div>
+              <div className="neo-scene-status__title">
+                {showSplineFallback ? "El robot no ha cargado en esta preview." : "Iniciando animación interactiva…"}
+              </div>
+            </div>
+          </div>
+        )}
+        {showSplineFallback && !isSplineLoaded && (
+          <div className="neo-fallback-figure" aria-hidden="true">
+            <div className="neo-fallback-figure__halo" />
+            <div className="neo-fallback-figure__torso" />
+            <div className="neo-fallback-figure__core" />
+          </div>
+        )}
         <div className="neo-chest-logo">NEO</div>
         <div className="neo-spline-mask" />
       </div>
