@@ -16,6 +16,7 @@ import MuscleDetail from "./pages/MuscleDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import SolarLauncher from "./pages/SolarLauncher";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -32,9 +33,9 @@ const AuthRoute = () => {
     );
   }
   
-  // If user is authenticated, redirect to home
+  // If user is authenticated, redirect to app
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
   
   return <Auth />;
@@ -48,8 +49,9 @@ const AppContent = () => {
         <Route path="/auth" element={<AuthRoute />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/" element={<Landing />} />
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedRoute>
               <Index />
