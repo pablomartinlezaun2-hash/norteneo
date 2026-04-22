@@ -28,8 +28,8 @@ const AUDIO_EVENTS = new Set([
 const BUCKET = "coach-audio-messages";
 const MAX_PER_RUN = 6;
 
-function buildScript(firstName: string, eventType: string, summary: string): string {
-  const greeting = `Hola ${firstName}, soy Marta.`;
+function buildScript(firstName: string, eventType: string, summary: string, coachName: string): string {
+  const greeting = `Hola ${firstName}, soy ${coachName}.`;
   switch (eventType) {
     case "low_sleep":
       return `${greeting} He visto que el descanso esta semana ha estado por debajo de lo ideal. ${summary}. Hoy bajamos un punto la intensidad y priorizamos técnica. Cuídate y descansa bien esta noche.`;
