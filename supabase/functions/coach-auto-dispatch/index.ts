@@ -103,7 +103,7 @@ async function processOne(
   const isAudio = AUDIO_EVENTS.has(event.event_type);
 
   if (isAudio) {
-    const script = buildScript(firstName, event.event_type, event.summary);
+    const script = buildScript(firstName, event.event_type, event.summary, coachName);
 
     // 1) Crear registro de audio
     const { data: audioRow, error: aErr } = await admin
