@@ -69,6 +69,7 @@ async function processOne(
   event: any,
   voiceId: string,
   elevenKey: string,
+  coachName: string,
 ): Promise<{ ok: boolean; channel: string; message?: string; audioId?: string; error?: string }> {
   // Resolver atleta
   const { data: athlete } = await admin
