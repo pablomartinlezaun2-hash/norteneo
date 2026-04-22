@@ -28,8 +28,8 @@ const AUDIO_EVENTS = new Set([
 const BUCKET = "coach-audio-messages";
 const MAX_PER_RUN = 6;
 
-function buildScript(firstName: string, eventType: string, summary: string): string {
-  const greeting = `Hola ${firstName}, soy Marta.`;
+function buildScript(firstName: string, eventType: string, summary: string, coachName: string): string {
+  const greeting = `Hola ${firstName}, soy ${coachName}.`;
   switch (eventType) {
     case "low_sleep":
       return `${greeting} He visto que el descanso esta semana ha estado por debajo de lo ideal. ${summary}. Hoy bajamos un punto la intensidad y priorizamos técnica. Cuídate y descansa bien esta noche.`;
@@ -46,8 +46,8 @@ function buildScript(firstName: string, eventType: string, summary: string): str
   }
 }
 
-function buildTextMessage(firstName: string, eventType: string, summary: string): string {
-  const greeting = `Hola ${firstName}, soy Marta.`;
+function buildTextMessage(firstName: string, eventType: string, summary: string, coachName: string): string {
+  const greeting = `Hola ${firstName}, soy ${coachName}.`;
   switch (eventType) {
     case "reps_out_of_range":
       return `${greeting} He revisado tu última sesión y ${summary.toLowerCase()}. Recuerda mantenerte dentro del rango pautado para que el estímulo sea el correcto.`;
@@ -69,6 +69,7 @@ async function processOne(
   event: any,
   voiceId: string,
   elevenKey: string,
+  coachName: string,
 ): Promise<{ ok: boolean; channel: string; message?: string; audioId?: string; error?: string }> {
   // Resolver atleta
   const { data: athlete } = await admin
@@ -102,7 +103,7 @@ async function processOne(
   const isAudio = AUDIO_EVENTS.has(event.event_type);
 
   if (isAudio) {
-    const script = buildScript(firstName, event.event_type, event.summary);
+    const script = buildScript(firstName, event.event_type, event.summary, coachName);
 
     // 1) Crear registro de audio
     const { data: audioRow, error: aErr } = await admin
@@ -201,7 +202,7 @@ async function processOne(
   }
 
   // ===== TEXTO =====
-  const text = buildTextMessage(firstName, event.event_type, event.summary);
+  const text = buildTextMessage(firstName, event.event_type, event.summary, coachName);
 
   const { data: msg, error: msgErr } = await admin
     .from("coach_messages")
@@ -246,6 +247,7 @@ serve(async (req) => {
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ELEVEN_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     const VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID");
+    const COACH_NAME = Deno.env.get("COACH_NAME") || "Pablo";
     if (!ELEVEN_KEY || !VOICE_ID) {
       return new Response(JSON.stringify({ error: "ElevenLabs no configurado" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -267,7 +269,7 @@ serve(async (req) => {
 
     const processed: any[] = [];
     for (const ev of pending ?? []) {
-      const r = await processOne(admin, ev, VOICE_ID, ELEVEN_KEY);
+      const r = await processOne(admin, ev, VOICE_ID, ELEVEN_KEY, COACH_NAME);
       processed.push({ event_id: ev.id, event_type: ev.event_type, ...r });
     }
 
