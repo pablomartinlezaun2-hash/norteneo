@@ -46,8 +46,8 @@ function buildScript(firstName: string, eventType: string, summary: string, coac
   }
 }
 
-function buildTextMessage(firstName: string, eventType: string, summary: string): string {
-  const greeting = `Hola ${firstName}, soy Marta.`;
+function buildTextMessage(firstName: string, eventType: string, summary: string, coachName: string): string {
+  const greeting = `Hola ${firstName}, soy ${coachName}.`;
   switch (eventType) {
     case "reps_out_of_range":
       return `${greeting} He revisado tu última sesión y ${summary.toLowerCase()}. Recuerda mantenerte dentro del rango pautado para que el estímulo sea el correcto.`;
