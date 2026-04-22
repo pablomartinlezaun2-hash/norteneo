@@ -50,6 +50,7 @@ const AppContent = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<Landing />} />
+        <Route path="/landing-preview" element={<Landing forcePreview />} />
         <Route
           path="/app"
           element={
