@@ -247,6 +247,7 @@ serve(async (req) => {
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ELEVEN_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     const VOICE_ID = Deno.env.get("ELEVENLABS_VOICE_ID");
+    const COACH_NAME = Deno.env.get("COACH_NAME") || "Pablo";
     if (!ELEVEN_KEY || !VOICE_ID) {
       return new Response(JSON.stringify({ error: "ElevenLabs no configurado" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -268,7 +269,7 @@ serve(async (req) => {
 
     const processed: any[] = [];
     for (const ev of pending ?? []) {
-      const r = await processOne(admin, ev, VOICE_ID, ELEVEN_KEY);
+      const r = await processOne(admin, ev, VOICE_ID, ELEVEN_KEY, COACH_NAME);
       processed.push({ event_id: ev.id, event_type: ev.event_type, ...r });
     }
 
