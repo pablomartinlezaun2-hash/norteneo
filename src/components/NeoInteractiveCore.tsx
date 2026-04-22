@@ -37,6 +37,8 @@ export default function NeoInteractiveCore({
   onAccess,
 }: NeoProps) {
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
+  const [isSplineLoaded, setIsSplineLoaded] = useState(false);
+  const [showSplineFallback, setShowSplineFallback] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
 
   // Cierra cualquier preview al clicar fuera
@@ -48,6 +50,19 @@ export default function NeoInteractiveCore({
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
   }, []);
+
+  useEffect(() => {
+    if (isSplineLoaded) {
+      setShowSplineFallback(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowSplineFallback(true);
+    }, 4500);
+
+    return () => window.clearTimeout(timer);
+  }, [isSplineLoaded]);
 
   const toggle = (key: OrbitKey) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -61,8 +76,31 @@ export default function NeoInteractiveCore({
       {/* ── ESCENA 3D ─────────────────────────── */}
       <div className="neo-scene">
         <Suspense fallback={<div className="neo-loader" />}>
-          <Spline scene={sceneUrl} style={{ width: "100%", height: "100%" }} />
+          <Spline
+            scene={sceneUrl}
+            onLoad={() => setIsSplineLoaded(true)}
+            style={{ width: "100%", height: "100%" }}
+          />
         </Suspense>
+        {!isSplineLoaded && (
+          <div className={`neo-scene-status ${showSplineFallback ? "is-visible" : ""}`}>
+            <div className="neo-scene-status__panel">
+              <div className="neo-scene-status__eyebrow">
+                {showSplineFallback ? "escena 3D no disponible" : "cargando escena 3D"}
+              </div>
+              <div className="neo-scene-status__title">
+                {showSplineFallback ? "El robot no ha cargado en esta preview." : "Iniciando animación interactiva…"}
+              </div>
+            </div>
+          </div>
+        )}
+        {showSplineFallback && !isSplineLoaded && (
+          <div className="neo-fallback-figure" aria-hidden="true">
+            <div className="neo-fallback-figure__halo" />
+            <div className="neo-fallback-figure__torso" />
+            <div className="neo-fallback-figure__core" />
+          </div>
+        )}
         <div className="neo-chest-logo">NEO</div>
         <div className="neo-spline-mask" />
       </div>
@@ -311,6 +349,54 @@ const styles = `
   border:1px solid rgba(255,255,255,0.15); border-top-color:rgba(255,255,255,0.6);
   animation: neoSpin 1s linear infinite;
 }
+.neo-scene-status{
+  position:absolute; inset:auto 50% 17%; transform:translateX(-50%);
+  z-index:6; opacity:0; pointer-events:none; transition:opacity .35s var(--ease);
+}
+.neo-scene-status.is-visible{ opacity:1 }
+.neo-scene-status__panel{
+  min-width:240px; max-width:min(78vw, 360px); padding:12px 14px;
+  border-radius:14px; text-align:center;
+  background:rgba(8,10,14,0.82); border:1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow:0 20px 50px rgba(0,0,0,0.38);
+}
+.neo-scene-status__eyebrow{
+  font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(255,255,255,0.5); margin-bottom:6px;
+}
+.neo-scene-status__title{
+  font-size:13px; line-height:1.4; color:rgba(255,255,255,0.82);
+}
+.neo-fallback-figure{
+  position:absolute; inset:14% 0 16%; z-index:4; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+}
+.neo-fallback-figure__halo{
+  position:absolute; width:min(56vw, 420px); aspect-ratio:1;
+  border-radius:50%; background:radial-gradient(circle, rgba(95,168,255,0.18) 0%, rgba(95,168,255,0.06) 34%, transparent 68%);
+  filter:blur(6px); animation:neoPulseHalo 4s ease-in-out infinite;
+}
+.neo-fallback-figure__torso{
+  position:relative; width:min(26vw, 170px); aspect-ratio:0.78;
+  border-radius:42% 42% 30% 30% / 28% 28% 38% 38%;
+  background:linear-gradient(180deg, rgba(240,244,255,0.2) 0%, rgba(140,160,190,0.1) 42%, rgba(15,18,25,0.85) 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 0 0 1px rgba(95,168,255,0.12), 0 30px 90px rgba(0,0,0,0.48);
+}
+.neo-fallback-figure__torso::before{
+  content:""; position:absolute; left:50%; top:-18%; transform:translateX(-50%);
+  width:52%; aspect-ratio:1; border-radius:50%;
+  background:linear-gradient(180deg, rgba(233,240,255,0.28) 0%, rgba(20,24,34,0.88) 100%);
+  border:1px solid rgba(255,255,255,0.16);
+}
+.neo-fallback-figure__core{
+  position:absolute; width:18px; height:18px; border-radius:50%;
+  background:rgba(125,243,255,0.92); box-shadow:0 0 12px rgba(125,243,255,0.9), 0 0 30px rgba(95,168,255,0.42);
+  animation:neoPulseCore 2.4s ease-in-out infinite;
+}
+@keyframes neoPulseHalo{ 0%,100%{ transform:scale(1); opacity:.8 } 50%{ transform:scale(1.06); opacity:1 } }
+@keyframes neoPulseCore{ 0%,100%{ transform:scale(1); opacity:.88 } 50%{ transform:scale(1.35); opacity:1 } }
 @keyframes neoSpin{ to{ transform: rotate(360deg) } }
 
 .neo-scene{
@@ -611,6 +697,11 @@ const styles = `
 /* ─── mobile ─── */
 @media (max-width: 780px){
   .neo-stage{ --robot-x: -5%; --robot-scale: 1.15; --logo-y: 52% }
+  .neo-scene-status{ inset:auto 50% 21%; }
+  .neo-scene-status__panel{ min-width:200px; max-width:min(84vw, 320px); }
+  .neo-fallback-figure{ inset:16% 0 22%; }
+  .neo-fallback-figure__halo{ width:min(78vw, 340px); }
+  .neo-fallback-figure__torso{ width:min(38vw, 148px); }
   .neo-chest-logo{ font-size: 11px; letter-spacing: .2em }
   .neo-chest-logo::before, .neo-chest-logo::after{ width: 6px; margin: 0 4px }
 

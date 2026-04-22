@@ -43,6 +43,11 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
     savePreferences({ notifications: enabled });
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/', { replace: true });
+  };
+
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
@@ -236,7 +241,7 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
 
       {/* Logout */}
       <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
-        <Button variant="outline" onClick={signOut} className="w-full h-11 text-destructive border-destructive/20 hover:bg-destructive/5 rounded-xl text-body">
+        <Button variant="outline" onClick={handleSignOut} className="w-full h-11 text-destructive border-destructive/20 hover:bg-destructive/5 rounded-xl text-body">
           <LogOut className="w-4 h-4 mr-2" />
           {t('profile.logout')}
         </Button>
