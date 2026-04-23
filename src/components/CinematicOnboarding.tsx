@@ -8,7 +8,7 @@ import {
   WelcomeLogo, ClosingLogo, TextReveal, SubtitleReveal,
   TrainingHeroVisual, AIHeroVisual, NutritionHeroVisual, ProgressHeroVisual,
 } from './onboarding/OnboardingVisuals';
-import { SplineNutritionScene } from './onboarding/SplineNutritionScene';
+import NutritionSplineHero from './onboarding/NutritionSplineHero';
 
 /**
  * Spline scene URL for the "Nutrición sincronizada" slide.
@@ -441,29 +441,14 @@ const AISlide = ({ accent }: { accent: string }) => (
    SLIDE 3 — NUTRITION
    ═══════════════════════════════════════════ */
 
-const NutritionSlide = ({ accent }: { accent: string }) => (
-  <div className="flex flex-col items-center gap-5">
-    <SplineNutritionScene
+const NutritionSlide = (_: { accent: string }) => (
+  <div className="w-full max-w-[560px] px-4">
+    <NutritionSplineHero
       scene={SPLINE_NUTRITION_SCENE_URL || undefined}
-      accentColor={accent}
-      size={320}
-      fallback={<NutritionHeroVisual accentColor={accent} />}
+      title="Nutrición sincronizada"
+      subtitle="Macros, suplementación y comidas integradas con tu entrenamiento. Todo conectado."
+      minHeight={620}
     />
-    <div className="flex flex-col items-center gap-3 -mt-1">
-      <TextReveal
-        text="Nutrición sincronizada"
-        as="h1"
-        className="text-[34px] md:text-[44px] font-bold tracking-[-0.04em] text-center leading-[1.05]"
-        style_color="#F5F5F7"
-        delay={2.8}
-      />
-      <SubtitleReveal
-        text="Macros, suplementación y comidas integradas con tu entrenamiento. Todo conectado."
-        className="text-[13px] md:text-[15px] text-center max-w-[300px] leading-[1.7] tracking-[0.01em]"
-        delay={3.4}
-      />
-    </div>
-    <FeaturePills items={['Macros', 'Suplementos', 'Recetas']} delay={4.0} color={accent} />
   </div>
 );
 
