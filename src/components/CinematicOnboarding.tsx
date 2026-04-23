@@ -443,7 +443,12 @@ const AISlide = ({ accent }: { accent: string }) => (
 
 const NutritionSlide = ({ accent }: { accent: string }) => (
   <div className="flex flex-col items-center gap-5">
-    <NutritionHeroVisual accentColor={accent} />
+    <SplineNutritionScene
+      scene={SPLINE_NUTRITION_SCENE_URL || undefined}
+      accentColor={accent}
+      size={320}
+      fallback={<NutritionHeroVisual accentColor={accent} />}
+    />
     <div className="flex flex-col items-center gap-3 -mt-1">
       <TextReveal
         text="Nutrición sincronizada"
