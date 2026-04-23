@@ -8,6 +8,17 @@ import {
   WelcomeLogo, ClosingLogo, TextReveal, SubtitleReveal,
   TrainingHeroVisual, AIHeroVisual, NutritionHeroVisual, ProgressHeroVisual,
 } from './onboarding/OnboardingVisuals';
+import { SplineNutritionScene } from './onboarding/SplineNutritionScene';
+
+/**
+ * Spline scene URL for the "Nutrición sincronizada" slide.
+ * Drop the exported `https://prod.spline.design/.../scene.splinecode` URL into
+ * `VITE_SPLINE_NUTRITION_SCENE` (or replace the literal below) and the premium
+ * 3D hero will render automatically. Until then the canvas fallback ships.
+ */
+const SPLINE_NUTRITION_SCENE_URL =
+  (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+    ?.VITE_SPLINE_NUTRITION_SCENE || '';
 
 /* ═══════════════════════════════════════════
    PARTICLE FIELD — layered depth
@@ -432,7 +443,12 @@ const AISlide = ({ accent }: { accent: string }) => (
 
 const NutritionSlide = ({ accent }: { accent: string }) => (
   <div className="flex flex-col items-center gap-5">
-    <NutritionHeroVisual accentColor={accent} />
+    <SplineNutritionScene
+      scene={SPLINE_NUTRITION_SCENE_URL || undefined}
+      accentColor={accent}
+      size={320}
+      fallback={<NutritionHeroVisual accentColor={accent} />}
+    />
     <div className="flex flex-col items-center gap-3 -mt-1">
       <TextReveal
         text="Nutrición sincronizada"
