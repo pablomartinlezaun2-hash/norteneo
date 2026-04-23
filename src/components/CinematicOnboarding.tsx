@@ -8,6 +8,17 @@ import {
   WelcomeLogo, ClosingLogo, TextReveal, SubtitleReveal,
   TrainingHeroVisual, AIHeroVisual, NutritionHeroVisual, ProgressHeroVisual,
 } from './onboarding/OnboardingVisuals';
+import { SplineNutritionScene } from './onboarding/SplineNutritionScene';
+
+/**
+ * Spline scene URL for the "Nutrición sincronizada" slide.
+ * Drop the exported `https://prod.spline.design/.../scene.splinecode` URL into
+ * `VITE_SPLINE_NUTRITION_SCENE` (or replace the literal below) and the premium
+ * 3D hero will render automatically. Until then the canvas fallback ships.
+ */
+const SPLINE_NUTRITION_SCENE_URL =
+  (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+    ?.VITE_SPLINE_NUTRITION_SCENE || '';
 
 /* ═══════════════════════════════════════════
    PARTICLE FIELD — layered depth
