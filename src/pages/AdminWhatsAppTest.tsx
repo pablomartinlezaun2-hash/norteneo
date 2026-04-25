@@ -19,14 +19,18 @@ type DiagResult = {
     waba_id: string;
     test_number: string;
     can_send_messages: boolean;
+    code_verification_status: string | null;
+    name_status: string | null;
+    account_review_status: string | null;
+    messaging_limit_tier: string | null;
     platform_type: string | null;
     coexistence_mode: boolean;
+    quality_rating: string | null;
+    payment_status: string | null;
+    payment_reason_code: string | null;
+    payment_funding_id: string | null;
     verified_name: string | null;
     display_number: string | null;
-    quality_rating: string | null;
-    name_status: string | null;
-    messaging_limit_tier: string | null;
-    account_review_status: string | null;
     business_verification_status: string | null;
     approved_templates: { name: string; language: string; category: string }[];
     total_templates: number;
@@ -36,6 +40,31 @@ type DiagResult = {
   error?: string;
   missing?: string[];
 };
+
+// Estado esperado vs real → para pintar OK/Aviso
+function statusTone(field: string, value: string | null | boolean): "ok" | "warn" | "bad" | "neutral" {
+  if (value === null || value === undefined || value === "") return "neutral";
+  switch (field) {
+    case "code_verification_status":
+      return value === "VERIFIED" ? "ok" : "bad";
+    case "name_status":
+      return value === "APPROVED" ? "ok" : value === "PENDING_REVIEW" ? "warn" : "bad";
+    case "account_review_status":
+      return value === "APPROVED" ? "ok" : "warn";
+    case "messaging_limit_tier":
+      return typeof value === "string" && value.length > 0 ? "ok" : "bad";
+    case "quality_rating":
+      return value === "GREEN" ? "ok" : value === "YELLOW" ? "warn" : "bad";
+    case "payment_status":
+      return value === "ACTIVE" ? "ok" : "warn";
+    case "can_send_messages":
+      return value === true ? "ok" : "bad";
+    case "coexistence_mode":
+      return value === true ? "warn" : "ok";
+    default:
+      return "neutral";
+  }
+}
 
 export default function AdminWhatsAppTest() {
   const { user, loading } = useAuth();
