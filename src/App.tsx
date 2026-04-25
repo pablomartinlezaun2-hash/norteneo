@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import SolarLauncher from "./pages/SolarLauncher";
 import Landing from "./pages/Landing";
+import AdminWhatsAppTest from "./pages/AdminWhatsAppTest";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,14 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <SolarLauncher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/whatsapp-test"
+          element={
+            <ProtectedRoute>
+              <AdminWhatsAppTest />
             </ProtectedRoute>
           }
         />
