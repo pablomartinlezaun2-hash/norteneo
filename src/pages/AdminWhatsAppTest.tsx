@@ -82,6 +82,25 @@ export default function AdminWhatsAppTest() {
   const [sendResult, setSendResult] = useState<any>(null);
   const [sending, setSending] = useState(false);
 
+  const [regPin, setRegPin] = useState("");
+  const [regResult, setRegResult] = useState<any>(null);
+  const [registering, setRegistering] = useState(false);
+
+  const registerNumber = async () => {
+    setRegistering(true);
+    setRegResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("whatsapp-register-number", {
+        body: { pin: regPin },
+      });
+      setRegResult(error ? { ok: false, error: error.message } : data);
+    } catch (e) {
+      setRegResult({ ok: false, error: e instanceof Error ? e.message : "unknown" });
+    } finally {
+      setRegistering(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) { setRoleLoading(false); return; }
     (async () => {
@@ -246,14 +265,45 @@ export default function AdminWhatsAppTest() {
         )}
       </Card>
 
-      <Alert>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Registro manual no disponible</AlertTitle>
-        <AlertDescription>
-          Tu cuenta está en modo SMB/Embedded Signup, así que el registro del número se gestiona en Meta automáticamente.
-          Si el diagnóstico sigue indicando que no puede enviar, revisa en Meta que el número esté verificado, los términos aceptados y el método de pago validado.
-        </AlertDescription>
-      </Alert>
+      {/* Registro del número en Cloud API */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Registrar número en Cloud API</CardTitle>
+          <CardDescription>
+            Llama a <code className="font-mono">POST /{`{PHONE_NUMBER_ID}`}/register</code> con el PIN de 2FA configurado en Meta.
+            Necesario cuando aparece el error <code className="font-mono">(#133010) Account not registered</code>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>PIN de 6 dígitos</Label>
+            <Input
+              value={regPin}
+              onChange={(e) => setRegPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="123456"
+              inputMode="numeric"
+              maxLength={6}
+              className="font-mono tracking-widest text-center w-40"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Es el PIN de verificación en dos pasos del número en Meta. Si no lo recuerdas, configúralo en WhatsApp Manager → Configuración del número → Verificación en dos pasos.
+            </p>
+          </div>
+          <Button onClick={registerNumber} disabled={registering || regPin.length !== 6}>
+            {registering ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+            Registrar número
+          </Button>
+          {regResult && (
+            <Alert variant={regResult.ok ? "default" : "destructive"}>
+              <AlertTitle>{regResult.ok ? "Registro OK" : "Respuesta de Meta"}</AlertTitle>
+              <AlertDescription>
+                {regResult.hint && <p className="mb-2 text-xs">{regResult.hint}</p>}
+                <pre className="text-xs mt-2 overflow-auto max-h-72 p-2 bg-muted rounded">{JSON.stringify(regResult, null, 2)}</pre>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Envío de prueba */}
       <Card>
