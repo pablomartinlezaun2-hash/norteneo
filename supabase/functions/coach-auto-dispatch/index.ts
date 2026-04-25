@@ -65,7 +65,7 @@ function buildTextMessage(firstName: string, eventType: string, summary: string,
 }
 
 async function processOne(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   event: any,
   voiceId: string,
   elevenKey: string,
