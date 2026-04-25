@@ -93,8 +93,19 @@ serve(async (req) => {
     const waba = await graphGet(
       `/${WABA_ID}`,
       ACCESS!,
-      "name,timezone_id,message_template_namespace,account_review_status,business_verification_status,country,ownership_type",
+      "name,timezone_id,message_template_namespace,account_review_status,business_verification_status,country,ownership_type,primary_funding_id,on_behalf_of_business_info",
     );
+
+    // ---- 2b. Payment / funding (si existe primary_funding_id) ----
+    let payment: { ok: boolean; status: number; body: any } | null = null;
+    const fundingId = waba.body?.primary_funding_id;
+    if (fundingId) {
+      payment = await graphGet(
+        `/${fundingId}`,
+        ACCESS!,
+        "id,funding_source_details,reason_code,status",
+      );
+    }
 
     // ---- 3. Templates aprobadas ----
     const tpl = await graphGet(
@@ -123,14 +134,20 @@ serve(async (req) => {
       waba_id: WABA_ID,
       test_number: TEST_NUM,
       can_send_messages: canSend,
+      // --- Campos clave solicitados ---
+      code_verification_status: phone.body?.code_verification_status ?? null,
+      name_status: phone.body?.name_status ?? null,
+      account_review_status: waba.body?.account_review_status ?? null,
+      messaging_limit_tier: phone.body?.messaging_limit_tier ?? null,
       platform_type: platformType,
       coexistence_mode: isCoexistence,
+      quality_rating: phone.body?.quality_rating ?? null,
+      payment_status: payment?.body?.status ?? null,
+      payment_reason_code: payment?.body?.reason_code ?? null,
+      payment_funding_id: fundingId ?? null,
+      // --- Extra contexto ---
       verified_name: phone.body?.verified_name ?? null,
       display_number: phone.body?.display_phone_number ?? null,
-      quality_rating: phone.body?.quality_rating ?? null,
-      name_status: phone.body?.name_status ?? null,
-      messaging_limit_tier: phone.body?.messaging_limit_tier ?? null,
-      account_review_status: waba.body?.account_review_status ?? null,
       business_verification_status: waba.body?.business_verification_status ?? null,
       approved_templates: (tpl.body?.data ?? []).filter((t: any) => t.status === "APPROVED").map((t: any) => ({
         name: t.name, language: t.language, category: t.category,
@@ -149,6 +166,7 @@ serve(async (req) => {
         waba: { status: waba.status, body: waba.body },
         templates: { status: tpl.status, count: tpl.body?.data?.length ?? 0 },
         phones_in_waba: { status: phones.status, body: phones.body },
+        payment: payment ? { status: payment.status, body: payment.body } : null,
       },
     }, null, 2), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
