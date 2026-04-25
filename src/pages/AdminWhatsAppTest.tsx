@@ -116,6 +116,21 @@ export default function AdminWhatsAppTest() {
     }
   };
 
+  const registerNumber = async () => {
+    setRegistering(true);
+    setRegisterResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("whatsapp-register-number", {
+        body: { pin: registerPin },
+      });
+      setRegisterResult(error ? { ok: false, error: error.message } : data);
+    } catch (e) {
+      setRegisterResult({ ok: false, error: e instanceof Error ? e.message : "unknown" });
+    } finally {
+      setRegistering(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
