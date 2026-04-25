@@ -187,26 +187,44 @@ export default function AdminWhatsAppTest() {
             )}
             {diag.summary && (
               <>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <Field label="Número" value={diag.summary.display_number || "—"} />
-                  <Field label="Verified Name" value={diag.summary.verified_name || "—"} />
-                  <Field label="Phone Number ID" value={diag.summary.phone_number_id} mono />
-                  <Field label="WABA ID" value={diag.summary.waba_id} mono />
-                  <Field label="Platform" value={diag.summary.platform_type || "—"} />
-                  <Field label="Coexistence" value={diag.summary.coexistence_mode ? "Sí" : "No"} />
-                  <Field label="Quality" value={diag.summary.quality_rating || "—"} />
-                  <Field label="Name Status" value={diag.summary.name_status || "—"} />
-                  <Field label="Messaging Tier" value={diag.summary.messaging_limit_tier || "—"} />
-                  <Field label="Review Status" value={diag.summary.account_review_status || "—"} />
-                  <Field label="Business Verif." value={diag.summary.business_verification_status || "—"} />
-                  <Field label="Test Number" value={diag.summary.test_number} mono />
-                </div>
+                {/* Estado global */}
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">¿Puede enviar?</span>
                   <Badge variant={diag.summary.can_send_messages ? "default" : "destructive"}>
                     {diag.summary.can_send_messages ? "Sí" : "No"}
                   </Badge>
                 </div>
+
+                {/* Campos críticos pedidos */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Estado de la cuenta WhatsApp</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <Field label="code_verification_status" value={diag.summary.code_verification_status || "—"} tone={statusTone("code_verification_status", diag.summary.code_verification_status)} mono />
+                    <Field label="name_status" value={diag.summary.name_status || "—"} tone={statusTone("name_status", diag.summary.name_status)} mono />
+                    <Field label="account_review_status" value={diag.summary.account_review_status || "—"} tone={statusTone("account_review_status", diag.summary.account_review_status)} mono />
+                    <Field label="messaging_limit_tier" value={diag.summary.messaging_limit_tier || "—"} tone={statusTone("messaging_limit_tier", diag.summary.messaging_limit_tier)} mono />
+                    <Field label="platform_type" value={diag.summary.platform_type || "—"} tone="neutral" mono />
+                    <Field label="coexistence_mode" value={diag.summary.coexistence_mode ? "true" : "false"} tone={statusTone("coexistence_mode", diag.summary.coexistence_mode)} mono />
+                    <Field label="quality_rating" value={diag.summary.quality_rating || "—"} tone={statusTone("quality_rating", diag.summary.quality_rating)} mono />
+                    <Field label="payment_status" value={diag.summary.payment_status || "— (no expuesto)"} tone={statusTone("payment_status", diag.summary.payment_status)} mono />
+                    <Field label="can_send_messages" value={diag.summary.can_send_messages ? "true" : "false"} tone={statusTone("can_send_messages", diag.summary.can_send_messages)} mono />
+                    <Field label="business_verification_status" value={diag.summary.business_verification_status || "—"} mono />
+                  </div>
+                </div>
+
+                {/* Identidad del número */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Identidad del número</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <Field label="Número" value={diag.summary.display_number || "—"} />
+                    <Field label="Verified Name" value={diag.summary.verified_name || "—"} />
+                    <Field label="Phone Number ID" value={diag.summary.phone_number_id} mono />
+                    <Field label="WABA ID" value={diag.summary.waba_id} mono />
+                    <Field label="Test Number" value={diag.summary.test_number} mono />
+                    <Field label="Funding ID" value={diag.summary.payment_funding_id || "—"} mono />
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="text-sm font-semibold mb-2">Templates aprobadas ({diag.summary.approved_templates.length}/{diag.summary.total_templates})</h4>
                   <div className="flex flex-wrap gap-2">
