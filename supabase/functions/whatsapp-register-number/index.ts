@@ -1,11 +1,9 @@
 /**
  * whatsapp-register-number
  *
- * Registra el Phone Number ID en WhatsApp Cloud API.
- * Llama a POST /v21.0/{PHONE_NUMBER_ID}/register con un PIN de 6 dígitos.
- *
- * Requiere usuario autenticado con rol "coach".
- * Body esperado: { "pin": "123456" }
+ * El endpoint /register no está disponible para cuentas SMB / Embedded Signup.
+ * Conservamos esta función para responder de forma segura e informativa si el
+ * frontend antiguo o una llamada manual intenta usarla.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -15,8 +13,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
-
-const GRAPH_VERSION = "v21.0";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -54,58 +50,19 @@ serve(async (req) => {
       });
     }
 
-    // ---- Body: PIN ----
-    let body: { pin?: string } = {};
-    try { body = await req.json(); } catch (_) {}
-    const pin = (body.pin ?? "").toString().trim();
-    if (!/^\d{6}$/.test(pin)) {
-      return new Response(JSON.stringify({
-        error: "Invalid PIN. Must be exactly 6 digits.",
-      }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ---- Secrets ----
-    const ACCESS = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
-    const PHONE_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
-    const missing: string[] = [];
-    if (!ACCESS) missing.push("WHATSAPP_ACCESS_TOKEN");
-    if (!PHONE_ID) missing.push("WHATSAPP_PHONE_NUMBER_ID");
-    if (missing.length) {
-      return new Response(JSON.stringify({ error: "Missing secrets", missing }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ---- Llamada a Meta ----
-    const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_ID}/register`;
-    const r = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${ACCESS}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        pin,
-      }),
-    });
-    const metaBody = await r.json().catch(() => ({}));
-
     return new Response(JSON.stringify({
-      ok: r.ok,
-      meta_status: r.status,
-      meta_response: metaBody,
-      hint: r.ok
-        ? "Número registrado. Vuelve a 'Comprobar' para validar can_send_messages."
-        : (metaBody?.error?.code === 133005
-          ? "PIN incorrecto. Si nunca configuraste 2FA, este PIN queda fijado a partir de ahora."
-          : metaBody?.error?.code === 133006
-          ? "Número ya verificado pero pendiente de otro paso. Revisa Meta Business Suite."
-          : null),
+      ok: false,
+      meta_status: 400,
+      meta_response: {
+        error: {
+          message: "Register endpoint is not available for SMB businesses.",
+          type: "OAuthException",
+          code: 100,
+        },
+      },
+      hint: "Tu cuenta usa SMB/Embedded Signup. No hace falta registrar el número por API: termina la activación en Meta y usa 'Comprobar' para validar si ya puede enviar.",
     }, null, 2), {
-      status: r.ok ? 200 : 400,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
