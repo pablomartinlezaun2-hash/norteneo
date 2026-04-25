@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, ShieldCheck, AlertTriangle, Send, Activity } from "lucide-react";
+import { Loader2, ShieldCheck, AlertTriangle, Send, Activity, KeyRound } from "lucide-react";
 import { useEffect } from "react";
 
 type DiagResult = {
