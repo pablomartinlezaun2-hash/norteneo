@@ -53,6 +53,10 @@ export default function AdminWhatsAppTest() {
   const [sendResult, setSendResult] = useState<any>(null);
   const [sending, setSending] = useState(false);
 
+  const [registerPin, setRegisterPin] = useState("");
+  const [registerResult, setRegisterResult] = useState<any>(null);
+  const [registering, setRegistering] = useState(false);
+
   useEffect(() => {
     if (!user) { setRoleLoading(false); return; }
     (async () => {
