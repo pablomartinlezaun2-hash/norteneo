@@ -82,6 +82,25 @@ export default function AdminWhatsAppTest() {
   const [sendResult, setSendResult] = useState<any>(null);
   const [sending, setSending] = useState(false);
 
+  const [regPin, setRegPin] = useState("");
+  const [regResult, setRegResult] = useState<any>(null);
+  const [registering, setRegistering] = useState(false);
+
+  const registerNumber = async () => {
+    setRegistering(true);
+    setRegResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("whatsapp-register-number", {
+        body: { pin: regPin },
+      });
+      setRegResult(error ? { ok: false, error: error.message } : data);
+    } catch (e) {
+      setRegResult({ ok: false, error: e instanceof Error ? e.message : "unknown" });
+    } finally {
+      setRegistering(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) { setRoleLoading(false); return; }
     (async () => {
