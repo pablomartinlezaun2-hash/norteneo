@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, ShieldCheck, AlertTriangle, Send, Activity } from "lucide-react";
+import { Loader2, ShieldCheck, AlertTriangle, Send, Activity, KeyRound } from "lucide-react";
 import { useEffect } from "react";
 
 type DiagResult = {
@@ -52,6 +52,10 @@ export default function AdminWhatsAppTest() {
   const [sendTo, setSendTo] = useState("");
   const [sendResult, setSendResult] = useState<any>(null);
   const [sending, setSending] = useState(false);
+
+  const [registerPin, setRegisterPin] = useState("");
+  const [registerResult, setRegisterResult] = useState<any>(null);
+  const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
     if (!user) { setRoleLoading(false); return; }
@@ -109,6 +113,21 @@ export default function AdminWhatsAppTest() {
       setSendResult({ ok: false, error: e instanceof Error ? e.message : "unknown" });
     } finally {
       setSending(false);
+    }
+  };
+
+  const registerNumber = async () => {
+    setRegistering(true);
+    setRegisterResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("whatsapp-register-number", {
+        body: { pin: registerPin },
+      });
+      setRegisterResult(error ? { ok: false, error: error.message } : data);
+    } catch (e) {
+      setRegisterResult({ ok: false, error: e instanceof Error ? e.message : "unknown" });
+    } finally {
+      setRegistering(false);
     }
   };
 
@@ -197,6 +216,46 @@ export default function AdminWhatsAppTest() {
             </details>
           </CardContent>
         )}
+      </Card>
+
+      {/* Registro del número */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" /> Registrar número en Cloud API</CardTitle>
+          <CardDescription>
+            Solo la primera vez. Si Meta devuelve error 133010 ("Account not registered"),
+            introduce un PIN de 6 dígitos (invéntalo, quedará fijado como 2FA del número).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>PIN (6 dígitos)</Label>
+            <Input
+              value={registerPin}
+              onChange={(e) => setRegisterPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="123456"
+              className="font-mono tracking-widest"
+              inputMode="numeric"
+              maxLength={6}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Apunta este PIN. Lo necesitarás si vuelves a registrar el número.
+            </p>
+          </div>
+          <Button onClick={registerNumber} disabled={registering || registerPin.length !== 6}>
+            {registering ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}
+            Registrar número
+          </Button>
+          {registerResult && (
+            <Alert variant={registerResult.ok ? "default" : "destructive"}>
+              <AlertTitle>{registerResult.ok ? "Registrado" : "Error"}</AlertTitle>
+              <AlertDescription>
+                {registerResult.hint && <div className="mb-2 text-sm">{registerResult.hint}</div>}
+                <pre className="text-xs mt-2 overflow-auto max-h-60">{JSON.stringify(registerResult, null, 2)}</pre>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
       </Card>
 
       {/* Envío de prueba */}
