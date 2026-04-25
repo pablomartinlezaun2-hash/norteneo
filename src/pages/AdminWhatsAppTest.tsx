@@ -306,11 +306,16 @@ export default function AdminWhatsAppTest() {
   );
 }
 
-function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Field({ label, value, mono, tone = "neutral" }: { label: string; value: string; mono?: boolean; tone?: "ok" | "warn" | "bad" | "neutral" }) {
+  const toneClass =
+    tone === "ok" ? "text-emerald-500" :
+    tone === "warn" ? "text-amber-500" :
+    tone === "bad" ? "text-destructive" :
+    "text-foreground";
   return (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={mono ? "font-mono text-xs break-all" : "text-sm"}>{value}</div>
+      <div className={`${mono ? "font-mono text-xs break-all" : "text-sm"} ${toneClass}`}>{value}</div>
     </div>
   );
 }
