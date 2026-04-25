@@ -93,8 +93,19 @@ serve(async (req) => {
     const waba = await graphGet(
       `/${WABA_ID}`,
       ACCESS!,
-      "name,timezone_id,message_template_namespace,account_review_status,business_verification_status,country,ownership_type",
+      "name,timezone_id,message_template_namespace,account_review_status,business_verification_status,country,ownership_type,primary_funding_id,on_behalf_of_business_info",
     );
+
+    // ---- 2b. Payment / funding (si existe primary_funding_id) ----
+    let payment: { ok: boolean; status: number; body: any } | null = null;
+    const fundingId = waba.body?.primary_funding_id;
+    if (fundingId) {
+      payment = await graphGet(
+        `/${fundingId}`,
+        ACCESS!,
+        "id,funding_source_details,reason_code,status",
+      );
+    }
 
     // ---- 3. Templates aprobadas ----
     const tpl = await graphGet(
