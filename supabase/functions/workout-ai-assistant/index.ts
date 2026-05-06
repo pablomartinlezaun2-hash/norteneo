@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { gymPrompt, swimmingPrompt, runningPrompt, nutritionPrompt } from "./prompts.ts";
 
 const corsHeaders = {
@@ -13,15 +14,81 @@ const systemPrompts: Record<string, string> = {
   nutrition: nutritionPrompt,
 };
 
+const VALID_WORKOUT_TYPES = ["gym", "swimming", "running", "nutrition"];
+const MAX_MESSAGES = 50;
+const MAX_CONTENT_LENGTH = 5000;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, workoutType, requestWorkoutStructure } = await req.json();
+    // ---- Auth validation ----
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "No autorizado. Inicia sesión." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Sesión inválida. Inicia sesión nuevamente." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ---- Body parse ----
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Solicitud inválida." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages, workoutType, requestWorkoutStructure } = body ?? {};
+
+    // ---- Input validation ----
+    if (!workoutType || !VALID_WORKOUT_TYPES.includes(workoutType)) {
+      return new Response(
+        JSON.stringify({ error: "Tipo de entrenamiento no válido." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+      return new Response(
+        JSON.stringify({ error: `Número de mensajes no válido (máximo ${MAX_MESSAGES}).` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    for (const msg of messages) {
+      if (!msg || typeof msg !== "object" ||
+          !msg.role || !["user", "assistant", "system"].includes(msg.role) ||
+          typeof msg.content !== "string" ||
+          msg.content.length === 0 ||
+          msg.content.length > MAX_CONTENT_LENGTH) {
+        return new Response(
+          JSON.stringify({ error: "Estructura o contenido de mensaje inválido." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
     if (!LOVABLE_API_KEY) {
       console.error("[workout-ai-assistant] API key not configured");
       return new Response(
@@ -29,6 +96,8 @@ serve(async (req) => {
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log(`[workout-ai-assistant] Request from user: ${user.id}, workoutType: ${workoutType}`);
 
     const systemPrompt = systemPrompts[workoutType] || systemPrompts.gym;
 
