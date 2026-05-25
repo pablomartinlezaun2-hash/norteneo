@@ -47,8 +47,13 @@ export default function NeoInteractiveCore({
   const [faceOn, setFaceOn] = useState(false);
   const [faceStatus, setFaceStatus] = useState<"idle" | "loading" | "tracking" | "no-face" | "error">("idle");
   const [faceSensitivity, setFaceSensitivity] = useState(8.0);
+  const [bodyOn, setBodyOn] = useState(false);
+  const [bodyStatus, setBodyStatus] = useState<"idle" | "loading" | "tracking" | "no-hands" | "error">("idle");
   const sceneRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const bodyVideoRef = useRef<HTMLVideoElement>(null);
+  const leftHandRef = useRef<HTMLDivElement>(null);
+  const rightHandRef = useRef<HTMLDivElement>(null);
 
   // Face tracking lifecycle
   useFaceHeadControl({
@@ -57,6 +62,15 @@ export default function NeoInteractiveCore({
     videoRef,
     onStatus: setFaceStatus,
     sensitivity: faceSensitivity,
+  });
+
+  // Body / hand tracking lifecycle
+  useHandsBodyControl({
+    enabled: bodyOn,
+    videoRef: bodyVideoRef,
+    leftHandRef,
+    rightHandRef,
+    onStatus: setBodyStatus,
   });
 
   useEffect(() => {
