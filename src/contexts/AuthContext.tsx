@@ -29,43 +29,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const welcomeEmailsSent = new Set<string>();
 
-    const syncSessionState = async (nextSession: Session | null) => {
-      if (!nextSession) {
-        setSession(null);
-        setUser(null);
-        if (initialized) setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.auth.getUser(nextSession.access_token);
-
-        if (error || !data.user) {
-          await supabase.auth.signOut({ scope: 'local' });
-          setSession(null);
-          setUser(null);
-        } else {
-          setSession(nextSession);
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error('Error validating session:', error);
-        await supabase.auth.signOut({ scope: 'local' });
-        setSession(null);
-        setUser(null);
-      } finally {
-        if (initialized) setLoading(false);
-      }
+    // Trust the SDK-managed session. Only sign out on explicit invalid-token
+    // errors, never on transient network failures (which would log users out
+    // and bounce them back to /auth).
+    const applySession = (nextSession: Session | null) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
-      void syncSessionState(session);
+      applySession(session);
+      setLoading(false);
 
       if (event === 'SIGNED_IN' && session?.user) {
         const user = session.user;
@@ -85,22 +64,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.email);
-      await syncSessionState(session);
-      setInitialized(true);
+      applySession(session);
       setLoading(false);
-    }).catch(async (error) => {
+    }).catch((error) => {
       console.error('Error getting session:', error);
-      await supabase.auth.signOut({ scope: 'local' });
-      setSession(null);
-      setUser(null);
-      setInitialized(true);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [initialized]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
