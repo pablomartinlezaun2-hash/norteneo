@@ -94,30 +94,48 @@ export default function NeoInteractiveCore({
         style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", left: -9999 }}
       />
 
-      {/* ── Botón Face Control (discreto) ── */}
-      <button
-        type="button"
-        className={`neo-face-toggle ${faceOn ? "is-on" : ""}`}
-        onClick={() => setFaceOn((v) => !v)}
-        aria-pressed={faceOn}
-        title={faceOn ? "Desactivar Face Control" : "Activar Face Control"}
-      >
-        <span className={`neo-face-toggle__dot status-${faceStatus}`} />
-        <span>Face Control</span>
-        <span className="neo-face-toggle__state">
-          {faceOn
-            ? faceStatus === "loading"
-              ? "iniciando…"
-              : faceStatus === "tracking"
-              ? "activo"
-              : faceStatus === "no-face"
-              ? "sin cara · ratón"
-              : faceStatus === "error"
-              ? "error"
-              : "on"
-            : "off"}
-        </span>
-      </button>
+      {/* ── Botón Face Control + sensibilidad (discreto) ── */}
+      <div className="neo-face-control">
+        <button
+          type="button"
+          className={`neo-face-toggle ${faceOn ? "is-on" : ""}`}
+          onClick={() => setFaceOn((v) => !v)}
+          aria-pressed={faceOn}
+          title={faceOn ? "Desactivar Face Control" : "Activar Face Control"}
+        >
+          <span className={`neo-face-toggle__dot status-${faceStatus}`} />
+          <span>Face Control</span>
+          <span className="neo-face-toggle__state">
+            {faceOn
+              ? faceStatus === "loading"
+                ? "iniciando…"
+                : faceStatus === "tracking"
+                ? "activo"
+                : faceStatus === "no-face"
+                ? "sin cara · ratón"
+                : faceStatus === "error"
+                ? "error"
+                : "on"
+              : "off"}
+          </span>
+        </button>
+
+        {faceOn && (
+          <div className="neo-face-sens">
+            <span className="neo-face-sens__label">Sens.</span>
+            <input
+              type="range"
+              min={0.5}
+              max={4.0}
+              step={0.1}
+              value={faceSensitivity}
+              onChange={(e) => setFaceSensitivity(parseFloat(e.target.value))}
+              aria-label="Sensibilidad del face tracking"
+            />
+            <span className="neo-face-sens__val">{faceSensitivity.toFixed(1)}×</span>
+          </div>
+        )}
+      </div>
 
       {/* ── NAVBAR SUPERIOR (los 4 botones juntos) ── */}
       <div className="neo-nav">
