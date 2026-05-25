@@ -259,16 +259,17 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
-  const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(objectPath)
-    .data.publicUrl;
+  const SIGNED_URL_TTL = 60 * 60; // 1 hour
 
-  // 1) Cache hit?
+  // 1) Cache hit? Use signed URL on the private bucket.
   try {
-    const head = await fetch(publicUrl, { method: "HEAD" });
-    if (head.ok) {
+    const { data: signed, error: signedErr } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(objectPath, SIGNED_URL_TTL);
+    if (!signedErr && signed?.signedUrl) {
       console.log(`[briefing] cache HIT ${objectPath}`);
       return new Response(
-        JSON.stringify({ audioUrl: publicUrl, cached: true, script }),
+        JSON.stringify({ audioUrl: signed.signedUrl, cached: true, script }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -276,7 +277,7 @@ Deno.serve(async (req) => {
       );
     }
   } catch (e) {
-    console.warn("[briefing] cache HEAD failed", e);
+    console.warn("[briefing] cache check failed", e);
   }
 
   console.log(`[briefing] cache MISS → generating (${script.length} chars)`);
@@ -360,8 +361,12 @@ Deno.serve(async (req) => {
     );
   }
 
+  const { data: signedFresh } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(objectPath, SIGNED_URL_TTL);
+
   return new Response(
-    JSON.stringify({ audioUrl: publicUrl, cached: false, script }),
+    JSON.stringify({ audioUrl: signedFresh?.signedUrl ?? null, cached: false, script }),
     {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
