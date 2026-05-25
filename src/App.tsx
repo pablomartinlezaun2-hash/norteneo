@@ -18,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import SolarLauncher from "./pages/SolarLauncher";
 import Landing from "./pages/Landing";
 import AdminWhatsAppTest from "./pages/AdminWhatsAppTest";
+import NeoGLBLab from "./pages/NeoGLBLab";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +85,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/neo-glb-lab" element={<NeoGLBLab />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
