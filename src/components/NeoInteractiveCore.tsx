@@ -440,7 +440,203 @@ function useFaceHeadControl({
   }, [enabled, sceneRef, videoRef, onStatus]);
 }
 
+/* ══════════════════════════════════════════════════
+ * useHandsBodyControl
+ * ──────────────────────────────────────────────────
+ * Capa visual `bodyControlState`:
+ *   - Detecta hasta 2 manos con MediaPipe HandLandmarker.
+ *   - Mapea cada muñeca a un overlay sutil sobre la mano
+ *     correspondiente del robot (offset X/Y + ligera rotación).
+ *   - El robot 3D Spline NO expone bones individuales, así que
+ *     no podemos rotar sus brazos directamente; este enfoque
+ *     visual añade una respuesta perceptible sin tocar la escena.
+ *   - Side mapping: usamos la x del wrist en frame espejado.
+ *     Wrist en mitad derecha del frame → overlay derecho (mano
+ *     derecha del usuario, como en un espejo).
+ *   - Smoothing lerp 0.12. Si no hay mano N frames, vuelve a 0.
+ * ══════════════════════════════════════════════════ */
+function useHandsBodyControl({
+  enabled,
+  videoRef,
+  leftHandRef,
+  rightHandRef,
+  onStatus,
+}: {
+  enabled: boolean;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  leftHandRef: React.RefObject<HTMLDivElement>;
+  rightHandRef: React.RefObject<HTMLDivElement>;
+  onStatus: (s: "idle" | "loading" | "tracking" | "no-hands" | "error") => void;
+}) {
+  useEffect(() => {
+    if (!enabled) {
+      onStatus("idle");
+      // Reset overlays a neutral
+      [leftHandRef.current, rightHandRef.current].forEach((el) => {
+        if (el) el.style.transform = "translate3d(0,0,0) rotate(0deg)";
+      });
+      return;
+    }
+
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    let raf = 0;
+    let landmarker: any = null;
+    let lastHandsAt = 0;
+    const NO_HANDS_TIMEOUT_MS = 500;
+
+    // Límites suaves (respuesta sutil)
+    const MAX_OFFSET_X = 12; // px
+    const MAX_OFFSET_Y = 12; // px
+    const MAX_ROT = 6; // deg
+    const LERP = 0.12;
+
+    type S = { x: number; y: number; r: number; tx: number; ty: number; tr: number; hasTarget: boolean };
+    const left: S = { x: 0, y: 0, r: 0, tx: 0, ty: 0, tr: 0, hasTarget: false };
+    const right: S = { x: 0, y: 0, r: 0, tx: 0, ty: 0, tr: 0, hasTarget: false };
+
+    onStatus("loading");
+
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 320, height: 240, facingMode: "user" },
+          audio: false,
+        });
+        if (cancelled) return;
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await video.play();
+
+        const vision = await import("@mediapipe/tasks-vision");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm"
+        );
+        landmarker = await vision.HandLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+            delegate: "GPU",
+          },
+          runningMode: "VIDEO",
+          numHands: 2,
+        });
+
+        if (cancelled) return;
+        onStatus("no-hands");
+
+        const tick = () => {
+          if (cancelled) return;
+          const v = videoRef.current;
+          if (!v || v.readyState < 2) {
+            raf = requestAnimationFrame(tick);
+            return;
+          }
+          const now = performance.now();
+          let result: any = null;
+          try {
+            result = landmarker.detectForVideo(v, now);
+          } catch {
+            /* ignore */
+          }
+
+          // Reset targets
+          left.hasTarget = false;
+          right.hasTarget = false;
+
+          const hands = result?.landmarks ?? [];
+          if (hands.length > 0) {
+            lastHandsAt = now;
+            for (const hand of hands) {
+              const wrist = hand?.[0];
+              const middleMcp = hand?.[9];
+              if (!wrist) continue;
+              // Espejo horizontal (selfie)
+              const wx = 1 - wrist.x; // 0..1
+              const wy = wrist.y; // 0..1
+              // Centrar en -1..1
+              const nx = (wx - 0.5) * 2;
+              const ny = (wy - 0.5) * 2;
+
+              // Rotación derivada del vector wrist→middleMcp
+              let rot = 0;
+              if (middleMcp) {
+                const mx = 1 - middleMcp.x;
+                const my = middleMcp.y;
+                const dx = mx - wx;
+                const dy = my - wy;
+                rot = Math.atan2(dx, -dy) * (180 / Math.PI); // 0 = arriba
+                rot = Math.max(-MAX_ROT, Math.min(MAX_ROT, rot * 0.25));
+              }
+
+              // Offset acotado (sutil)
+              const tx = Math.max(-1, Math.min(1, nx * 1.5)) * MAX_OFFSET_X;
+              const ty = Math.max(-1, Math.min(1, ny * 1.5)) * MAX_OFFSET_Y;
+
+              // Mano en mitad derecha del frame espejado → overlay derecho
+              const side: S = wx > 0.5 ? right : left;
+              side.tx = tx;
+              side.ty = ty;
+              side.tr = rot;
+              side.hasTarget = true;
+            }
+            onStatus("tracking");
+          } else if (now - lastHandsAt > NO_HANDS_TIMEOUT_MS) {
+            onStatus("no-hands");
+          }
+
+          // Si no hay target, vuelve suavemente a neutral
+          if (!left.hasTarget) { left.tx = 0; left.ty = 0; left.tr = 0; }
+          if (!right.hasTarget) { right.tx = 0; right.ty = 0; right.tr = 0; }
+
+          // Lerp
+          left.x += (left.tx - left.x) * LERP;
+          left.y += (left.ty - left.y) * LERP;
+          left.r += (left.tr - left.r) * LERP;
+          right.x += (right.tx - right.x) * LERP;
+          right.y += (right.ty - right.y) * LERP;
+          right.r += (right.tr - right.r) * LERP;
+
+          const lEl = leftHandRef.current;
+          const rEl = rightHandRef.current;
+          if (lEl) lEl.style.transform = `translate3d(${left.x.toFixed(2)}px, ${left.y.toFixed(2)}px, 0) rotate(${left.r.toFixed(2)}deg)`;
+          if (rEl) rEl.style.transform = `translate3d(${right.x.toFixed(2)}px, ${right.y.toFixed(2)}px, 0) rotate(${right.r.toFixed(2)}deg)`;
+
+          raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      } catch (err) {
+        console.error("[BodyControl] error:", err);
+        if (!cancelled) onStatus("error");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      if (landmarker?.close) {
+        try { landmarker.close(); } catch { /* noop */ }
+      }
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+      }
+      const v = videoRef.current;
+      if (v) {
+        try { v.pause(); } catch { /* noop */ }
+        v.srcObject = null;
+      }
+      [leftHandRef.current, rightHandRef.current].forEach((el) => {
+        if (el) el.style.transform = "translate3d(0,0,0) rotate(0deg)";
+      });
+      onStatus("idle");
+    };
+  }, [enabled, videoRef, leftHandRef, rightHandRef, onStatus]);
+}
+
 /* ══════════════════════════════════════════════════ */
+
+
 
 
 function OrbitButton({
