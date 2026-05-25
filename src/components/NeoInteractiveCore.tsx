@@ -172,7 +172,185 @@ export default function NeoInteractiveCore({
   );
 }
 
+/* ══════════════════════════════════════════════════
+ * useFaceHeadControl
+ * ──────────────────────────────────────────────────
+ * Capa intermedia `headControlPosition`:
+ *   - Spline rota la cabeza siguiendo el puntero sobre el canvas.
+ *   - Cuando Face Control está ON y hay cara detectada, sintetizamos
+ *     eventos `pointermove` en el canvas con coords derivadas del
+ *     centro de la cara (nariz).  → headControlPosition = face
+ *   - Cuando está OFF o no hay cara, NO inyectamos eventos; el ratón
+ *     real llega a Spline como siempre. → headControlPosition = mouse
+ * ══════════════════════════════════════════════════ */
+function useFaceHeadControl({
+  enabled,
+  sceneRef,
+  videoRef,
+  onStatus,
+}: {
+  enabled: boolean;
+  sceneRef: React.RefObject<HTMLDivElement>;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  onStatus: (s: "idle" | "loading" | "tracking" | "no-face" | "error") => void;
+}) {
+  useEffect(() => {
+    if (!enabled) {
+      onStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    let raf = 0;
+    let landmarker: any = null;
+    let lastFaceAt = 0;
+    // Posición suavizada del "cursor virtual" en coords del canvas (px)
+    let smoothX = 0;
+    let smoothY = 0;
+    let hasTargetOnce = false;
+
+    onStatus("loading");
+
+    (async () => {
+      try {
+        // 1) Cámara
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 320, height: 240, facingMode: "user" },
+          audio: false,
+        });
+        if (cancelled) return;
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await video.play();
+
+        // 2) MediaPipe FaceLandmarker (WASM desde CDN)
+        const vision = await import("@mediapipe/tasks-vision");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm"
+        );
+        landmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            delegate: "GPU",
+          },
+          runningMode: "VIDEO",
+          numFaces: 1,
+        });
+
+        if (cancelled) return;
+        onStatus("tracking");
+
+        // 3) Loop de detección
+        const tick = () => {
+          if (cancelled) return;
+          const v = videoRef.current;
+          const sceneEl = sceneRef.current;
+          if (!v || !sceneEl || v.readyState < 2) {
+            raf = requestAnimationFrame(tick);
+            return;
+          }
+
+          const now = performance.now();
+          let result: any = null;
+          try {
+            result = landmarker.detectForVideo(v, now);
+          } catch {
+            /* ignore frame */
+          }
+
+          const lm = result?.faceLandmarks?.[0];
+          // Nariz: landmark 1 (tip of nose) en FaceLandmarker
+          const nose = lm?.[1];
+
+          if (nose) {
+            lastFaceAt = now;
+            // Espejo horizontal (cámara front)
+            const nx = 1 - nose.x; // 0..1
+            const ny = nose.y;     // 0..1
+            // Normalizar a -1..1 con zona muerta suave alrededor del centro
+            let faceX = (nx - 0.5) * 2;
+            let faceY = (ny - 0.5) * 2;
+            // Clamp -1..1
+            faceX = Math.max(-1, Math.min(1, faceX));
+            faceY = Math.max(-1, Math.min(1, faceY));
+
+            // Mapear al canvas: cursor virtual alrededor del centro
+            const rect = sceneEl.getBoundingClientRect();
+            const targetX = rect.left + rect.width * (0.5 + faceX * FACE_RANGE_X);
+            const targetY = rect.top + rect.height * (0.5 + faceY * FACE_RANGE_Y);
+
+            if (!hasTargetOnce) {
+              smoothX = targetX;
+              smoothY = targetY;
+              hasTargetOnce = true;
+            } else {
+              smoothX += (targetX - smoothX) * SMOOTHING;
+              smoothY += (targetY - smoothY) * SMOOTHING;
+            }
+
+            // Sintetizar pointermove sobre el canvas de Spline
+            const canvas =
+              sceneEl.querySelector("canvas") ??
+              (sceneEl.querySelector("iframe") as HTMLElement | null) ??
+              sceneEl;
+            const ev = new PointerEvent("pointermove", {
+              clientX: smoothX,
+              clientY: smoothY,
+              bubbles: true,
+              cancelable: true,
+              pointerType: "mouse",
+              isPrimary: true,
+            });
+            (canvas as HTMLElement).dispatchEvent(ev);
+            // También mousemove por compatibilidad
+            const me = new MouseEvent("mousemove", {
+              clientX: smoothX,
+              clientY: smoothY,
+              bubbles: true,
+              cancelable: true,
+            });
+            (canvas as HTMLElement).dispatchEvent(me);
+
+            onStatus("tracking");
+          } else if (now - lastFaceAt > NO_FACE_TIMEOUT_MS) {
+            // Sin cara → no inyectamos eventos, ratón nativo toma control
+            hasTargetOnce = false;
+            onStatus("no-face");
+          }
+
+          raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      } catch (err) {
+        console.error("[FaceControl] error:", err);
+        if (!cancelled) onStatus("error");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      if (landmarker?.close) {
+        try { landmarker.close(); } catch { /* noop */ }
+      }
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+      }
+      const v = videoRef.current;
+      if (v) {
+        try { v.pause(); } catch { /* noop */ }
+        v.srcObject = null;
+      }
+      onStatus("idle");
+    };
+  }, [enabled, sceneRef, videoRef, onStatus]);
+}
+
 /* ══════════════════════════════════════════════════ */
+
 
 function OrbitButton({
   orbitClass,
