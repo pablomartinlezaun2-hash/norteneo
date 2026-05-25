@@ -361,8 +361,12 @@ Deno.serve(async (req) => {
     );
   }
 
+  const { data: signedFresh } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(objectPath, SIGNED_URL_TTL);
+
   return new Response(
-    JSON.stringify({ audioUrl: publicUrl, cached: false, script }),
+    JSON.stringify({ audioUrl: signedFresh?.signedUrl ?? null, cached: false, script }),
     {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
