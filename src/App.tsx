@@ -18,7 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import SolarLauncher from "./pages/SolarLauncher";
 import Landing from "./pages/Landing";
 import AdminWhatsAppTest from "./pages/AdminWhatsAppTest";
-import NeoGLBLab from "./pages/NeoGLBLab";
+
 
 const queryClient = new QueryClient();
 
