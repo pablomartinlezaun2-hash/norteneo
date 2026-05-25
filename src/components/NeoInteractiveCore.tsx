@@ -43,6 +43,18 @@ export default function NeoInteractiveCore({
   onAccess,
 }: Props) {
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
+  const [faceOn, setFaceOn] = useState(false);
+  const [faceStatus, setFaceStatus] = useState<"idle" | "loading" | "tracking" | "no-face" | "error">("idle");
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Face tracking lifecycle
+  useFaceHeadControl({
+    enabled: faceOn,
+    sceneRef,
+    videoRef,
+    onStatus: setFaceStatus,
+  });
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
