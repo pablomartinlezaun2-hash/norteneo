@@ -170,12 +170,12 @@ export function usePoseBodyControl(enabled: boolean) {
               // Robot's RIGHT bone gets user's LEFT
               const robotRightArmZ = -clamp(userLeftLift, 0, deg(150)); // negative Z raises right arm outward
               const robotRightArmX = -clamp(userLeftLift * 0.25, 0, deg(45));
-              const robotRightForeX = -clamp(Math.PI - uLflex, 0, deg(130));
+              const robotRightForeX = clamp(Math.PI - uLflex, 0, deg(130));
 
               // Robot's LEFT bone gets user's RIGHT
               const robotLeftArmZ = clamp(userRightLift, 0, deg(150));
               const robotLeftArmX = -clamp(userRightLift * 0.25, 0, deg(45));
-              const robotLeftForeX = -clamp(Math.PI - uRflex, 0, deg(130));
+              const robotLeftForeX = clamp(Math.PI - uRflex, 0, deg(130));
 
               targetsRef.current = {
                 head: { pitch: headPitch, yaw: headYaw },
