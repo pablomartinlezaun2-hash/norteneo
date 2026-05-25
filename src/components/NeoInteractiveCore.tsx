@@ -46,6 +46,7 @@ export default function NeoInteractiveCore({
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
   const [faceOn, setFaceOn] = useState(false);
   const [faceStatus, setFaceStatus] = useState<"idle" | "loading" | "tracking" | "no-face" | "error">("idle");
+  const [faceSensitivity, setFaceSensitivity] = useState(2.0);
   const sceneRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -55,6 +56,7 @@ export default function NeoInteractiveCore({
     sceneRef,
     videoRef,
     onStatus: setFaceStatus,
+    sensitivity: faceSensitivity,
   });
 
   useEffect(() => {
