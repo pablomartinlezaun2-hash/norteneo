@@ -284,8 +284,10 @@ function useFaceHeadControl({
 
             // Mapear al canvas: cursor virtual alrededor del centro
             const rect = sceneEl.getBoundingClientRect();
-            const targetX = rect.left + rect.width * (0.5 + faceX * FACE_RANGE_X);
-            const targetY = rect.top + rect.height * (0.5 + faceY * FACE_RANGE_Y);
+            const effRangeX = FACE_RANGE_X * sensitivity;
+            const effRangeY = FACE_RANGE_Y * sensitivity;
+            const targetX = rect.left + rect.width * (0.5 + faceX * effRangeX);
+            const targetY = rect.top + rect.height * (0.5 + faceY * effRangeY);
 
             if (!hasTargetOnce) {
               smoothX = targetX;
