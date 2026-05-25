@@ -1209,6 +1209,34 @@ const styles = `
   .preview{ min-width: 170px; max-width: 200px }
 }
 
+/* ── Body Control hand overlays ── */
+.neo-hand-overlay{
+  position: absolute;
+  width: 90px; height: 90px;
+  top: 62%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity .5s var(--ease), box-shadow .4s var(--ease);
+  will-change: transform, opacity;
+  background: radial-gradient(circle at 50% 50%, rgba(95,247,176,0.32) 0%, rgba(95,247,176,0.12) 35%, transparent 70%);
+  filter: blur(2px);
+  mix-blend-mode: screen;
+}
+.neo-hand-left{ left: 22%; transform: translate3d(0,0,0); }
+.neo-hand-right{ right: 22%; transform: translate3d(0,0,0); }
+.neo-hand-overlay.is-on{ opacity: .55; }
+.neo-hand-overlay.is-on.is-active{
+  opacity: .85;
+  box-shadow: 0 0 28px rgba(95,247,176,0.35);
+}
+@media (max-width: 780px){
+  .neo-hand-overlay{ width: 64px; height: 64px; top: 60%; }
+  .neo-hand-left{ left: 14%; }
+  .neo-hand-right{ right: 14%; }
+}
+
 @media (prefers-reduced-motion: reduce){
   .neo-stage *, .neo-stage *::before, .neo-stage *::after{
     animation-duration: .01ms !important; animation-iteration-count: 1 !important;
