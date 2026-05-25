@@ -19,9 +19,17 @@
  *   <NeoInteractiveCore onAccess={() => navigate("/app")} />
  * ────────────────────────────────────────────────────────────── */
 
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 
 const Spline = lazy(() => import("@splinetool/react-spline"));
+
+/* ── Face tracking config ─────────────────────────────────── */
+// Rango del "cursor virtual" alrededor del centro del canvas.
+// Limita la rotación equivalente del modelo Spline a ~±18° H / ±10° V.
+const FACE_RANGE_X = 0.25; // 25% del ancho desde el centro
+const FACE_RANGE_Y = 0.15; // 15% del alto desde el centro
+const SMOOTHING = 0.18;    // 0..1 (más alto = más reactivo, menos suave)
+const NO_FACE_TIMEOUT_MS = 350; // si no hay cara → ratón toma control
 
 type OrbitKey = "progreso" | "entrenamientos" | "nutricion" | "red-neuronal";
 
@@ -35,6 +43,18 @@ export default function NeoInteractiveCore({
   onAccess,
 }: Props) {
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
+  const [faceOn, setFaceOn] = useState(false);
+  const [faceStatus, setFaceStatus] = useState<"idle" | "loading" | "tracking" | "no-face" | "error">("idle");
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Face tracking lifecycle
+  useFaceHeadControl({
+    enabled: faceOn,
+    sceneRef,
+    videoRef,
+    onStatus: setFaceStatus,
+  });
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -55,13 +75,46 @@ export default function NeoInteractiveCore({
       <style>{styles}</style>
 
       {/* ── ESCENA 3D ── */}
-      <div className="neo-scene">
+      <div className="neo-scene" ref={sceneRef}>
         <Suspense fallback={<div className="neo-loader" />}>
           <Spline scene={sceneUrl} style={{ width: "100%", height: "100%" }} />
         </Suspense>
         <div className="neo-chest-logo">NEO</div>
         <div className="neo-spline-mask" />
       </div>
+
+      {/* ── Vídeo oculto para face tracking ── */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", left: -9999 }}
+      />
+
+      {/* ── Botón Face Control (discreto) ── */}
+      <button
+        type="button"
+        className={`neo-face-toggle ${faceOn ? "is-on" : ""}`}
+        onClick={() => setFaceOn((v) => !v)}
+        aria-pressed={faceOn}
+        title={faceOn ? "Desactivar Face Control" : "Activar Face Control"}
+      >
+        <span className={`neo-face-toggle__dot status-${faceStatus}`} />
+        <span>Face Control</span>
+        <span className="neo-face-toggle__state">
+          {faceOn
+            ? faceStatus === "loading"
+              ? "iniciando…"
+              : faceStatus === "tracking"
+              ? "activo"
+              : faceStatus === "no-face"
+              ? "sin cara · ratón"
+              : faceStatus === "error"
+              ? "error"
+              : "on"
+            : "off"}
+        </span>
+      </button>
 
       {/* ── NAVBAR SUPERIOR (los 4 botones juntos) ── */}
       <div className="neo-nav">
@@ -119,7 +172,185 @@ export default function NeoInteractiveCore({
   );
 }
 
+/* ══════════════════════════════════════════════════
+ * useFaceHeadControl
+ * ──────────────────────────────────────────────────
+ * Capa intermedia `headControlPosition`:
+ *   - Spline rota la cabeza siguiendo el puntero sobre el canvas.
+ *   - Cuando Face Control está ON y hay cara detectada, sintetizamos
+ *     eventos `pointermove` en el canvas con coords derivadas del
+ *     centro de la cara (nariz).  → headControlPosition = face
+ *   - Cuando está OFF o no hay cara, NO inyectamos eventos; el ratón
+ *     real llega a Spline como siempre. → headControlPosition = mouse
+ * ══════════════════════════════════════════════════ */
+function useFaceHeadControl({
+  enabled,
+  sceneRef,
+  videoRef,
+  onStatus,
+}: {
+  enabled: boolean;
+  sceneRef: React.RefObject<HTMLDivElement>;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  onStatus: (s: "idle" | "loading" | "tracking" | "no-face" | "error") => void;
+}) {
+  useEffect(() => {
+    if (!enabled) {
+      onStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    let raf = 0;
+    let landmarker: any = null;
+    let lastFaceAt = 0;
+    // Posición suavizada del "cursor virtual" en coords del canvas (px)
+    let smoothX = 0;
+    let smoothY = 0;
+    let hasTargetOnce = false;
+
+    onStatus("loading");
+
+    (async () => {
+      try {
+        // 1) Cámara
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 320, height: 240, facingMode: "user" },
+          audio: false,
+        });
+        if (cancelled) return;
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await video.play();
+
+        // 2) MediaPipe FaceLandmarker (WASM desde CDN)
+        const vision = await import("@mediapipe/tasks-vision");
+        const fileset = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm"
+        );
+        landmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+            delegate: "GPU",
+          },
+          runningMode: "VIDEO",
+          numFaces: 1,
+        });
+
+        if (cancelled) return;
+        onStatus("tracking");
+
+        // 3) Loop de detección
+        const tick = () => {
+          if (cancelled) return;
+          const v = videoRef.current;
+          const sceneEl = sceneRef.current;
+          if (!v || !sceneEl || v.readyState < 2) {
+            raf = requestAnimationFrame(tick);
+            return;
+          }
+
+          const now = performance.now();
+          let result: any = null;
+          try {
+            result = landmarker.detectForVideo(v, now);
+          } catch {
+            /* ignore frame */
+          }
+
+          const lm = result?.faceLandmarks?.[0];
+          // Nariz: landmark 1 (tip of nose) en FaceLandmarker
+          const nose = lm?.[1];
+
+          if (nose) {
+            lastFaceAt = now;
+            // Espejo horizontal (cámara front)
+            const nx = 1 - nose.x; // 0..1
+            const ny = nose.y;     // 0..1
+            // Normalizar a -1..1 con zona muerta suave alrededor del centro
+            let faceX = (nx - 0.5) * 2;
+            let faceY = (ny - 0.5) * 2;
+            // Clamp -1..1
+            faceX = Math.max(-1, Math.min(1, faceX));
+            faceY = Math.max(-1, Math.min(1, faceY));
+
+            // Mapear al canvas: cursor virtual alrededor del centro
+            const rect = sceneEl.getBoundingClientRect();
+            const targetX = rect.left + rect.width * (0.5 + faceX * FACE_RANGE_X);
+            const targetY = rect.top + rect.height * (0.5 + faceY * FACE_RANGE_Y);
+
+            if (!hasTargetOnce) {
+              smoothX = targetX;
+              smoothY = targetY;
+              hasTargetOnce = true;
+            } else {
+              smoothX += (targetX - smoothX) * SMOOTHING;
+              smoothY += (targetY - smoothY) * SMOOTHING;
+            }
+
+            // Sintetizar pointermove sobre el canvas de Spline
+            const canvas =
+              sceneEl.querySelector("canvas") ??
+              (sceneEl.querySelector("iframe") as HTMLElement | null) ??
+              sceneEl;
+            const ev = new PointerEvent("pointermove", {
+              clientX: smoothX,
+              clientY: smoothY,
+              bubbles: true,
+              cancelable: true,
+              pointerType: "mouse",
+              isPrimary: true,
+            });
+            (canvas as HTMLElement).dispatchEvent(ev);
+            // También mousemove por compatibilidad
+            const me = new MouseEvent("mousemove", {
+              clientX: smoothX,
+              clientY: smoothY,
+              bubbles: true,
+              cancelable: true,
+            });
+            (canvas as HTMLElement).dispatchEvent(me);
+
+            onStatus("tracking");
+          } else if (now - lastFaceAt > NO_FACE_TIMEOUT_MS) {
+            // Sin cara → no inyectamos eventos, ratón nativo toma control
+            hasTargetOnce = false;
+            onStatus("no-face");
+          }
+
+          raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      } catch (err) {
+        console.error("[FaceControl] error:", err);
+        if (!cancelled) onStatus("error");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      if (landmarker?.close) {
+        try { landmarker.close(); } catch { /* noop */ }
+      }
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+      }
+      const v = videoRef.current;
+      if (v) {
+        try { v.pause(); } catch { /* noop */ }
+        v.srcObject = null;
+      }
+      onStatus("idle");
+    };
+  }, [enabled, sceneRef, videoRef, onStatus]);
+}
+
 /* ══════════════════════════════════════════════════ */
+
 
 function OrbitButton({
   orbitClass,
@@ -598,7 +829,48 @@ const styles = `
   .orbit--red-neuronal:hover .preview, .orbit--red-neuronal.is-active .preview{ transform: translate(0, 0) }
 
   .neo-cta{ padding: 13px 24px; font-size: 13.5px; bottom: calc(env(safe-area-inset-bottom, 0px) + 4%) }
+  .neo-face-toggle{ left: 12px; bottom: 12px; padding: 7px 11px; font-size: 9.5px }
+  .neo-face-toggle__state{ display: none }
 }
+
+/* ── Face Control toggle ── */
+.neo-face-toggle{
+  position: absolute; z-index: 12;
+  left: 18px; bottom: 18px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--fg);
+  background: rgba(10,12,18,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: all .3s var(--ease);
+  opacity: 0; animation: neoNavIn 1s var(--ease) 1.4s forwards;
+}
+.neo-face-toggle:hover{
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(18,21,28,0.85);
+}
+.neo-face-toggle.is-on{
+  border-color: rgba(95,247,176,0.45);
+  box-shadow: 0 0 0 1px rgba(95,247,176,0.25), 0 10px 30px rgba(0,0,0,0.5);
+}
+.neo-face-toggle__dot{
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4E535F; box-shadow: 0 0 6px transparent;
+  transition: all .3s var(--ease);
+}
+.neo-face-toggle__dot.status-loading{ background: #FFB547; box-shadow: 0 0 8px #FFB547; animation: neoPulseDot 1.2s ease-in-out infinite }
+.neo-face-toggle__dot.status-tracking{ background: #5FF7B0; box-shadow: 0 0 10px #5FF7B0 }
+.neo-face-toggle__dot.status-no-face{ background: #FFB547; box-shadow: 0 0 8px #FFB547 }
+.neo-face-toggle__dot.status-error{ background: #FF5F6D; box-shadow: 0 0 8px #FF5F6D }
+.neo-face-toggle__state{
+  color: var(--fg-dim); font-size: 9px; letter-spacing: .14em;
+}
+
+
 
 @media (max-width: 380px){
   .pill{ padding: 6px 9px 6px 8px; font-size: 8.5px }
