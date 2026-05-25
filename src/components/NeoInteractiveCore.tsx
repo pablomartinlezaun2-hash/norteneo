@@ -46,7 +46,7 @@ export default function NeoInteractiveCore({
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
   const [faceOn, setFaceOn] = useState(false);
   const [faceStatus, setFaceStatus] = useState<"idle" | "loading" | "tracking" | "no-face" | "error">("idle");
-  const [faceSensitivity, setFaceSensitivity] = useState(2.0);
+  const [faceSensitivity, setFaceSensitivity] = useState(8.0);
   const sceneRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -126,8 +126,8 @@ export default function NeoInteractiveCore({
             <input
               type="range"
               min={0.5}
-              max={4.0}
-              step={0.1}
+              max={20.0}
+              step={0.5}
               value={faceSensitivity}
               onChange={(e) => setFaceSensitivity(parseFloat(e.target.value))}
               aria-label="Sensibilidad del face tracking"
