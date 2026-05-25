@@ -485,11 +485,11 @@ function useHandsBodyControl({
     let lastHandsAt = 0;
     const NO_HANDS_TIMEOUT_MS = 500;
 
-    // Límites suaves (respuesta sutil)
-    const MAX_OFFSET_X = 12; // px
-    const MAX_OFFSET_Y = 12; // px
-    const MAX_ROT = 6; // deg
-    const LERP = 0.12;
+    // Rango amplio: brazos "totalmente arriba" cuando la mano del usuario sube
+    const MAX_OFFSET_X = 40; // px
+    const MAX_OFFSET_Y = 280; // px (negativo = arriba; brazos totalmente alzados)
+    const MAX_ROT = 20; // deg
+    const LERP = 0.18;
 
     type S = { x: number; y: number; r: number; tx: number; ty: number; tr: number; hasTarget: boolean };
     const left: S = { x: 0, y: 0, r: 0, tx: 0, ty: 0, tr: 0, hasTarget: false };
