@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { supabase } from '@/integrations/supabase/client';
-import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Trash2, Play, Sparkles } from 'lucide-react';
+import { User, LogOut, ChevronRight, Bell, Scale, Heart, Crown, Trash2, Play, Sparkles, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ThemeSelector } from './ThemeSelector';
