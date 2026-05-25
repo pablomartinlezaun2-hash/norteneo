@@ -75,13 +75,46 @@ export default function NeoInteractiveCore({
       <style>{styles}</style>
 
       {/* ── ESCENA 3D ── */}
-      <div className="neo-scene">
+      <div className="neo-scene" ref={sceneRef}>
         <Suspense fallback={<div className="neo-loader" />}>
           <Spline scene={sceneUrl} style={{ width: "100%", height: "100%" }} />
         </Suspense>
         <div className="neo-chest-logo">NEO</div>
         <div className="neo-spline-mask" />
       </div>
+
+      {/* ── Vídeo oculto para face tracking ── */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", left: -9999 }}
+      />
+
+      {/* ── Botón Face Control (discreto) ── */}
+      <button
+        type="button"
+        className={`neo-face-toggle ${faceOn ? "is-on" : ""}`}
+        onClick={() => setFaceOn((v) => !v)}
+        aria-pressed={faceOn}
+        title={faceOn ? "Desactivar Face Control" : "Activar Face Control"}
+      >
+        <span className={`neo-face-toggle__dot status-${faceStatus}`} />
+        <span>Face Control</span>
+        <span className="neo-face-toggle__state">
+          {faceOn
+            ? faceStatus === "loading"
+              ? "iniciando…"
+              : faceStatus === "tracking"
+              ? "activo"
+              : faceStatus === "no-face"
+              ? "sin cara · ratón"
+              : faceStatus === "error"
+              ? "error"
+              : "on"
+            : "off"}
+        </span>
+      </button>
 
       {/* ── NAVBAR SUPERIOR (los 4 botones juntos) ── */}
       <div className="neo-nav">
