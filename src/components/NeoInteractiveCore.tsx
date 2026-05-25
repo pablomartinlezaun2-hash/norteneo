@@ -25,7 +25,8 @@ const Spline = lazy(() => import("@splinetool/react-spline"));
 
 /* ── Face tracking config ─────────────────────────────────── */
 // Rango del "cursor virtual" alrededor del centro del canvas.
-// Limita la rotación equivalente del modelo Spline a ~±18° H / ±10° V.
+// Limita la rotación equivalente del modelo Spline a ~±18° H / ±10° V
+// (multiplicado por sensitivity ajustable por el usuario).
 const FACE_RANGE_X = 0.25; // 25% del ancho desde el centro
 const FACE_RANGE_Y = 0.15; // 15% del alto desde el centro
 const SMOOTHING = 0.18;    // 0..1 (más alto = más reactivo, menos suave)
@@ -45,6 +46,7 @@ export default function NeoInteractiveCore({
   const [activeKey, setActiveKey] = useState<OrbitKey | null>(null);
   const [faceOn, setFaceOn] = useState(false);
   const [faceStatus, setFaceStatus] = useState<"idle" | "loading" | "tracking" | "no-face" | "error">("idle");
+  const [faceSensitivity, setFaceSensitivity] = useState(2.0);
   const sceneRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -54,6 +56,7 @@ export default function NeoInteractiveCore({
     sceneRef,
     videoRef,
     onStatus: setFaceStatus,
+    sensitivity: faceSensitivity,
   });
 
   useEffect(() => {
@@ -91,30 +94,48 @@ export default function NeoInteractiveCore({
         style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", left: -9999 }}
       />
 
-      {/* ── Botón Face Control (discreto) ── */}
-      <button
-        type="button"
-        className={`neo-face-toggle ${faceOn ? "is-on" : ""}`}
-        onClick={() => setFaceOn((v) => !v)}
-        aria-pressed={faceOn}
-        title={faceOn ? "Desactivar Face Control" : "Activar Face Control"}
-      >
-        <span className={`neo-face-toggle__dot status-${faceStatus}`} />
-        <span>Face Control</span>
-        <span className="neo-face-toggle__state">
-          {faceOn
-            ? faceStatus === "loading"
-              ? "iniciando…"
-              : faceStatus === "tracking"
-              ? "activo"
-              : faceStatus === "no-face"
-              ? "sin cara · ratón"
-              : faceStatus === "error"
-              ? "error"
-              : "on"
-            : "off"}
-        </span>
-      </button>
+      {/* ── Botón Face Control + sensibilidad (discreto) ── */}
+      <div className="neo-face-control">
+        <button
+          type="button"
+          className={`neo-face-toggle ${faceOn ? "is-on" : ""}`}
+          onClick={() => setFaceOn((v) => !v)}
+          aria-pressed={faceOn}
+          title={faceOn ? "Desactivar Face Control" : "Activar Face Control"}
+        >
+          <span className={`neo-face-toggle__dot status-${faceStatus}`} />
+          <span>Face Control</span>
+          <span className="neo-face-toggle__state">
+            {faceOn
+              ? faceStatus === "loading"
+                ? "iniciando…"
+                : faceStatus === "tracking"
+                ? "activo"
+                : faceStatus === "no-face"
+                ? "sin cara · ratón"
+                : faceStatus === "error"
+                ? "error"
+                : "on"
+              : "off"}
+          </span>
+        </button>
+
+        {faceOn && (
+          <div className="neo-face-sens">
+            <span className="neo-face-sens__label">Sens.</span>
+            <input
+              type="range"
+              min={0.5}
+              max={4.0}
+              step={0.1}
+              value={faceSensitivity}
+              onChange={(e) => setFaceSensitivity(parseFloat(e.target.value))}
+              aria-label="Sensibilidad del face tracking"
+            />
+            <span className="neo-face-sens__val">{faceSensitivity.toFixed(1)}×</span>
+          </div>
+        )}
+      </div>
 
       {/* ── NAVBAR SUPERIOR (los 4 botones juntos) ── */}
       <div className="neo-nav">
@@ -188,11 +209,13 @@ function useFaceHeadControl({
   sceneRef,
   videoRef,
   onStatus,
+  sensitivity,
 }: {
   enabled: boolean;
   sceneRef: React.RefObject<HTMLDivElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
   onStatus: (s: "idle" | "loading" | "tracking" | "no-face" | "error") => void;
+  sensitivity: number;
 }) {
   useEffect(() => {
     if (!enabled) {
@@ -279,8 +302,10 @@ function useFaceHeadControl({
 
             // Mapear al canvas: cursor virtual alrededor del centro
             const rect = sceneEl.getBoundingClientRect();
-            const targetX = rect.left + rect.width * (0.5 + faceX * FACE_RANGE_X);
-            const targetY = rect.top + rect.height * (0.5 + faceY * FACE_RANGE_Y);
+            const effRangeX = FACE_RANGE_X * sensitivity;
+            const effRangeY = FACE_RANGE_Y * sensitivity;
+            const targetX = rect.left + rect.width * (0.5 + faceX * effRangeX);
+            const targetY = rect.top + rect.height * (0.5 + faceY * effRangeY);
 
             if (!hasTargetOnce) {
               smoothX = targetX;
@@ -829,14 +854,21 @@ const styles = `
   .orbit--red-neuronal:hover .preview, .orbit--red-neuronal.is-active .preview{ transform: translate(0, 0) }
 
   .neo-cta{ padding: 13px 24px; font-size: 13.5px; bottom: calc(env(safe-area-inset-bottom, 0px) + 4%) }
-  .neo-face-toggle{ left: 12px; bottom: 12px; padding: 7px 11px; font-size: 9.5px }
+  .neo-face-control{ left: 12px; bottom: 12px; }
+  .neo-face-toggle{ padding: 7px 11px; font-size: 9.5px }
   .neo-face-toggle__state{ display: none }
+  .neo-face-sens{ padding: 6px 10px; }
+  .neo-face-sens input[type="range"]{ width: 70px; }
 }
 
 /* ── Face Control toggle ── */
-.neo-face-toggle{
+.neo-face-control{
   position: absolute; z-index: 12;
   left: 18px; bottom: 18px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  opacity: 0; animation: neoNavIn 1s var(--ease) 1.4s forwards;
+}
+.neo-face-toggle{
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 14px;
   border-radius: 999px;
@@ -847,7 +879,6 @@ const styles = `
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   cursor: pointer;
   transition: all .3s var(--ease);
-  opacity: 0; animation: neoNavIn 1s var(--ease) 1.4s forwards;
 }
 .neo-face-toggle:hover{
   border-color: rgba(255,255,255,0.22);
@@ -868,6 +899,45 @@ const styles = `
 .neo-face-toggle__dot.status-error{ background: #FF5F6D; box-shadow: 0 0 8px #FF5F6D }
 .neo-face-toggle__state{
   color: var(--fg-dim); font-size: 9px; letter-spacing: .14em;
+}
+
+/* ── Sensitivity slider ── */
+.neo-face-sens{
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(10,12,18,0.45);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+  color: var(--fg-dim);
+  animation: neoFade .3s var(--ease) forwards;
+}
+.neo-face-sens__label{ white-space: nowrap; }
+.neo-face-sens__val{ min-width: 26px; text-align: right; color: var(--fg); }
+.neo-face-sens input[type="range"]{
+  -webkit-appearance: none; appearance: none;
+  width: 90px; height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  outline: none; cursor: pointer;
+}
+.neo-face-sens input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(95,247,176,0.5);
+  border: 2px solid #0A0B10;
+  transition: transform .15s var(--ease);
+}
+.neo-face-sens input[type="range"]::-webkit-slider-thumb:hover{ transform: scale(1.15); }
+.neo-face-sens input[type="range"]::-moz-range-thumb{
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(95,247,176,0.5);
+  border: 2px solid #0A0B10;
+  cursor: pointer;
 }
 
 
