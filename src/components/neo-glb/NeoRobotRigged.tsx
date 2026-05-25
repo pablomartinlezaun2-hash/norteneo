@@ -19,7 +19,7 @@ export type RobotBones = {
   rightHand: THREE.Group;
 };
 
-const BLACK = '#0a0a0a';
+const BLACK = '#1a1a2e';
 const ACCENT = '#3b82f6';
 
 const bodyMat = (
