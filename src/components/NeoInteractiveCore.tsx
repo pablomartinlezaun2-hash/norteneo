@@ -126,8 +126,8 @@ export default function NeoInteractiveCore({
             <input
               type="range"
               min={0.5}
-              max={4.0}
-              step={0.1}
+              max={20.0}
+              step={0.5}
               value={faceSensitivity}
               onChange={(e) => setFaceSensitivity(parseFloat(e.target.value))}
               aria-label="Sensibilidad del face tracking"
