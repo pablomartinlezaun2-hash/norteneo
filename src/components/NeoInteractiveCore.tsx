@@ -829,7 +829,48 @@ const styles = `
   .orbit--red-neuronal:hover .preview, .orbit--red-neuronal.is-active .preview{ transform: translate(0, 0) }
 
   .neo-cta{ padding: 13px 24px; font-size: 13.5px; bottom: calc(env(safe-area-inset-bottom, 0px) + 4%) }
+  .neo-face-toggle{ left: 12px; bottom: 12px; padding: 7px 11px; font-size: 9.5px }
+  .neo-face-toggle__state{ display: none }
 }
+
+/* ── Face Control toggle ── */
+.neo-face-toggle{
+  position: absolute; z-index: 12;
+  left: 18px; bottom: 18px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--fg);
+  background: rgba(10,12,18,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: all .3s var(--ease);
+  opacity: 0; animation: neoNavIn 1s var(--ease) 1.4s forwards;
+}
+.neo-face-toggle:hover{
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(18,21,28,0.85);
+}
+.neo-face-toggle.is-on{
+  border-color: rgba(95,247,176,0.45);
+  box-shadow: 0 0 0 1px rgba(95,247,176,0.25), 0 10px 30px rgba(0,0,0,0.5);
+}
+.neo-face-toggle__dot{
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4E535F; box-shadow: 0 0 6px transparent;
+  transition: all .3s var(--ease);
+}
+.neo-face-toggle__dot.status-loading{ background: #FFB547; box-shadow: 0 0 8px #FFB547; animation: neoPulseDot 1.2s ease-in-out infinite }
+.neo-face-toggle__dot.status-tracking{ background: #5FF7B0; box-shadow: 0 0 10px #5FF7B0 }
+.neo-face-toggle__dot.status-no-face{ background: #FFB547; box-shadow: 0 0 8px #FFB547 }
+.neo-face-toggle__dot.status-error{ background: #FF5F6D; box-shadow: 0 0 8px #FF5F6D }
+.neo-face-toggle__state{
+  color: var(--fg-dim); font-size: 9px; letter-spacing: .14em;
+}
+
+
 
 @media (max-width: 380px){
   .pill{ padding: 6px 9px 6px 8px; font-size: 8.5px }
