@@ -191,11 +191,13 @@ function useFaceHeadControl({
   sceneRef,
   videoRef,
   onStatus,
+  sensitivity,
 }: {
   enabled: boolean;
   sceneRef: React.RefObject<HTMLDivElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
   onStatus: (s: "idle" | "loading" | "tracking" | "no-face" | "error") => void;
+  sensitivity: number;
 }) {
   useEffect(() => {
     if (!enabled) {
