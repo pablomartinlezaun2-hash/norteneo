@@ -859,9 +859,13 @@ const styles = `
 }
 
 /* ── Face Control toggle ── */
-.neo-face-toggle{
+.neo-face-control{
   position: absolute; z-index: 12;
   left: 18px; bottom: 18px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  opacity: 0; animation: neoNavIn 1s var(--ease) 1.4s forwards;
+}
+.neo-face-toggle{
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 14px;
   border-radius: 999px;
@@ -872,7 +876,6 @@ const styles = `
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   cursor: pointer;
   transition: all .3s var(--ease);
-  opacity: 0; animation: neoNavIn 1s var(--ease) 1.4s forwards;
 }
 .neo-face-toggle:hover{
   border-color: rgba(255,255,255,0.22);
@@ -893,6 +896,45 @@ const styles = `
 .neo-face-toggle__dot.status-error{ background: #FF5F6D; box-shadow: 0 0 8px #FF5F6D }
 .neo-face-toggle__state{
   color: var(--fg-dim); font-size: 9px; letter-spacing: .14em;
+}
+
+/* ── Sensitivity slider ── */
+.neo-face-sens{
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(10,12,18,0.45);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+  color: var(--fg-dim);
+  animation: neoFade .3s var(--ease) forwards;
+}
+.neo-face-sens__label{ white-space: nowrap; }
+.neo-face-sens__val{ min-width: 26px; text-align: right; color: var(--fg); }
+.neo-face-sens input[type="range"]{
+  -webkit-appearance: none; appearance: none;
+  width: 90px; height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  outline: none; cursor: pointer;
+}
+.neo-face-sens input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(95,247,176,0.5);
+  border: 2px solid #0A0B10;
+  transition: transform .15s var(--ease);
+}
+.neo-face-sens input[type="range"]::-webkit-slider-thumb:hover{ transform: scale(1.15); }
+.neo-face-sens input[type="range"]::-moz-range-thumb{
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(95,247,176,0.5);
+  border: 2px solid #0A0B10;
+  cursor: pointer;
 }
 
 
