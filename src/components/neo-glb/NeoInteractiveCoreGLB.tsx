@@ -48,7 +48,11 @@ function RiggedScene({
     b.rightForeArm.rotation.x = THREE.MathUtils.lerp(b.rightForeArm.rotation.x, t.rightForeArm.x, LERP);
   });
 
-  return <NeoRobotRigged ref={bonesRef} />;
+  return (
+    <group scale={1.9} position={[0, -0.3, 0]}>
+      <NeoRobotRigged ref={bonesRef} />
+    </group>
+  );
 }
 
 const StatusBadge = ({ status }: { status: PoseStatus }) => {
