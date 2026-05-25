@@ -19,9 +19,17 @@
  *   <NeoInteractiveCore onAccess={() => navigate("/app")} />
  * ────────────────────────────────────────────────────────────── */
 
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 
 const Spline = lazy(() => import("@splinetool/react-spline"));
+
+/* ── Face tracking config ─────────────────────────────────── */
+// Rango del "cursor virtual" alrededor del centro del canvas.
+// Limita la rotación equivalente del modelo Spline a ~±18° H / ±10° V.
+const FACE_RANGE_X = 0.25; // 25% del ancho desde el centro
+const FACE_RANGE_Y = 0.15; // 15% del alto desde el centro
+const SMOOTHING = 0.18;    // 0..1 (más alto = más reactivo, menos suave)
+const NO_FACE_TIMEOUT_MS = 350; // si no hay cara → ratón toma control
 
 type OrbitKey = "progreso" | "entrenamientos" | "nutricion" | "red-neuronal";
 
