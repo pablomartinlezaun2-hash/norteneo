@@ -97,12 +97,35 @@ export default function NeoInteractiveCore({
           <Spline scene={sceneUrl} style={{ width: "100%", height: "100%" }} />
         </Suspense>
         <div className="neo-chest-logo">NEO</div>
+
+        {/* ── Overlays de manos (Body Control) ── */}
+        <div
+          ref={leftHandRef}
+          className={`neo-hand-overlay neo-hand-left ${bodyOn ? "is-on" : ""} ${
+            bodyStatus === "tracking" ? "is-active" : ""
+          }`}
+          aria-hidden="true"
+        />
+        <div
+          ref={rightHandRef}
+          className={`neo-hand-overlay neo-hand-right ${bodyOn ? "is-on" : ""} ${
+            bodyStatus === "tracking" ? "is-active" : ""
+          }`}
+          aria-hidden="true"
+        />
+
         <div className="neo-spline-mask" />
       </div>
 
-      {/* ── Vídeo oculto para face tracking ── */}
+      {/* ── Vídeos ocultos ── */}
       <video
         ref={videoRef}
+        playsInline
+        muted
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", left: -9999 }}
+      />
+      <video
+        ref={bodyVideoRef}
         playsInline
         muted
         style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", left: -9999 }}
@@ -133,6 +156,35 @@ export default function NeoInteractiveCore({
               : "off"}
           </span>
         </button>
+
+        <button
+          type="button"
+          className={`neo-face-toggle ${bodyOn ? "is-on" : ""}`}
+          onClick={() => setBodyOn((v) => !v)}
+          aria-pressed={bodyOn}
+          title={bodyOn ? "Desactivar Body Control" : "Activar Body Control"}
+        >
+          <span
+            className={`neo-face-toggle__dot status-${
+              bodyStatus === "no-hands" ? "no-face" : bodyStatus
+            }`}
+          />
+          <span>Body Control</span>
+          <span className="neo-face-toggle__state">
+            {bodyOn
+              ? bodyStatus === "loading"
+                ? "iniciando…"
+                : bodyStatus === "tracking"
+                ? "activo"
+                : bodyStatus === "no-hands"
+                ? "buscando manos…"
+                : bodyStatus === "error"
+                ? "error"
+                : "on"
+              : "off"}
+          </span>
+        </button>
+
 
         {faceOn && (
           <div className="neo-face-sens">
