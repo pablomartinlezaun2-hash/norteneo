@@ -567,12 +567,16 @@ function useHandsBodyControl({
                 const dx = mx - wx;
                 const dy = my - wy;
                 rot = Math.atan2(dx, -dy) * (180 / Math.PI); // 0 = arriba
-                rot = Math.max(-MAX_ROT, Math.min(MAX_ROT, rot * 0.25));
+                rot = Math.max(-MAX_ROT, Math.min(MAX_ROT, rot * 0.6));
               }
 
-              // Offset acotado (sutil)
-              const tx = Math.max(-1, Math.min(1, nx * 1.5)) * MAX_OFFSET_X;
-              const ty = Math.max(-1, Math.min(1, ny * 1.5)) * MAX_OFFSET_Y;
+              // X: desplazamiento lateral sutil
+              const tx = Math.max(-1, Math.min(1, nx * 1.2)) * MAX_OFFSET_X;
+              // Y: mapeo 0..1 (arriba..abajo del frame) → brazos arriba (negativo) cuando wy < 0.5
+              // wy=0 (mano arriba del frame) → -MAX_OFFSET_Y (brazo totalmente alzado)
+              // wy=0.5+ (mano a la altura del pecho/abajo) → 0 (reposo)
+              const upFactor = Math.max(0, Math.min(1, (0.55 - wy) / 0.55));
+              const ty = -upFactor * MAX_OFFSET_Y;
 
               // Mano en mitad derecha del frame espejado → overlay derecho
               const side: S = wx > 0.5 ? right : left;
