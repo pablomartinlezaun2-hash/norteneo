@@ -854,8 +854,11 @@ const styles = `
   .orbit--red-neuronal:hover .preview, .orbit--red-neuronal.is-active .preview{ transform: translate(0, 0) }
 
   .neo-cta{ padding: 13px 24px; font-size: 13.5px; bottom: calc(env(safe-area-inset-bottom, 0px) + 4%) }
-  .neo-face-toggle{ left: 12px; bottom: 12px; padding: 7px 11px; font-size: 9.5px }
+  .neo-face-control{ left: 12px; bottom: 12px; }
+  .neo-face-toggle{ padding: 7px 11px; font-size: 9.5px }
   .neo-face-toggle__state{ display: none }
+  .neo-face-sens{ padding: 6px 10px; }
+  .neo-face-sens input[type="range"]{ width: 70px; }
 }
 
 /* ── Face Control toggle ── */
