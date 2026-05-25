@@ -226,16 +226,6 @@ export const ProfileSection = ({ onRestartTour }: ProfileSectionProps) => {
         </button>
       </motion.div>
 
-      {/* Robot 2 (experimental rigged) */}
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.235 }}>
-        <button
-          onClick={() => navigate('/neo-glb-lab')}
-          className="w-full h-11 rounded-xl border border-border hover:bg-muted/40 transition-colors flex items-center justify-center gap-2 text-caption font-medium text-muted-foreground"
-        >
-          <Bot className="w-3.5 h-3.5" />
-          Robot 2
-        </button>
-      </motion.div>
 
       {/* Restart Tour */}
       {onRestartTour && (
