@@ -79,7 +79,7 @@ export const NeoInteractiveCoreGLB = () => {
     <div className="relative w-full h-full min-h-[600px] bg-black">
       <Canvas
         shadows
-        camera={{ position: [0, 0.5, 4.2], fov: 38 }}
+        camera={{ position: [0, 0.4, 3.4], fov: 35 }}
         gl={{ antialias: true, alpha: false }}
       >
         <color attach="background" args={['#000000']} />
