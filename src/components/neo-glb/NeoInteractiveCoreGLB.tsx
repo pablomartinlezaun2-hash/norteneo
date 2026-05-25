@@ -81,16 +81,17 @@ export const NeoInteractiveCoreGLB = () => {
         <color attach="background" args={['#000000']} />
         <fog attach="fog" args={['#000000', 5, 12]} />
 
-        <ambientLight intensity={0.25} />
+        <ambientLight intensity={0.55} />
         <directionalLight
           position={[3, 5, 4]}
-          intensity={1.2}
+          intensity={2.0}
           castShadow
           shadow-mapSize-width={1024}
           shadow-mapSize-height={1024}
         />
-        <directionalLight position={[-4, 2, -2]} intensity={0.5} color="#3b82f6" />
-        <pointLight position={[0, 1, 3]} intensity={0.6} color="#ffffff" />
+        <directionalLight position={[-4, 2, -2]} intensity={0.8} color="#3b82f6" />
+        <pointLight position={[0, 1, 3]} intensity={1.2} color="#ffffff" />
+        <spotLight position={[0, 4, 0]} angle={0.5} penumbra={0.5} intensity={1.5} color="#e0e7ff" />
 
         <Suspense fallback={null}>
           <RiggedScene targetsRef={targetsRef} enabled={cameraOn} />
