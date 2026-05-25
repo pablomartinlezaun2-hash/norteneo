@@ -136,8 +136,8 @@ export function usePoseBodyControl(enabled: boolean) {
               const midSx = (lShoulder.x + rShoulder.x) / 2;
               const midSy = (lShoulder.y + rShoulder.y) / 2;
               const shoulderW = Math.max(0.05, Math.abs(lShoulder.x - rShoulder.x));
-              const headYaw = clamp((nose.x - midSx) / shoulderW, -1, 1) * deg(30);
-              const headPitch = clamp((nose.y - midSy + 0.25) / 0.3, -1, 1) * deg(20);
+              const headYaw = clamp((nose.x - midSx) / shoulderW, -1, 1) * deg(70);
+              const headPitch = clamp((nose.y - midSy + 0.25) / 0.25, -1, 1) * deg(45);
 
               // USER's LEFT arm (lms 11/13/15) -> ROBOT's RIGHT side (mirror)
               // Vector shoulder->elbow in image space (y down)
@@ -170,12 +170,12 @@ export function usePoseBodyControl(enabled: boolean) {
               // Robot's RIGHT bone gets user's LEFT
               const robotRightArmZ = -clamp(userLeftLift, 0, deg(150)); // negative Z raises right arm outward
               const robotRightArmX = -clamp(userLeftLift * 0.25, 0, deg(45));
-              const robotRightForeX = -clamp(Math.PI - uLflex, 0, deg(130));
+              const robotRightForeX = clamp(Math.PI - uLflex, 0, deg(130));
 
               // Robot's LEFT bone gets user's RIGHT
               const robotLeftArmZ = clamp(userRightLift, 0, deg(150));
               const robotLeftArmX = -clamp(userRightLift * 0.25, 0, deg(45));
-              const robotLeftForeX = -clamp(Math.PI - uRflex, 0, deg(130));
+              const robotLeftForeX = clamp(Math.PI - uRflex, 0, deg(130));
 
               targetsRef.current = {
                 head: { pitch: headPitch, yaw: headYaw },
