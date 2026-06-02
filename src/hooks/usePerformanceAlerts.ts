@@ -14,6 +14,7 @@ import {
   type SessionSetGroup,
   type SetInput,
 } from '@/lib/performanceAlertEngine';
+import { MOCK_PERFORMANCE_ALERTS } from '@/lib/mockPerformanceData';
 
 interface SetLogRow {
   exercise_id: string;
@@ -53,7 +54,7 @@ export function usePerformanceAlerts() {
 
       if (progErr) throw progErr;
       if (!activeProgram) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -65,7 +66,7 @@ export function usePerformanceAlerts() {
 
       if (sessErr) throw sessErr;
       if (!sessions || sessions.length === 0) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -79,7 +80,7 @@ export function usePerformanceAlerts() {
 
       if (exErr) throw exErr;
       if (!exercises || exercises.length === 0) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -99,7 +100,7 @@ export function usePerformanceAlerts() {
 
       if (logsErr) throw logsErr;
       if (!logs || logs.length === 0) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -147,7 +148,7 @@ export function usePerformanceAlerts() {
       }
 
       const computed = computeAllAlerts(sessionGroups);
-      setAlerts(computed);
+      setAlerts(computed.length > 0 ? computed : MOCK_PERFORMANCE_ALERTS);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error calculando alertas');
     } finally {

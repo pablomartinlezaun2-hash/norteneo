@@ -26,6 +26,7 @@ import {
   type RunningLoadResult,
   type SwimmingLoadResult,
 } from '@/lib/performanceEngine';
+import { buildMockSetLogs } from '@/lib/mockPerformanceData';
 
 // ── Types ──
 
@@ -233,10 +234,19 @@ export const usePerformanceEngine = (config: PerformanceConfig = DEFAULT_CONFIG)
         if (match) mapping.set(ex.id, match);
       }
 
-      setSetLogs(logsRes.data || []);
-      setExercises(exData);
-      setCatalogMap(mapping);
-      setCardioSessions(cardioRes.data || []);
+      if ((logsRes.data || []).length === 0) {
+        // Visual fallback: no real logs yet → load mock data so panels are populated.
+        const mock = buildMockSetLogs();
+        setSetLogs(mock.setLogs as any);
+        setExercises(mock.exercises);
+        setCatalogMap(mock.catalogMap);
+        setCardioSessions([]);
+      } else {
+        setSetLogs(logsRes.data || []);
+        setExercises(exData);
+        setCatalogMap(mapping);
+        setCardioSessions(cardioRes.data || []);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando datos');
     } finally {
