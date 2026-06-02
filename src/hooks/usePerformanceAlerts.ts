@@ -54,7 +54,7 @@ export function usePerformanceAlerts() {
 
       if (progErr) throw progErr;
       if (!activeProgram) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -66,7 +66,7 @@ export function usePerformanceAlerts() {
 
       if (sessErr) throw sessErr;
       if (!sessions || sessions.length === 0) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -80,7 +80,7 @@ export function usePerformanceAlerts() {
 
       if (exErr) throw exErr;
       if (!exercises || exercises.length === 0) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
@@ -100,7 +100,7 @@ export function usePerformanceAlerts() {
 
       if (logsErr) throw logsErr;
       if (!logs || logs.length === 0) {
-        setAlerts([]);
+        setAlerts(MOCK_PERFORMANCE_ALERTS);
         return;
       }
 
