@@ -26,6 +26,7 @@ import {
   type RunningLoadResult,
   type SwimmingLoadResult,
 } from '@/lib/performanceEngine';
+import { buildMockSetLogs } from '@/lib/mockPerformanceData';
 
 // ── Types ──
 
