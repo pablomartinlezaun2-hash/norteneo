@@ -21,7 +21,9 @@ const Landing = ({ forcePreview = false }: LandingProps) => {
     }
   }, [user, loading, navigate, forcePreview]);
 
-  if (!forcePreview && loading) {
+  // Mientras carga la sesión, o si ya hay usuario (a punto de redirigir a /app),
+  // no mostramos el hero del robot — evita el flash de la animación tras login.
+  if (!forcePreview && (loading || user)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
