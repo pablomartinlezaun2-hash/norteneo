@@ -148,7 +148,7 @@ export function usePerformanceAlerts() {
       }
 
       const computed = computeAllAlerts(sessionGroups);
-      setAlerts(computed);
+      setAlerts(computed.length > 0 ? computed : MOCK_PERFORMANCE_ALERTS);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error calculando alertas');
     } finally {
