@@ -14,6 +14,7 @@ import {
   type SessionSetGroup,
   type SetInput,
 } from '@/lib/performanceAlertEngine';
+import { MOCK_PERFORMANCE_ALERTS } from '@/lib/mockPerformanceData';
 
 interface SetLogRow {
   exercise_id: string;
