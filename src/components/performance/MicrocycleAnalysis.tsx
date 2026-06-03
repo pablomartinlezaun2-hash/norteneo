@@ -763,16 +763,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     );
   }
 
-  const hasRealData = daysData.some(d => d.hasData);
-
-  if (!hasRealData && !loading) {
-    return (
-      <div className="text-center py-8 space-y-2">
-        <p className="text-sm text-muted-foreground">No hay datos suficientes para el análisis del microciclo.</p>
-        <p className="text-xs text-muted-foreground">Registra tus entrenos, comidas y suplementos para ver el análisis aquí.</p>
-      </div>
-    );
-  }
+  // hasRealData / effectiveData already computed above (mock fallback applies when empty)
 
   return (
     <div className="space-y-5 p-4">
