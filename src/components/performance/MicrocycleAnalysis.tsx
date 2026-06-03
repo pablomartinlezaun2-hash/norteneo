@@ -26,7 +26,86 @@ import { useAdherenceSettings, calcDynamicAdherence } from '@/hooks/useAdherence
 import { cn } from '@/lib/utils';
 import { AudioBriefingPlayer } from './AudioBriefingPlayer';
 
-/* No mock data — all data comes from the database */
+/* ───────────── Mock day generator (used as fallback for empty data) ───────────── */
+function generateMockDays(dateRange: Date[], g: any): DayData[] {
+  // Deterministic-ish but varied: 7-day pattern with some volatility
+  const patterns = [
+    { nut: 98, tra: 96, sle: 95, sup: 100 },
+    { nut: 92, tra: 94, sle: 88, sup: 100 },
+    { nut: 78, tra: 82, sle: 70, sup: 50 },
+    { nut: 95, tra: 100, sle: 92, sup: 100 },
+    { nut: 88, tra: 90, sle: 85, sup: 100 },
+    { nut: 65, tra: 72, sle: 60, sup: 0 },
+    { nut: 100, tra: 98, sle: 97, sup: 100 },
+  ];
+  const mockExercises = [
+    { name: 'Press Banca', series: 4, reps: '6-8' },
+    { name: 'Sentadilla Trasera', series: 4, reps: '5-7' },
+    { name: 'Peso Muerto Rumano', series: 3, reps: '8-10' },
+    { name: 'Dominadas Lastradas', series: 4, reps: '6-8' },
+  ];
+  return dateRange.map((date, idx) => {
+    const p = patterns[idx % patterns.length];
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dateFormatted = format(date, "d 'de' MMMM", { locale: es });
+    // Fake food logs
+    const protein = Math.round((g.daily_protein || 150) * (p.nut / 100));
+    const carbs = Math.round((g.daily_carbs || 250) * (p.nut / 100));
+    const fat = Math.round((g.daily_fat || 70) * (p.nut / 100));
+    const foodLogs = [
+      { protein: protein * 0.3, carbs: carbs * 0.3, fat: fat * 0.3, logged_date: dateStr },
+      { protein: protein * 0.4, carbs: carbs * 0.4, fat: fat * 0.4, logged_date: dateStr },
+      { protein: protein * 0.3, carbs: carbs * 0.3, fat: fat * 0.3, logged_date: dateStr },
+    ];
+    // Fake set logs (one exercise per day rotating)
+    const ex = mockExercises[idx % mockExercises.length];
+    const completedSets = Math.max(1, Math.round(ex.series * (p.tra / 100)));
+    const [minR, maxR] = ex.reps.split('-').map(Number);
+    const setLogs: any[] = [];
+    for (let s = 0; s < completedSets; s++) {
+      const targetReps = Math.round((minR + maxR) / 2);
+      const repsActual = Math.max(1, Math.round(targetReps * (p.tra / 100 + (Math.random() - 0.5) * 0.1)));
+      setLogs.push({
+        id: `mock-${dateStr}-${s}`,
+        exercise_id: `mock-ex-${idx % mockExercises.length}`,
+        reps: repsActual,
+        weight: 80 + idx * 2,
+        is_warmup: false,
+        logged_at: `${dateStr}T18:00:00`,
+        exercises: { name: ex.name, series: ex.series, reps: ex.reps },
+      });
+    }
+    // Fake supplement logs
+    const suppLogs = p.sup >= 50 ? [
+      { name: 'Creatina', logged_date: dateStr },
+      ...(p.sup >= 100 ? [{ name: 'Proteína', logged_date: dateStr }] : []),
+    ] : [];
+    // Sleep
+    const hoursPlanned = 8;
+    const hoursReal = Math.round((hoursPlanned * (p.sle / 100)) * 10) / 10;
+    const sleepData = {
+      planned: '23:30',
+      real: p.sle >= 90 ? '23:35' : p.sle >= 80 ? '00:15' : '01:30',
+      hoursPlanned,
+      hoursReal,
+    };
+    const globalAcc = Math.round((p.nut + p.tra + p.sle + p.sup) / 4);
+    return {
+      date: dateStr,
+      dateFormatted,
+      nutritionAcc: p.nut,
+      trainingAcc: p.tra,
+      sleepAcc: p.sle,
+      suppAcc: p.sup,
+      globalAcc,
+      foodLogs,
+      setLogs,
+      suppLogs,
+      sleepData,
+      hasData: true,
+    };
+  });
+}
 
 /* ═══════════════════════════════════════════════════════
    MICROCYCLE ANALYSIS COMPONENT
@@ -478,8 +557,9 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     loadData();
   }, [user, dateRange, goals]);
 
-  // Always use real data
-  const effectiveData = daysData;
+  // Fallback: when there are no real registered days, show illustrative mock data
+  const hasRealData = daysData.some(d => d.hasData);
+  const effectiveData = hasRealData ? daysData : (dateRange.length > 0 ? generateMockDays(dateRange, g) : []);
 
   // Chart data
   const chartData = useMemo(() => effectiveData.map(d => ({
@@ -683,16 +763,7 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     );
   }
 
-  const hasRealData = daysData.some(d => d.hasData);
-
-  if (!hasRealData && !loading) {
-    return (
-      <div className="text-center py-8 space-y-2">
-        <p className="text-sm text-muted-foreground">No hay datos suficientes para el análisis del microciclo.</p>
-        <p className="text-xs text-muted-foreground">Registra tus entrenos, comidas y suplementos para ver el análisis aquí.</p>
-      </div>
-    );
-  }
+  // hasRealData / effectiveData already computed above (mock fallback applies when empty)
 
   return (
     <div className="space-y-5 p-4">
