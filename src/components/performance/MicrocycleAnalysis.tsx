@@ -557,8 +557,9 @@ export const MicrocycleAnalysis = ({ goals, microcycleId, microcycleStart, micro
     loadData();
   }, [user, dateRange, goals]);
 
-  // Always use real data
-  const effectiveData = daysData;
+  // Fallback: when there are no real registered days, show illustrative mock data
+  const hasRealData = daysData.some(d => d.hasData);
+  const effectiveData = hasRealData ? daysData : (dateRange.length > 0 ? generateMockDays(dateRange, g) : []);
 
   // Chart data
   const chartData = useMemo(() => effectiveData.map(d => ({
