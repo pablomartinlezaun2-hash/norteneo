@@ -7,9 +7,9 @@ import { Meta } from '@/components/Meta'
 import { useSplitReveal } from '@/hooks/useSplitReveal'
 import { gsap, heroDelay, MQ, useGSAP } from '@/lib/motion'
 
-const copy: L<{ title: string; lead: string; cta: string; work: string; label: string; ai: string }> = {
+const copy: L<{ title: [string, string]; lead: string; cta: string; work: string; label: string; ai: string }> = {
   es: {
-    title: 'Imagen de lujo, sin plató',
+    title: ['Imagen de lujo,', 'sin plató'],
     lead: 'Vídeo, 3D y webs de autor con IA, dirigidos con oficio de cine.',
     cta: 'Solicitar propuesta',
     work: 'Ver trabajo',
@@ -17,7 +17,7 @@ const copy: L<{ title: string; lead: string; cta: string; work: string; label: s
     ai: 'Generado con IA, dirigido por NEO',
   },
   en: {
-    title: 'Luxury imagery, no set',
+    title: ['Luxury imagery,', 'no set'],
     lead: 'AI video, 3D and bespoke websites, directed with a filmmaker’s craft.',
     cta: 'Request a proposal',
     work: 'View work',
@@ -41,14 +41,27 @@ export function Hero() {
 
   useGSAP(
     () => {
+      const el = root.current
+      if (!el) return
       const mm = gsap.matchMedia()
       mm.add(MQ.motion, () => {
         // Subtítulo, CTAs y etiqueta: solo opacidad, 150 ms después del titular.
-        gsap.fromTo(
-          '[data-hero-after]',
+        // SplitText vuelve a partir el titular cuando cargan las fuentes (y reinicia su retardo),
+        // así que arrancamos a la vez: tras document.fonts.ready.
+        const tw = gsap.fromTo(
+          el.querySelectorAll('[data-hero-after]'),
           { autoAlpha: 0 },
-          { autoAlpha: 1, duration: 0.8, ease: 'expo.out', delay: heroDelay() + 0.15, stagger: 0.05 },
+          { autoAlpha: 1, duration: 0.8, ease: 'expo.out', delay: heroDelay() + 0.15, stagger: 0.05, paused: true },
         )
+        let live = true
+        const go = () => {
+          if (live) tw.restart(true)
+        }
+        if (document.fonts) void document.fonts.ready.then(go)
+        else go()
+        return () => {
+          live = false
+        }
       })
       return () => mm.revert()
     },
@@ -76,17 +89,19 @@ export function Hero() {
       {/* Solo para legibilidad: oscurece el tercio inferior, nada más. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[62%] bg-linear-to-t from-black/75 via-black/30 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[72%] bg-linear-to-t from-black/90 from-0% via-black/50 via-40% to-transparent to-100%"
       />
 
       <div className="container-x relative z-[2] flex min-h-[100svh] flex-col justify-end pb-[calc(var(--hero-pb)+4rem)] md:pb-(--hero-pb)">
-        <h1 id="hero-title" ref={title} data-hero-reveal className="type-hero max-w-[13ch] max-sm:[font-stretch:104%]">
-          {t.title}
+        <h1 id="hero-title" ref={title} data-hero-reveal className="type-hero max-sm:[font-stretch:104%]">
+          {t.title[0]}
+          <br />
+          {t.title[1]}
           <span className="text-accent" aria-hidden="true">
             *
           </span>
         </h1>
-        <p data-hero-reveal data-hero-after className="type-lead mt-5 max-w-[34ch] text-mute md:mt-6">
+        <p data-hero-reveal data-hero-after className="type-lead mt-5 max-w-[34ch] text-paper/75 md:mt-6">
           {t.lead}
         </p>
         <div data-hero-reveal data-hero-after className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-2 md:mt-9">
@@ -105,7 +120,7 @@ export function Hero() {
         data-hero-after
         className="absolute bottom-(--hero-pb) left-(--gutter) z-[2] flex h-11 items-center md:right-[calc(var(--gutter)+3.75rem)] md:left-auto"
       >
-        <Meta>{t.ai}</Meta>
+        <Meta className="text-paper/75!">{t.ai}</Meta>
       </div>
     </section>
   )

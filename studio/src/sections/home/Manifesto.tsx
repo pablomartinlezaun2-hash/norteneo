@@ -33,7 +33,7 @@ export function Manifesto() {
           {t.lead} <span className="text-paper">{t.word}</span>
           {t.tail}
         </h2>
-        <p className="type-lead col-span-12 mt-12 max-w-[34ch] text-mute md:col-span-8 md:col-start-5 md:mt-20 lg:col-span-5 lg:col-start-7">
+        <p className="type-lead col-span-12 mt-12 max-w-[36ch] text-balance text-mute md:col-span-8 md:col-start-5 md:mt-20 lg:col-span-5 lg:col-start-7">
           {t.line}
         </p>
       </div>

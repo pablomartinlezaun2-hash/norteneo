@@ -65,7 +65,7 @@ export function Nav() {
 
   const other = lang === 'es' ? 'en' : 'es'
   const linkCls = ({ isActive }: { isActive: boolean }) =>
-    `text-[0.875rem] font-[460] transition-colors hover:text-paper ${isActive ? 'text-paper' : 'text-mute'}`
+    `text-[0.875rem] font-[460] transition-colors hover:text-paper ${isActive ? 'text-paper' : 'text-paper/80'}`
 
   return (
     <>
@@ -78,6 +78,11 @@ export function Nav() {
           solid || open ? 'border-b border-line bg-black/85 backdrop-blur-md' : 'border-b border-transparent bg-transparent'
         }`}
       >
+        {/* Velo superior: mantiene el contraste de la nav sobre fotogramas claros del hero */}
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-black/60 via-black/25 to-transparent transition-opacity duration-300 ${solid || open ? 'opacity-0' : 'opacity-100'}`}
+        />
         <nav className="container-x flex h-full items-center justify-between gap-6" aria-label="Principal">
           <Link to={to.home(lang)} viewTransition className="-m-2 p-2" aria-label={`NEO Studio · ${t.home}`}>
             <Logo className="h-[0.95rem] w-auto" />
@@ -94,7 +99,7 @@ export function Nav() {
                 aria-expanded={open}
                 aria-controls="nav-services"
                 onClick={() => setOpen((v) => !v)}
-                className={`inline-flex items-center gap-1.5 text-[0.875rem] font-[460] transition-colors hover:text-paper ${open ? 'text-paper' : 'text-mute'}`}
+                className={`inline-flex items-center gap-1.5 text-[0.875rem] font-[460] transition-colors hover:text-paper ${open ? 'text-paper' : 'text-paper/80'}`}
               >
                 {t.services}
                 <svg width="9" height="6" viewBox="0 0 9 6" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true" className={`transition-transform ${open ? 'rotate-180' : ''}`}>
@@ -117,7 +122,7 @@ export function Nav() {
             <Link
               to={alternatePath(pathname, other)}
               hrefLang={other}
-              className="type-meta min-h-11 content-center text-mute hover:text-paper"
+              className="type-meta min-h-11 content-center text-paper/80 hover:text-paper"
               aria-label={other === 'en' ? 'English version' : 'Versión en español'}
             >
               {other.toUpperCase()}
