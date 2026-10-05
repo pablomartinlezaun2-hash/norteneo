@@ -548,11 +548,11 @@ export function buildBootGeometry(): BootGeometry {
   wedgeShape.quadraticCurveTo(-0.95, -0.08, -1.2, -0.27);
   wedgeShape.quadraticCurveTo(-1.36, -0.15, -1.34, 0.0);
   const heelWedge = new THREE.ExtrudeGeometry(wedgeShape, {
-    depth: 0.035,
+    depth: 0.02,
     bevelEnabled: true,
-    bevelThickness: 0.02,
-    bevelSize: 0.02,
-    bevelSegments: 4,
+    bevelThickness: 0.03,
+    bevelSize: 0.028,
+    bevelSegments: 8,
     curveSegments: 24,
   });
 
@@ -646,7 +646,7 @@ export function buildBootGeometry(): BootGeometry {
   const clipCap = new RoundedBoxGeometry(0.34, 0.3, 1.02, 6, 0.11).rotateZ(-0.35).translate(1.79, -0.74, 0);
   const ribs: THREE.BufferGeometry[] = [];
   for (const z of [-0.3, -0.1, 0.1, 0.3]) {
-    ribs.push(new RoundedBoxGeometry(0.05, 0.12, 0.13, 3, 0.02).translate(0.165, 0.0, z));
+    ribs.push(new RoundedBoxGeometry(0.03, 0.16, 0.14, 3, 0.012).translate(0.16, 0.0, z));
   }
   const clipRibs = mergeGeometries(ribs)!.rotateZ(-0.35).translate(1.79, -0.74, 0);
   const clipPin = new THREE.CylinderGeometry(0.022, 0.022, 1.06, 20).rotateX(Math.PI / 2).translate(1.77, -0.79, 0);

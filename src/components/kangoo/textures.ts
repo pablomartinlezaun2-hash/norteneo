@@ -163,6 +163,56 @@ export const plasticMaps = () =>
     };
   });
 
+/**
+ * Imperfecciones de uso para plásticos brillantes: manchas, huellas y
+ * micro-arañazos en un mapa de rugosidad (más claro = más rugoso). Rompe el
+ * reflejo de espejo perfecto que delata un render sintético.
+ */
+export const wearMaps = () =>
+  cached<PbrMaps>("wear", () => {
+    const s = 1024;
+    const rnd = mulberry32(97);
+    const blot = fbm(s, 5, 4, 71, 0.55);
+    const fine = fbm(s, 64, 2, 73, 0.5);
+    const { c, ctx, img } = canvas(s);
+    for (let i = 0; i < blot.length; i++) {
+      const smudge = Math.max(0, Math.min(1, (blot[i] - 0.5) * 3.2));
+      const v = 0.3 + smudge * 0.45 + fine[i] * 0.12;
+      img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = Math.min(255, v * 255);
+      img.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    // Huellas: grupos de arcos concéntricos muy tenues.
+    ctx.lineCap = "round";
+    for (let f = 0; f < 7; f++) {
+      const cx = rnd() * s;
+      const cy = rnd() * s;
+      const r0 = 18 + rnd() * 22;
+      const rot = rnd() * Math.PI;
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.lineWidth = 1.4;
+      for (let k = 0; k < 14; k++) {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r0 + k * 3.2, (r0 + k * 3.2) * 0.72, rot, 0.2, Math.PI * 1.75);
+        ctx.stroke();
+      }
+    }
+    // Micro-arañazos finos en direcciones aleatorias.
+    for (let k = 0; k < 900; k++) {
+      const x = rnd() * s;
+      const y = rnd() * s;
+      const a = rnd() * Math.PI;
+      const len = 6 + rnd() * 40;
+      ctx.strokeStyle = `rgba(255,255,255,${0.05 + rnd() * 0.12})`;
+      ctx.lineWidth = 0.6 + rnd() * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len);
+      ctx.stroke();
+    }
+    return { normal: tex(heightToNormal(fine, s, 0.4)), roughness: tex(c) };
+  });
+
 /** Plástico técnico mate texturizado (placa base, palancas). */
 export const texturedPlasticMaps = () =>
   cached<PbrMaps>("texplastic", () => {

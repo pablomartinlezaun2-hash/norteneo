@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, Lightformer, OrbitControls, Sparkles } from "@react-three/drei";
+import { ContactShadows, Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  BOOT_Y_OFFSET,
   PART_GROUPS,
   PARTS,
   PARTS_BY_ID,
@@ -32,6 +31,7 @@ import {
   type PartId,
 } from "./catalog";
 import { KangooBoot } from "./KangooBootModel";
+import { PostFX } from "./PostFX";
 
 export interface KangooBootViewerProps {
   className?: string;
@@ -264,7 +264,10 @@ export default function KangooBootViewer({
   const [isolate, setIsolate] = useState(false);
   const [guides, setGuides] = useState(true);
   const [autoRotate, setAutoRotate] = useState(false);
-  const [studio, setStudio] = useState(false);
+  // Por defecto, estudio claro como las fotos de producto.
+  const [studio, setStudio] = useState(true);
+  // Sombreado realista (oclusión ambiental): desactivado en táctiles de gama baja.
+  const [hq, setHq] = useState(() => typeof window === "undefined" || !window.matchMedia("(pointer: coarse)").matches);
   const [panelOpen, setPanelOpen] = useState(
     () => typeof window === "undefined" || window.matchMedia("(min-width: 640px)").matches,
   );
@@ -382,17 +385,6 @@ export default function KangooBootViewer({
               progressRef={progressRef}
             />
             <Floor progressRef={progressRef} opacity={studio ? 0.55 : 0.75} />
-            {!studio && (
-              <Sparkles
-                count={70}
-                scale={[12, 9, 12]}
-                position={[0, BOOT_Y_OFFSET + 1, 0]}
-                size={2.4}
-                speed={0.25}
-                opacity={0.55}
-                color={variant.accent}
-              />
-            )}
           </Suspense>
           <OrbitControls
             ref={controls}
@@ -406,6 +398,7 @@ export default function KangooBootViewer({
             target={[0, 0, 0]}
           />
           <CameraRig explode={explode} controls={controls} resetSignal={resetSignal} />
+          <PostFX ao={hq} />
         </Canvas>
       </div>
 
@@ -591,6 +584,7 @@ export default function KangooBootViewer({
               <Toggle label="Aislar pieza seleccionada" checked={isolate} onChange={setIsolate} />
               <Toggle label="Líneas guía de despiece" checked={guides} onChange={setGuides} />
               <Toggle label="Fondo de estudio claro" checked={studio} onChange={setStudio} />
+              <Toggle label="Sombreado realista (oclusión)" checked={hq} onChange={setHq} />
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <IconButton title="Auto-rotación" onClick={() => setAutoRotate((v) => !v)} active={autoRotate}>
                   {autoRotate ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />} Girar

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { BootVariant } from "./catalog";
 import {
   brushedMetalMaps,
+  wearMaps,
   leatherMaps,
   meshFabricMaps,
   plasticMaps,
@@ -47,18 +48,22 @@ export function createBootMaterials(v: BootVariant): BootMaterials {
 
   const light = new THREE.Color(v.shell).getHSL({ h: 0, s: 0, l: 0 }).l > 0.5;
 
+  const wear = wearMaps();
   const shell = new THREE.MeshPhysicalMaterial({
     name: "Carcasa",
     color: v.shell,
     metalness: v.metallic ? 0.92 : 0,
-    roughness: v.metallic ? 0.16 : light ? 0.3 : 0.24,
+    roughness: v.metallic ? 0.3 : light ? 0.42 : 0.4,
     clearcoat: 1,
-    clearcoatRoughness: v.metallic ? 0.05 : 0.04,
+    // El mapa de desgaste modula ambas rugosidades: zonas limpias casi espejo,
+    // manchas y huellas más mates.
+    clearcoatRoughness: v.metallic ? 0.2 : 0.22,
+    clearcoatRoughnessMap: withRepeat(wear.roughness, 1.5),
     normalMap: withRepeat(plastic.normal, 3),
     normalScale: new THREE.Vector2(0.12, 0.12),
-    roughnessMap: withRepeat(plastic.roughness, 1),
-    specularIntensity: 1,
-    envMapIntensity: v.metallic ? 1.4 : 1.1,
+    roughnessMap: withRepeat(wear.roughness, 1.5),
+    specularIntensity: 0.9,
+    envMapIntensity: v.metallic ? 1.25 : 1.0,
   });
 
   const shellSole = new THREE.MeshPhysicalMaterial({
@@ -76,9 +81,9 @@ export function createBootMaterials(v: BootVariant): BootMaterials {
   springShell.name = "Conchas";
   springShell.color = new THREE.Color(v.metallic ? "#1a1b1d" : light ? v.shell : "#101012");
   springShell.metalness = 0;
-  springShell.roughness = 0.38;
+  springShell.roughness = 0.6;
   springShell.clearcoat = 0.5;
-  springShell.clearcoatRoughness = 0.25;
+  springShell.clearcoatRoughness = 0.45;
 
   const matteBlack = new THREE.MeshPhysicalMaterial({
     name: "Plástico técnico",
