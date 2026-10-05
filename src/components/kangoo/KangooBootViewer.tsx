@@ -41,6 +41,8 @@ export interface KangooBootViewerProps {
   hideControls?: boolean;
   /** Valor inicial de despiece 0–1. */
   initialExplode?: number;
+  /** Muestra los botones de descarga (PNG / GLB). */
+  allowDownloads?: boolean;
 }
 
 const CAMERA_START = new THREE.Vector3(6.6, 2.6, 8.2);
@@ -49,7 +51,7 @@ const CAMERA_START = new THREE.Vector3(6.6, 2.6, 8.2);
 /* Escena                                                              */
 /* ------------------------------------------------------------------ */
 
-function StudioLights({ accent }: { accent: string }) {
+function StudioLights({ accent, studio }: { accent: string; studio: boolean }) {
   return (
     <>
       <ambientLight intensity={0.12} />
@@ -67,12 +69,25 @@ function StudioLights({ accent }: { accent: string }) {
         shadow-camera-near={1}
         shadow-camera-far={30}
       />
-      <spotLight position={[-4, 6, -6]} angle={0.5} penumbra={1} intensity={18} color={accent} distance={20} />
+      <spotLight
+        position={[-4, 6, -6]}
+        angle={0.5}
+        penumbra={1}
+        intensity={studio ? 4 : 18}
+        color={accent}
+        distance={20}
+      />
       <Environment resolution={512} frames={1}>
         <Lightformer form="rect" intensity={3} position={[0, 7, 0]} scale={[12, 8, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={2.2} position={[6, 2, 4]} scale={[4, 6, 1]} color="#e9eef6" />
         <Lightformer form="rect" intensity={1.4} position={[-6, 1.5, 4]} scale={[3, 6, 1]} color="#ffffff" />
-        <Lightformer form="rect" intensity={0.6} position={[-3, 1, -7]} scale={[3, 6, 1]} color={accent} />
+        <Lightformer
+          form="rect"
+          intensity={studio ? 0.2 : 0.6}
+          position={[-3, 1, -7]}
+          scale={[3, 6, 1]}
+          color={accent}
+        />
         <Lightformer form="ring" intensity={2.5} position={[3, 4, 8]} scale={2.5} />
         <Lightformer form="rect" intensity={0.6} position={[0, -6, 0]} scale={[12, 12, 1]} color="#2a2420" />
       </Environment>
@@ -80,14 +95,14 @@ function StudioLights({ accent }: { accent: string }) {
   );
 }
 
-function Floor({ progressRef }: { progressRef: React.MutableRefObject<number> }) {
+function Floor({ progressRef, opacity }: { progressRef: React.MutableRefObject<number>; opacity: number }) {
   const ref = useRef<THREE.Group>(null);
   useFrame(() => {
     if (ref.current) ref.current.position.y = bootFloorY(progressRef.current) - 0.01;
   });
   return (
     <group ref={ref}>
-      <ContactShadows opacity={0.75} scale={14} blur={2.6} far={4} resolution={512} color="#000000" />
+      <ContactShadows opacity={opacity} scale={14} blur={2.6} far={4} resolution={512} color="#000000" />
     </group>
   );
 }
@@ -238,6 +253,7 @@ export default function KangooBootViewer({
   initialVariant = "negro-naranja",
   hideControls = false,
   initialExplode = 0,
+  allowDownloads = true,
 }: KangooBootViewerProps) {
   const [variantId, setVariantId] = useState(initialVariant);
   const variant: BootVariant = useMemo(() => VARIANTS.find((v) => v.id === variantId) ?? VARIANTS[0], [variantId]);
@@ -248,6 +264,7 @@ export default function KangooBootViewer({
   const [isolate, setIsolate] = useState(false);
   const [guides, setGuides] = useState(true);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [studio, setStudio] = useState(false);
   const [panelOpen, setPanelOpen] = useState(
     () => typeof window === "undefined" || window.matchMedia("(min-width: 640px)").matches,
   );
@@ -324,7 +341,9 @@ export default function KangooBootViewer({
       style={
         {
           "--kj-accent": variant.accent,
-          backgroundImage: `radial-gradient(ellipse 70% 55% at 50% 42%, ${variant.accent}26 0%, #120d09 45%, #050505 100%)`,
+          backgroundImage: studio
+            ? "radial-gradient(ellipse 75% 60% at 50% 40%, #ffffff 0%, #eeeeee 55%, #cfcfd1 100%)"
+            : `radial-gradient(ellipse 70% 55% at 50% 42%, ${variant.accent}26 0%, #120d09 45%, #050505 100%)`,
         } as React.CSSProperties
       }
     >
@@ -348,7 +367,7 @@ export default function KangooBootViewer({
           }}
         >
           <Suspense fallback={null}>
-            <StudioLights accent={variant.accent} />
+            <StudioLights accent={variant.accent} studio={studio} />
             <KangooBoot
               ref={bootRef}
               variant={variant}
@@ -362,16 +381,18 @@ export default function KangooBootViewer({
               onSelect={selectPart}
               progressRef={progressRef}
             />
-            <Floor progressRef={progressRef} />
-            <Sparkles
-              count={70}
-              scale={[12, 9, 12]}
-              position={[0, BOOT_Y_OFFSET + 1, 0]}
-              size={2.4}
-              speed={0.25}
-              opacity={0.55}
-              color={variant.accent}
-            />
+            <Floor progressRef={progressRef} opacity={studio ? 0.55 : 0.75} />
+            {!studio && (
+              <Sparkles
+                count={70}
+                scale={[12, 9, 12]}
+                position={[0, BOOT_Y_OFFSET + 1, 0]}
+                size={2.4}
+                speed={0.25}
+                opacity={0.55}
+                color={variant.accent}
+              />
+            )}
           </Suspense>
           <OrbitControls
             ref={controls}
@@ -390,15 +411,24 @@ export default function KangooBootViewer({
 
       {/* Cabecera */}
       <div className="pointer-events-none absolute left-4 top-4 max-w-[60%] sm:left-6 sm:top-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">Kangoo Jumps</p>
+        <p
+          className={cn(
+            "text-[11px] font-semibold uppercase tracking-[0.2em]",
+            studio ? "text-black/50" : "text-white/50",
+          )}
+        >
+          Kangoo Jumps
+        </p>
         <h1
           className="text-3xl font-black italic leading-none tracking-tight sm:text-5xl"
           style={{ color: variant.accent }}
         >
           KJXR3
         </h1>
-        <p className="mt-1 text-sm font-medium text-white/80 sm:text-base">{variant.name}</p>
-        <p className="mt-2 hidden text-xs text-white/40 sm:block">
+        <p className={cn("mt-1 text-sm font-medium sm:text-base", studio ? "text-black/75" : "text-white/80")}>
+          {variant.name}
+        </p>
+        <p className={cn("mt-2 hidden text-xs sm:block", studio ? "text-black/45" : "text-white/40")}>
           Arrastra para girar · rueda o pellizco para zoom · clic en una pieza para ver su detalle
         </p>
       </div>
@@ -560,6 +590,7 @@ export default function KangooBootViewer({
             <Section title="Vista" icon={<Eye className="h-3.5 w-3.5" />}>
               <Toggle label="Aislar pieza seleccionada" checked={isolate} onChange={setIsolate} />
               <Toggle label="Líneas guía de despiece" checked={guides} onChange={setGuides} />
+              <Toggle label="Fondo de estudio claro" checked={studio} onChange={setStudio} />
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <IconButton title="Auto-rotación" onClick={() => setAutoRotate((v) => !v)} active={autoRotate}>
                   {autoRotate ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />} Girar
@@ -567,12 +598,16 @@ export default function KangooBootViewer({
                 <IconButton title="Restablecer vista" onClick={() => setResetSignal((n) => n + 1)}>
                   <RotateCcw className="h-3.5 w-3.5" /> Vista
                 </IconButton>
-                <IconButton title="Captura PNG" onClick={screenshot}>
-                  <Camera className="h-3.5 w-3.5" /> PNG
-                </IconButton>
-                <IconButton title="Exportar modelo GLB" onClick={exportGLB}>
-                  <Download className="h-3.5 w-3.5" /> GLB
-                </IconButton>
+                {allowDownloads && (
+                  <>
+                    <IconButton title="Captura PNG" onClick={screenshot}>
+                      <Camera className="h-3.5 w-3.5" /> PNG
+                    </IconButton>
+                    <IconButton title="Exportar modelo GLB" onClick={exportGLB}>
+                      <Download className="h-3.5 w-3.5" /> GLB
+                    </IconButton>
+                  </>
+                )}
               </div>
             </Section>
           </div>

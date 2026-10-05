@@ -28,10 +28,10 @@ export function shellProfile(s: number) {
   let env = 1;
   if (s < heelR) env = Math.sqrt(Math.max(0, 1 - ((heelR - s) / heelR) ** 2));
   else if (s > 1 - toeR) env = Math.sqrt(Math.max(0, 1 - ((s - (1 - toeR)) / toeR) ** 2));
-  const w = (0.4 + 0.085 * Math.exp(-(((s - 0.66) / 0.22) ** 2))) * env;
+  const w = (0.41 + 0.09 * Math.exp(-(((s - 0.66) / 0.22) ** 2))) * env;
   const yBot = 0.07 * smoothstep(0.8, 1, s);
-  const top = 0.5 + 0.78 * (1 - smoothstep(0.18, 0.8, s));
-  const hEnv = s > 1 - toeR ? 0.3 + 0.7 * Math.pow(env, 0.7) : 1;
+  const top = 0.62 + 0.66 * (1 - smoothstep(0.18, 0.8, s));
+  const hEnv = s > 1 - toeR ? 0.42 + 0.58 * Math.pow(env, 0.6) : 1;
   return { w, yBot, yTop: yBot + (top - yBot) * hEnv };
 }
 
@@ -97,7 +97,7 @@ export const cuffFn: SurfaceFn = (u, v, out) => {
   const phi = CUFF.phiOpen + u * (Math.PI * 2 - 2 * CUFF.phiOpen);
   const k = (1 + Math.cos(phi)) / 2;
   const yb = CUFF.yMin + 0.3 * Math.pow(k, 1.6);
-  const yt = 2.3 - 0.1 * k;
+  const yt = 2.2 - 0.16 * k;
   return cuffPoint(phi, lerp(yb, yt, v), 0, out);
 };
 
@@ -164,7 +164,7 @@ const tonguePath = new PlanarPath([
   [-0.26, 1.5],
   [-0.17, 2.0],
   [-0.09, 2.5],
-  [-0.07, 2.68],
+  [-0.07, 2.62],
 ]);
 
 const tongueHalfW = (u: number) => {
@@ -185,7 +185,7 @@ export const tongueFn: SurfaceFn = (u, v, out) => {
 /* Power strap                                                         */
 /* ------------------------------------------------------------------ */
 
-export const STRAP_Y = 1.86;
+export const STRAP_Y = 1.8;
 const strapPhi = (u: number) => lerp(0.06, Math.PI * 2 + 0.46, u);
 
 export const strapFn: SurfaceFn = (u, v, out) => {
@@ -199,12 +199,15 @@ export const strapFn: SurfaceFn = (u, v, out) => {
 /* ------------------------------------------------------------------ */
 
 export const upperPath = new PlanarPath([
-  [-1.4, -0.165],
-  [-0.6, -0.165],
-  [0.4, -0.165],
-  [1.15, -0.2],
-  [1.58, -0.4],
-  [1.74, -0.74],
+  [-1.56, -1.46],
+  [-1.72, -1.05],
+  [-1.62, -0.55],
+  [-1.3, -0.2],
+  [-0.7, -0.165],
+  [0.1, -0.19],
+  [0.75, -0.3],
+  [1.3, -0.48],
+  [1.73, -0.76],
 ]);
 
 export const lowerPath = new PlanarPath([
@@ -214,8 +217,8 @@ export const lowerPath = new PlanarPath([
   [0.92, -1.7],
   [0.0, -1.74],
   [-0.8, -1.69],
-  [-1.35, -1.58],
-  [-1.64, -1.5],
+  [-1.3, -1.6],
+  [-1.6, -1.52],
 ]);
 
 const upperHalfW = (u: number) => lerp(0.45, 0.42, smoothstep(0.65, 1, u));
@@ -237,7 +240,7 @@ const pathSurface =
 export const upperShellFn = pathSurface(upperPath, upperHalfW, -0.03);
 export const lowerShellFn = pathSurface(lowerPath, lowerHalfW, 0.035);
 /** Base de goma por la cara exterior de la concha inferior. */
-export const rubberBaseFn = pathSurface(lowerPath, (u) => lowerHalfW(u) - 0.01, 0.035, -0.072, 0.17, 0.86);
+export const rubberBaseFn = pathSurface(lowerPath, (u) => lowerHalfW(u) - 0.01, 0.035, -0.072, 0.13, 0.86);
 
 export const SPRING = {
   front: new THREE.Vector3(1.7, -0.84, 0),
@@ -352,6 +355,11 @@ export interface BootGeometry {
   lowerShell: THREE.BufferGeometry;
   lowerLogo: { position: THREE.Vector3; rotation: THREE.Euler };
   lowerText: { position: THREE.Vector3; rotation: THREE.Euler };
+  upperText: { position: THREE.Vector3; rotation: THREE.Euler };
+  upperRearText: { position: THREE.Vector3; rotation: THREE.Euler };
+  centerStop: THREE.BufferGeometry;
+  rearBracket: THREE.BufferGeometry;
+  rearBar: THREE.BufferGeometry;
   clipCap: THREE.BufferGeometry;
   clipRibs: THREE.BufferGeometry;
   clipPin: THREE.BufferGeometry;
@@ -377,7 +385,7 @@ export function buildBootGeometry(): BootGeometry {
   /* Carcasa ------------------------------------------------------- */
   const shell = buildLoft(shellFn, 120, 72, { uvScale: [3, 3], uMap: shellUMap });
   const shellSole = buildLoft(
-    shellSurface({ widthScale: 1.03, maxHeight: 0.24, upExp: 4, downExp: 8, grow: 0.012 }),
+    shellSurface({ widthScale: 1.08, maxHeight: 0.3, upExp: 8, downExp: 10, grow: 0.04 }),
     120,
     72,
     { uvScale: [3, 3], uMap: shellUMap },
@@ -385,16 +393,16 @@ export function buildBootGeometry(): BootGeometry {
 
   const holes: THREE.Matrix4[] = [];
   const holeSpots: [number, number, number][] = [
-    [0.86, 90, 1],
-    [0.79, 50, 0.8],
-    [0.79, 130, 0.8],
+    [0.87, 90, 1],
+    [0.82, 52, 0.85],
+    [0.82, 128, 0.85],
   ];
   for (const [s, deg, sc] of holeSpots) {
     const f = shellOutward(s, deg / 360, 0.002);
     holes.push(basisMatrix(f.p, f.n, new THREE.Vector3(1, 0, 0), sc));
   }
-  const holeDisc = new THREE.CircleGeometry(1, 40).scale(0.16, 0.066, 1);
-  const holeRim = new THREE.TorusGeometry(1, 0.12, 12, 48).scale(0.166, 0.072, 0.14);
+  const holeDisc = new THREE.CircleGeometry(1, 40).scale(0.2, 0.085, 1);
+  const holeRim = new THREE.TorusGeometry(1, 0.1, 12, 48).scale(0.208, 0.092, 0.16);
 
   /* Botín y lengüeta --------------------------------------------- */
   const liner = buildLoft(linerFn, 110, 56, { uvScale: [4, 3] });
@@ -440,8 +448,8 @@ export function buildBootGeometry(): BootGeometry {
   const strapBuckle = basisMatrix(sb.p.clone().addScaledVector(sbOut, 0.03), sbOut, sb.du.clone().negate());
 
   /* Hebillas ------------------------------------------------------ */
-  const buckleBase = new RoundedBoxGeometry(0.3, 0.13, 0.03, 3, 0.012).translate(0, 0, 0.012);
-  const buckleLever = new RoundedBoxGeometry(0.34, 0.11, 0.045, 4, 0.02).rotateY(-0.1).translate(0.03, 0, 0.055);
+  const buckleBase = new RoundedBoxGeometry(0.36, 0.16, 0.03, 3, 0.012).translate(0, 0, 0.012);
+  const buckleLever = new RoundedBoxGeometry(0.42, 0.15, 0.05, 4, 0.022).rotateY(-0.1).translate(0.03, 0, 0.055);
   const bucklePin = new THREE.CylinderGeometry(0.014, 0.014, 0.15, 16).translate(-0.12, 0, 0.04);
   const ladderBase = new RoundedBoxGeometry(0.3, 0.1, 0.028, 3, 0.01).translate(0, 0, 0.012);
   const teeth: THREE.BufferGeometry[] = [];
@@ -509,8 +517,8 @@ export function buildBootGeometry(): BootGeometry {
   const screws = [
     [-1.0, 0.22],
     [-1.0, -0.22],
-    [0.7, 0.22],
-    [0.7, -0.22],
+    [-0.25, 0.22],
+    [-0.25, -0.22],
   ].map(([x, z]) => new THREE.Matrix4().makeTranslation(x, -0.21, z));
 
   /* Conchas ------------------------------------------------------- */
@@ -523,16 +531,41 @@ export function buildBootGeometry(): BootGeometry {
   });
   const upperHoles: THREE.Matrix4[] = [];
   for (const [u, v] of [
-    [0.3, 0.3],
-    [0.3, 0.7],
-    [0.48, 0.5],
-    [0.66, 0.3],
-    [0.66, 0.7],
+    [0.38, 0.3],
+    [0.38, 0.7],
+    [0.47, 0.5],
+    [0.56, 0.3],
+    [0.56, 0.7],
   ]) {
     const f = framePoint(upperShellFn, u, v, 0);
     const n = f.n.y < 0 ? f.n.clone() : f.n.clone().negate();
     upperHoles.push(basisMatrix(f.p.clone().addScaledVector(n, 0.047), n, f.du));
   }
+  // Agujeros pasantes visibles en la parte descubierta del arco.
+  for (const [u, v] of [
+    [0.76, 0.25],
+    [0.76, 0.75],
+    [0.87, 0.5],
+    [0.12, 0.3],
+    [0.12, 0.7],
+    [0.2, 0.5],
+  ]) {
+    const f = framePoint(upperShellFn, u, v, 0);
+    const n = f.n.y > 0 ? f.n.clone() : f.n.clone().negate();
+    upperHoles.push(basisMatrix(f.p.clone().addScaledVector(n, 0.047), n, f.du));
+  }
+  const ur = framePoint(upperShellFn, 0.16, 0.5, 0);
+  const urOut = ur.n.x < 0 ? ur.n.clone() : ur.n.clone().negate();
+  const upperRearText = {
+    position: ur.p.clone().addScaledVector(urOut, 0.05),
+    rotation: eulerFromBasis(urOut, new THREE.Vector3().crossVectors(urOut, ur.du).negate()),
+  };
+  const ut = framePoint(upperShellFn, 0.79, 0.5, 0);
+  const utUp = ut.n.y > 0 ? ut.n.clone() : ut.n.clone().negate();
+  const upperText = {
+    position: ut.p.clone().addScaledVector(utUp, 0.05),
+    rotation: eulerFromBasis(utUp, new THREE.Vector3().crossVectors(utUp, ut.du)),
+  };
 
   const lowerShell = buildThickSheet(lowerShellFn, {
     nu: 120,
@@ -607,6 +640,11 @@ export function buildBootGeometry(): BootGeometry {
     new THREE.Matrix4().makeTranslation(SPRING.rear.x, SPRING.rear.y - 0.14, ((SPRING.z[0] + SPRING.z[1]) / 2) * side),
   );
 
+  /* Tope central y pletina trasera ------------------------------ */
+  const centerStop = new RoundedBoxGeometry(0.5, 0.15, 0.62, 4, 0.05).rotateZ(-0.16).translate(0.68, -0.17, 0);
+  const rearBracket = new RoundedBoxGeometry(0.3, 0.12, 1.0, 4, 0.04).rotateZ(0.5).translate(-1.6, -1.47, 0);
+  const rearBar = new THREE.CylinderGeometry(0.022, 0.022, 1.08, 20).rotateX(Math.PI / 2).translate(-1.66, -1.4, 0);
+
   /* Suela de goma ------------------------------------------------- */
   const rubberBase = buildThickSheet(rubberBaseFn, {
     nu: 100,
@@ -618,7 +656,7 @@ export function buildBootGeometry(): BootGeometry {
 
   const bumperParts: THREE.BufferGeometry[] = [];
   {
-    const f = framePoint(lowerShellFn, 0.15, 0.5, 0);
+    const f = framePoint(lowerShellFn, 0.135, 0.5, 0);
     const out = f.n.x > 0 ? f.n.clone() : f.n.clone().negate();
     for (let i = 0; i < 6; i++) {
       const z = -0.36 + i * 0.144;
@@ -644,7 +682,7 @@ export function buildBootGeometry(): BootGeometry {
     .scale(1.25, 1, 1);
   const knobs: THREE.Matrix4[] = [];
   {
-    const u0 = 0.19;
+    const u0 = 0.17;
     const u1 = 0.84;
     const L = lowerPath.length * (u1 - u0);
     const rows = Math.round(L / 0.16);
@@ -695,6 +733,11 @@ export function buildBootGeometry(): BootGeometry {
     lowerShell,
     lowerLogo,
     lowerText,
+    upperText,
+    upperRearText,
+    centerStop,
+    rearBracket,
+    rearBar,
     clipCap,
     clipRibs,
     clipPin,

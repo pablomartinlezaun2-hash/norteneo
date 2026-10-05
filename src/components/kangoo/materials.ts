@@ -185,11 +185,11 @@ export function createBootMaterials(v: BootVariant): BootMaterials {
   // mantener el coste de render bajo en móviles.
   const smoked = new THREE.MeshPhysicalMaterial({
     name: "Policarbonato ahumado",
-    color: "#3d4a52",
-    roughness: 0.1,
-    metalness: 0.1,
+    color: "#4d606b",
+    roughness: 0.08,
+    metalness: 0.15,
     transparent: true,
-    opacity: 0.88,
+    opacity: 0.84,
     clearcoat: 1,
     clearcoatRoughness: 0.03,
     specularIntensity: 1,

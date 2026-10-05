@@ -406,11 +406,11 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
           <Decal
             position={G.tongueLogo.position}
             rotation={G.tongueLogo.rotation}
-            scale={[0.5, 0.33, 0.3]}
+            scale={[0.56, 0.4, 0.3]}
             depthTest
             polygonOffsetFactor={-6}
           >
-            <DecalMat map={tex.kj} color="#55555e" rough={0.15} />
+            <DecalMat map={tex.kj} color="#6b6b75" rough={0.12} />
           </Decal>
         </mesh>
       </PartGroup>
@@ -471,6 +471,7 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
         <MirrorPiece>
           <mesh geometry={G.heelWedge} material={M.accent} position={[0, 0, -0.505]} />
         </MirrorPiece>
+        <mesh geometry={G.centerStop} material={M.accent} />
       </PartGroup>
 
       <PartGroup id="screws" {...common}>
@@ -483,7 +484,26 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
       </PartGroup>
 
       <PartGroup id="upperShell" {...common}>
-        <mesh geometry={G.upperShell} material={M.springShell} />
+        <mesh geometry={G.upperShell} material={M.springShell}>
+          <Decal
+            position={G.upperText.position}
+            rotation={G.upperText.rotation}
+            scale={[0.95, 0.15, 0.2]}
+            depthTest
+            polygonOffsetFactor={-6}
+          >
+            <DecalMat map={tex.brand} color="#3a3a40" rough={0.5} />
+          </Decal>
+          <Decal
+            position={G.upperRearText.position}
+            rotation={G.upperRearText.rotation}
+            scale={[0.95, 0.15, 0.2]}
+            depthTest
+            polygonOffsetFactor={-6}
+          >
+            <DecalMat map={tex.brand} color="#3a3a40" rough={0.5} />
+          </Decal>
+        </mesh>
         {G.upperHoles.map((m, i) => (
           <MatrixGroup key={i} matrix={m}>
             <mesh material={M.hole}>
@@ -530,6 +550,8 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
             <mesh geometry={G.anchorPin} material={M.metal} />
           </MatrixGroup>
         ))}
+        <mesh geometry={G.rearBracket} material={M.matteBlack} />
+        <mesh geometry={G.rearBar} material={M.metal} />
       </PartGroup>
 
       <PartGroup id="lowerShell" {...common}>

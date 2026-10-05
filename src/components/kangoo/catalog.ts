@@ -127,10 +127,11 @@ export const PARTS: PartDef[] = [
   },
   {
     id: "heelWedges",
-    name: "Topes laterales de talón",
+    name: "Topes de talón y central",
     group: "muelle",
     material: "TPU de color",
-    description: "Refuerzan la unión del talón con la concha superior y evitan torsiones laterales.",
+    description:
+      "Topes de color entre la suela y el arco: los laterales del talón evitan torsiones y el central limita la compresión.",
     offset: [-0.2, -0.7, 0.85],
     order: 0.55,
   },
@@ -148,7 +149,8 @@ export const PARTS: PartDef[] = [
     name: "Concha superior",
     group: "muelle",
     material: "Polímero de alta resistencia",
-    description: "Arco superior del muelle; va atornillado bajo la placa base y baja hasta el clip delantero.",
+    description:
+      "Arco superior: va atornillado bajo la placa base, baja por detrás del talón hasta la pletina trasera y por delante hasta el clip.",
     offset: [0.5, -1.35, 0],
     order: 0.6,
   },
@@ -173,10 +175,11 @@ export const PARTS: PartDef[] = [
   },
   {
     id: "anchors",
-    name: "Anclajes traseros",
+    name: "Anclajes y pletina trasera",
     group: "muelle",
     material: "Polímero + pasador de acero",
-    description: "Postes de la concha inferior donde se enganchan los muelles elásticos.",
+    description:
+      "Pletina que cierra el óvalo uniendo las dos conchas por detrás y postes donde se enganchan los muelles.",
     offset: [0.75, -1.95, 0],
     order: 0.3,
   },
