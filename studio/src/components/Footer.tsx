@@ -154,9 +154,9 @@ export function Footer() {
           <span className="type-meta text-dim">[ {t.made} ]</span>
           <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
             <nav aria-label={t.language}>
-              <ul className="flex items-center gap-1">
+              <ul className="-ml-0.5 flex items-center gap-1.5">
                 {(['es', 'en'] as const).map((l, i) => (
-                  <li key={l} className="flex items-center gap-1">
+                  <li key={l} className="flex items-center gap-1.5">
                     {i > 0 && (
                       <span aria-hidden="true" className="type-meta text-dim">
                         /
@@ -167,7 +167,7 @@ export function Footer() {
                       hrefLang={l}
                       lang={l}
                       aria-current={l === lang ? 'true' : undefined}
-                      className={`type-meta inline-flex min-h-11 min-w-8 items-center justify-center transition-colors ${
+                      className={`type-meta inline-flex min-h-11 items-center px-0.5 transition-colors ${
                         l === lang ? 'text-accent' : 'text-dim hover:text-paper'
                       }`}
                     >

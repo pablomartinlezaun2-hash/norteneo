@@ -82,10 +82,11 @@ export function ParticleWordmark({ slotRef, areaRef, className = '' }: Props) {
     const color = new Uint8Array(COUNT)
 
     // Capas como en ParticleField: lejos (finas y tenues), medio y cerca (más grandes y brillantes)
+    const sizeK = compact ? 0.72 : 1
     for (let i = 0; i < COUNT; i++) {
       const r = Math.random()
       const layer = r < 0.14 ? 2 : r < 0.55 ? 1 : 0
-      size[i] = layer === 2 ? 3.4 + Math.random() * 1.8 : layer === 1 ? 2.4 + Math.random() * 1 : 1.6 + Math.random() * 0.7
+      size[i] = (layer === 2 ? 3.4 + Math.random() * 1.8 : layer === 1 ? 2.4 + Math.random() * 1 : 1.6 + Math.random() * 0.7) * sizeK
       alpha[i] = layer === 2 ? 0.9 + Math.random() * 0.1 : layer === 1 ? 0.7 + Math.random() * 0.25 : 0.45 + Math.random() * 0.25
       phase[i] = Math.random() * Math.PI * 2
       speed[i] = 0.6 + Math.random() * 1.4
@@ -114,7 +115,7 @@ export function ParticleWordmark({ slotRef, areaRef, className = '' }: Props) {
       const sh = VIEW.h * s
       const ox = sr.left - cr.left + (sr.width - sw) / 2
       const oy = sr.top - cr.top + sr.height - sh
-      radius = Math.max(56, sw * 0.085)
+      radius = Math.max(56, sw * 0.095)
 
       const ow = Math.ceil(sw)
       const oh = Math.ceil(sh)
@@ -206,7 +207,7 @@ export function ParticleWordmark({ slotRef, areaRef, className = '' }: Props) {
     // ── Bucle
     const K = 0.01
     const DAMP = 0.84
-    const FORCE = 0.9
+    const FORCE = 1.2
     let raf = 0
     let last = 0
     let startedAt = 0

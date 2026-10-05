@@ -85,7 +85,7 @@ export function ScrubChapter({ chapter, id }: Props) {
           <div className="absolute inset-0">
             <ImageSequence ref={seq} media={chapter.media} label={chapter.label[lang]} fit="cover" className="h-full w-full" />
           </div>
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black via-black/75 to-transparent" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[70%] bg-linear-to-t from-black via-black/75 to-transparent" />
           <div className="absolute inset-x-0 bottom-0">
             <div className="container-x grid items-end gap-6 pb-8 md:grid-cols-12 md:gap-10 md:pb-12">
               <div className="md:col-span-7">
