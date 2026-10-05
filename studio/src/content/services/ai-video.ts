@@ -29,7 +29,7 @@ export const aiVideo: ServiceDetail = {
       kind: 'scrub',
       media: 'tacos-drop',
       frames: 480,
-      claim: { es: 'Una gota. 480 fotogramas.', en: 'One drop. 480 frames.' },
+      claim: { es: 'Una gota.\n480 fotogramas.', en: 'One drop.\n480 frames.' },
       text: {
         es: 'Ocho segundos a 60 fotogramas por segundo. Recorre el plano como lo revisamos nosotros: fotograma a fotograma, hasta que la gota cae justo donde debe.',
         en: 'Eight seconds at 60 frames per second. Scroll through the shot the way we review it: frame by frame, until the drop lands exactly where it should.',

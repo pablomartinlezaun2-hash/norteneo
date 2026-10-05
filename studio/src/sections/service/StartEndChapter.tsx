@@ -15,7 +15,7 @@ export function StartEndChapter({ chapter, id }: Props) {
   const seq = getMedia(chapter.media)?.seq
   const head = `${id}-title`
 
-  const frame = (at: 'first' | 'last', alt: string) => {
+  const frame = (at: 'first' | 'last') => {
     if (!seq) return null
     const n = (s: Sequence) => (at === 'first' ? 0 : s.count - 1)
     return (
@@ -23,7 +23,7 @@ export function StartEndChapter({ chapter, id }: Props) {
         <source media="(max-width: 767.98px)" srcSet={frameUrl(seq.mobile, n(seq.mobile))} />
         <img
           src={frameUrl(seq.desktop, n(seq.desktop))}
-          alt={alt}
+          alt=""
           width={seq.desktop.w}
           height={seq.desktop.h}
           loading="lazy"
@@ -41,8 +41,8 @@ export function StartEndChapter({ chapter, id }: Props) {
         <div className="lg:col-span-7">
           {seq && (
             <BeforeAfter
-              before={frame('first', t.startFrame)}
-              after={frame('last', t.endFrame)}
+              before={frame('first')}
+              after={frame('last')}
               labels={{ before: t.startFrame, after: t.endFrame }}
               ariaLabel={t.compare}
               className="aspect-[4/5] w-full md:aspect-video"

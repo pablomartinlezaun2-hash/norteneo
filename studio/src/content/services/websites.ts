@@ -23,7 +23,7 @@ export const websites: ServiceDetail = {
   chapters: [
     {
       kind: 'sites',
-      claim: { es: 'Seis webs. Todas en producción.', en: 'Six websites. All live.' },
+      claim: { es: 'Seis webs.\nTodas en producción.', en: 'Six websites.\nAll live.' },
       text: {
         es: 'Para inmobiliarias y marcas. No son maquetas: están publicadas y puedes visitarlas ahora mismo.',
         en: 'For real estate firms and brands. These aren’t mock-ups: they are live and you can visit them right now.',

@@ -17,9 +17,9 @@ export function TermsChapter({ chapter, id }: Props) {
         <div className="lg:col-span-6 lg:col-start-7 lg:self-end">
           <dl>
           {chapter.items.map((item, i) => (
-            <div key={i} style={dashedTop} className="grid gap-2 py-6 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:gap-8 md:py-7">
+            <div key={i} style={dashedTop} className="py-6 md:py-7">
               <dt className="type-title">{item.term[lang]}</dt>
-              <dd className="type-body text-mute sm:pt-1.5">{item.text[lang]}</dd>
+              <dd className="type-body mt-2 max-w-[48ch] text-mute">{item.text[lang]}</dd>
             </div>
           ))}
           </dl>

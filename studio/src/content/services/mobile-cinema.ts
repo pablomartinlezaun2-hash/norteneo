@@ -24,7 +24,7 @@ export const mobileCinema: ServiceDetail = {
     {
       kind: 'log',
       media: 'fpv-kitchen',
-      claim: { es: 'El Log guarda la luz. El color la devuelve.', en: 'Log keeps the light. Colour gives it back.' },
+      claim: { es: 'El Log guarda la luz.\nEl color la devuelve.', en: 'Log keeps the light.\nColour gives it back.' },
       text: {
         es: 'Un perfil Log graba una imagen plana a propósito: conserva más información en las luces y en las sombras para decidir el color después. Arrastra para comparar.',
         en: 'A Log profile records a deliberately flat image: it keeps more detail in highlights and shadows so the colour can be decided later. Drag to compare.',

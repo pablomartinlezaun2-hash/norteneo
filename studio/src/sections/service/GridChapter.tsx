@@ -92,7 +92,7 @@ export function GridChapter({ chapter, id }: Props) {
 
       {on && (
         <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-30">
-          <div className="container-x grid h-full grid-cols-4 gap-4 md:grid-cols-8 md:gap-6 lg:grid-cols-12">
+          <div className="container-x grid h-full grid-cols-4 gap-4 md:grid-cols-8 md:gap-6 lg:grid-cols-12 lg:gap-10">
             {Array.from({ length: 12 }, (_, i) => (
               <div
                 key={i}

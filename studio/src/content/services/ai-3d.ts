@@ -27,7 +27,7 @@ export const ai3d: ServiceDetail = {
       kind: 'scrub',
       media: 'golden-key',
       to: 0.755,
-      claim: { es: 'El objeto, fiel. La escena, imposible.', en: 'The object, faithful. The scene, impossible.' },
+      claim: { es: 'El objeto, fiel.\nLa escena, imposible.', en: 'The object, faithful.\nThe scene, impossible.' },
       text: {
         es: 'La llave es siempre la misma: forma, cepillado del metal y proporciones. Lo que cambia es el mundo que la rodea, hasta llegar a la cerradura con luz.',
         en: 'The key never changes: its shape, the brushed metal, its proportions. What changes is the world around it, all the way to the lit keyhole.',
@@ -48,7 +48,7 @@ export const ai3d: ServiceDetail = {
     {
       kind: 'scenes',
       media: 'golden-key',
-      claim: { es: 'Un modelo. Cada uso.', en: 'One model. Every use.' },
+      claim: { es: 'Un modelo.\nCada uso.', en: 'One model.\nEvery use.' },
       text: {
         es: 'Con el mismo objeto resolvemos el anuncio, la ficha de producto y el detalle que vende el material. Elige un uso.',
         en: 'The same object covers the ad, the product page and the close-up that sells the material. Choose a use.',

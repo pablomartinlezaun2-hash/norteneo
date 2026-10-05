@@ -26,7 +26,7 @@ export function ServiceHero({ service, detail }: { service: Service; detail: Ser
 
   if (!hero) {
     return (
-      <header className="container-x flex min-h-[calc(86svh-var(--nav-h)-3.25rem)] flex-col justify-end pt-20 pb-10 md:pb-14">
+      <header className="container-x flex min-h-[62svh] flex-col justify-end pt-16 pb-10 md:min-h-[calc(86svh-var(--nav-h)-3.25rem)] md:pt-20 md:pb-14">
         <h1 ref={h1} data-hero-reveal className="type-hero max-w-[12ch]" style={{ fontSize: 'clamp(2.75rem, 10vw, 9.5rem)' }}>
           {name}
         </h1>

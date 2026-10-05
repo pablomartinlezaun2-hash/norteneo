@@ -86,9 +86,7 @@ function SiteRow({ site, index, active }: { site: Case; index: number; active: b
   return (
     <li data-site={index} style={dashedTop} className="grid gap-x-8 gap-y-2 py-6 md:grid-cols-12 md:items-baseline md:py-7">
       <span className={`type-title md:col-span-5 ${active ? 'text-paper' : ''}`}>{site.title}</span>
-      <span className="type-small text-mute md:col-span-4">
-        {sectors[site.sector][lang]} · {site.line[lang]}
-      </span>
+      <span className="type-small text-mute md:col-span-4">{sectors[site.sector][lang]}</span>
       <span className="flex flex-wrap items-center justify-between gap-x-6 md:col-span-3 md:flex-col md:items-end md:gap-0">
         <a
           href={site.url}

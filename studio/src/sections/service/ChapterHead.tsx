@@ -20,7 +20,7 @@ export function ChapterHead({
 }) {
   return (
     <div className={className}>
-      <h2 id={id} className="type-display max-w-[15ch]">
+      <h2 id={id} className="type-display max-w-[18ch] whitespace-pre-line">
         {claim}
       </h2>
       <p className="type-lead measure mt-6 text-mute">{text}</p>

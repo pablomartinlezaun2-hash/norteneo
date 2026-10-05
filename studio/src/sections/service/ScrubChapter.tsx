@@ -89,7 +89,7 @@ export function ScrubChapter({ chapter, id }: Props) {
           <div className="absolute inset-x-0 bottom-0">
             <div className="container-x grid items-end gap-6 pb-8 md:grid-cols-12 md:gap-10 md:pb-12">
               <div className="md:col-span-7">
-                <h2 id={head} className="type-display max-w-[14ch]">
+                <h2 id={head} className="type-display max-w-[18ch] whitespace-pre-line">
                   {chapter.claim[lang]}
                 </h2>
                 <p className="type-body mt-4 max-w-[46ch] text-paper/80 md:type-lead md:mt-5">{chapter.text[lang]}</p>
