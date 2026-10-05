@@ -124,7 +124,8 @@ export function LocalNav({ service, anchors }: { service: Service; anchors: Anch
             viewTransition
             className="relative inline-flex h-8 items-center rounded-full bg-paper px-4 text-[0.8125rem] font-[540] whitespace-nowrap text-ink transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 hover:bg-white"
           >
-            {t.propose}
+            <span className="sm:hidden">{t.proposeShort}</span>
+            <span className="hidden sm:inline">{t.propose}</span>
           </Link>
         </div>
       </nav>

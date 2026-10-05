@@ -135,7 +135,7 @@ export const briefCopy = {
     handoffWhatsapp: 'We have opened WhatsApp with the summary. All that is left is to press send.',
     handoffEmail: 'We have opened your email with the summary. All that is left is to send it.',
     handoffAgain: 'Open again',
-    handoffBack: 'Back to the form',
+    handoffBack: 'Back to form',
     pending: 'Form delivery is still being set up. In the meantime, reach us through the contact details in the footer.',
   },
 }

@@ -22,19 +22,23 @@ export function LogChapter({ chapter, id }: Props) {
 
   const still = (log: boolean) =>
     m ? (
-      <picture>
-        <source type="image/avif" srcSet={m.poster.avif} />
-        <img
-          src={m.poster.jpg}
-          alt=""
-          width={m.poster.w}
-          height={m.poster.h}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-          style={log ? { filter: LOG_LOOK } : undefined}
-        />
-      </picture>
+      <>
+        <picture>
+          <source type="image/avif" srcSet={m.poster.avif} />
+          <img
+            src={m.poster.jpg}
+            alt=""
+            width={m.poster.w}
+            height={m.poster.h}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+            style={log ? { filter: LOG_LOOK } : undefined}
+          />
+        </picture>
+        {/* Velo superior para que las etiquetas [ Log ] / [ Etalonado ] se lean sobre zonas claras */}
+        <span aria-hidden="true" className="absolute inset-x-0 top-0 h-20 bg-linear-to-b from-black/60 to-transparent" />
+      </>
     ) : null
 
   return (

@@ -81,7 +81,7 @@ export function Nav() {
         {/* Velo superior: mantiene el contraste de la nav sobre fotogramas claros del hero */}
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-black/60 via-black/25 to-transparent transition-opacity duration-300 ${solid || open ? 'opacity-0' : 'opacity-100'}`}
+          className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(var(--nav-h)+0.75rem)] bg-gradient-to-b from-black/60 via-black/30 to-transparent transition-opacity duration-300 ${solid || open ? 'opacity-0' : 'opacity-100'}`}
         />
         <nav className="container-x flex h-full items-center justify-between gap-6" aria-label="Principal">
           <Link to={to.home(lang)} viewTransition className="-m-2 p-2" aria-label={`NEO Studio · ${t.home}`}>

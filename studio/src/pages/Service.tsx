@@ -13,6 +13,7 @@ import { DiscoverLink } from '@/components/Cta'
 import { LocalNav, type Anchor } from '@/sections/service/LocalNav'
 import { ServiceHero } from '@/sections/service/ServiceHero'
 import { Chapters } from '@/sections/service/Chapters'
+import { Explainer } from '@/sections/service/Explainer'
 import { Process } from '@/sections/service/Process'
 import { Examples } from '@/sections/service/Examples'
 import { Specs } from '@/sections/service/Specs'
@@ -93,6 +94,8 @@ function ServicePage({ service, detail }: { service: Service; detail: ServiceDet
               <span className="text-paper">{detail.intro.strong[lang]}</span> <span className="text-mute">{detail.intro.rest[lang]}</span>
             </p>
           </section>
+          {/* "Míralo en 60 segundos": solo cuando exista el vídeo explicativo (pendiente del cliente) */}
+          {detail.explainer && <Explainer data={detail.explainer} />}
           <Chapters chapters={detail.chapters} examplesAnchor={sitesChapter ? 'ejemplos' : undefined} />
         </div>
         <Process detail={detail} />

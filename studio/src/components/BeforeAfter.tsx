@@ -34,8 +34,8 @@ export function BeforeAfter({ before, after, labels, ariaLabel, initial = 50, cl
           </svg>
         </div>
       </div>
-      <span className="type-meta pointer-events-none absolute top-4 left-4 z-10 text-paper/90">[ {labels.before} ]</span>
-      <span className="type-meta pointer-events-none absolute top-4 right-4 z-10 text-paper/90">[ {labels.after} ]</span>
+      <span className="type-meta pointer-events-none absolute top-4 left-4 z-10 rounded-full bg-black/55 px-2.5 py-1 text-paper">[ {labels.before} ]</span>
+      <span className="type-meta pointer-events-none absolute top-4 right-4 z-10 rounded-full bg-black/55 px-2.5 py-1 text-paper">[ {labels.after} ]</span>
       <label htmlFor={id} className="sr-only">
         {ariaLabel}
       </label>

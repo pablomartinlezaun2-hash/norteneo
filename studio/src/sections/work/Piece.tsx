@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom'
 import { useLang } from '@/i18n'
 import { to } from '@/i18n/paths'
 import type { Case } from '@/content/cases'
-import { Meta } from '@/components/Meta'
 import { PhoneFrame } from '@/components/PhoneFrame'
 import { PieceVideo } from './PieceVideo'
 import { Tag } from './Tag'
-import { formatLabel, isGenerated, kindLabel, labels, pieceAlt, sectorLabel, type Shape } from './meta'
+import { formatLabel, isGenerated, kindLabel, labels, pieceAlt, sectorLabel, SEP, servicesLabel, type Shape } from './meta'
 
 /** Nombre de transición compartida pieza → hero del caso (View Transitions). */
 export const pieceTransition = (slug: string) => `piece-${slug}`
@@ -33,7 +32,7 @@ export function Piece({ c, shape, cls = '', paired = false, level = 3 }: Props) 
   const href = to.case(lang, c.slug)
   const sector = sectorLabel(c, lang)
   const kind = kindLabel(c, lang)
-  const meta = [sector, formatLabel(c, lang)].filter(Boolean).join(' · ')
+  const meta = [sector, formatLabel(c, lang)].filter(Boolean).join(SEP)
 
   const enter = (e: PointerEvent) => e.pointerType === 'mouse' && setHovered(true)
   const leave = (e: PointerEvent) => e.pointerType === 'mouse' && setHovered(false)
@@ -67,7 +66,7 @@ export function Piece({ c, shape, cls = '', paired = false, level = 3 }: Props) 
           className="relative flex aspect-[4/3] flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface p-6 transition-colors duration-500 group-hover:border-line-strong md:p-8"
           style={{ viewTransitionName: pieceTransition(c.slug) }}
         >
-          <Meta>{kind ?? formatLabel(c, lang)}</Meta>
+          <Tag>{servicesLabel(c, lang)}</Tag>
           <p className="type-display text-paper" aria-hidden="true">
             {c.title}
           </p>
@@ -85,7 +84,7 @@ export function Piece({ c, shape, cls = '', paired = false, level = 3 }: Props) 
               {c.title}
             </Link>
           </H>
-          {meta && <Meta>{meta}</Meta>}
+          {meta && <Tag>{meta}</Tag>}
         </div>
         <p className="type-small mt-1.5 text-mute">{c.line[lang]}</p>
         {(kind && shape !== 'type') || isGenerated(c) ? (

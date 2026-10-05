@@ -201,6 +201,10 @@ export function ImageSequence({ media, label, className = '', eager = false, fit
           className={`absolute inset-0 h-full w-full ${fit === 'cover' ? 'object-cover' : 'object-contain'}`}
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            // Si falla el frame, el póster del clip evita el icono de imagen rota
+            if (entry && e.currentTarget.src !== new URL(entry.poster.jpg, location.href).href) e.currentTarget.src = entry.poster.jpg
+          }}
         />
       )}
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />

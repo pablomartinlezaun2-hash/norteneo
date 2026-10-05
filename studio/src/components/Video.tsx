@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState, type CSSProperties, type Ref } from 'react'
 import { getMedia, type MediaEntry, type MediaId } from '@/lib/media'
 import { useLang } from '@/i18n'
 import { useReducedMotion } from '@/hooks/useMediaQuery'
@@ -24,6 +24,8 @@ type Props = {
   className?: string
   style?: CSSProperties
   onPlayingChange?: (playing: boolean) => void
+  /** Acceso al <video> interno (velocidad, tiempo, play/pause externos) */
+  videoRef?: Ref<HTMLVideoElement | null>
 }
 
 const ui = {
@@ -55,11 +57,13 @@ export function Video({
   className = '',
   style,
   onPlayingChange,
+  videoRef: externalRef,
 }: Props) {
   const lang = useLang()
   const reduce = useReducedMotion()
   const wrapRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  useImperativeHandle(externalRef, () => videoRef.current as HTMLVideoElement, [])
   const [shown, setShown] = useState(false)
   const [paused, setPaused] = useState(true)
   const [visible, setVisible] = useState(false)

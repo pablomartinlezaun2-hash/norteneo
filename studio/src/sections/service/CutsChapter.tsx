@@ -54,7 +54,7 @@ export function CutsChapter({ chapter, id }: Props) {
             <p className="type-meta text-paper">[ {cut.meta[lang]} ]</p>
             <p className="type-body mt-2 text-paper/85">{cut.text[lang]}</p>
           </div>
-          <p className="type-small measure mt-6 text-mute">{chapter.note[lang]}</p>
+          <p className="type-small measure mt-6 hidden text-mute md:block">{chapter.note[lang]}</p>
         </ChapterHead>
 
         <figure className="md:col-span-5 lg:col-span-5 lg:col-start-8">
@@ -86,6 +86,7 @@ export function CutsChapter({ chapter, id }: Props) {
           <figcaption className="mt-5 flex flex-col items-center gap-1 text-center">
             {chapter.proof && <Meta>{chapter.proof[lang]}</Meta>}
             <Meta>{t.ai}</Meta>
+            <span className="type-small measure mt-5 text-left text-mute md:hidden">{chapter.note[lang]}</span>
           </figcaption>
         </figure>
       </div>

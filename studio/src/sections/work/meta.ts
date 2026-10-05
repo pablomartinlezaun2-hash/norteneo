@@ -22,6 +22,9 @@ export function mediaShape(id?: MediaId): Shape {
 
 export const caseShape = (c: Case): Shape => mediaShape(c.media)
 
+/** Separador de metadatos: el espacio duro evita que una línea empiece por "·". */
+export const SEP = '\u00a0· '
+
 /** Formato real de la pieza: 16:9, 9:16, Web o App. */
 export function formatLabel(c: Case, lang: Lang): string {
   const shape = caseShape(c)
@@ -34,7 +37,7 @@ export function formatLabel(c: Case, lang: Lang): string {
 export function durationLabel(id?: MediaId): string {
   if (!id) return ''
   const m = getMedia(id)
-  return m ? `${Math.round(m.duration)} s` : ''
+  return m ? `${Math.round(m.duration)}\u00a0s` : ''
 }
 
 /** Sector visible. 'brand' es un sector pendiente de confirmar: no se muestra. */

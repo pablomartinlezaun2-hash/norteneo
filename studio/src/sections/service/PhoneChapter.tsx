@@ -22,7 +22,7 @@ export function PhoneChapter({ chapter, id }: Props) {
             <Video media={chapter.media} label={chapter.label[lang]} controls exclusive className="h-full w-full" />
             {chapter.ai && (
               <p className="pointer-events-none absolute inset-x-0 top-0 z-[5] bg-linear-to-b from-black/70 to-transparent px-4 pt-11 pb-6 text-center">
-                <span className="type-meta text-paper">{t.ai}</span>
+                <span className="type-meta text-balance text-paper">[ {t.ai} ]</span>
               </p>
             )}
           </PhoneFrame>

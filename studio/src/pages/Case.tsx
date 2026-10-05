@@ -10,7 +10,6 @@ import { useSplitReveal } from '@/hooks/useSplitReveal'
 import { Seo } from '@/components/Seo'
 import { Video } from '@/components/Video'
 import { PhoneFrame } from '@/components/PhoneFrame'
-import { Meta } from '@/components/Meta'
 import { Cta } from '@/components/Cta'
 import { Missing } from '@/sections/work/Missing'
 import { Tag } from '@/sections/work/Tag'
@@ -31,6 +30,7 @@ import {
   pieceAlt,
   sectorLabel,
   servicesLabel,
+  SEP,
 } from '@/sections/work/meta'
 
 const copy = {
@@ -65,7 +65,9 @@ const fill = (text: string, c: Case) => text.replace('{domain}', domainOf(c.url)
 function ficha(c: Case, lang: Lang): string {
   // En las webs el formato ("Web") ya lo dice el servicio: no se repite
   const format = !c.media && c.services.includes('websites') ? '' : formatLabel(c, lang)
-  return [sectorLabel(c, lang), servicesLabel(c, lang), format, durationLabel(c.media)].filter(Boolean).join(' · ')
+  // En el producto propio el sector ya lo dice su etiqueta
+  const sector = c.kind === 'own' ? null : sectorLabel(c, lang)
+  return [sector, servicesLabel(c, lang), format, durationLabel(c.media)].filter(Boolean).join(SEP)
 }
 
 function jsonLd(c: Case, lang: Lang) {
@@ -120,7 +122,7 @@ function CaseView({ c }: { c: Case }) {
 
   const tags = (
     <div className="mt-6 flex flex-col gap-1.5">
-      <Meta>{ficha(c, lang)}</Meta>
+      <Tag>{ficha(c, lang)}</Tag>
       {kind && <Tag tone="paper">{kind}</Tag>}
       {isGenerated(c) && <Tag tone="dim">{labels.ai[lang]}</Tag>}
     </div>
@@ -246,7 +248,7 @@ function CaseView({ c }: { c: Case }) {
                     </div>
                   )}
                   <figcaption className={`mt-4 ${s === 'port' ? 'mx-auto w-[min(72vw,17rem)] md:mx-0 lg:w-[18.5rem]' : ''}`}>
-                    <Meta>{[mediaShape(item) === 'port' ? '9:16' : '16:9', durationLabel(item)].filter(Boolean).join(' · ')}</Meta>
+                    <Tag>{[mediaShape(item) === 'port' ? '9:16' : '16:9', durationLabel(item)].filter(Boolean).join(SEP)}</Tag>
                   </figcaption>
                 </figure>
               ))}

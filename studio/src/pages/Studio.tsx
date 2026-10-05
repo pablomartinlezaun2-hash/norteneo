@@ -163,7 +163,7 @@ export function Component() {
 
       <header className="container-x pt-[calc(var(--nav-h)+clamp(4rem,12vw,9rem))]">
         <Meta>{t.kicker}</Meta>
-        <h1 ref={h1} data-hero-reveal className="type-hero mt-6">
+        <h1 ref={h1} data-hero-reveal className="type-hero mt-6 max-sm:text-[8.1vw] max-sm:[font-stretch:100%]">
           <span className="block">{t.title[0]}</span>
           <span className="block">{t.title[1]}</span>
         </h1>
