@@ -37,7 +37,7 @@ const CLIPS = [
   { id: 'fpv-kitchen', src: 'fpv-kitchen.mov', orient: 'land', poster: 7.4 },
   { id: 'tacos-spot', src: 'tacos-spot.mov', orient: 'land', poster: 7.6 },
   { id: 'tacos-drop', src: 'tacos-drop.mp4', orient: 'land', poster: 2.0,
-    seq: { desktop: { w: 1280, h: 720, frames: 160, fit: 'cover' }, mobile: { w: 640, h: 800, frames: 80, fit: 'cover' } } },
+    seq: { desktop: { w: 1280, h: 720, frames: 120, fit: 'cover', q: 50 }, mobile: { w: 640, h: 800, frames: 80, fit: 'cover', q: 50 } } },
   { id: 'flambe', src: 'flambe.mov', orient: 'land', poster: 6.5 },
   { id: 'golden-key', src: 'golden-key.mov', orient: 'land', poster: 5.6,
     seq: { desktop: { w: 1280, h: 720, frames: 150, fit: 'cover' }, mobile: { w: 640, h: 800, frames: 75, fit: 'cover' } } },
@@ -152,7 +152,7 @@ function sequence(id, mezz, variant, spec, outDir) {
     ? `scale=${spec.w}:${spec.h}:force_original_aspect_ratio=decrease:flags=lanczos,pad=${spec.w}:${spec.h}:(ow-iw)/2:(oh-ih)/2:black`
     : `scale=${spec.w}:${spec.h}:force_original_aspect_ratio=increase:flags=lanczos,crop=${spec.w}:${spec.h}`
   run(['-i', mezz, '-vf', `fps=${fps},${fit}`, '-frames:v', String(spec.frames), '-c:v', 'libwebp',
-    '-quality', variant === 'desktop' ? '58' : '55', '-compression_level', '6', join(dir, '%04d.webp')], `${id}: secuencia ${variant}`)
+    '-quality', String(spec.q ?? (variant === 'desktop' ? 58 : 55)), '-compression_level', '6', join(dir, '%04d.webp')], `${id}: secuencia ${variant}`)
   const files = readdirSync(dir).filter((f) => f.endsWith('.webp')).sort()
   const bytes = files.reduce((a, f) => a + size(join(dir, f)), 0)
   return { base: rel(dir), count: files.length, pattern: '{n4}.webp', w: spec.w, h: spec.h, fit: spec.fit, bytes }

@@ -37,5 +37,563 @@
       "bytesAvif": 2106,
       "bytesJpg": 20635
     }
+  },
+  "reel-land": {
+    "id": "reel-land",
+    "orient": "land",
+    "duration": 9.9,
+    "sources": [
+      {
+        "src": "/media/reel/reel-land-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 1958844
+      },
+      {
+        "src": "/media/reel/reel-land-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 5197981
+      },
+      {
+        "src": "/media/reel/reel-land-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2449818
+      }
+    ],
+    "poster": {
+      "avif": "/media/reel/reel-land-poster.avif",
+      "jpg": "/media/reel/reel-land-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 28961,
+      "bytesJpg": 95877
+    }
+  },
+  "reel-port": {
+    "id": "reel-port",
+    "orient": "port",
+    "duration": 8.37,
+    "sources": [
+      {
+        "src": "/media/reel/reel-port-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 720,
+        "h": 1280,
+        "bytes": 1077141
+      },
+      {
+        "src": "/media/reel/reel-port-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 720,
+        "h": 1280,
+        "bytes": 2067727
+      }
+    ],
+    "poster": {
+      "avif": "/media/reel/reel-port-poster.avif",
+      "jpg": "/media/reel/reel-port-poster.jpg",
+      "w": 720,
+      "h": 1280,
+      "bytesAvif": 12250,
+      "bytesJpg": 43828
+    }
+  },
+  "gastro": {
+    "id": "gastro",
+    "orient": "land",
+    "duration": 5,
+    "sources": [
+      {
+        "src": "/media/gastro/gastro-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 1297535
+      },
+      {
+        "src": "/media/gastro/gastro-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2792372
+      },
+      {
+        "src": "/media/gastro/gastro-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 1368306
+      }
+    ],
+    "poster": {
+      "avif": "/media/gastro/gastro-poster.avif",
+      "jpg": "/media/gastro/gastro-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 3248,
+      "bytesJpg": 27987
+    },
+    "seq": {
+      "desktop": {
+        "base": "/media/gastro/seq/desktop",
+        "count": 150,
+        "pattern": "{n4}.webp",
+        "w": 1280,
+        "h": 720,
+        "fit": "contain",
+        "bytes": 4303286
+      },
+      "mobile": {
+        "base": "/media/gastro/seq/mobile",
+        "count": 75,
+        "pattern": "{n4}.webp",
+        "w": 960,
+        "h": 540,
+        "fit": "contain",
+        "bytes": 1472066
+      }
+    }
+  },
+  "wine": {
+    "id": "wine",
+    "orient": "land",
+    "duration": 6,
+    "sources": [
+      {
+        "src": "/media/wine/wine-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 1085960
+      },
+      {
+        "src": "/media/wine/wine-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2541397
+      },
+      {
+        "src": "/media/wine/wine-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 1163270
+      }
+    ],
+    "poster": {
+      "avif": "/media/wine/wine-poster.avif",
+      "jpg": "/media/wine/wine-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 9653,
+      "bytesJpg": 60690
+    }
+  },
+  "fpv-kitchen": {
+    "id": "fpv-kitchen",
+    "orient": "land",
+    "duration": 8.03,
+    "sources": [
+      {
+        "src": "/media/fpv-kitchen/fpv-kitchen-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2285389
+      },
+      {
+        "src": "/media/fpv-kitchen/fpv-kitchen-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 5391490
+      },
+      {
+        "src": "/media/fpv-kitchen/fpv-kitchen-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2360318
+      }
+    ],
+    "poster": {
+      "avif": "/media/fpv-kitchen/fpv-kitchen-poster.avif",
+      "jpg": "/media/fpv-kitchen/fpv-kitchen-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 26063,
+      "bytesJpg": 101121
+    }
+  },
+  "tacos-spot": {
+    "id": "tacos-spot",
+    "orient": "land",
+    "duration": 8.03,
+    "sources": [
+      {
+        "src": "/media/tacos-spot/tacos-spot-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2489321
+      },
+      {
+        "src": "/media/tacos-spot/tacos-spot-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 5235331
+      },
+      {
+        "src": "/media/tacos-spot/tacos-spot-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2302792
+      }
+    ],
+    "poster": {
+      "avif": "/media/tacos-spot/tacos-spot-poster.avif",
+      "jpg": "/media/tacos-spot/tacos-spot-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 44252,
+      "bytesJpg": 146059
+    }
+  },
+  "tacos-drop": {
+    "id": "tacos-drop",
+    "orient": "land",
+    "duration": 8.03,
+    "sources": [
+      {
+        "src": "/media/tacos-drop/tacos-drop-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2961069
+      },
+      {
+        "src": "/media/tacos-drop/tacos-drop-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 4534309
+      },
+      {
+        "src": "/media/tacos-drop/tacos-drop-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2089170
+      }
+    ],
+    "poster": {
+      "avif": "/media/tacos-drop/tacos-drop-poster.avif",
+      "jpg": "/media/tacos-drop/tacos-drop-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 66220,
+      "bytesJpg": 198475
+    },
+    "seq": {
+      "desktop": {
+        "base": "/media/tacos-drop/seq/desktop",
+        "count": 120,
+        "pattern": "{n4}.webp",
+        "w": 1280,
+        "h": 720,
+        "fit": "cover",
+        "bytes": 6635470
+      },
+      "mobile": {
+        "base": "/media/tacos-drop/seq/mobile",
+        "count": 80,
+        "pattern": "{n4}.webp",
+        "w": 640,
+        "h": 800,
+        "fit": "cover",
+        "bytes": 2565156
+      }
+    }
+  },
+  "flambe": {
+    "id": "flambe",
+    "orient": "land",
+    "duration": 8.03,
+    "sources": [
+      {
+        "src": "/media/flambe/flambe-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 1720119
+      },
+      {
+        "src": "/media/flambe/flambe-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 4711262
+      },
+      {
+        "src": "/media/flambe/flambe-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2125643
+      }
+    ],
+    "poster": {
+      "avif": "/media/flambe/flambe-poster.avif",
+      "jpg": "/media/flambe/flambe-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 20415,
+      "bytesJpg": 93670
+    }
+  },
+  "golden-key": {
+    "id": "golden-key",
+    "orient": "land",
+    "duration": 6,
+    "sources": [
+      {
+        "src": "/media/golden-key/golden-key-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2276764
+      },
+      {
+        "src": "/media/golden-key/golden-key-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 4048457
+      },
+      {
+        "src": "/media/golden-key/golden-key-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 1771174
+      }
+    ],
+    "poster": {
+      "avif": "/media/golden-key/golden-key-poster.avif",
+      "jpg": "/media/golden-key/golden-key-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 14646,
+      "bytesJpg": 62086
+    },
+    "seq": {
+      "desktop": {
+        "base": "/media/golden-key/seq/desktop",
+        "count": 150,
+        "pattern": "{n4}.webp",
+        "w": 1280,
+        "h": 720,
+        "fit": "cover",
+        "bytes": 3354424
+      },
+      "mobile": {
+        "base": "/media/golden-key/seq/mobile",
+        "count": 75,
+        "pattern": "{n4}.webp",
+        "w": 640,
+        "h": 800,
+        "fit": "cover",
+        "bytes": 1090788
+      }
+    }
+  },
+  "empire-teaser": {
+    "id": "empire-teaser",
+    "orient": "port",
+    "duration": 7.03,
+    "sources": [
+      {
+        "src": "/media/empire-teaser/empire-teaser-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 720,
+        "h": 1280,
+        "bytes": 1377679
+      },
+      {
+        "src": "/media/empire-teaser/empire-teaser-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 720,
+        "h": 1280,
+        "bytes": 2432291
+      }
+    ],
+    "poster": {
+      "avif": "/media/empire-teaser/empire-teaser-poster.avif",
+      "jpg": "/media/empire-teaser/empire-teaser-poster.jpg",
+      "w": 720,
+      "h": 1280,
+      "bytesAvif": 9129,
+      "bytesJpg": 40772
+    }
+  },
+  "empire-film": {
+    "id": "empire-film",
+    "orient": "port",
+    "duration": 11.33,
+    "sources": [
+      {
+        "src": "/media/empire-film/empire-film-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 720,
+        "h": 1280,
+        "bytes": 2673498
+      },
+      {
+        "src": "/media/empire-film/empire-film-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 720,
+        "h": 1280,
+        "bytes": 3841510
+      }
+    ],
+    "poster": {
+      "avif": "/media/empire-film/empire-film-poster.avif",
+      "jpg": "/media/empire-film/empire-film-poster.jpg",
+      "w": 720,
+      "h": 1280,
+      "bytesAvif": 10973,
+      "bytesJpg": 48599
+    }
+  },
+  "fashion": {
+    "id": "fashion",
+    "orient": "port",
+    "duration": 14.04,
+    "sources": [
+      {
+        "src": "/media/fashion/fashion-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 720,
+        "h": 1280,
+        "bytes": 1190141
+      },
+      {
+        "src": "/media/fashion/fashion-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 720,
+        "h": 1280,
+        "bytes": 2333311
+      }
+    ],
+    "poster": {
+      "avif": "/media/fashion/fashion-poster.avif",
+      "jpg": "/media/fashion/fashion-poster.jpg",
+      "w": 720,
+      "h": 1280,
+      "bytesAvif": 10263,
+      "bytesJpg": 40271
+    }
+  },
+  "ugc-move": {
+    "id": "ugc-move",
+    "orient": "port",
+    "duration": 15,
+    "sources": [
+      {
+        "src": "/media/ugc-move/ugc-move-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 720,
+        "h": 1280,
+        "bytes": 1811410
+      },
+      {
+        "src": "/media/ugc-move/ugc-move-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 720,
+        "h": 1280,
+        "bytes": 2977782
+      }
+    ],
+    "poster": {
+      "avif": "/media/ugc-move/ugc-move-poster.avif",
+      "jpg": "/media/ugc-move/ugc-move-poster.jpg",
+      "w": 720,
+      "h": 1280,
+      "bytesAvif": 13625,
+      "bytesJpg": 51324
+    }
+  },
+  "running": {
+    "id": "running",
+    "orient": "port",
+    "duration": 16.5,
+    "sources": [
+      {
+        "src": "/media/running/running-720.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 720,
+        "h": 1280,
+        "bytes": 1394899
+      },
+      {
+        "src": "/media/running/running-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 720,
+        "h": 1280,
+        "bytes": 3943050
+      }
+    ],
+    "poster": {
+      "avif": "/media/running/running-poster.avif",
+      "jpg": "/media/running/running-poster.jpg",
+      "w": 720,
+      "h": 1280,
+      "bytesAvif": 9552,
+      "bytesJpg": 39420
+    }
   }
 }
