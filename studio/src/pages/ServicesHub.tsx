@@ -19,7 +19,9 @@ export function Component() {
   const lang = useLang()
   const t = hubCopy[lang]
   const hero = useRef<HTMLHeadingElement>(null)
-  useSplitReveal(hero, { on: 'load', delay: heroDelay() })
+  // Si se llega navegando dentro de la web, la intro del logo ya terminó: no hay que esperarla
+  const delay = typeof performance === 'undefined' ? 0 : Math.max(0.15, heroDelay() - performance.now() / 1000)
+  useSplitReveal(hero, { on: 'load', delay })
 
   const abs = (p: string) => `${site.url.replace(/\/$/, '')}${p}`
   const jsonLd = {

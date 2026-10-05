@@ -70,36 +70,36 @@ export function PreviewWindow({ active, lang }: { active: ServiceId; lang: Lang 
   return (
     <div className="w-full max-w-[calc((100svh-var(--nav-h)-8rem)*0.8)]">
       <div className="relative">
-      <div ref={scope} className="relative isolate aspect-[4/5] overflow-hidden bg-ink">
-        {services.map((s) => {
-          const m = s.media ? getMedia(s.media) : undefined
-          const isOn = s.id === current || s.id === trailing
-          return (
-            <div
-              key={s.id}
-              data-layer={s.id}
-              data-z={s.id === initial ? 1 : 0}
-              className="absolute inset-0"
-              style={{ clipPath: s.id === initial ? SHOWN : HIDDEN, zIndex: s.id === initial ? 1 : 0 }}
-            >
-              {m ? (
-                <>
-                  <picture>
-                    <source type="image/avif" srcSet={m.poster.avif} />
-                    <img src={m.poster.jpg} alt="" width={m.poster.w} height={m.poster.h} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
-                  </picture>
-                  {desktop && isOn && (
-                    <Video media={s.media!} label={t.preview(s.name[lang])} exclusive controls fit="cover" className="absolute inset-0 size-full" />
-                  )}
-                </>
-              ) : (
-                <TypeComposition service={s} lang={lang} />
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <span aria-hidden="true" className="pointer-events-none absolute inset-0 border border-line" />
+        <div ref={scope} className="relative isolate aspect-[4/5] overflow-hidden bg-ink">
+          {services.map((s) => {
+            const m = s.media ? getMedia(s.media) : undefined
+            const isOn = s.id === current || s.id === trailing
+            return (
+              <div
+                key={s.id}
+                data-layer={s.id}
+                data-z={s.id === initial ? 1 : 0}
+                className="absolute inset-0"
+                style={{ clipPath: s.id === initial ? SHOWN : HIDDEN, zIndex: s.id === initial ? 1 : 0 }}
+              >
+                {m ? (
+                  <>
+                    <picture>
+                      <source type="image/avif" srcSet={m.poster.avif} />
+                      <img src={m.poster.jpg} alt="" width={m.poster.w} height={m.poster.h} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
+                    </picture>
+                    {desktop && isOn && (
+                      <Video media={s.media!} label={t.preview(s.name[lang])} exclusive controls fit="cover" className="size-full" />
+                    )}
+                  </>
+                ) : (
+                  <TypeComposition service={s} lang={lang} />
+                )}
+              </div>
+            )
+          })}
+        </div>
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 border border-line" />
       </div>
       <p className="mt-4 min-h-5">
         {media ? (
