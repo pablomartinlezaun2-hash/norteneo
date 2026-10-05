@@ -142,7 +142,10 @@ const segExt = meta.alpha ? "mov" : "mp4";
 
 async function renderChunk(k, from, to, pg, cdp) {
   const seg = path.join(TMP, `${comp}.seg${k}.${segExt}`);
-  const a = ["-y", "-loglevel", process.env.FF_LOG || "error", "-f", "image2pipe", "-c:v", "png", "-framerate", String(fps * sub), "-i", "-", "-vf"];
+  // opaco: JPEG 95 (el PNG de fotogramas fotográficos llega a varios MB y el demuxer
+  // de tubería pierde imágenes sin avisar); alfa: PNG
+  const inCodec = meta.alpha ? "png" : "mjpeg";
+  const a = ["-y", "-loglevel", process.env.FF_LOG || "error", "-f", "image2pipe", "-c:v", inCodec, "-framerate", String(fps * sub), "-i", "-", "-vf"];
   if (meta.alpha) a.push(vf.join(","), "-r", String(fps), "-c:v", "png", "-pix_fmt", "rgba", seg);
   else a.push([...vf, "format=yuv420p"].join(","), "-r", String(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-profile:v", "high", "-level", "4.2", "-x264-params", "keyint=60", seg);
   const ff = spawn("ffmpeg", a, { stdio: ["pipe", "inherit", "inherit"] });
@@ -150,7 +153,7 @@ async function renderChunk(k, from, to, pg, cdp) {
   for (let i = from; i < to; i++) {
     for (let j = 0; j < sub; j++) {
       await pg.evaluate((t) => window.__seek(t), i / fps + (j * shutter) / (fps * sub));
-      const { data } = await cdp.send("Page.captureScreenshot", { format: "png", optimizeForSpeed: true, captureBeyondViewport: false });
+      const { data } = await cdp.send("Page.captureScreenshot", meta.alpha ? { format: "png", optimizeForSpeed: true, captureBeyondViewport: false } : { format: "jpeg", quality: 95, captureBeyondViewport: false });
       if (!ff.stdin.write(Buffer.from(data, "base64"))) await new Promise((r) => ff.stdin.once("drain", r));
     }
     progress[k] = i - from + 1;
