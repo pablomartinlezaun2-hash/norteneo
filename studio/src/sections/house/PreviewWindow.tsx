@@ -7,7 +7,7 @@ import { Video } from '@/components/Video'
 import { Meta } from '@/components/Meta'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { gsap, MQ, prefersReducedMotion, useGSAP } from '@/lib/motion'
-import { TypeComposition } from './TypeComposition'
+import { compositionCaption, TypeComposition } from './TypeComposition'
 import { houseCopy } from './copy'
 
 const SHOWN = 'inset(0% 0% 0% 0%)'
@@ -42,7 +42,7 @@ export function PreviewWindow({ active, lang }: { active: ServiceId; lang: Lang 
       if (!root) return
       const layers = gsap.utils.toArray<HTMLElement>('[data-layer]', root)
       const layer = layers.find((l) => l.dataset.layer === active)
-      if (!layer || active === initial && z.current === 1) return
+      if (!layer || (active === initial && z.current === 1)) return
       const level = ++z.current
       layer.dataset.z = String(level)
       const settle = () => {
@@ -69,7 +69,8 @@ export function PreviewWindow({ active, lang }: { active: ServiceId; lang: Lang 
 
   return (
     <div className="w-full max-w-[calc((100svh-var(--nav-h)-8rem)*0.8)]">
-      <div ref={scope} className="relative isolate aspect-[4/5] overflow-hidden bg-ink outline outline-1 -outline-offset-1 outline-line">
+      <div className="relative">
+      <div ref={scope} className="relative isolate aspect-[4/5] overflow-hidden bg-ink">
         {services.map((s) => {
           const m = s.media ? getMedia(s.media) : undefined
           const isOn = s.id === current || s.id === trailing
@@ -98,6 +99,8 @@ export function PreviewWindow({ active, lang }: { active: ServiceId; lang: Lang 
           )
         })}
       </div>
+      <span aria-hidden="true" className="pointer-events-none absolute inset-0 border border-line" />
+      </div>
       <p className="mt-4 min-h-5">
         {media ? (
           <Meta>
@@ -105,7 +108,7 @@ export function PreviewWindow({ active, lang }: { active: ServiceId; lang: Lang 
             {t.ai}
           </Meta>
         ) : (
-          <Meta>{svc.name[lang]}</Meta>
+          <Meta>{compositionCaption(svc, lang)}</Meta>
         )}
       </p>
     </div>

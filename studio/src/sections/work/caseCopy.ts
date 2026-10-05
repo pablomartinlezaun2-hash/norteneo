@@ -71,8 +71,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   'real-empire-estate': {
     challenge: {
-      es: 'Contar una inmobiliaria en pocos segundos y en vertical, con el lenguaje de una casa de lujo y no el de un portal de anuncios.',
-      en: 'Tell a real estate brand’s story in a few vertical seconds, in the language of a luxury house rather than a listings portal.',
+      es: 'El encargo: una película de marca vertical para una inmobiliaria, con el lenguaje de una casa de lujo y no el de un portal de anuncios.',
+      en: 'The brief: a vertical brand film for a real estate firm, speaking the language of a luxury house rather than a listings portal.',
     },
     solution: {
       es: 'Llave, pasillo, ciudad y un logo con anillos: planos generados con IA, elegidos uno a uno y montados por NEO en 9:16. En montaje se descartó todo plano con texto defectuoso.',
@@ -81,8 +81,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   'mesa-negra': {
     challenge: {
-      es: 'Hacer sentir alta cocina, el corte, la sal, el humo y la copa, sin cocina, sin cámara y sin plató.',
-      en: 'Make fine dining felt, the cut, the salt, the smoke and the glass, with no kitchen, no camera and no set.',
+      es: 'El encargo: un spot de alta cocina que hiciera sentir el corte, la sal, el humo y la copa, sin cocina, sin cámara y sin plató.',
+      en: 'The brief: a fine-dining spot that makes you feel the cut, the salt, the smoke and the glass, with no kitchen, no camera and no set.',
     },
     solution: {
       es: 'Cuchillo, hierbas, sal y piel de limón suspendidos en un bokeh dorado, hasta el plato con humo y la copa. Generado con IA y dirigido plano a plano por NEO.',
@@ -95,8 +95,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   fuego: {
     challenge: {
-      es: 'Que un taco se vea tan apetecible como en el mejor spot de comida, sin cocinar ni uno.',
-      en: 'Make a taco look as irresistible as in the best food spot, without cooking a single one.',
+      es: 'El encargo: un spot de producto para una taquería, con cada taco tan apetecible como en el mejor anuncio de comida.',
+      en: 'The brief: a product spot for a taqueria, with every taco as irresistible as in the best food commercial.',
     },
     solution: {
       es: 'Brasa, queso fundido, salsa y un packshot dorado, generados con IA y montados por NEO. El macro de la gota de salsa se trabaja aparte, fotograma a fotograma.',
@@ -105,8 +105,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   reserva: {
     challenge: {
-      es: 'Contar un vino sin botella, sin viñedo y sin bodega: solo con lo que provoca.',
-      en: 'Tell the story of a wine with no bottle, no vineyard and no cellar: only what it evokes.',
+      es: 'El encargo: una pieza de vino que se sostuviera sola, sin botella, sin viñedo y sin bodega. Solo con lo que provoca.',
+      en: 'The brief: a wine piece that stands on its own, with no bottle, no vineyard and no cellar. Only what it evokes.',
     },
     solution: {
       es: 'Humo rojo que se condensa en vino dentro de la copa, sobre mármol negro. Un loop generado con IA y dirigido por NEO para repetirse sin costura.',
@@ -115,8 +115,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   trono: {
     challenge: {
-      es: 'Un videoclip de moda que funcione en el móvil desde el primer segundo, con la puesta en escena de una campaña.',
-      en: 'A fashion music video that works on a phone from the first second, staged like a campaign.',
+      es: 'El encargo: un videoclip de moda en vertical que funcione en el móvil desde el primer segundo, con la puesta en escena de una campaña.',
+      en: 'The brief: a vertical fashion music video that works on a phone from the first second, staged like a campaign.',
     },
     solution: {
       es: 'Abrigo burdeos, un trono y bailarinas: escenas generadas con IA, dirigidas y montadas por NEO en formato vertical.',
@@ -125,8 +125,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   llave: {
     challenge: {
-      es: 'Dar a un objeto simbólico, una llave, el peso de un producto de lujo en pocos segundos.',
-      en: 'Give a symbolic object, a key, the presence of a luxury product in a few seconds.',
+      es: 'El encargo: un objeto 3D para el sector inmobiliario. Dar a una llave el peso de un producto de lujo en pocos segundos.',
+      en: 'The brief: a 3D object for the real estate sector. Give a key the presence of a luxury product in a few seconds.',
     },
     solution: {
       es: 'Una llave dorada en 3D generada con IA: explosión de oro, arena, una cerradura con luz y el packshot final, dirigidos por NEO.',
@@ -135,8 +135,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   mudanza: {
     challenge: {
-      es: 'Contenido con la naturalidad de un vídeo casero, listo para publicar en redes con regularidad.',
-      en: 'Content with the ease of a home video, ready to post on social media week after week.',
+      es: 'El encargo: contenido UGC para redes con la naturalidad de un vídeo casero, listo para publicar con regularidad.',
+      en: 'The brief: UGC-style social content with the ease of a home video, ready to post week after week.',
     },
     solution: {
       es: 'Una chica se graba en su piso nuevo. La escena entera está generada con IA y dirigida por NEO: no es una grabación real y se etiqueta como tal.',

@@ -48,7 +48,7 @@ export type Situation = {
 export const situations: Situation[] = [
   {
     id: 'launch',
-    label: { es: 'Lanzo un producto', en: "I'm launching a product" },
+    label: { es: 'Lanzo un producto', en: "I’m launching a product" },
     picks: [
       {
         id: 'ai-3d',
@@ -68,7 +68,7 @@ export const situations: Situation[] = [
   },
   {
     id: 'website',
-    label: { es: 'Mi web no está a la altura', en: "My website isn't up to scratch" },
+    label: { es: 'Mi web no está a la altura', en: "My website isn’t up to scratch" },
     picks: [
       {
         id: 'websites',
@@ -114,7 +114,7 @@ export const situations: Situation[] = [
   },
   {
     id: 'footage',
-    label: { es: 'Tengo material y no sé montarlo', en: "I have footage and don't know how to edit it" },
+    label: { es: 'Tengo material y no sé montarlo', en: "I have footage and don’t know how to edit it" },
     picks: [
       {
         id: 'editing',
@@ -132,7 +132,7 @@ export type CompareKey = 'get' | 'format' | 'who' | 'start'
 export const compareRows: { id: CompareKey; label: L }[] = [
   { id: 'get', label: { es: 'Qué recibes', en: 'What you get' } },
   { id: 'format', label: { es: 'Formato', en: 'Format' } },
-  { id: 'who', label: { es: 'Para quién', en: "Who it's for" } },
+  { id: 'who', label: { es: 'Para quién', en: "Who it’s for" } },
   { id: 'start', label: { es: 'Punto de partida', en: 'Starting point' } },
 ]
 
@@ -229,7 +229,7 @@ export const hubCopy = {
     compareWith: 'with',
     compareVerb: 'Compare',
     closingTitle: 'Where shall we start?',
-    closingLead: "Tell us what your brand needs. We'll reply with a tailored proposal.",
+    closingLead: "Tell us what your brand needs. We’ll reply with a tailored proposal.",
     cta: 'Request a proposal',
     listName: 'NEO Studio services',
   },

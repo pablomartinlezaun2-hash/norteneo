@@ -1,13 +1,6 @@
-import { Seo } from '@/components/Seo'
-import { Stub } from '@/components/Stub'
+import { Missing } from '@/sections/work/Missing'
 
+/** 404 global (también prerenderizada como /404). */
 export function Component() {
-  return (
-    <>
-      <Seo title="NotFound" />
-      <div className="pt-[var(--nav-h)]">
-        <Stub name="NotFound" tall />
-      </div>
-    </>
-  )
+  return <Missing />
 }

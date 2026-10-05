@@ -19,6 +19,7 @@ const copy = {
     kind: 'Web de autor',
     visit: 'Visitar web',
     visitLabel: (name: string) => `Visitar la web de ${name} (se abre en una pestaña nueva)`,
+    case: 'Ver caso',
     caseLabel: (name: string) => `Ver el caso ${name}`,
     video: (name: string) => `Recorrido por la web de ${name}`,
     rail: 'Webs de autor en producción',
@@ -33,6 +34,7 @@ const copy = {
     kind: 'Signature website',
     visit: 'Visit site',
     visitLabel: (name: string) => `Visit the ${name} website (opens in a new tab)`,
+    case: 'View case',
     caseLabel: (name: string) => `View the ${name} case`,
     video: (name: string) => `A walk through the ${name} website`,
     rail: 'Signature websites in production',
@@ -43,7 +45,8 @@ const copy = {
   },
 } satisfies Record<Lang, unknown>
 
-const sites = cases.filter((c) => c.kind === 'client' && c.url)
+/** Las webs en producción (encargos de clientes con URL). */
+const sites = cases.filter((c) => c.services.includes('websites') && !!c.url)
 
 const domainOf = (url: string) => {
   try {
@@ -73,27 +76,30 @@ export function WebsRail() {
 
   useSplitReveal(titleRef)
 
-  // Parallax interno (±5 %) del nombre respecto al desplazamiento horizontal del carril.
+  // Parallax interno (máx. 6 %) del nombre mientras la tarjeta entra por la derecha.
+  // Llega a 0 cuando la tarjeta queda alineada (snap), así en reposo todo está en su sitio.
   useGSAP(
     () => {
       const rail = railRef.current
       if (!rail) return
+      const pad = () => parseFloat(getComputedStyle(rail).paddingLeft) || 0
       const mm = gsap.matchMedia()
       mm.add(MQ.motion, () => {
         gsap.utils.toArray<HTMLElement>('[data-parallax]', rail).forEach((el) => {
           gsap.fromTo(
             el,
-            { xPercent: -5 },
+            { xPercent: -6 },
             {
-              xPercent: 5,
+              xPercent: 0,
               ease: 'none',
               scrollTrigger: {
                 trigger: el.closest('li'),
                 scroller: rail,
                 horizontal: true,
                 start: 'left right',
-                end: 'right left',
+                end: () => `left ${pad()}px`,
                 scrub: true,
+                invalidateOnRefresh: true,
               },
             },
           )
@@ -267,9 +273,11 @@ function RailButton({ dir, label, disabled, onClick }: { dir: 1 | -1; label: str
 }
 
 /**
- * Tarjeta de una web. Variante tipográfica por defecto; si el caso trae `media`
- * (grabación de pantalla), muestra el vídeo arriba: al pasar el ratón en escritorio,
- * en vista en móvil (solo la pieza centrada) y solo al pulsar con reduced-motion.
+ * Tarjeta de una web. Acción principal: abrir la web en producción en una pestaña nueva
+ * (toda la tarjeta es el enlace). Secundaria: el caso interno.
+ * Variante tipográfica por defecto; si el caso trae `media` (grabación de pantalla),
+ * muestra el vídeo arriba: al pasar el ratón en escritorio, en vista en móvil
+ * (solo la pieza centrada) y solo al pulsar con reduced-motion.
  */
 function SiteCard({ c, lang }: { c: Case; lang: Lang }) {
   const t = copy[lang]
@@ -286,7 +294,7 @@ function SiteCard({ c, lang }: { c: Case; lang: Lang }) {
         ref={ref}
         onPointerEnter={hoverPlay ? () => playIn(ref.current) : undefined}
         onPointerLeave={hoverPlay ? () => pauseIn(ref.current) : undefined}
-        className="group relative flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface transition-colors duration-500 hover:border-line-strong"
+        className="group relative flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface transition-colors duration-500 has-[a:hover]:border-line-strong"
       >
         {media && (
           <Video
@@ -303,36 +311,39 @@ function SiteCard({ c, lang }: { c: Case; lang: Lang }) {
             {sectors[c.sector][lang]} · {t.kind}
           </Meta>
           <div className={`flex flex-1 flex-col ${media ? '' : 'justify-center py-8'}`}>
-            <h3 className={`${media ? 'type-title' : 'type-display'} max-w-[11ch] will-change-transform`} data-parallax={media ? undefined : ''}>
-              <Link
-                to={to.case(lang, c.slug)}
-                viewTransition
-                aria-label={t.caseLabel(c.title)}
-                draggable={false}
-                className="rounded-[2px] outline-none after:absolute after:inset-0 after:rounded-[1.25rem] after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-accent focus-visible:after:[outline-offset:-2px]"
-              >
-                {c.title}
-              </Link>
+            <h3 className={`${media ? 'type-title' : 'type-display'} max-w-[11ch]`} data-parallax={media ? undefined : ''}>
+              {c.title}
             </h3>
             <p className="type-small mt-4 text-mute">{c.line[lang]}</p>
           </div>
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-t border-line pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line pt-4">
             <span className="type-meta text-dim">{domain}</span>
-            {c.url && (
-              <a
-                href={c.url}
-                target="_blank"
-                rel="noopener noreferrer"
+            <div className="-my-1 flex items-center gap-6">
+              <Link
+                to={to.case(lang, c.slug)}
+                viewTransition
                 draggable={false}
-                aria-label={t.visitLabel(c.title)}
-                className="relative z-10 -my-3 inline-flex min-h-11 items-center gap-2 text-[0.9375rem] font-[480] text-paper underline-offset-4 hover:underline"
+                aria-label={t.caseLabel(c.title)}
+                className="relative z-10 inline-flex min-h-11 items-center text-[0.9375rem] font-[460] text-mute underline-offset-4 transition-colors hover:text-paper hover:underline"
               >
-                {t.visit}
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true" className="transition-transform duration-300 group-hover:-translate-y-px group-hover:translate-x-px">
-                  <path d="M2 8 8 2M3 2h5v5" />
-                </svg>
-              </a>
-            )}
+                {t.case}
+              </Link>
+              {c.url && (
+                <a
+                  href={c.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  draggable={false}
+                  aria-label={t.visitLabel(c.title)}
+                  className="inline-flex min-h-11 items-center gap-2 text-[0.9375rem] font-[500] text-paper outline-none after:absolute after:inset-0 after:rounded-[1.25rem] after:content-[''] hover:underline focus-visible:after:outline-2 focus-visible:after:outline-accent focus-visible:after:[outline-offset:-2px] underline-offset-4"
+                >
+                  {t.visit}
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true" className="transition-transform duration-300 group-hover:-translate-y-px group-hover:translate-x-px">
+                    <path d="M2 8 8 2M3 2h5v5" />
+                  </svg>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </article>

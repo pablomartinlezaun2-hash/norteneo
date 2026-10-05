@@ -57,7 +57,7 @@ export function domainOf(url?: string): string {
 }
 
 /** Pieza generada con IA (lleva la etiqueta de transparencia). */
-export const isGenerated = (c: Case) => Boolean(c.media) && (c.kind === 'study' || c.kind === 'concept')
+export const isGenerated = (c: Case) => Boolean(c.media) && c.kind !== 'own'
 
 export const labels = {
   ai: { es: 'Generado con IA, dirigido por NEO', en: 'AI-generated, directed by NEO' },
@@ -78,8 +78,12 @@ export function pieceAlt(c: Case, lang: Lang): string {
   return `${c.title}. ${c.line[lang]}`
 }
 
-export const clientCases = cases.filter((c) => c.kind === 'client')
-export const studyCases = cases.filter((c) => c.kind !== 'client')
+/** Encargos de clientes: webs (sin medio, variante tipográfica) y piezas de vídeo y 3D. */
+export const clientWebs = cases.filter((c) => c.kind === 'client' && !c.media)
+export const clientFilms = cases.filter((c) => c.kind === 'client' && Boolean(c.media))
+/** Piezas de concepto (no oficiales) y estudios propios sin encargo. */
+export const conceptCases = cases.filter((c) => c.kind === 'concept' || c.kind === 'study')
+export const ownCases = cases.filter((c) => c.kind === 'own')
 
 /** Servicios con al menos una pieza publicada (no se ofrecen filtros vacíos). */
 export const filterServices: ServiceId[] = services.map((s) => s.id).filter((id) => cases.some((c) => c.services.includes(id)))
