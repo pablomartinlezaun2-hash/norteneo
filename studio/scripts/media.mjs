@@ -31,7 +31,7 @@ const PORT = { w: 720, h: 1280 }
  * seq: secuencias de frames para scroll-scrub
  */
 const CLIPS = [
-  { id: 'gastro', src: 'gastro.mp4', orient: 'land', poster: 1.2,
+  { id: 'gastro', src: 'gastro.mp4', orient: 'land', poster: 4.3,
     seq: { desktop: { w: 1280, h: 720, frames: 150, fit: 'contain' }, mobile: { w: 960, h: 540, frames: 75, fit: 'contain' } } },
   { id: 'wine', src: 'wine.mp4', orient: 'land', poster: 2.4, upscale: true },
   { id: 'fpv-kitchen', src: 'fpv-kitchen.mov', orient: 'land', poster: 7.4 },
@@ -47,7 +47,7 @@ const CLIPS = [
   { id: 'empire-film', src: 'empire-film.mov', orient: 'port', poster: 4.2, cuts: [[0, 8.1], [8.83, 10.05], [10.93, 12.95]] },
   { id: 'fashion', src: 'fashion.mp4', orient: 'port', poster: 3.5 },
   { id: 'ugc-move', src: 'ugc-move.mov', orient: 'port', poster: 13.5 },
-  { id: 'running', src: 'running.mov', orient: 'port', poster: 2.5 },
+  { id: 'running', src: 'running.mov', orient: 'port', poster: 8.3 },
   { id: 'logo', src: 'logo.mp4', orient: 'land', poster: 2.5, light: true },
 ]
 

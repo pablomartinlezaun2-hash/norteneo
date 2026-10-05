@@ -12,7 +12,7 @@ import { navCopy } from './Nav'
 export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const lang = useLang()
   const t = navCopy[lang]
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const ref = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const wa = whatsappHref()
@@ -110,7 +110,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
               WhatsApp
             </a>
           )}
-          <Link to={alternatePath(pathname, other)} hrefLang={other} onClick={onClose} className="type-meta min-h-11 content-center text-mute">
+          <Link to={alternatePath(pathname, other) + search} hrefLang={other} onClick={onClose} className="type-meta min-h-11 content-center text-mute">
             {other.toUpperCase()}
           </Link>
         </div>

@@ -19,7 +19,7 @@ export const navCopy = {
 export function Nav() {
   const lang = useLang()
   const t = navCopy[lang]
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const ref = useRef<HTMLElement>(null)
   const [solid, setSolid] = useState(false)
   const [open, setOpen] = useState(false)
@@ -120,7 +120,7 @@ export function Nav() {
           </ul>
           <div className="flex items-center gap-4">
             <Link
-              to={alternatePath(pathname, other)}
+              to={alternatePath(pathname, other) + search}
               hrefLang={other}
               className="type-meta min-h-11 content-center text-paper/80 hover:text-paper"
               aria-label={other === 'en' ? 'English version' : 'Versión en español'}

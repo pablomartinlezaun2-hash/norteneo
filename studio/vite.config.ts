@@ -13,7 +13,7 @@ const config: UserConfig & { ssgOptions: Partial<ViteReactSSGOptions> } = {
   ssgOptions: {
     dirStyle: 'nested',
     formatting: 'none',
-    beastiesOptions: { preload: 'media', pruneSource: false },
+    beastiesOptions: { preload: 'media', pruneSource: false, preloadFonts: false },
   },
 }
 

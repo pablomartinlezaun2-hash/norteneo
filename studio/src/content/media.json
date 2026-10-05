@@ -143,8 +143,8 @@
       "jpg": "/media/gastro/gastro-poster.jpg",
       "w": 1920,
       "h": 1080,
-      "bytesAvif": 3248,
-      "bytesJpg": 27987
+      "bytesAvif": 52399,
+      "bytesJpg": 154541
     },
     "seq": {
       "desktop": {
@@ -592,8 +592,8 @@
       "jpg": "/media/running/running-poster.jpg",
       "w": 720,
       "h": 1280,
-      "bytesAvif": 9552,
-      "bytesJpg": 39420
+      "bytesAvif": 5292,
+      "bytesJpg": 28472
     }
   }
 }
