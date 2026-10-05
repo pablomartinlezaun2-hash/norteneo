@@ -115,7 +115,7 @@ function PartGroup({ id, eRef, state, registry, root, onHover, onSelect, childre
     g.visible = !s.hidden.has(id);
     const ghost = s.isolate && s.selected !== null && s.selected !== id;
     const hl =
-      s.hovered === id && !ghost ? 0.35 : s.selected === id ? 0.16 + 0.1 * Math.sin(st.clock.elapsedTime * 4) : 0;
+      s.hovered === id && !ghost ? 0.22 : s.selected === id ? 0.07 + 0.05 * Math.sin(st.clock.elapsedTime * 4) : 0;
 
     g.traverse((o) => {
       const mesh = o as THREE.Mesh;
@@ -405,11 +405,12 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
 
       <PartGroup id="liner" {...common}>
         <mesh geometry={G.liner} material={M.fabric} />
+        <mesh geometry={G.toeCap} material={M.neoprene} />
         <mesh geometry={G.collar} material={M.neoprene}>
           <Decal
             position={G.linerLogo.position}
             rotation={G.linerLogo.rotation}
-            scale={[0.62, 0.3, 0.3]}
+            scale={[0.5, 0.26, 0.22]}
             depthTest
             polygonOffsetFactor={-6}
           >
@@ -600,6 +601,7 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
       <PartGroup id="rubberPad" {...common}>
         <mesh geometry={G.rubberBase} material={M.rubber} />
         <mesh geometry={G.bumper} material={M.rubberGrey} />
+        <mesh geometry={G.soleBands} material={M.rubber} />
         <Instances geometry={G.knob} material={M.rubber} matrices={G.knobs} />
       </PartGroup>
     </group>

@@ -36,7 +36,17 @@ export function shellProfile(s: number) {
 }
 
 const shellSurface =
-  (o: { widthScale?: number; maxHeight?: number; upExp?: number; downExp?: number; grow?: number } = {}): SurfaceFn =>
+  (
+    o: {
+      widthScale?: number;
+      maxHeight?: number;
+      upExp?: number;
+      downExp?: number;
+      grow?: number;
+      /** Nervio moldeado que recorre el costado de la carcasa. */
+      ridge?: boolean;
+    } = {},
+  ): SurfaceFn =>
   (u, v, out) => {
     const s = clamp01(u);
     const x = lerp(X_HEEL - (o.grow ?? 0), X_TOE + (o.grow ?? 0), s);
@@ -53,10 +63,16 @@ const shellSurface =
     const y = yc + hh * spow(sn, e);
     // El talón se estrecha hacia el tobillo.
     const taper = 1 - 0.1 * smoothstep(0.35, 1.25, y) * (1 - smoothstep(0.2, 0.6, s));
-    return out.set(x, y, w * spow(c, e) * taper);
+    let z = w * spow(c, e) * taper;
+    if (o.ridge) {
+      const yr = 0.42 + 0.5 * (1 - smoothstep(0.15, 0.75, s));
+      const along = smoothstep(0.12, 0.3, s) * (1 - smoothstep(0.8, 0.92, s));
+      z += Math.sign(z) * 0.02 * Math.exp(-(((y - yr) / 0.03) ** 2)) * along * c * c;
+    }
+    return out.set(x, y, z);
   };
 
-export const shellFn = shellSurface();
+export const shellFn = shellSurface({ ridge: true });
 const shellUMap = (t: number) => (1 - Math.cos(Math.PI * t)) / 2;
 
 /* ------------------------------------------------------------------ */
@@ -331,6 +347,8 @@ export interface BootGeometry {
   holeDisc: THREE.BufferGeometry;
   liner: THREE.BufferGeometry;
   collar: THREE.BufferGeometry;
+  toeCap: THREE.BufferGeometry;
+  soleBands: THREE.BufferGeometry;
   linerLogo: { position: THREE.Vector3; rotation: THREE.Euler };
   springRearCap: THREE.BufferGeometry;
   springRearCaps: THREE.Matrix4[];
@@ -410,22 +428,26 @@ export function buildBootGeometry(): BootGeometry {
 
   /* Botín y lengüeta --------------------------------------------- */
   const liner = buildLoft(linerFn, 110, 56, { uvScale: [4, 3] });
-  // Caña del botín en neopreno liso (como el recambio original), sobre la malla.
-  const collarCenter = new THREE.Vector3();
-  const collar = buildLoft(
-    (u, v, out) => {
-      const t = lerp(0.6, 1, u);
-      linerFn(t, v, out);
-      linerPath.point(Math.min(t / 0.94, 1), collarCenter);
-      const d = out.x - collarCenter.x;
-      const dy = out.y - collarCenter.y;
-      const k = u < 0.03 ? 1.0 + u : 1.012;
-      return out.set(collarCenter.x + d * k, collarCenter.y + dy * k, out.z * k);
-    },
-    50,
-    56,
-    { uvScale: [2, 3] },
-  );
+  // Zonas de neopreno liso del botín (caña y puntera) sobre la malla, como el recambio original.
+  const linerCover = (t0: number, t1: number) => {
+    const center = new THREE.Vector3();
+    return buildLoft(
+      (u, v, out) => {
+        const t = lerp(t0, t1, u);
+        linerFn(t, v, out);
+        linerPath.point(Math.min(t / 0.94, 1), center);
+        // El borde que pisa la malla arranca a ras y crece hasta un 1,2 %.
+        const edge = t0 > 0 ? smoothstep(0, 0.04, u) : smoothstep(0, 0.04, 1 - u);
+        const k = 1 + 0.012 * edge;
+        return out.set(center.x + (out.x - center.x) * k, center.y + (out.y - center.y) * k, out.z * k);
+      },
+      50,
+      56,
+      { uvScale: [2, 3] },
+    );
+  };
+  const collar = linerCover(0.6, 1);
+  const toeCap = linerCover(0, 0.17);
   const lb = framePoint(linerFn, 0.83, 0.5, 0);
   const lbOut = lb.n.x < 0 ? lb.n.clone() : lb.n.clone().negate();
   const linerLogo = {
@@ -454,8 +476,10 @@ export function buildBootGeometry(): BootGeometry {
   /* Caña ---------------------------------------------------------- */
   const cuff = buildThickSheet(cuffFn, {
     nu: 110,
-    nv: 40,
-    thickness: 0.06,
+    nv: 60,
+    // Nervio horizontal moldeado a media altura.
+    thickness: (u, v) =>
+      0.06 + 0.024 * Math.exp(-(((v - 0.4) / 0.03) ** 2)) * smoothstep(0, 0.06, u) * smoothstep(0, 0.06, 1 - u),
     uvScale: [4, 1.6],
     edgeSegments: 6,
   });
@@ -711,6 +735,34 @@ export function buildBootGeometry(): BootGeometry {
   )
     .rotateX(Math.PI / 2)
     .scale(1.25, 1, 1);
+  // Bandas de goma negras que sujetan la suela a la concha inferior.
+  const BAND_T = [0.2, 0.8];
+  const soleBands = mergeGeometries(
+    BAND_T.map((t) => {
+      const p = lowerPath.point(t);
+      const n = lowerPath.normal(t);
+      const hw = lowerHalfW(t) + 0.025;
+      const dish = (z: number) => 0.035 * (z / hw) ** 2;
+      const pts: THREE.Vector3[] = [];
+      const add = (z: number, off: number) => pts.push(p.clone().addScaledVector(n, off).setZ(z));
+      for (let i = 0; i <= 10; i++) {
+        const z = lerp(-hw + 0.03, hw - 0.03, i / 10);
+        add(z, 0.075 + dish(z));
+      }
+      add(hw, 0.06 + dish(hw));
+      add(hw + 0.005, -0.04);
+      add(hw, -0.11 + dish(hw));
+      for (let i = 0; i <= 10; i++) {
+        const z = lerp(hw - 0.03, -hw + 0.03, i / 10);
+        add(z, -0.12 + dish(z));
+      }
+      add(-hw, -0.11 + dish(hw));
+      add(-hw - 0.005, -0.04);
+      add(-hw, 0.06 + dish(hw));
+      return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true, "centripetal"), 96, 0.022, 10, true);
+    }),
+  )!;
+
   const knobs: THREE.Matrix4[] = [];
   {
     const u0 = 0.17;
@@ -719,6 +771,7 @@ export function buildBootGeometry(): BootGeometry {
     const rows = Math.round(L / 0.16);
     for (let r = 0; r <= rows; r++) {
       const t = lerp(u0, u1, r / rows);
+      if (BAND_T.some((b) => Math.abs(b - t) < 0.025)) continue;
       const cols = r % 2 === 0 ? [-0.33, -0.11, 0.11, 0.33] : [-0.4, -0.22, 0, 0.22, 0.4];
       const p = lowerPath.point(t);
       const n = lowerPath.normal(t).negate();
@@ -740,6 +793,8 @@ export function buildBootGeometry(): BootGeometry {
     holeDisc,
     liner,
     collar,
+    toeCap,
+    soleBands,
     linerLogo,
     springRearCap,
     springRearCaps,
