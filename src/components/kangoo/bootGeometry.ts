@@ -245,7 +245,7 @@ export const rubberBaseFn = pathSurface(lowerPath, (u) => lowerHalfW(u) - 0.01, 
 export const SPRING = {
   front: new THREE.Vector3(1.7, -0.84, 0),
   rear: new THREE.Vector3(-1.2, -1.42, 0),
-  z: [0.37, 0.44],
+  z: [0.34, 0.41, 0.48],
 };
 
 /* ------------------------------------------------------------------ */
@@ -330,6 +330,10 @@ export interface BootGeometry {
   holeRim: THREE.BufferGeometry;
   holeDisc: THREE.BufferGeometry;
   liner: THREE.BufferGeometry;
+  collar: THREE.BufferGeometry;
+  linerLogo: { position: THREE.Vector3; rotation: THREE.Euler };
+  springRearCap: THREE.BufferGeometry;
+  springRearCaps: THREE.Matrix4[];
   tongue: THREE.BufferGeometry;
   tongueLogo: { position: THREE.Vector3; rotation: THREE.Euler };
   cuff: THREE.BufferGeometry;
@@ -406,6 +410,33 @@ export function buildBootGeometry(): BootGeometry {
 
   /* Botín y lengüeta --------------------------------------------- */
   const liner = buildLoft(linerFn, 110, 56, { uvScale: [4, 3] });
+  // Caña del botín en neopreno liso (como el recambio original), sobre la malla.
+  const collarCenter = new THREE.Vector3();
+  const collar = buildLoft(
+    (u, v, out) => {
+      const t = lerp(0.6, 1, u);
+      linerFn(t, v, out);
+      linerPath.point(Math.min(t / 0.94, 1), collarCenter);
+      const d = out.x - collarCenter.x;
+      const dy = out.y - collarCenter.y;
+      const k = u < 0.03 ? 1.0 + u : 1.012;
+      return out.set(collarCenter.x + d * k, collarCenter.y + dy * k, out.z * k);
+    },
+    50,
+    56,
+    { uvScale: [2, 3] },
+  );
+  const lb = framePoint(linerFn, 0.83, 0.5, 0);
+  const lbOut = lb.n.x < 0 ? lb.n.clone() : lb.n.clone().negate();
+  const linerLogo = {
+    position: lb.p.clone().addScaledVector(lbOut, 0.03),
+    rotation: eulerFromBasis(lbOut, new THREE.Vector3(0, 1, 0)),
+  };
+  // Tapas traseras de los T-Spring.
+  const springRearCap = new RoundedBoxGeometry(0.22, 0.17, 0.24, 4, 0.06);
+  const springRearCaps = [1, -1].map((side) =>
+    new THREE.Matrix4().makeTranslation(SPRING.rear.x - 0.02, SPRING.rear.y + 0.02, SPRING.z[1] * side),
+  );
   const tongue = buildThickSheet(tongueFn, {
     nu: 70,
     nv: 18,
@@ -617,7 +648,7 @@ export function buildBootGeometry(): BootGeometry {
       const p = SPRING.front
         .clone()
         .lerp(SPRING.rear, t)
-        .setZ(((SPRING.z[0] + SPRING.z[1]) / 2) * side);
+        .setZ(SPRING.z[1] * side);
       medallions.push({ matrix: new THREE.Matrix4().compose(p, q, new THREE.Vector3(1, 1, 1)), side });
     }
   }
@@ -637,7 +668,7 @@ export function buildBootGeometry(): BootGeometry {
   const anchorPost = new RoundedBoxGeometry(0.1, 0.24, 0.16, 3, 0.03).translate(0, 0.08, 0);
   const anchorPin = new THREE.CylinderGeometry(0.02, 0.02, 0.24, 16).rotateX(Math.PI / 2).translate(0, 0.14, 0);
   const anchors = [1, -1].map((side) =>
-    new THREE.Matrix4().makeTranslation(SPRING.rear.x, SPRING.rear.y - 0.14, ((SPRING.z[0] + SPRING.z[1]) / 2) * side),
+    new THREE.Matrix4().makeTranslation(SPRING.rear.x, SPRING.rear.y - 0.14, SPRING.z[1] * side),
   );
 
   /* Tope central y pletina trasera ------------------------------ */
@@ -708,6 +739,10 @@ export function buildBootGeometry(): BootGeometry {
     holeRim,
     holeDisc,
     liner,
+    collar,
+    linerLogo,
+    springRearCap,
+    springRearCaps,
     tongue,
     tongueLogo,
     cuff,

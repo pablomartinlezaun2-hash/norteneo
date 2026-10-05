@@ -307,6 +307,12 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
         width: 1024,
         height: 256,
       }),
+      linerLogo: textDecal("linerLogo", "Kangoo Jumps", {
+        color: "#ffffff",
+        font: `italic 700 150px Arial, sans-serif`,
+        sub: "M",
+        subFont: `700 110px Arial, sans-serif`,
+      }),
       brand: textDecal("brand", "KANGOO JUMPS", {
         color: "#ffffff",
         font: `900 150px Arial, sans-serif`,
@@ -399,6 +405,17 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
 
       <PartGroup id="liner" {...common}>
         <mesh geometry={G.liner} material={M.fabric} />
+        <mesh geometry={G.collar} material={M.neoprene}>
+          <Decal
+            position={G.linerLogo.position}
+            rotation={G.linerLogo.rotation}
+            scale={[0.62, 0.3, 0.3]}
+            depthTest
+            polygonOffsetFactor={-6}
+          >
+            <DecalMat key={variant.id} map={tex.linerLogo} color={variant.accent} rough={0.3} />
+          </Decal>
+        </mesh>
       </PartGroup>
 
       <PartGroup id="tongue" {...common}>
@@ -530,6 +547,9 @@ export const KangooBoot = forwardRef<THREE.Group, KangooBootProps>(function Kang
                     <mesh geometry={G.springCord} material={M.spring} />
                   </MatrixGroup>
                 ))}
+              <MatrixGroup matrix={G.springRearCaps[side === 1 ? 0 : 1]}>
+                <mesh geometry={G.springRearCap} material={M.accent} />
+              </MatrixGroup>
               {G.medallions
                 .filter((c) => c.side === side)
                 .map((c, i) => (
