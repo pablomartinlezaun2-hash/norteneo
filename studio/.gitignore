@@ -1,0 +1,7 @@
+node_modules
+dist
+media-src
+.vite-ssg-temp
+qa-output
+*.log
+.DS_Store

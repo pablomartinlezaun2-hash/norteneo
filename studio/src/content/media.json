@@ -1,0 +1,41 @@
+{
+  "logo": {
+    "id": "logo",
+    "orient": "land",
+    "duration": 5.03,
+    "sources": [
+      {
+        "src": "/media/logo/logo-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 36758
+      },
+      {
+        "src": "/media/logo/logo-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 112976
+      },
+      {
+        "src": "/media/logo/logo-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 47320
+      }
+    ],
+    "poster": {
+      "avif": "/media/logo/logo-poster.avif",
+      "jpg": "/media/logo/logo-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 2106,
+      "bytesJpg": 20635
+    }
+  }
+}
