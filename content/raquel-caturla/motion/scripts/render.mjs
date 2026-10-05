@@ -45,7 +45,7 @@ if (!fs.existsSync(compFile)) throw new Error("No existe " + compFile);
 fs.mkdirSync(RENDERS, { recursive: true });
 fs.mkdirSync(TMP, { recursive: true });
 
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json" };
+const MIME = { ".mp4": "video/mp4", ".wav": "audio/wav", ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json" };
 const server = http.createServer((req, res) => {
   const p = path.join(ROOT, decodeURIComponent(new URL(req.url, "http://x").pathname));
   if (!p.startsWith(ROOT) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
@@ -129,7 +129,7 @@ if (!meta.alpha || meta.cues.length) {
 // --- Vídeo: subfotogramas → ffmpeg (tmix = motion blur real), en paralelo por tramos ---
 const sub = +(opt.sub ?? (meta.alpha ? 2 : 4));
 const shutter = 0.5;
-const total = Math.round(meta.duration * fps);
+const total = process.env.MAX_FRAMES ? +process.env.MAX_FRAMES : Math.round(meta.duration * fps);
 const workers = Math.max(1, Math.min(+(opt.workers ?? 3), total));
 const vf = [];
 if (sub > 1) {
@@ -142,7 +142,7 @@ const segExt = meta.alpha ? "mov" : "mp4";
 
 async function renderChunk(k, from, to, pg, cdp) {
   const seg = path.join(TMP, `${comp}.seg${k}.${segExt}`);
-  const a = ["-y", "-loglevel", "error", "-f", "image2pipe", "-c:v", "png", "-framerate", String(fps * sub), "-i", "-", "-vf"];
+  const a = ["-y", "-loglevel", process.env.FF_LOG || "error", "-f", "image2pipe", "-c:v", "png", "-framerate", String(fps * sub), "-i", "-", "-vf"];
   if (meta.alpha) a.push(vf.join(","), "-r", String(fps), "-c:v", "png", "-pix_fmt", "rgba", seg);
   else a.push([...vf, "format=yuv420p"].join(","), "-r", String(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-profile:v", "high", "-level", "4.2", "-x264-params", "keyint=60", seg);
   const ff = spawn("ffmpeg", a, { stdio: ["pipe", "inherit", "inherit"] });
@@ -192,7 +192,14 @@ await new Promise((resolve, reject) => {
   const p = spawn("ffmpeg", a, { stdio: "inherit" });
   p.on("exit", (c) => (c === 0 ? resolve() : reject(new Error("concat " + c))));
 });
-segs.forEach((s) => fs.rmSync(s, { force: true }));
+// control: cada tramo debe tener exactamente sus fotogramas
+for (const [k, sgm] of segs.entries()) {
+  const { execFileSync } = await import("node:child_process");
+  const n = +execFileSync("ffprobe", ["-v", "error", "-count_frames", "-select_streams", "v:0", "-show_entries", "stream=nb_read_frames", "-of", "csv=p=0", sgm]).toString().trim();
+  const want = Math.min(total, (k + 1) * per) - k * per;
+  if (n !== want) console.error(`⚠ tramo ${k}: ${n} fotogramas de ${want}`);
+}
+if (!process.env.KEEP_SEGS) segs.forEach((s) => fs.rmSync(s, { force: true }));
 
 if (meta.alpha) {
   await new Promise((resolve, reject) => {

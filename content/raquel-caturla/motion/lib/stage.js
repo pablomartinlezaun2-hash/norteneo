@@ -56,7 +56,11 @@
     const tt = t + S.preroll;
     S.tl.time(Math.min(tt, S.tl.duration() || tt), false);
     for (const fn of S.ambients) fn(tt);
+    // ambientes asíncronos (p. ej. cargar el fotograma de vídeo de ese instante)
+    if (S.asyncAmbients.length) return Promise.all(S.asyncAmbients.map((fn) => fn(tt)));
   };
+  S.asyncAmbients = [];
+  S.asyncAmbient = (fn) => S.asyncAmbients.push(fn);
 
   // Tiempos de salida = tiempo de timeline - preroll
   window.__meta = () => ({
@@ -92,8 +96,8 @@
       const r = await fetch(`../vo/${name}.json`);
       if (r.ok) S.vo = await r.json();
     } catch (e) {}
-    build();
-    window.__seek(0);
+    await build();
+    await window.__seek(0);
     window.__isReady = true;
   };
 

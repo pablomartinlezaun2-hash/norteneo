@@ -278,7 +278,76 @@ def sfx_riser(dur=2.0):
     return (x * 0.5 + tone) * e * 0.5
 
 
+def sfx_ui(pitch=1.0):
+    """Notificación de interfaz: dos tonos limpios ascendentes."""
+    out = np.zeros(int(0.22 * SR))
+    for k, (f, st) in enumerate([(1320, 0.0), (1760, 0.075)]):
+        d = 0.14
+        t = t_axis(d)
+        tone = (np.sin(2 * np.pi * f * pitch * t) + 0.3 * np.sin(4 * np.pi * f * pitch * t)) * env_exp(d, 0.05, 0.002)
+        i = int(st * SR)
+        out[i : i + len(tone)] += tone[: len(out) - i]
+    return out * 0.3
+
+
+def sfx_error(pitch=1.0):
+    """Error: dos notas graves descendentes, timbre cuadrado filtrado."""
+    out = np.zeros(int(0.42 * SR))
+    for f, st in [(330, 0.0), (247, 0.16)]:
+        d = 0.2
+        t = t_axis(d)
+        sq = np.sign(np.sin(2 * np.pi * f * pitch * t))
+        sq = filt(sq, "low", 1800) * env_exp(d, 0.09, 0.003)
+        i = int(st * SR)
+        out[i : i + len(sq)] += sq[: len(out) - i]
+    return out * 0.32
+
+
+def sfx_success(pitch=1.0):
+    """Acierto: arpegio brillante (do-mi-sol-do) tipo campana."""
+    out = np.zeros(int(1.0 * SR))
+    for k, n in enumerate(["C6", "E6", "G6", "C7"]):
+        f = note_hz(n) * pitch
+        d = 0.7
+        t = t_axis(d)
+        b = (np.sin(2 * np.pi * f * t) + 0.25 * np.sin(2 * np.pi * f * 2.0 * t) * np.exp(-t / 0.1)) * env_exp(d, 0.28, 0.002)
+        i = int(k * 0.07 * SR)
+        out[i : i + len(b)] += b[: len(out) - i]
+    return out * 0.22
+
+
+def sfx_shutter(pitch=1.0):
+    """Obturador de cámara de fotos: dos clics mecánicos + cuerpo."""
+    out = np.zeros(int(0.25 * SR))
+    for st, g in [(0.0, 1.0), (0.085, 0.7)]:
+        d = 0.06
+        n = filt(rng.standard_normal(int(d * SR)), "band", [1500 * pitch, 9000]) * env_exp(d, 0.008, 0.0003)
+        thunk = sine_sweep(d, 240, 120, curve=50) * env_exp(d, 0.015, 0.0005) * 0.6
+        i = int(st * SR)
+        out[i : i + len(n)] += (n + thunk) * g
+    return out * 0.55
+
+
+def sfx_bassdrop(pitch=1.0):
+    """Bass drop: 808 que cae de 110 a 32 Hz con saturación."""
+    d = 1.8
+    t = t_axis(d)
+    f = 32 + 78 * np.exp(-t * 2.2)
+    x = np.sin(2 * np.pi * np.cumsum(f * pitch) / SR) * env_exp(d, 0.9, 0.004)
+    return np.tanh(x * 2.2) * 0.75
+
+
+def sfx_riser_cue(pitch=1.0, dur=1.5):
+    return sfx_riser(dur) * 0.9
+
+
 SFX = {
+    "ui": sfx_ui,
+    "error": sfx_error,
+    "success": sfx_success,
+    "shutter": sfx_shutter,
+    "bassdrop": sfx_bassdrop,
+    "riser": sfx_riser_cue,
     "whoosh": sfx_whoosh,
     "swish": sfx_swish,
     "pop": sfx_pop,
@@ -428,6 +497,8 @@ def main():
         kw = {}
         if "pitch" in c and c["type"] not in ("impact",):
             kw["pitch"] = float(c["pitch"])
+        if "dur" in c and c["type"] == "riser":
+            kw["dur"] = float(c["dur"])
         sig = fn(**kw)
         add(sfx_bus, sig, c["t"], float(c.get("gain", 1.0)), float(c.get("pan", 0.0)))
         if c["type"] in ("ding", "pop", "bounce", "slam"):
