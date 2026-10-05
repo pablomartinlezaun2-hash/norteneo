@@ -31,7 +31,7 @@ Paquete de contenido para Instagram: análisis de marca, estrategia y calendario
 
 ## Descargar todo
 
-- **ZIP completo:** `raquel-caturla-contenido.zip` (te lo paso en la conversación; no se sube al repo para no duplicar binarios) con vídeos, portadas, carrusel, overlay, locuciones y documentos.
+- **ZIPs** (enviados en la conversación; no se suben al repo para no duplicar binarios): `raquel-caturla-1a-videos.zip` (Reels 01, 02 y 04), `raquel-caturla-1b-video-academia.zip` (Reel 03) y `raquel-caturla-2-resto.zip` (portadas, carrusel, rótulo con alfa, locuciones y documentos).
 - **Desde GitHub:** en la rama `claude/festive-sagan-yzx2y0` del repo `norteneo`, abre la carpeta `content/raquel-caturla/renders/` y descarga cada archivo («Download raw file»), o descarga el repo entero con **Code → Download ZIP** desde esa rama.
 - **Por terminal:** `git clone -b claude/festive-sagan-yzx2y0 https://github.com/pablomartinlezaun2-hash/norteneo.git` y entra en `content/raquel-caturla/`.
 
