@@ -21,7 +21,8 @@ export const sectors: Record<SectorId, L> = {
  *  - 'study'   → estudio propio / pieza de concepto (sección "Estudios propios")
  *  - 'concept' → spec de una marca que NO es cliente: se etiqueta "Concepto · no oficial"
  *  - 'own'     → producto propio de NEO
- * Pendiente (Pablo): confirmar qué piezas fueron encargos reales. Hasta entonces solo las webs son 'client'.
+ * Confirmado por Pablo: todos los vídeos y webs son encargos de clientes, salvo el spot de running (concepto).
+ * Los nombres de las piezas (Mesa negra, Fuego…) son títulos de proyecto, no nombres de cliente.
  */
 export type CaseKind = 'client' | 'study' | 'concept' | 'own'
 
@@ -56,24 +57,24 @@ export const cases: Case[] = [
   { slug: 'pedacito-de-cielo', title: 'Pedacito de Cielo', kind: 'client', sector: 'brand', services: ['websites'],
     line: { es: 'Web de autor.', en: 'Signature website.' }, url: 'https://pedacito-de-cielo.vercel.app' },
 
-  // ── Piezas de vídeo y 3D con IA
-  { slug: 'real-empire-estate', title: 'Real Empire Estate', kind: 'study', sector: 'real-estate', services: ['ai-video', 'editing'],
+  // ── Piezas de vídeo y 3D con IA (encargos de clientes)
+  { slug: 'real-empire-estate', title: 'Real Empire Estate', kind: 'client', sector: 'real-estate', services: ['ai-video', 'editing'],
     line: { es: 'Película de marca vertical para una inmobiliaria.', en: 'Vertical brand film for a real estate firm.' },
     media: 'empire-film', gallery: ['empire-teaser', 'golden-key'] },
-  { slug: 'mesa-negra', title: 'Mesa negra', kind: 'study', sector: 'hospitality', services: ['ai-video'],
+  { slug: 'mesa-negra', title: 'Mesa negra', kind: 'client', sector: 'hospitality', services: ['ai-video'],
     line: { es: 'Spot de alta cocina sin cocina.', en: 'A fine-dining spot with no kitchen.' },
     media: 'gastro', gallery: ['flambe', 'fpv-kitchen'] },
-  { slug: 'fuego', title: 'Fuego', kind: 'study', sector: 'hospitality', services: ['ai-video'],
+  { slug: 'fuego', title: 'Fuego', kind: 'client', sector: 'hospitality', services: ['ai-video'],
     line: { es: 'Spot de producto para una taquería.', en: 'Product spot for a taqueria.' },
     media: 'tacos-spot', gallery: ['tacos-drop'] },
-  { slug: 'reserva', title: 'Reserva', kind: 'study', sector: 'drinks', services: ['ai-video'],
+  { slug: 'reserva', title: 'Reserva', kind: 'client', sector: 'drinks', services: ['ai-video'],
     line: { es: 'Vino que nace del humo.', en: 'Wine born from smoke.' }, media: 'wine' },
-  { slug: 'trono', title: 'Trono', kind: 'study', sector: 'fashion', services: ['ai-video', 'content'],
+  { slug: 'trono', title: 'Trono', kind: 'client', sector: 'fashion', services: ['ai-video', 'content'],
     line: { es: 'Videoclip de moda en formato vertical.', en: 'Vertical fashion music video.' }, media: 'fashion' },
-  { slug: 'llave', title: 'La llave', kind: 'study', sector: 'real-estate', services: ['ai-3d', 'ai-video'],
+  { slug: 'llave', title: 'La llave', kind: 'client', sector: 'real-estate', services: ['ai-3d', 'ai-video'],
     line: { es: 'Objeto 3D generado con IA, de la explosión al detalle.', en: 'AI-generated 3D object, from burst to detail.' },
     media: 'golden-key' },
-  { slug: 'mudanza', title: 'Mudanza', kind: 'study', sector: 'real-estate', services: ['content'],
+  { slug: 'mudanza', title: 'Mudanza', kind: 'client', sector: 'real-estate', services: ['content'],
     line: { es: 'Contenido UGC generado con IA para redes.', en: 'AI-generated UGC content for social.' }, media: 'ugc-move' },
   { slug: 'running', title: 'Running', kind: 'concept', sector: 'sport', services: ['ai-video', 'editing'],
     line: { es: 'Spot deportivo de concepto. No oficial.', en: 'Concept sports spot. Unofficial.' }, media: 'running' },

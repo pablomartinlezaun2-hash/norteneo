@@ -2,22 +2,26 @@ import type { L } from '@/i18n'
 
 /**
  * Datos globales de la marca.
- * TODO(Pablo): sustituir los valores marcados como pendientes cuando los tengamos.
+ * Pendiente (Pablo): dominio final e Instagram.
  */
 export const site = {
   name: 'NEO Studio',
   /** Dominio final (para canonical, hreflang y Open Graph). Pendiente: cambiar al dominio real. */
   url: (import.meta.env.VITE_SITE_URL as string | undefined) ?? 'https://neo-studio.vercel.app',
-  /** WhatsApp en formato internacional sin "+" ni espacios, p. ej. 34600000000. Pendiente. */
-  whatsapp: (import.meta.env.VITE_WHATSAPP as string | undefined) ?? '',
-  /** Email comercial. Pendiente. */
-  email: (import.meta.env.VITE_CONTACT_EMAIL as string | undefined) ?? '',
-  /** Endpoint que recibe el brief (Web3Forms, Formspree, función propia…). Pendiente. */
-  leadEndpoint: (import.meta.env.VITE_LEAD_ENDPOINT as string | undefined) ?? '',
+  /** WhatsApp en formato internacional sin "+" ni espacios. */
+  whatsapp: (import.meta.env.VITE_WHATSAPP as string | undefined) ?? '34629946893',
+  /** Email comercial (recibe las propuestas). */
+  email: (import.meta.env.VITE_CONTACT_EMAIL as string | undefined) ?? 'neo.method.lab@gmail.com',
+  /**
+   * Endpoint que recibe el brief. Por defecto FormSubmit (gratuito, sin servidor): acepta POST JSON
+   * y reenvía al email. La primera vez FormSubmit manda un email de activación a la cuenta.
+   * Tras activarlo puede sustituirse el email por el alias aleatorio que FormSubmit facilita.
+   */
+  leadEndpoint: (import.meta.env.VITE_LEAD_ENDPOINT as string | undefined) ?? 'https://formsubmit.co/ajax/neo.method.lab@gmail.com',
   instagram: (import.meta.env.VITE_INSTAGRAM as string | undefined) ?? '',
   description: {
-    es: 'Estudio creativo de vídeo con IA, 3D y webs de autor para marcas de lujo. Imagen de cine, sin rodaje.',
-    en: 'Creative studio for AI film, 3D and bespoke websites for luxury brands. Cinematic imagery, no shoot.',
+    es: 'Estudio creativo de vídeo con IA, 3D y webs de autor para marcas de lujo. Imagen de cine, sin plató.',
+    en: 'Creative studio for AI film, 3D and bespoke websites for luxury brands. Cinematic imagery, no set.',
   } satisfies L,
 } as const
 
