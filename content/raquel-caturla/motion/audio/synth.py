@@ -403,7 +403,7 @@ def render_voice(vo, n):
             piece, st = piece[-st:], 0
         end = min(n, st + len(piece))
         out[st:end] += piece[: end - st]
-    return out * 1.15
+    return out * 2.2  # la voz manda en la mezcla
 
 
 def main():
@@ -433,7 +433,7 @@ def main():
         if c["type"] in ("ding", "pop", "bounce", "slam"):
             add(send, sig, c["t"], 0.35)
     wet = np.stack([fftconvolve(send[:, ch], IR[:, ch])[: len(buf)] for ch in range(2)], axis=1)
-    sfx_bus = (sfx_bus + wet) * 0.9
+    sfx_bus = (sfx_bus + wet) * 0.75
 
     # locución: cada frase en su anclaje; la música y los SFX se apartan (ducking)
     vo = meta.get("vo")
@@ -453,7 +453,7 @@ def main():
             last = v if v > last else last * rel ** 32
             sm[i : i + 32] = last
         music_bus *= (1 - 0.72 * sm)[:, None]  # ≈ −11 dB bajo la voz
-        sfx_bus *= (1 - 0.3 * sm)[:, None]
+        sfx_bus *= (1 - 0.55 * sm)[:, None]
     buf += music_bus + sfx_bus + np.stack([voice, voice], axis=1)
 
     # fades de seguridad y limitador suave

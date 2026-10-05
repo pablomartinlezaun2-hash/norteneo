@@ -8,7 +8,7 @@ Paquete de contenido para Instagram: análisis de marca, estrategia y calendario
 
 | Archivo | Qué es | Specs |
 |---|---|---|
-| `renders/01-manifiesto.mp4` | Reel · «Deja de entrenar para castigarte» → «Más conciencia» | 15,4 s · 1080×1920 · 30 fps · H.264 + AAC 48 kHz · −14 LUFS · locución NEO JBQ 2 |
+| `renders/01-manifiesto.mp4` | Reel · «Deja de entrenar para castigarte» → «Más conciencia» | 15,4 s · 1080×1920 · 30 fps · H.264 (≤ 6 Mbps) + AAC 48 kHz · −14 LUFS · locución NEO JBQ 2 |
 | `renders/02-impacto-articular.mp4` | Reel · infografía «¿Te duelen las rodillas al correr?» (−80 %*, dato del fabricante) | 19,1 s · ídem |
 | `renders/03-academia-rc-rise.mp4` | Reel · «De cero a instructora oficial en 4 semanas» | 19,5 s · ídem |
 | `renders/04-habitos-sistema.mp4` | Reel · «No te falta fuerza de voluntad. Te falta un sistema.» | 22,6 s · ídem |
@@ -48,6 +48,8 @@ node scripts/render.mjs 01-manifiesto --snap=0.5,3,7.6 --guides  # capturas de v
 node scripts/render.mjs 01-manifiesto --still=2.2 --name=01-manifiesto-portada   # portada
 node scripts/render.mjs 05-carrusel-exigencia-conciencia --still=0.5,1.5,2.5,3.5,4.5,5.5 --name=05-carrusel
 node scripts/render.mjs 06-overlay-lower-third               # .mov + .webm con alfa y -sfx.wav
+scripts/remix.sh 01-manifiesto                                # solo rehace el audio (misma imagen)
+scripts/entrega.sh 01-manifiesto                              # compresión de entrega (CRF 22, techo 6 Mbps)
 ```
 
 - **Identidad real:** edita `brand/tokens.css` (colores y familias tipográficas; si son de Google Fonts, `npm i @fontsource-variable/<fuente>` y cambia los `@import`) y vuelve a renderizar todo.
