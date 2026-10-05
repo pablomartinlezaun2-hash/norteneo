@@ -18,6 +18,9 @@ import ResetPassword from "./pages/ResetPassword";
 import SolarLauncher from "./pages/SolarLauncher";
 import Landing from "./pages/Landing";
 import AdminWhatsAppTest from "./pages/AdminWhatsAppTest";
+import { lazy, Suspense } from "react";
+
+const KangooBoot3D = lazy(() => import("./pages/KangooBoot3D"));
 
 
 const queryClient = new QueryClient();
@@ -53,6 +56,14 @@ const AppContent = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<Landing />} />
         <Route path="/landing-preview" element={<Landing forcePreview />} />
+        <Route
+          path="/kangoo-3d"
+          element={
+            <Suspense fallback={<div className="h-[100dvh] bg-[#070707]" />}>
+              <KangooBoot3D />
+            </Suspense>
+          }
+        />
         <Route
           path="/app"
           element={
