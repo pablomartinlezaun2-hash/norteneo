@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>01 · Manifiesto · Desde la conciencia</title>
+<link rel="stylesheet" href="../../brand/tokens.css">
+<link rel="stylesheet" href="../lib/base.css">
+<style>
+  #stage { background: var(--ink); }
+  .scene { position: absolute; inset: 0; }
+
+  /* fondo: trayectorias de salto punteadas (motivo «rebote») */
+  #arcs { position: absolute; inset: 0; opacity: 0.22; }
+  #arcs path { fill: none; stroke: var(--paper); stroke-width: 4; stroke-dasharray: 2 22; stroke-linecap: round; }
+
+  /* A · hook */
+  #hook { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 520px; color: var(--paper); }
+  #hook .eyebrow { color: var(--lime); margin-bottom: 44px; }
+  #hook .l1 { font-size: 196px; }
+  #hook .l2 { font-size: 196px; }
+  #hook .l3 { font-size: 168px; color: var(--coral); margin-top: 22px; line-height: 1; }
+  #hook .l1, #hook .l2 { perspective: 800px; }
+
+  /* B · tarjetas que se tachan */
+  #sB { z-index: 0; isolation: isolate; }
+  .nope { left: 100px; width: 820px; height: 210px; display: flex; align-items: center; padding: 0 50px; background: var(--blush); }
+  .nope .display { font-size: 108px; color: var(--ink); white-space: nowrap; }
+  .nope .x { position: absolute; right: 34px; top: 50%; width: 136px; height: 136px; margin-top: -68px; }
+  .nope .x path { stroke: var(--coral); stroke-width: 26; stroke-linecap: round; fill: none; }
+  #n1 { top: 560px; z-index: 1; }
+  #n2 { top: 770px; z-index: 2; }
+  #n3 { top: 980px; z-index: 3; }
+
+  /* bola de rebote */
+  #ball { position: absolute; left: 0; top: 0; width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%; background: var(--coral); z-index: 20; }
+
+  /* C · mundo claro */
+  #light { position: absolute; inset: 0; background: var(--paper); clip-path: circle(0px at 540px 1150px); }
+  #light #arcs2 { position: absolute; inset: 0; opacity: 0.5; }
+  #light #arcs2 path { fill: none; stroke: var(--violet); stroke-width: 4; stroke-dasharray: 2 22; stroke-linecap: round; opacity: 0.35; }
+  #pay { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 640px; }
+  #pay .mas { font-size: 230px; color: var(--ink); }
+  #pay .con { font-size: 200px; color: var(--violet); line-height: 1.05; white-space: nowrap; }
+  #pay .dot { display: inline-block; width: 0.17em; height: 0.17em; }
+
+  /* D · cierre */
+  #end { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 560px; color: var(--ink); }
+  #end .eyebrow { color: var(--violet); margin-bottom: 40px; }
+  #end .t1 { font-size: 138px; }
+  #end .t2 { font-size: 150px; color: var(--violet); position: relative; display: inline-block; margin-top: 8px; }
+  #end .t2 .hl { position: absolute; left: -10px; right: -14px; bottom: 18px; height: 52px; background: var(--lime); z-index: -1; transform-origin: 0 50%; border-radius: 6px; }
+  #end .t2 .txt { position: relative; }
+  #end .sub { font-family: var(--font-ui); font-weight: 600; font-size: 44px; line-height: 1.3; margin-top: 56px; max-width: 760px; }
+  #cta { position: absolute; left: var(--safe-x); top: 1290px; background: var(--coral); color: var(--paper); font-size: 40px; padding: 24px 42px; }
+  #cta .h { font-weight: 600; opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="camera"><div id="punch">
+    <svg id="arcs" viewBox="0 0 1080 1920" preserveAspectRatio="none">
+      <path d="M-120 1500 Q 200 600 520 1500 Q 840 600 1160 1500"/>
+      <path d="M-60 1700 Q 300 980 660 1700 Q 1020 980 1380 1700"/>
+      <path d="M-200 1250 Q 120 300 440 1250 Q 760 300 1080 1250"/>
+    </svg>
+
+    <div class="scene" id="sA">
+      <div id="hook">
+        <div class="eyebrow">Manifiesto</div>
+        <div class="display l1">Deja de</div>
+        <div class="display l2">entrenar</div>
+        <div class="accent l3">para castigarte.</div>
+      </div>
+    </div>
+
+    <div class="scene" id="sB">
+      <div class="card nope" id="n1"><span class="display">Más castigo</span><svg class="x" viewBox="0 0 100 100"><path d="M18 18 L82 82 M82 18 L18 82"/></svg></div>
+      <div class="card nope" id="n2"><span class="display">Más culpa</span><svg class="x" viewBox="0 0 100 100"><path d="M18 18 L82 82 M82 18 L18 82"/></svg></div>
+      <div class="card nope" id="n3"><span class="display">Más exigencia</span><svg class="x" viewBox="0 0 100 100"><path d="M18 18 L82 82 M82 18 L18 82"/></svg></div>
+    </div>
+
+    <div id="light">
+      <svg id="arcs2" viewBox="0 0 1080 1920" preserveAspectRatio="none">
+        <path d="M-120 1500 Q 200 600 520 1500 Q 840 600 1160 1500"/>
+        <path d="M-200 1250 Q 120 300 440 1250 Q 760 300 1080 1250"/>
+      </svg>
+      <div class="scene" id="sC">
+        <div id="pay">
+          <div class="display mas">Más</div>
+          <div class="accent con"><span class="word">conciencia</span><span class="dot" id="dot"></span></div>
+        </div>
+      </div>
+      <div class="scene" id="sD">
+        <div id="end">
+          <div class="eyebrow">Guárdalo para cuando lo olvides</div>
+          <div class="display t1">Cuerpo y mente,</div>
+          <div class="accent t2"><span class="hl"></span><span class="txt">alineados.</span></div>
+          <div class="sub">Hábitos desde la conciencia, no desde la exigencia.</div>
+        </div>
+        <div class="pill" id="cta">Sígueme <span class="h">@raquelcaturlaoficial</span></div>
+      </div>
+    </div>
+
+    <div id="ball"></div>
+  </div></div>
+  <div id="grain"></div>
+  <div id="safe"></div>
+</div>
+
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../lib/stage.js"></script>
+<script>
+S.ready(() => {
+  const B = S.b; // 120 BPM -> B(n) = n * 0.5 s
+  const tl = S.init({
+    duration: 14,
+    preroll: 0.12,
+    music: { gain: 0.5, sections: [
+      { at: 0, part: "intro" }, { at: B(5), part: "groove" }, { at: B(12), part: "build" },
+      { at: B(14), part: "gap" }, { at: B(15), part: "drop" }, { at: B(24), part: "outro" } ] },
+  });
+  const $ = S.$, $$ = S.$$;
+  S.grain($("#grain"));
+  $("#grain").style.mixBlendMode = "overlay";
+  $("#grain").style.opacity = 0.1;
+  S.drift($("#camera"), { amp: 5, rot: 0.2, period: 8 });
+
+  // fondo: arcos que derivan sin parar
+  tl.fromTo("#arcs", { x: -40 }, { x: 40, duration: 14.2, ease: "none" }, 0);
+  tl.fromTo("#arcs2", { x: 30 }, { x: -30, duration: 14.2, ease: "none" }, 0);
+
+  // ---------------- A · Hook (0 – 2.5 s)
+  const l1 = S.split($("#hook .l1")).chars;
+  const l2 = S.split($("#hook .l2")).chars;
+  const l3 = S.split($("#hook .l3")).words;
+  tl.from("#hook .eyebrow", { opacity: 0, x: -30, duration: 0.5 }, 0);
+  S.letters(tl, l1, 0);
+  S.cue("whoosh", 0.05, { gain: 0.7 });
+  S.letters(tl, l2, 0.28);
+  S.pop(tl, l3, B(2), { yPercent: 60, scale: 0.9 }, { stagger: 0.12 });
+  S.cue("pop", B(2), { pitch: 0.9 });
+  S.cue("pop", B(2) + 0.12, { pitch: 1.1 });
+  tl.to("#hook .l3", { x: 6, duration: 0.05, yoyo: true, repeat: 5, ease: "none" }, B(3.2)); // micro-temblor en «castigarte»
+  S.out(tl, ["#hook .eyebrow", "#hook .l1", "#hook .l2", "#hook .l3"], B(4.6), { y: -80 });
+
+  // ---------------- B · Más castigo / culpa / exigencia (2.5 – 6 s)
+  S.punch(tl, B(5));
+  const rot = [-6, 3, -3];
+  S.$$(".nope .display").forEach((el) => S.fit(el, 820 - 50 - 34 - 136 - 30));
+  ["#n1", "#n2", "#n3"].forEach((id, i) => {
+    const tin = B(5) + i * B(2);
+    S.pop(tl, id, tin, { y: 260, rotation: rot[i] * 3, rotationTo: rot[i] });
+    S.cue("pop", tin, { pitch: 0.85 + i * 0.12 });
+    const x = `${id} .x`;
+    S.pop(tl, x, tin + B(1), { scale: 2.4, rotation: -25 }, { dur: 0.45 });
+    tl.to(`${id} .display`, { opacity: 0.35, duration: 0.2, ease: "none" }, tin + B(1));
+    tl.fromTo(id, { x: -14 }, { x: 0, duration: 0.4, ease: "elastic.out(1, 0.3)" }, tin + B(1));
+    S.cue("slam", tin + B(1), { gain: 0.55, pitch: 1 + i * 0.06 });
+  });
+  // se sueltan: caen con gravedad
+  ["#n3", "#n2", "#n1"].forEach((id, i) => {
+    tl.to(id, { y: 1700, rotation: (i % 2 ? 1 : -1) * (18 + i * 6), duration: 0.75, ease: "power2.in" }, B(12) + i * 0.08);
+  });
+  S.cue("whoosh", B(12) + 0.15, { gain: 0.6, pitch: 0.8 });
+
+  // ---------------- Silencio + bola que rebota (6 – 7.5 s) -> drop
+  const ball = $("#ball");
+  const floor = 1150;
+  // destino final: el punto tras «conciencia»
+  const dr = $("#dot").getBoundingClientRect();
+  const dotX = dr.left + dr.width / 2, dotY = dr.top + dr.height / 2;
+  const dotScale = dr.width / 96;
+  tl.set(ball, { x: 540, y: -120, scaleX: 1, scaleY: 1 }, 0);
+  tl.to(ball, { y: floor, duration: 0.5, ease: "power2.in" }, B(13));
+  tl.to(ball, { scaleX: 1.35, scaleY: 0.7, duration: 0.05, yoyo: true, repeat: 1, ease: "power1.out", transformOrigin: "50% 100%" }, B(14));
+  S.cue("bounce", B(14), { gain: 1.0, pitch: 0.85 });
+  tl.to(ball, { y: floor - 360, duration: 0.25, ease: "power2.out" }, B(14) + 0.02);
+  tl.to(ball, { y: floor, duration: 0.23, ease: "power2.in" }, B(14) + 0.27);
+  // DROP: impacto -> el mundo pasa de oscuro a claro desde la bola
+  tl.to(ball, { scaleX: 1.5, scaleY: 0.6, duration: 0.06, yoyo: true, repeat: 1, ease: "power1.out" }, B(15));
+  tl.fromTo("#light", { clipPath: "circle(0px at 540px 1150px)" }, { clipPath: "circle(2300px at 540px 1150px)", duration: 0.9, ease: "expo.out" }, B(15));
+  S.cue("bounce", B(15), { gain: 0.9, pitch: 0.7 });
+  S.punch(tl, B(15), { scale: 1.08, sfx: null });
+  tl.set("#stage", { backgroundColor: S.css("paper") }, B(15) + 0.9); // sin bordes oscuros con la deriva de cámara
+
+  // ---------------- C · MÁS conciencia● (7.5 – 10 s)
+  const con = S.split($("#pay .word")).chars;
+  S.pop(tl, "#pay .mas", B(15) + 0.05, { scale: 1.5 }, { ease: "expo.out", origin: "0% 50%" });
+  S.letters(tl, con, B(15) + 0.25, { stagger: 0.032 });
+  // la bola rebota dos veces más y aterriza como punto final
+  const midX = (540 + dotX) / 2;
+  tl.to(ball, { x: midX, duration: 0.42, ease: "none" }, B(15) + 0.06);
+  tl.to(ball, { y: floor - 280, duration: 0.21, ease: "power2.out" }, B(15) + 0.06);
+  tl.to(ball, { y: floor - 40, duration: 0.21, ease: "power2.in" }, B(15) + 0.27);
+  S.cue("bounce", B(15) + 0.48, { gain: 0.6, pitch: 1.1 });
+  tl.to(ball, { x: dotX, duration: 0.42, ease: "none" }, B(15) + 0.48);
+  tl.to(ball, { y: dotY - 200, duration: 0.2, ease: "power2.out" }, B(15) + 0.48);
+  tl.to(ball, { y: dotY, duration: 0.22, ease: "power2.in" }, B(15) + 0.68);
+  tl.to(ball, { scale: dotScale, duration: 0.5, ease: "power2.inOut" }, B(15) + 0.3);
+  tl.to(ball, { scaleX: dotScale * 1.4, scaleY: dotScale * 0.65, duration: 0.05, yoyo: true, repeat: 1 }, B(15) + 0.9);
+  S.cue("bounce", B(15) + 0.9, { gain: 0.5, pitch: 1.4 });
+  S.cue("ding", B(15) + 0.95, { gain: 0.8 });
+
+  // ---------------- D · Cuerpo y mente, alineados (10 – 14 s)
+  S.punch(tl, B(20));
+  S.out(tl, ["#pay"], B(20) - 0.3, { y: -60 });
+  tl.to(ball, { opacity: 0, scale: 0, duration: 0.25, ease: "power3.in" }, B(20) - 0.3);
+  tl.from("#end .eyebrow", { opacity: 0, y: 20, duration: 0.5 }, B(20));
+  S.letters(tl, S.split($("#end .t1")).chars, B(20) + 0.05, { stagger: 0.025 });
+  S.pop(tl, "#end .t2", B(21), { y: 60 });
+  S.cue("pop", B(21), { pitch: 1.0 });
+  tl.fromTo("#end .t2 .hl", { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: "expo.out" }, B(22));
+  S.cue("swish", B(22) - 0.05, { gain: 0.8 });
+  S.pop(tl, "#end .sub", B(23), { y: 24 }, { ease: "expo.out" });
+  S.pop(tl, "#cta", B(24), { scale: 0.6 }, { origin: "0% 50%" });
+  S.cue("pop", B(24), { pitch: 1.25 });
+  S.cue("click", B(24) + 0.05);
+  tl.to("#cta", { scale: 1.04, duration: 0.5, yoyo: true, repeat: 3, ease: "sine.inOut" }, B(25));
+
+  // visibilidad por escena (reveal de 2 fotogramas, nunca fundidos lentos)
+  tl.set("#sB", { autoAlpha: 0 }, 0).set("#sB", { autoAlpha: 1 }, B(5) - 0.01).set("#sB", { autoAlpha: 0 }, B(14) + 0.3);
+  tl.set("#sD", { autoAlpha: 0 }, 0).set("#sD", { autoAlpha: 1 }, B(20) - 0.01);
+  tl.set({}, {}, 14.2);
+
+  // locución (NEO JBQ 2): una frase por anclaje visual
+  const H = S.preroll + 0.02;
+  S.voSync([
+    { t: H },                                   // Deja de entrenar para castigarte.
+    { t: B(5), from: B(4.6) },                  // Más castigo.
+    { t: B(7), from: B(7) - 0.05 },             // Más culpa.
+    { t: B(9), from: B(9) - 0.05 },             // Más exigencia.
+    { t: B(15) + 0.05, from: B(12) },           // Más conciencia. (drop)
+    { t: B(20), from: B(20) - 0.4 },            // Cuerpo y mente, alineados.
+    { t: B(23), from: B(23) - 0.05 },           // Desde la conciencia, no desde la exigencia.
+  ]);
+});
+</script>
+</body>
+</html>

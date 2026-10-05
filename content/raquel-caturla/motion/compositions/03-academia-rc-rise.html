@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>03 · Academia RC-RISE · De cero a instructora oficial</title>
+<link rel="stylesheet" href="../../brand/tokens.css">
+<link rel="stylesheet" href="../lib/base.css">
+<style>
+  #stage { background: var(--plum); color: var(--paper); }
+  #field { position: absolute; inset: -200px; background: radial-gradient(60% 40% at 70% 30%, rgba(107, 77, 255, 0.55), transparent 70%), radial-gradient(50% 35% at 20% 85%, rgba(255, 79, 109, 0.28), transparent 70%); }
+  .scene { position: absolute; inset: 0; }
+
+  /* A · hook */
+  #hook { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 500px; }
+  #hook .eyebrow { color: var(--lime); margin-bottom: 40px; }
+  #hook .display { font-size: 176px; white-space: nowrap; perspective: 800px; }
+  #hook .l2 { color: var(--lime); }
+  #hook .accent { font-size: 170px; color: var(--coral); line-height: 1; margin-top: 10px; }
+  #weeks { position: absolute; left: var(--safe-x); top: 1190px; background: var(--paper); color: var(--plum); font-size: 46px; padding: 20px 40px; }
+  #weeks b { font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 900; font-size: 64px; line-height: 0.9; }
+
+  /* B · baraja de tarjetas */
+  .k { left: 210px; top: 560px; width: 640px; height: 760px; padding: 54px 56px; display: flex; flex-direction: column; justify-content: space-between; transform-origin: 50% 100%; }
+  .k .num { font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 900; font-size: 150px; line-height: 0.8; color: var(--violet); }
+  .k .txt { font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 860; font-size: 104px; line-height: 0.9; text-transform: uppercase; color: var(--ink); }
+  .k .txt em { font-family: var(--font-accent); font-style: italic; font-weight: 560; text-transform: none; color: var(--coral); font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144; }
+  .k .tag { font: 700 28px var(--font-ui); letter-spacing: 0.2em; text-transform: uppercase; color: var(--violet); }
+  #k4 { background: var(--lime); }
+  #k4 .num, #k4 .tag { color: var(--ink); }
+  #bHead { position: absolute; left: var(--safe-x); top: 300px; }
+  #bHead .eyebrow { color: var(--lime); }
+
+  /* C · autoridad */
+  #big { position: absolute; left: var(--safe-x); top: 420px; font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 900; font-size: 470px; line-height: 0.8; color: var(--lime); }
+  #bigSub { position: absolute; left: var(--safe-x); top: 830px; width: 820px; }
+  #bigSub .display { font-size: 112px; }
+  #bigSub .accent { font-size: 100px; color: var(--coral); }
+  #since { position: absolute; left: var(--safe-x); top: 1190px; background: rgba(255, 244, 232, 0.12); border: 2px solid var(--hairline-inv); color: var(--paper); font-size: 36px; }
+  #since .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--lime); }
+
+  /* D · CTA */
+  #word { position: absolute; left: var(--safe-x); top: 520px; }
+  #word .eyebrow { color: var(--lime); margin-bottom: 30px; }
+  #word .display { font-size: 200px; }
+  #word .accent { font-size: 120px; color: var(--coral); margin-top: 6px; }
+  #cta { position: absolute; left: var(--safe-x); top: 1080px; background: var(--lime); color: var(--ink); font-size: 44px; padding: 26px 44px; }
+  #cta .arrow { font-size: 44px; }
+  #handle { position: absolute; left: var(--safe-x); top: 1220px; font: 700 34px var(--font-ui); color: rgba(255, 244, 232, 0.8); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="camera"><div id="punch">
+    <div id="field"></div>
+
+    <div class="scene" id="sA">
+      <div id="hook">
+        <div class="eyebrow">Academia RC-RISE</div>
+        <div class="display l1">De cero a</div>
+        <div class="display l2">instructora</div>
+        <div class="accent l3">oficial</div>
+      </div>
+      <div class="pill" id="weeks">en <b>4 semanas</b></div>
+    </div>
+
+    <div class="scene" id="sB">
+      <div id="bHead"><div class="eyebrow">Lo que te llevas</div></div>
+      <div class="card k" id="k1"><div class="num">01</div><div><div class="tag">Empiezas</div><div class="txt">Sin <em>experiencia</em> previa</div></div></div>
+      <div class="card k" id="k2"><div class="num">02</div><div><div class="tag">Aprendes</div><div class="txt">Método <em>paso</em> a paso</div></div></div>
+      <div class="card k" id="k3"><div class="num">03</div><div><div class="tag">Certificas</div><div class="txt">Doble <em>certificación</em> oficial</div></div></div>
+      <div class="card k" id="k4"><div class="num">04</div><div><div class="tag">Arrancas</div><div class="txt">Tu grupo, <em>montado</em> en 4 semanas</div></div></div>
+    </div>
+
+    <div class="scene" id="sC">
+      <div id="big">+15</div>
+      <div id="bigSub"><div class="display">años formando</div><div class="accent">instructoras e instructores</div></div>
+      <div class="pill" id="since"><span class="dot"></span>Trainer Oficial Internacional desde 2008</div>
+    </div>
+
+    <div class="scene" id="sD">
+      <div id="word">
+        <div class="eyebrow">Con Raquel Caturla</div>
+        <div class="display w1">RC-RISE</div>
+        <div class="accent w2">Academy</div>
+      </div>
+      <div class="pill" id="cta">Info en el link de la bio <span class="arrow">↗</span></div>
+      <div id="handle">@raquelcaturlaoficial</div>
+    </div>
+  </div></div>
+  <div id="grain"></div>
+  <div id="safe"></div>
+</div>
+
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../lib/stage.js"></script>
+<script>
+S.ready(() => {
+  const B = S.b;
+  const tl = S.init({
+    duration: 15,
+    preroll: 0.12,
+    music: { gain: 0.5, sections: [
+      { at: 0, part: "intro" }, { at: B(6), part: "groove" }, { at: B(14), part: "build" },
+      { at: B(16), part: "gap" }, { at: B(17), part: "drop" }, { at: B(26), part: "outro" } ] },
+  });
+  const $ = S.$, $$ = S.$$;
+  S.grain($("#grain"));
+  $("#grain").style.mixBlendMode = "overlay";
+  $("#grain").style.opacity = 0.12;
+  S.drift($("#camera"), { amp: 5, rot: 0.2, period: 8 });
+  tl.fromTo("#field", { x: -60, y: 0 }, { x: 60, y: -40, duration: 15.2, ease: "none" }, 0);
+
+  // ---------------- A · Hook (0 – 3 s)
+  S.fit($("#hook .l2"), 840);
+  tl.from("#hook .eyebrow", { opacity: 0, x: -30, duration: 0.5 }, 0);
+  S.letters(tl, S.split($("#hook .l1")).chars, 0);
+  S.cue("whoosh", 0.03, { gain: 0.6 });
+  S.letters(tl, S.split($("#hook .l2")).chars, 0.3, { stagger: 0.028 });
+  S.pop(tl, "#hook .l3", B(2), { yPercent: 50, scale: 0.85 }, { origin: "0% 50%" });
+  S.cue("pop", B(2), { pitch: 0.95 });
+  S.pop(tl, "#weeks", B(3), { scale: 0.5, rotation: -6, rotationTo: -2 }, { origin: "0% 50%" });
+  S.cue("pop", B(3), { pitch: 1.2 });
+  S.cue("ding", B(3) + 0.03, { gain: 0.5 });
+  S.out(tl, ["#hook", "#weeks"], B(5.6), { y: -80 });
+
+  // ---------------- B · Baraja: cada tarjeta nueva entra encima (3 – 8.5 s)
+  S.punch(tl, B(6));
+  tl.set("#sB", { autoAlpha: 0 }, 0).set("#sB", { autoAlpha: 1 }, B(6) - 0.01).set("#sB", { autoAlpha: 0 }, B(17));
+  tl.from("#bHead .eyebrow", { opacity: 0, x: -20, duration: 0.4 }, B(6));
+  $$(".k .txt").forEach((el) => S.fit(el, 640 - 112));
+  const cards = ["#k1", "#k2", "#k3", "#k4"];
+  const step = B(2.5);
+  cards.forEach((id, i) => {
+    const tin = B(6) + i * step;
+    S.pop(tl, id, tin, { y: 700, rotation: 14, rotationTo: 0 }, { origin: "50% 150%" });
+    S.cue("whoosh", tin - 0.1, { gain: 0.35, pitch: 1.2 });
+    S.cue("pop", tin + 0.18, { pitch: 0.9 + i * 0.1 });
+    // las anteriores retroceden y se abren detrás
+    cards.slice(0, i).forEach((prev, j) => {
+      const age = i - j;
+      tl.to(prev, { rotation: -6 * age, x: -36 * age, y: -26 * age, scale: 1 - 0.04 * age, duration: 0.6, ease: "expo.out" }, tin);
+    });
+  });
+  // abanico final: la mano de cartas con los cuatro números a la vista
+  const fan = [-7, -2.5, 2.5, 7];
+  cards.forEach((id, i) => {
+    tl.to(id, { rotation: fan[i], x: (i - 1.5) * 95 - 20, y: 60, scale: 0.74, duration: 0.7, ease: "expo.out" }, B(15));
+  });
+  S.cue("swish", B(15) - 0.05, { gain: 0.6 });
+  cards.forEach((id, i) => tl.to(id, { y: 1500, rotation: fan[i] * 2, duration: 0.5, ease: "power3.in" }, B(16.5) + i * 0.04));
+
+  // ---------------- C · Autoridad (8.5 – 11.5 s) — DROP
+  tl.set("#sC", { autoAlpha: 0 }, 0).set("#sC", { autoAlpha: 1 }, B(17) - 0.01);
+  S.pop(tl, "#big", B(17), { scale: 1.8, yPercent: 10 }, { ease: "expo.out", origin: "0% 100%" });
+  S.counter(tl, $("#big"), B(17), { from: 0, to: 15, dur: 0.8, prefix: "+", ticks: 6 });
+  S.cue("slam", B(17), { gain: 0.45, pitch: 1.1 });
+  S.punch(tl, B(17), { scale: 1.06, sfx: null });
+  S.letters(tl, S.split($("#bigSub .display")).chars, B(18), { stagger: 0.025 });
+  S.pop(tl, "#bigSub .accent", B(19), { y: 30 }, { origin: "0% 50%" });
+  S.cue("pop", B(19), { pitch: 1.05 });
+  S.pop(tl, "#since", B(20), { scale: 0.6 }, { origin: "0% 50%" });
+  S.cue("click", B(20));
+  tl.fromTo("#since .dot", { scale: 1 }, { scale: 1.5, duration: 0.4, yoyo: true, repeat: 3, ease: "sine.inOut" }, B(20.5));
+  S.out(tl, ["#big", "#bigSub", "#since"], B(22.6), { y: -70 });
+
+  // ---------------- D · CTA (11.5 – 15 s)
+  S.punch(tl, B(23));
+  tl.set("#sD", { autoAlpha: 0 }, 0).set("#sD", { autoAlpha: 1 }, B(23) - 0.01);
+  tl.from("#word .eyebrow", { opacity: 0, x: -20, duration: 0.4 }, B(23));
+  S.letters(tl, S.split($("#word .w1")).chars, B(23), { stagger: 0.04 });
+  S.pop(tl, "#word .w2", B(24), { y: 30 }, { origin: "0% 50%" });
+  S.cue("pop", B(24));
+  S.pop(tl, "#cta", B(25), { scale: 0.6 }, { origin: "0% 50%" });
+  S.cue("pop", B(25), { pitch: 1.25 });
+  S.cue("ding", B(25) + 0.03, { gain: 0.6 });
+  tl.fromTo("#cta .arrow", { x: 0, y: 0 }, { x: 8, y: -8, duration: 0.4, yoyo: true, repeat: 5, ease: "sine.inOut" }, B(26));
+  tl.from("#handle", { opacity: 0, duration: 0.3, ease: "none" }, B(26));
+  tl.set({}, {}, 15.2);
+
+  const H = S.preroll + 0.02;
+  S.voSync([
+    { t: H },                                   // De cero a instructora oficial... en cuatro semanas.
+    { t: B(6), from: B(5.5) },                  // Sin experiencia previa.
+    { t: B(8.5), from: B(8.5) - 0.12 },         // Método paso a paso.
+    { t: B(11), from: B(11) - 0.12 },           // Doble certificación oficial.
+    { t: B(13.5), from: B(13.5) - 0.12 },       // Y tu grupo, montado en cuatro semanas.
+    { t: B(17), from: B(15) - 0.1 },            // Más de quince años... (drop)
+    { t: B(20), from: B(20) - 0.05 },           // Trainer Oficial Internacional desde 2008.
+    { t: B(23), from: B(22.6) - 0.05 },         // RC-RISE Academy.
+    { t: B(25), from: B(25) - 0.05 },           // Toda la info, en el link de la bio.
+  ]);
+});
+</script>
+</body>
+</html>

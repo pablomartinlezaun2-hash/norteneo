@@ -1,0 +1,38 @@
+/* Base común a todas las composiciones (Reels 9:16, carrusel 4:5, overlays). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: transparent; }
+body { width: var(--w); height: var(--h); overflow: hidden; -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+
+#stage { position: relative; width: var(--w); height: var(--h); overflow: hidden; background: var(--paper); color: var(--ink); font-family: var(--font-ui); }
+#stage.alpha { background: transparent; }
+#camera, #punch { position: absolute; inset: 0; transform-origin: 50% 46%; will-change: transform; }
+
+.layer { position: absolute; inset: 0; }
+.abs { position: absolute; }
+.center { display: flex; align-items: center; justify-content: center; }
+.col { display: flex; flex-direction: column; }
+
+/* Titulares cinéticos */
+.display { font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: var(--display-weight); text-transform: uppercase; line-height: 0.86; letter-spacing: -0.01em; }
+.accent { font-family: var(--font-accent); font-style: italic; font-weight: 560; text-transform: none; letter-spacing: -0.02em; font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144; }
+.ui { font-family: var(--font-ui); font-weight: 600; letter-spacing: 0.01em; }
+.eyebrow { font-family: var(--font-ui); font-weight: 700; font-size: 30px; letter-spacing: 0.22em; text-transform: uppercase; }
+
+/* Partición de texto: palabra = no se parte; letra = animable */
+.w { display: inline-block; white-space: nowrap; }
+.ch { display: inline-block; will-change: transform, opacity; }
+.mask { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.06em 0.02em 0.04em; margin: -0.06em -0.02em -0.04em; }
+
+/* Tarjetas: siempre opacas (las translúcidas dejan ver «fantasmas» al solaparse) */
+.card { position: absolute; border-radius: 34px; background: var(--paper); color: var(--ink); box-shadow: 0 30px 60px -20px rgba(26, 20, 35, 0.35), 0 2px 0 rgba(26, 20, 35, 0.06); }
+.pill { display: inline-flex; align-items: center; gap: 14px; border-radius: 999px; padding: 18px 34px; font-family: var(--font-ui); font-weight: 700; font-size: 34px; }
+
+/* Grano de película (estático por fotograma, desplazado de forma determinista) */
+#grain { position: absolute; inset: -40px; pointer-events: none; opacity: 0.07; mix-blend-mode: multiply; background-size: 256px 256px; }
+#grain.light { mix-blend-mode: screen; opacity: 0.06; }
+
+/* Firma de marca en la zona segura */
+.handle { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) - 120px); text-align: center; font-family: var(--font-ui); font-weight: 700; font-size: 30px; letter-spacing: 0.04em; }
+
+/* Guía de zona segura (solo en snapshots con ?guides=1) */
+.guides #safe { position: absolute; left: var(--safe-x); right: var(--safe-right); top: var(--safe-top); bottom: var(--safe-bottom); outline: 3px dashed rgba(0, 160, 255, 0.8); z-index: 9999; }
