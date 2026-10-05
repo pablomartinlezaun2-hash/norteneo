@@ -62,33 +62,25 @@ export function Closing() {
         const fixed = reveal
         // Fijo: el texto aparece cuando la sección está casi descubierta. En flujo: como useSplitReveal.
         const st = (el: Element) => (fixed ? { trigger: section, start: 'top 12%', once: true } : { trigger: el, start: 'top 85%', once: true })
+        const ctaLink = cta.firstElementChild
         const splits = heads.map((el, i) =>
           SplitText.create(el!, {
             type: 'lines',
             mask: 'lines',
             autoSplit: true,
             linesClass: 'split-line',
+            // Se devuelve la animación para que SplitText la rehaga (y recalcule su trigger) al re-dividir,
+            // p. ej. cuando carga la fuente y cambia la altura de la página.
             onSplit(self) {
               gsap.set(el, { autoAlpha: 1 })
-              return gsap.from(self.lines, {
-                yPercent: 105,
-                duration: 0.8,
-                ease: 'expo.out',
-                stagger: STAGGER,
-                delay: i * 0.12,
-                scrollTrigger: st(el!),
-              })
+              const tl = gsap.timeline({ delay: i * 0.12, scrollTrigger: st(el!) })
+              tl.from(self.lines, { yPercent: 105, duration: 0.8, ease: 'expo.out', stagger: STAGGER })
+              // El CTA entra con la misma máscara que las líneas (no un fade-up), tras la segunda frase.
+              if (i === 1 && ctaLink) tl.from(ctaLink, { yPercent: 130, duration: 0.8, ease: 'expo.out' }, 0.18)
+              return tl
             },
           }),
         )
-        // El CTA entra con la misma máscara que las líneas (no un fade-up).
-        const ctaTween = gsap.from(cta.firstElementChild, {
-          yPercent: 130,
-          duration: 0.8,
-          ease: 'expo.out',
-          delay: 0.3,
-          scrollTrigger: st(cta),
-        })
 
         // Con la capa fija, el foco por teclado no desplaza la página: llevarla a la vista.
         const onFocus = contextSafe(() => {
@@ -100,7 +92,6 @@ export function Closing() {
 
         return () => {
           section.removeEventListener('focusin', onFocus)
-          ctaTween.kill()
           splits.forEach((s) => s.revert())
         }
       })
@@ -120,7 +111,7 @@ export function Closing() {
           <ParticleWordmark slotRef={slotRef} areaRef={sectionRef} />
         </div>
 
-        <div className="container-x flex flex-1 flex-col pt-[calc(var(--nav-h)+12svh)] pb-[max(2.5rem,6svh)] lg:pt-[calc(var(--nav-h)+9svh)]">
+        <div className="container-x flex min-h-0 flex-1 flex-col pt-[calc(var(--nav-h)+12svh)] pb-[max(2.5rem,6svh)] lg:pt-[calc(var(--nav-h)+9svh)]">
           <h2 id="closing-title" ref={revealRef} className="type-display max-w-[24ch]">
             <span className="text-accent" aria-hidden="true">
               *
@@ -131,15 +122,15 @@ export function Closing() {
             <p ref={imagineRef} className="type-display text-mute">
               {t.imagine}
             </p>
-            <div ref={ctaRef} className="-m-2 overflow-hidden p-2 sm:mt-0">
+            <div ref={ctaRef} className="-m-2 overflow-hidden p-2">
               <Cta to={to.contact(lang)}>{t.cta}</Cta>
             </div>
           </div>
 
           {/* Ranura del wordmark: el canvas forma aquí las partículas (contain, apoyado abajo). Sin JS, el logo vectorial. */}
           <div className="mt-auto flex max-h-[calc(36svh+3rem)] min-h-[8.5rem] flex-1 flex-col pt-12">
-            <div ref={slotRef} aria-hidden="true" className="flex min-h-0 flex-1 items-end justify-center">
-              <Logo title="" className="h-full w-full opacity-40 [.js_&]:invisible" />
+            <div ref={slotRef} aria-hidden="true" className="relative min-h-0 flex-1">
+              <Logo title="" className="absolute inset-0 h-full w-full opacity-40 [.js_&]:invisible" />
             </div>
           </div>
         </div>
