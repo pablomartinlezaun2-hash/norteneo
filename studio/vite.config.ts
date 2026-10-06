@@ -14,6 +14,9 @@ const config: UserConfig & { ssgOptions: Partial<ViteReactSSGOptions> } = {
     dirStyle: 'nested',
     formatting: 'none',
     beastiesOptions: { preload: 'media', pruneSource: false, preloadFonts: false },
+    // Antes del CSS crítico: el <html> se marca como en el navegador (clases js / intro-seen que pone el
+    // script inline) para que beasties conserve esas reglas. scripts/postbuild.mjs retira la marca.
+    onPageRendered: (_route: string, html: string) => html.replace(/<html([^>]*)>/i, '<html$1 class="js intro-seen">'),
   },
 }
 

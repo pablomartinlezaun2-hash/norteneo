@@ -56,7 +56,7 @@ export function HouseIndex({ className = '', intro }: { className?: string; intr
     <div className={className}>
       <div className="mb-10 flex flex-col gap-6 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
         {intro && <p className="type-lead measure text-mute">{intro}</p>}
-        <div role="tablist" aria-label={t.modes} className="hidden gap-8 in-[.js]:flex">
+        <div role="tablist" aria-label={t.modes} className="hidden gap-8 js:flex">
           {MODES.map((m, i) => {
             const on = mode === m
             return (

@@ -158,7 +158,7 @@ export function Component() {
 
       <div className="container-x">
         {/* Sin JS los chips no harían nada: los filtros solo se muestran con .js */}
-        <div className="hidden border-y border-line py-3 [.js_&]:block">
+        <div className="hidden border-y border-line py-3 js:block">
           <Filters value={filter} onChange={change} />
         </div>
       </div>

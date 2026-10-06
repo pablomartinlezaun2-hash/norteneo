@@ -38,6 +38,8 @@ walk(DIST)
 const pages = []
 for (const file of htmlFiles) {
   let html = readFileSync(file, 'utf8')
+  // Quita la marca temporal usada para el CSS crítico (ver vite.config.ts → onPageRendered)
+  html = html.replace(/(<html[^>]*?)\s+class="js intro-seen"/i, '$1')
   // charset al principio del <head>
   html = html.replace(/<meta charset="UTF-8"\s*\/?>/i, '')
   const preloads = [

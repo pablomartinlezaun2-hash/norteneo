@@ -21,6 +21,7 @@ export function BySituation({ lang }: { lang: Lang }) {
   const uid = useId()
   const scope = useRef<HTMLDivElement>(null)
   const pending = useRef<FlipState | null>(null)
+  const cleared = useRef(false)
   const [sid, setSid] = useState<SituationId>(situations[0].id)
   // La situación anterior conserva el texto de los resultados que salen mientras se funden
   const [prevSid, setPrevSid] = useState<SituationId>(sid)
@@ -39,9 +40,13 @@ export function BySituation({ lang }: { lang: Lang }) {
     () => {
       const state = pending.current
       if (!state) {
-        gsap.set('[data-pick]', { clearProps: 'opacity,visibility,transform' })
+        // En el montaje no hay nada que limpiar: evitar clearProps aquí ahorra lecturas de estilo
+        // forzadas (getComputedStyle por elemento) durante la carga de la home.
+        if (cleared.current) gsap.set('[data-pick]', { clearProps: 'opacity,visibility,transform' })
+        cleared.current = true
         return
       }
+      cleared.current = true
       pending.current = null
       Flip.from(state, {
         duration: 0.5,

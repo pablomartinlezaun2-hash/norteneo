@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Variante `js:`: solo cuando hay JavaScript (clase .js que pone el script inline de index.html).
+   Selectores simples para que el CSS crítico (beasties) los conserve. */
+@custom-variant js (.js &);
+
 /* Archivo variable (peso + anchura), autoalojada. Solo el subconjunto latino (todo el texto de la web)
    y latin-ext como reserva sin precarga. La precarga del latino la inyecta scripts/postbuild.mjs. */
 @font-face {
@@ -196,9 +200,10 @@
   }
 }
 
-/* Reveal: el titular del hero se oculta hasta que GSAP lo anima.
+/* Reveal: el titular del hero se oculta hasta que GSAP lo anima, salvo en la primera visita:
+   ahí queda visible bajo la intro del logo (cuenta para el LCP) y se anima al terminar la intro.
    Si el JS falla, una animación CSS lo muestra igualmente a los 2,5 s. */
-.js [data-hero-reveal] {
+.js.intro-seen [data-hero-reveal] {
   visibility: hidden;
   animation: neo-reveal-fallback 0s 2.5s forwards;
 }
@@ -208,7 +213,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .js [data-hero-reveal] {
+  .js.intro-seen [data-hero-reveal] {
     visibility: visible;
     animation: none;
   }

@@ -145,7 +145,12 @@ function CaseView({ c }: { c: Case }) {
 
   return (
     <>
-      <Seo title={c.title} description={`${c.line[lang]} ${text ? fill(text.solution[lang], c) : ''}`.trim()} image={poster} jsonLd={jsonLd(c, lang)} />
+      <Seo
+        title={`${c.title} · ${lang === 'es' ? 'Trabajo' : 'Work'}`}
+        description={clip(`${c.line[lang]} ${text ? fill(text.solution[lang], c) : ''}`.trim(), 158)}
+        image={poster}
+        jsonLd={jsonLd(c, lang)}
+      />
 
       <article>
         {/* Hero: vertical en marco de móvil, horizontal a sangre o tipográfico */}
@@ -325,4 +330,11 @@ export function Component() {
   const c = caseBySlug(slug)
   if (!c) return <Missing />
   return <CaseView key={c.slug} c={c} />
+}
+
+/** Recorta un texto para meta description sin cortar palabras. */
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text
+  const cut = text.slice(0, max - 1)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:.\s]+$/, '')}…`
 }

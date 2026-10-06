@@ -109,7 +109,7 @@ export function Nav() {
               }}
             >
               {/* Sin JS: enlace directo al hub de servicios */}
-              <Link to={to.services(lang)} className={`text-[0.875rem] font-[460] text-paper/80 hover:text-paper [.js_&]:hidden`}>
+              <Link to={to.services(lang)} className={`text-[0.875rem] font-[460] text-paper/80 hover:text-paper js:hidden`}>
                 {t.services}
               </Link>
               <button
@@ -118,7 +118,7 @@ export function Nav() {
                 aria-expanded={open}
                 aria-controls="nav-services"
                 onClick={() => setOpen((v) => !v)}
-                className={`hidden min-h-11 items-center gap-1.5 text-[0.875rem] font-[460] transition-colors hover:text-paper [.js_&]:inline-flex ${open ? 'text-paper' : 'text-paper/80'}`}
+                className={`hidden min-h-11 items-center gap-1.5 text-[0.875rem] font-[460] transition-colors hover:text-paper js:inline-flex ${open ? 'text-paper' : 'text-paper/80'}`}
               >
                 {t.services}
                 <svg width="9" height="6" viewBox="0 0 9 6" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true" className={`transition-transform ${open ? 'rotate-180' : ''}`}>
@@ -179,13 +179,13 @@ export function Nav() {
               </Link>
             )}
             {/* Sin JS: "Menú" lleva al pie, que contiene toda la navegación */}
-            <a href="#site-footer" className="inline-flex min-h-11 min-w-11 items-center justify-center text-[0.875rem] font-[480] lg:hidden [.js_&]:hidden">
+            <a href="#site-footer" className="inline-flex min-h-11 min-w-11 items-center justify-center text-[0.875rem] font-[480] lg:hidden js:hidden">
               {t.menu}
             </a>
             <button
               ref={menuBtnRef}
               type="button"
-              className="hidden min-h-11 min-w-11 items-center justify-center text-[0.875rem] font-[480] [.js_&]:inline-flex lg:[.js_&]:hidden"
+              className="hidden min-h-11 min-w-11 items-center justify-center text-[0.875rem] font-[480] js:inline-flex lg:js:hidden"
               aria-expanded={menu}
               aria-controls="mobile-menu"
               onClick={() => setMenu(true)}

@@ -63,7 +63,10 @@ export function Closing() {
         // Fijo: el texto aparece cuando la sección está casi descubierta. En flujo: como useSplitReveal.
         const st = (el: Element) => (fixed ? { trigger: section, start: 'top 12%', once: true } : { trigger: el, start: 'top 85%', once: true })
         const ctaLink = cta.firstElementChild
-        const splits = heads.map((el, i) =>
+        // División perezosa: solo cuando el cierre está a una pantalla (no compite con la carga inicial)
+        let splits: SplitText[] = []
+        const makeSplits = () => {
+          splits = heads.map((el, i) =>
           SplitText.create(el!, {
             type: 'lines',
             mask: 'lines',
@@ -84,6 +87,17 @@ export function Closing() {
             },
           }),
         )
+        }
+        const near = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              near.disconnect()
+              ctx.add(makeSplits)
+            }
+          },
+          { rootMargin: '100% 0px 100% 0px' },
+        )
+        near.observe(section)
 
         // Con la capa fija, el foco por teclado no desplaza la página: llevarla a la vista.
         const onFocus = contextSafe(() => {
@@ -94,6 +108,7 @@ export function Closing() {
         section.addEventListener('focusin', onFocus)
 
         return () => {
+          near.disconnect()
           section.removeEventListener('focusin', onFocus)
           splits.forEach((s) => s.revert())
         }
@@ -134,7 +149,7 @@ export function Closing() {
           {/* Ranura del wordmark: el canvas forma aquí las partículas (contain, apoyado abajo). Sin JS, el logo vectorial. */}
           <div className="mt-auto flex max-h-[calc(36svh+3rem)] min-h-[8.5rem] flex-1 flex-col pt-12">
             <div ref={slotRef} aria-hidden="true" className="relative min-h-0 flex-1">
-              <Logo title="" className="absolute inset-0 h-full w-full opacity-40 [.js_&]:invisible" />
+              <Logo title="" className="absolute inset-0 h-full w-full opacity-40 js:invisible" />
             </div>
           </div>
         </div>

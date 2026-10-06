@@ -14,7 +14,13 @@ export function Layout() {
   // Al cargar la fuente (y al cambiar de página) la maqueta se recoloca: recalcula los ScrollTriggers
   useEffect(() => {
     let alive = true
-    document.fonts?.ready.then(() => alive && ScrollTrigger.refresh())
+    document.fonts?.ready.then(() => {
+      if (!alive) return
+      // En reposo: el refresco recalcula todas las posiciones y no debe competir con la carga
+      const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback
+      if (ric) ric(() => alive && ScrollTrigger.refresh(), { timeout: 1500 })
+      else setTimeout(() => alive && ScrollTrigger.refresh(), 200)
+    })
     return () => {
       alive = false
     }

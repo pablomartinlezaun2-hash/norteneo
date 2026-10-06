@@ -290,7 +290,7 @@ export function Brief() {
   const { action, encType } = noJsAction()
   const noChannel = !site.leadEndpoint && !site.whatsapp && !site.email
   const thanksAbs = `${site.url.replace(/\/$/, '')}${to.thanks(lang)}`
-  const hidden = (i: number) => (i === step ? '' : '[.js_&]:hidden')
+  const hidden = (i: number) => (i === step ? '' : 'js:hidden')
   const waFail = fail ? whatsappBriefHref(data, fail) : null
   const mailFail = fail ? mailtoHref(data, fail) : null
 
@@ -332,7 +332,7 @@ export function Brief() {
       </h2>
 
       {/* Progreso (solo con JS) */}
-      <div className="mb-10 hidden [.js_&]:block" aria-hidden="true">
+      <div className="mb-10 hidden js:block" aria-hidden="true">
         <p className="type-meta text-paper">{t.step(step + 1, TOTAL)}</p>
         <div className="mt-3 h-px bg-line">
           <div
@@ -406,7 +406,7 @@ export function Brief() {
       </fieldset>
 
       {/* Paso 2 · Tu marca */}
-      <fieldset data-step={1} className={`mt-16 [.js_&]:mt-0 ${hidden(1)}`}>
+      <fieldset data-step={1} className={`mt-16 js:mt-0 ${hidden(1)}`}>
         <legend className="w-full">
           <StepHeading i={1} t={t} enhanced={enhanced} headings={headings} />
         </legend>
@@ -454,7 +454,7 @@ export function Brief() {
       </fieldset>
 
       {/* Paso 3 · El encargo */}
-      <fieldset data-step={2} className={`mt-16 [.js_&]:mt-0 ${hidden(2)}`}>
+      <fieldset data-step={2} className={`mt-16 js:mt-0 ${hidden(2)}`}>
         <legend className="w-full">
           <StepHeading i={2} t={t} enhanced={enhanced} headings={headings} />
         </legend>
@@ -505,7 +505,7 @@ export function Brief() {
       </fieldset>
 
       {/* Paso 4 · Referencias */}
-      <fieldset data-step={3} className={`mt-16 [.js_&]:mt-0 ${hidden(3)}`}>
+      <fieldset data-step={3} className={`mt-16 js:mt-0 ${hidden(3)}`}>
         <legend className="w-full">
           <StepHeading i={3} t={t} enhanced={enhanced} headings={headings} />
         </legend>
@@ -526,7 +526,7 @@ export function Brief() {
       </fieldset>
 
       {/* Paso 5 · Cómo hablamos */}
-      <fieldset data-step={4} className={`mt-16 [.js_&]:mt-0 ${hidden(4)}`}>
+      <fieldset data-step={4} className={`mt-16 js:mt-0 ${hidden(4)}`}>
         <legend className="w-full">
           <StepHeading i={4} t={t} enhanced={enhanced} headings={headings} />
         </legend>
@@ -637,7 +637,7 @@ export function Brief() {
         <button
           type="button"
           onClick={goBack}
-          className={`hidden min-h-11 items-center gap-2 text-[0.9375rem] text-mute transition-colors hover:text-paper [.js_&]:inline-flex ${step === 0 ? 'invisible' : ''}`}
+          className={`hidden min-h-11 items-center gap-2 text-[0.9375rem] text-mute transition-colors hover:text-paper js:inline-flex ${step === 0 ? 'invisible' : ''}`}
         >
           <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
             <path d="M6 1 1 6l5 5" />
@@ -649,7 +649,7 @@ export function Brief() {
             <button
               type="button"
               onClick={goNext}
-              className="hidden min-h-11 items-center justify-center rounded-full bg-paper px-7 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white [.js_&]:inline-flex"
+              className="hidden min-h-11 items-center justify-center rounded-full bg-paper px-7 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white js:inline-flex"
             >
               {t.next}
             </button>
@@ -659,7 +659,7 @@ export function Brief() {
             // aria-disabled (no disabled): el botón conserva el foco mientras se envía; onSubmit ignora el doble envío
             aria-disabled={status === 'sending' || undefined}
             className={`inline-flex min-h-11 items-center justify-center rounded-full bg-paper px-7 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white aria-disabled:cursor-wait aria-disabled:opacity-60 ${
-              step < TOTAL - 1 ? '[.js_&]:hidden' : ''
+              step < TOTAL - 1 ? 'js:hidden' : ''
             }`}
           >
             {status === 'sending' ? t.sending : t.submit}

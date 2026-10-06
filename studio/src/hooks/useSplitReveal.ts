@@ -29,8 +29,16 @@ export function useSplitReveal<T extends HTMLElement>(ref: RefObject<T | null>, 
         const t0 = performance.now()
         let split: SplitText | undefined
         let alive = true
+        let io: IntersectionObserver | undefined
+        // Primera visita (con intro): si el JS llega cuando la intro ya terminó, el titular ya se ve;
+        // animarlo ahora provocaría un parpadeo, así que se queda quieto.
+        const introVisit = !document.documentElement.classList.contains('intro-seen')
         const make = () => {
           if (!alive) return
+          if (on === 'load' && introVisit && performance.now() > 1400) {
+            gsap.set(el, { autoAlpha: 1 })
+            return
+          }
           let first = true
           split = SplitText.create(el, {
             type: 'lines',
@@ -44,22 +52,58 @@ export function useSplitReveal<T extends HTMLElement>(ref: RefObject<T | null>, 
               // El retardo cuenta desde el montaje y solo se aplica en la primera división
               const d = first ? Math.max(0, delay - (performance.now() - t0) / 1000) : 0
               first = false
-              return gsap.from(self.lines, {
+              const tween = gsap.from(self.lines, {
                 yPercent: 105,
                 duration: 0.8,
                 ease: 'expo.out',
                 stagger,
                 delay: d,
-                scrollTrigger: on === 'scroll' ? { trigger: el, start, once: true } : undefined,
+                paused: on === 'scroll',
               })
+              if (on === 'scroll') {
+                // Un IntersectionObserver por titular en vez de un ScrollTrigger: evita recalcular
+                // toda la página en cada refresco (bloqueos de CPU en móviles).
+                io?.disconnect()
+                io = new IntersectionObserver(
+                  (entries) => {
+                    if (entries.some((e) => e.isIntersecting)) {
+                      tween.play()
+                      io?.disconnect()
+                    }
+                  },
+                  { rootMargin: startToMargin(start) },
+                )
+                io.observe(el)
+              }
+              return tween
             },
           })
         }
         const fonts = typeof document !== 'undefined' ? document.fonts : undefined
-        if (!fonts || fonts.status === 'loaded') make()
-        else fonts.ready.then(() => ctx.add(make))
+        const whenFonts = (fn: () => void) => {
+          if (!fonts || fonts.status === 'loaded') fn()
+          else fonts.ready.then(() => ctx.add(fn))
+        }
+        // División perezosa: los titulares que aparecen al hacer scroll se dividen cuando están
+        // a una pantalla de distancia. Así la carga inicial no divide todos a la vez (layout thrashing).
+        let near: IntersectionObserver | undefined
+        if (on === 'load') whenFonts(make)
+        else {
+          near = new IntersectionObserver(
+            (entries) => {
+              if (entries.some((e) => e.isIntersecting)) {
+                near?.disconnect()
+                whenFonts(make)
+              }
+            },
+            { rootMargin: '100% 0px 100% 0px' },
+          )
+          near.observe(el)
+        }
         return () => {
           alive = false
+          near?.disconnect()
+          io?.disconnect()
           split?.revert()
         }
       })
@@ -73,3 +117,10 @@ export function useSplitReveal<T extends HTMLElement>(ref: RefObject<T | null>, 
 }
 
 export { ScrollTrigger }
+
+/** Convierte un start de ScrollTrigger tipo 'top 85%' en rootMargin de IntersectionObserver. */
+function startToMargin(start: string): string {
+  const m = /top\s+(\d+)%/.exec(start)
+  const pct = m ? 100 - Number(m[1]) : 15
+  return `0px 0px -${pct}% 0px`
+}

@@ -29,7 +29,7 @@ export function Compare({ lang }: { lang: Lang }) {
   return (
     <>
       {/* Tabla: escritorio, y también en móvil si no hay JS (con scroll horizontal propio) */}
-      <div className="overflow-x-auto max-lg:in-[.js]:hidden">
+      <div className="overflow-x-auto max-lg:js:hidden">
         <table className="w-full min-w-[56rem] table-fixed border-collapse text-left">
           <caption className="sr-only">{t.compareCaption}</caption>
           <colgroup>
@@ -80,7 +80,7 @@ export function Compare({ lang }: { lang: Lang }) {
       </div>
 
       {/* Móvil con JS: comparar 2 oficios */}
-      <div className="hidden max-lg:in-[.js]:block">
+      <div className="hidden max-lg:js:block">
         <div className="grid grid-cols-2 gap-x-4">
           {[0, 1].map((i) => {
             const other = pair[1 - i]

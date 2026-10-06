@@ -12,6 +12,9 @@ export function Intro() {
     } catch {
       /* modo privado */
     }
+    // Tras la intro, las siguientes navegaciones se comportan como "intro vista"
+    const id = window.setTimeout(() => document.documentElement.classList.add('intro-seen'), 1600)
+    return () => window.clearTimeout(id)
   }, [])
   return (
     <div className="neo-intro" aria-hidden="true">
