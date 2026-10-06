@@ -29,8 +29,8 @@ type Props = {
 }
 
 const ui = {
-  es: { pause: 'Pausar vídeo', play: 'Reproducir vídeo' },
-  en: { pause: 'Pause video', play: 'Play video' },
+  es: { pause: 'Pausar vídeo', play: 'Reproducir vídeo', soundOn: 'Activar sonido', soundOff: 'Silenciar' },
+  en: { pause: 'Pause video', play: 'Play video', soundOn: 'Sound on', soundOff: 'Mute' },
 }
 
 let current: HTMLVideoElement | null = null
@@ -68,6 +68,8 @@ export function Video({
   const [paused, setPaused] = useState(true)
   const [visible, setVisible] = useState(false)
   const [userPaused, setUserPaused] = useState(false)
+  // Los clips con sonido arrancan silenciados (autoplay) y solo suenan si el usuario lo pide
+  const [muted, setMuted] = useState(true)
   const [active, setActive] = useState<MediaEntry | undefined>(() => getMedia(media))
   // Hasta montar (y resolver la variante vertical) no se precarga nada: evita bajar dos vídeos en móvil
   const [mounted, setMounted] = useState(false)
@@ -84,6 +86,9 @@ export function Video({
     mql.addEventListener('change', pick)
     return () => mql.removeEventListener('change', pick)
   }, [land, port])
+
+  // Al cambiar de variante el <video> se vuelve a crear silenciado
+  useEffect(() => setMuted(true), [active])
 
   useEffect(() => {
     const el = wrapRef.current
@@ -132,7 +137,21 @@ export function Video({
     }
   }
 
-  const pos = { br: 'right-4 bottom-4', bl: 'left-4 bottom-4', tr: 'right-4 top-4' }[controlsPosition]
+  const toggleSound = () => {
+    const v = videoRef.current
+    if (!v) return
+    const next = !v.muted
+    v.muted = next
+    setMuted(next)
+    if (!next) {
+      setUserPaused(false)
+      if (exclusive) claim(v)
+      if (v.paused) v.play().catch(() => undefined)
+    }
+  }
+
+  const sound = Boolean(active.audio)
+  const pos = { br: 'right-4 bottom-4 flex-row-reverse', bl: 'left-4 bottom-4', tr: 'right-4 top-4 flex-row-reverse' }[controlsPosition]
   const objectFit = fit === 'cover' ? 'object-cover' : 'object-contain'
 
   return (
@@ -176,24 +195,43 @@ export function Video({
         {small && <source src={small.src} type="video/mp4" media="(max-width: 900px)" />}
         {big && <source src={big.src} type="video/mp4" />}
       </video>
-      {controls && (
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={`${paused ? ui[lang].play : ui[lang].pause}: ${label}`}
-          className={`absolute ${pos} z-10 grid size-11 place-items-center rounded-full border border-line-strong bg-black/40 text-paper backdrop-blur-sm transition-colors hover:bg-black/70`}
-        >
-          {!paused ? (
-            <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
-              <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor" />
-              <rect x="8" y="1" width="3" height="12" rx="1" fill="currentColor" />
-            </svg>
-          ) : (
-            <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
-              <path d="M2 1.5v11l9-5.5z" fill="currentColor" />
-            </svg>
+      {(controls || sound) && (
+        <div className={`absolute ${pos} z-10 flex items-center gap-2`}>
+          {controls && (
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={`${paused ? ui[lang].play : ui[lang].pause}: ${label}`}
+              className="grid size-11 place-items-center rounded-full border border-line-strong bg-black/40 text-paper backdrop-blur-sm transition-colors hover:bg-black/70"
+            >
+              {!paused ? (
+                <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
+                  <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor" />
+                  <rect x="8" y="1" width="3" height="12" rx="1" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
+                  <path d="M2 1.5v11l9-5.5z" fill="currentColor" />
+                </svg>
+              )}
+            </button>
           )}
-        </button>
+          {sound && (
+            <button
+              type="button"
+              onClick={toggleSound}
+              aria-pressed={!muted}
+              aria-label={`${ui[lang].soundOn}: ${label}`}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-line-strong bg-black/40 px-4 text-[0.8125rem] font-[500] whitespace-nowrap text-paper backdrop-blur-sm transition-colors hover:bg-black/70"
+            >
+              <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M1.5 5h2.5L8 1.5v11L4 9H1.5z" fill="currentColor" stroke="none" />
+                {muted ? <path d="m11 5 4 4m0-4-4 4" /> : <path d="M11 4.5a3.5 3.5 0 0 1 0 5M12.8 2.5a6.2 6.2 0 0 1 0 9" />}
+              </svg>
+              <span aria-hidden="true">{muted ? ui[lang].soundOn : ui[lang].soundOff}</span>
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Pipeline de media de NEO Studio.
 // Convierte los vídeos fuente (media-src/, fuera de git) en versiones web ligeras:
-//   - H.264 (compatibilidad total) + AV1 (más ligero) sin audio, faststart
+//   - H.264 (compatibilidad total) + AV1 (más ligero), faststart, sin audio salvo los clips con `audio: true`
 //   - pósters AVIF + JPG
 //   - secuencias WebP para los scroll-scrub (escritorio y móvil)
 //   - reels del hero (16:9 y 9:16) montados a partir de varios clips
@@ -47,8 +47,13 @@ const CLIPS = [
   { id: 'empire-film', src: 'empire-film.mov', orient: 'port', poster: 4.2, cuts: [[0, 8.1], [8.83, 10.05], [10.93, 12.95]] },
   { id: 'fashion', src: 'fashion.mp4', orient: 'port', poster: 3.5 },
   { id: 'ugc-move', src: 'ugc-move.mov', orient: 'port', poster: 13.5 },
-  { id: 'running', src: 'running.mov', orient: 'port', poster: 10.5 },
+  { id: 'running', src: 'running.mov', orient: 'port', poster: 10.5, audio: true },
   { id: 'logo', src: 'logo.mp4', orient: 'land', poster: 2.5, hq: true },
+  // Grabaciones de pantalla de las webs de clientes (ya recortadas, sin la barra del navegador)
+  { id: 'web-navarro', src: 'web-navarro.mp4', orient: 'land', poster: 9.0 },
+  { id: 'web-nexodea', src: 'web-nexodea.mp4', orient: 'land', poster: 2.9 },
+  { id: 'web-waka-wow', src: 'web-waka-wow.mp4', orient: 'land', poster: 0.6 },
+  { id: 'web-pedacito', src: 'web-pedacito.mp4', orient: 'land', poster: 0.6 },
 ]
 
 /** Reels del hero: [clip, inicio, fin, crop?] */
@@ -106,13 +111,16 @@ function intermediate(clip) {
     run(['-i', src, '-filter_complex', `${parts};${cat};[c]fps=${fps},format=yuv420p[o]`, '-map', '[o]',
       '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast', '-an', out], `${clip.id}: montaje limpio`)
   } else {
-    run(['-i', src, '-vf', `fps=${fps},format=yuv420p`, '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast', '-an', out], `${clip.id}: intermedio`)
+    const audio = clip.audio ? ['-c:a', 'aac', '-b:a', '256k'] : ['-an']
+    run(['-i', src, '-vf', `fps=${fps},format=yuv420p`, '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast', ...audio, out], `${clip.id}: intermedio`)
   }
   return out
 }
 
 function encodeVideo(id, mezz, orient, outDir, extra = {}) {
   const sources = []
+  // Sin audio salvo los clips marcados con audio (AAC, compatible con H.264 y AV1 en MP4)
+  const audio = extra.audio ? ['-c:a', 'aac', '-b:a', '128k'] : ['-an']
   const targets = orient === 'land'
     ? [{ tag: '1080', ...LAND, crf: 23, max: '5M' }, { tag: '720', w: 1280, h: 720, crf: 24, max: '2200k' }]
     : [{ tag: '720', ...PORT, crf: 24, max: '2600k' }]
@@ -121,13 +129,13 @@ function encodeVideo(id, mezz, orient, outDir, extra = {}) {
     const f = join(outDir, `${id}-${t.tag}.mp4`)
     run(['-i', mezz, '-vf', `${coverFilter(t)}${t.tag === '1080' ? sharpen : ''}`, '-c:v', 'libx264', '-profile:v', 'high',
       '-crf', String(extra.hq ? 17 : t.crf), '-maxrate', t.max, '-bufsize', String(parseInt(t.max) * 2) + (t.max.endsWith('M') ? 'M' : 'k'),
-      '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', f], `${id}: H.264 ${t.tag}`)
+      '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', ...audio, f], `${id}: H.264 ${t.tag}`)
     sources.push({ src: rel(f), type: 'video/mp4', codec: 'h264', w: t.w, h: t.h, bytes: size(f) })
   }
   const big = targets[0]
   const av1 = join(outDir, `${id}-${big.tag}.av1.mp4`)
   run(['-i', mezz, '-vf', `${coverFilter(big)}${big.tag === '1080' ? sharpen : ''}`, '-c:v', 'libsvtav1', '-crf', extra.hq ? '22' : orient === 'land' ? '36' : '35',
-    '-preset', '6', '-g', '60', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', av1], `${id}: AV1 ${big.tag}`)
+    '-preset', '6', '-g', '60', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', ...audio, av1], `${id}: AV1 ${big.tag}`)
   sources.unshift({ src: rel(av1), type: 'video/mp4; codecs="av01.0.08M.08"', codec: 'av1', w: big.w, h: big.h, bytes: size(av1) })
   return sources
 }
@@ -197,6 +205,7 @@ for (const clip of CLIPS) {
   const info = probe(mezz)
   const entry = {
     id: clip.id, orient: clip.orient, duration: +info.duration.toFixed(2),
+    ...(clip.audio ? { audio: true } : {}),
     sources: encodeVideo(clip.id, mezz, clip.orient, outDir, clip),
     poster: posters(clip.id, mezz, clip.orient, clip.poster, outDir),
   }

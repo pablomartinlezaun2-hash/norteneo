@@ -41,8 +41,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   nexodea: {
     challenge: {
-      es: 'Una web de autor que diga quién es la marca antes de leer una sola línea.',
-      en: 'A signature website that tells you who the brand is before you read a single line.',
+      es: 'Una inmobiliaria de casas singulares necesitaba una web a la altura de lo que enseña: que diga quién es antes de leer una sola línea.',
+      en: 'A real estate firm selling one-of-a-kind homes needed a website as good as what it shows: one that says who it is before you read a line.',
     },
     solution: {
       es: 'Diseño y desarrollo a medida por NEO. La web está publicada en {domain}.',
@@ -51,8 +51,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   'waka-wow': {
     challenge: {
-      es: 'Una marca con nombre propio pedía una web con la misma personalidad.',
-      en: 'A brand with a name this distinctive needed a website with the same personality.',
+      es: 'Un restaurante de wok con cocina a la vista pedía una web con su misma energía: la carta clara y el pedido a dos toques.',
+      en: 'A wok restaurant with an open kitchen needed a website with the same energy: a clear menu and ordering in two taps.',
     },
     solution: {
       es: 'Web de autor diseñada y desarrollada por NEO. Está publicada en {domain}.',
@@ -61,8 +61,8 @@ export const caseCopy: Record<string, CaseCopy> = {
   },
   'pedacito-de-cielo': {
     challenge: {
-      es: 'Llevar el tono de la marca a una web propia, cuidada en cada detalle.',
-      en: 'Carry the brand’s tone into a website of its own, considered down to the last detail.',
+      es: 'Una pastelería de mañana (tartas, bollería, café y brunch) necesitaba una web tan cuidada como su escaparate, con encargos fáciles.',
+      en: 'A morning bakery (cakes, pastries, coffee and brunch) needed a website as considered as its shop window, with easy orders.',
     },
     solution: {
       es: 'Web de autor diseñada y desarrollada por NEO. Está publicada en {domain}.',

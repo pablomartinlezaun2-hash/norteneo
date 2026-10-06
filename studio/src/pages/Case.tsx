@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useLang, type Lang } from '@/i18n'
 import { to } from '@/i18n/paths'
 import { site } from '@/content/site'
-import { caseBySlug, type Case } from '@/content/cases'
+import { caseBySlug, isWeb, type Case } from '@/content/cases'
 import { getMedia } from '@/lib/media'
 import { heroDelay } from '@/lib/motion'
 import { useSplitReveal } from '@/hooks/useSplitReveal'
@@ -63,11 +63,12 @@ const copy = {
 const fill = (text: string, c: Case) => text.replace('{domain}', domainOf(c.url))
 
 function ficha(c: Case, lang: Lang): string {
-  // En las webs el formato ("Web") ya lo dice el servicio: no se repite
-  const format = !c.media && c.services.includes('websites') ? '' : formatLabel(c, lang)
+  // En las webs el formato ("Web") ya lo dice el servicio y la grabación no es la pieza: no se repite
+  const web = c.services.includes('websites') && (!c.media || isWeb(c))
+  const format = web ? '' : formatLabel(c, lang)
   // En el producto propio el sector ya lo dice su etiqueta
   const sector = c.kind === 'own' ? null : sectorLabel(c, lang)
-  return [sector, servicesLabel(c, lang), format, durationLabel(c.media)].filter(Boolean).join(SEP)
+  return [sector, servicesLabel(c, lang), format, web ? '' : durationLabel(c.media)].filter(Boolean).join(SEP)
 }
 
 function jsonLd(c: Case, lang: Lang) {

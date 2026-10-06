@@ -569,6 +569,7 @@
     "id": "running",
     "orient": "port",
     "duration": 16.5,
+    "audio": true,
     "sources": [
       {
         "src": "/media/running/running-720.av1.mp4",
@@ -576,7 +577,7 @@
         "codec": "av1",
         "w": 720,
         "h": 1280,
-        "bytes": 1394899
+        "bytes": 1669747
       },
       {
         "src": "/media/running/running-720.mp4",
@@ -584,7 +585,7 @@
         "codec": "h264",
         "w": 720,
         "h": 1280,
-        "bytes": 3943050
+        "bytes": 4217866
       }
     ],
     "poster": {
@@ -594,6 +595,162 @@
       "h": 1280,
       "bytesAvif": 5295,
       "bytesJpg": 25588
+    }
+  },
+  "web-navarro": {
+    "id": "web-navarro",
+    "orient": "land",
+    "duration": 20.27,
+    "sources": [
+      {
+        "src": "/media/web-navarro/web-navarro-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 5368355
+      },
+      {
+        "src": "/media/web-navarro/web-navarro-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 7959628
+      },
+      {
+        "src": "/media/web-navarro/web-navarro-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 3949579
+      }
+    ],
+    "poster": {
+      "avif": "/media/web-navarro/web-navarro-poster.avif",
+      "jpg": "/media/web-navarro/web-navarro-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 126718,
+      "bytesJpg": 314533
+    }
+  },
+  "web-nexodea": {
+    "id": "web-nexodea",
+    "orient": "land",
+    "duration": 17.4,
+    "sources": [
+      {
+        "src": "/media/web-nexodea/web-nexodea-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2099450
+      },
+      {
+        "src": "/media/web-nexodea/web-nexodea-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 5202849
+      },
+      {
+        "src": "/media/web-nexodea/web-nexodea-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2635970
+      }
+    ],
+    "poster": {
+      "avif": "/media/web-nexodea/web-nexodea-poster.avif",
+      "jpg": "/media/web-nexodea/web-nexodea-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 14371,
+      "bytesJpg": 71785
+    }
+  },
+  "web-waka-wow": {
+    "id": "web-waka-wow",
+    "orient": "land",
+    "duration": 21.3,
+    "sources": [
+      {
+        "src": "/media/web-waka-wow/web-waka-wow-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2790384
+      },
+      {
+        "src": "/media/web-waka-wow/web-waka-wow-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 6218785
+      },
+      {
+        "src": "/media/web-waka-wow/web-waka-wow-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 3163497
+      }
+    ],
+    "poster": {
+      "avif": "/media/web-waka-wow/web-waka-wow-poster.avif",
+      "jpg": "/media/web-waka-wow/web-waka-wow-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 11985,
+      "bytesJpg": 50078
+    }
+  },
+  "web-pedacito": {
+    "id": "web-pedacito",
+    "orient": "land",
+    "duration": 20.1,
+    "sources": [
+      {
+        "src": "/media/web-pedacito/web-pedacito-1080.av1.mp4",
+        "type": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "codec": "av1",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 2474965
+      },
+      {
+        "src": "/media/web-pedacito/web-pedacito-1080.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1920,
+        "h": 1080,
+        "bytes": 6430152
+      },
+      {
+        "src": "/media/web-pedacito/web-pedacito-720.mp4",
+        "type": "video/mp4",
+        "codec": "h264",
+        "w": 1280,
+        "h": 720,
+        "bytes": 2550248
+      }
+    ],
+    "poster": {
+      "avif": "/media/web-pedacito/web-pedacito-poster.avif",
+      "jpg": "/media/web-pedacito/web-pedacito-poster.jpg",
+      "w": 1920,
+      "h": 1080,
+      "bytesAvif": 10423,
+      "bytesJpg": 45662
     }
   }
 }

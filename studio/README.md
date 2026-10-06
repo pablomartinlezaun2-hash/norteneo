@@ -68,7 +68,7 @@ Por ejemplo, la grabación de pantalla de una de tus webs: añade `media: '<id>'
 ## Pendiente de Pablo
 - **Datos legales** del titular: razón social, NIF y domicilio, en `src/content/legal/`.
 - **Dominio final** (`VITE_SITE_URL`) e **Instagram**.
-- **Grabaciones de pantalla** (o capturas) de las 6 webs, y el **sector** de Nexodea, Waka Wow y Pedacito de Cielo.
+- **Grabaciones de pantalla** de Urbalia y Masventa. Las de Navarro, Nexodea, Waka Wow y Pedacito de Cielo ya están puestas.
 - **Foto de Pablo** o del estudio. `/estudio` y la home funcionan sin ella.
 - **Material de vídeo:**
   - par real **Log / etalonado** grabado con móvil, para Cine con tu móvil

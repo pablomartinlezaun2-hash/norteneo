@@ -3,6 +3,8 @@ import { useLang } from '@/i18n'
 import { to } from '@/i18n/paths'
 import type { Case } from '@/content/cases'
 import { Meta } from '@/components/Meta'
+import { Video } from '@/components/Video'
+import { getMedia } from '@/lib/media'
 import { domainOf, labels, sectorLabel } from './meta'
 
 /** Icono de enlace externo dibujado (no un glifo pegado al texto). */
@@ -37,29 +39,50 @@ export function VisitLink({ url, className = '', variant = 'ghost' }: { url: str
 }
 
 /**
- * Webs de clientes en variante tipográfica (las grabaciones de pantalla están pendientes):
- * nombre, dominio, sector y "Visitar web" bien visible. El nombre lleva al caso.
+ * Webs de clientes: nombre, dominio, sector y "Visitar web" bien visible. El nombre lleva al caso.
+ * Si la web tiene grabación de pantalla, se muestra a la izquierda (en vista, un vídeo a la vez);
+ * si no, la fila queda en variante tipográfica.
  */
 export function WebList({ items }: { items: Case[] }) {
   const lang = useLang()
+  const videoLabel = (name: string) => (lang === 'es' ? `Recorrido por la web de ${name}` : `A walk through the ${name} website`)
   return (
     <ul className="border-b border-line">
       {items.map((c) => {
         const sector = sectorLabel(c, lang)
+        const media = c.media && getMedia(c.media) ? c.media : undefined
+        const title = (
+          <div>
+            <h4 className="type-title">
+              <Link to={to.case(lang, c.slug)} viewTransition className="decoration-line-strong underline-offset-[0.18em] hover:underline">
+                {c.title}
+              </Link>
+            </h4>
+            <p className="type-meta mt-2 text-dim">{domainOf(c.url)}</p>
+          </div>
+        )
+        const about = (
+          <div>
+            <p className="type-small text-mute">{c.line[lang]}</p>
+            <Meta className="mt-1 inline-block">{[sector, lang === 'es' ? 'Web' : 'Website'].filter(Boolean).join(' · ')}</Meta>
+          </div>
+        )
+        if (media) {
+          return (
+            <li key={c.slug} className="grid grid-cols-1 items-center gap-x-10 gap-y-6 border-t border-line py-7 md:grid-cols-12 md:py-9">
+              <Video media={media} label={videoLabel(c.title)} exclusive controlsPosition="tr" className="aspect-[16/10] w-full rounded-[0.75rem] md:col-span-6 lg:col-span-5" />
+              <div className="flex flex-col gap-5 md:col-span-6 lg:col-span-7">
+                {title}
+                {about}
+                {c.url && <VisitLink url={c.url} className="self-start" />}
+              </div>
+            </li>
+          )
+        }
         return (
           <li key={c.slug} className="grid grid-cols-1 items-center gap-x-10 gap-y-4 border-t border-line py-7 md:grid-cols-12 md:py-9">
-            <div className="md:col-span-6">
-              <h4 className="type-title">
-                <Link to={to.case(lang, c.slug)} viewTransition className="decoration-line-strong underline-offset-[0.18em] hover:underline">
-                  {c.title}
-                </Link>
-              </h4>
-              <p className="type-meta mt-2 text-dim">{domainOf(c.url)}</p>
-            </div>
-            <div className="md:col-span-3">
-              <p className="type-small text-mute">{c.line[lang]}</p>
-              <Meta className="mt-1 inline-block">{[sector, lang === 'es' ? 'Web' : 'Website'].filter(Boolean).join(' · ')}</Meta>
-            </div>
+            <div className="md:col-span-6">{title}</div>
+            <div className="md:col-span-3">{about}</div>
             <div className="md:col-span-3 md:justify-self-end">{c.url && <VisitLink url={c.url} />}</div>
           </li>
         )

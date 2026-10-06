@@ -43,19 +43,21 @@ export type Case = {
 }
 
 export const cases: Case[] = [
-  // ── Webs de autor (clientes, en producción). Grabaciones de pantalla pendientes.
+  // ── Webs de autor (clientes, en producción). Con grabación de pantalla primero; Urbalia y Masventa, pendientes.
   { slug: 'navarro-real-estate', title: 'Navarro Real Estate', kind: 'client', sector: 'real-estate', services: ['websites'],
-    line: { es: 'Web inmobiliaria a medida.', en: 'Bespoke real estate website.' }, url: 'https://navarrorealestate.es' },
+    line: { es: 'Web inmobiliaria a medida.', en: 'Bespoke real estate website.' }, url: 'https://navarrorealestate.es', media: 'web-navarro' },
+  { slug: 'nexodea', title: 'Nexodea', kind: 'client', sector: 'real-estate', services: ['websites'],
+    line: { es: 'Web inmobiliaria de autor.', en: 'Signature real estate website.' }, url: 'https://nexodea.vercel.app', media: 'web-nexodea' },
+  { slug: 'waka-wow', title: 'Waka Wow', kind: 'client', sector: 'hospitality', services: ['websites'],
+    line: { es: 'Web de restaurante de wok, con pedido por WhatsApp.', en: 'Wok restaurant website, with WhatsApp ordering.' },
+    url: 'https://waka-wow.vercel.app', media: 'web-waka-wow' },
+  { slug: 'pedacito-de-cielo', title: 'Pedacito de Cielo', kind: 'client', sector: 'hospitality', services: ['websites'],
+    line: { es: 'Web de pastelería y brunch, con encargos por WhatsApp.', en: 'Bakery and brunch website, with WhatsApp orders.' },
+    url: 'https://pedacito-de-cielo.vercel.app', media: 'web-pedacito' },
   { slug: 'urbalia-inmobiliaria', title: 'Urbalia Inmobiliaria', kind: 'client', sector: 'real-estate', services: ['websites'],
     line: { es: 'Web inmobiliaria a medida.', en: 'Bespoke real estate website.' }, url: 'https://urbalia-inmobiliaria.vercel.app' },
   { slug: 'masventa-inmobiliaria', title: 'Masventa Inmobiliaria', kind: 'client', sector: 'real-estate', services: ['websites'],
     line: { es: 'Web inmobiliaria a medida.', en: 'Bespoke real estate website.' }, url: 'https://masventa-inmobiliaria.vercel.app' },
-  { slug: 'nexodea', title: 'Nexodea', kind: 'client', sector: 'brand', services: ['websites'],
-    line: { es: 'Web de autor.', en: 'Signature website.' }, url: 'https://nexodea.vercel.app' },
-  { slug: 'waka-wow', title: 'Waka Wow', kind: 'client', sector: 'brand', services: ['websites'],
-    line: { es: 'Web de autor.', en: 'Signature website.' }, url: 'https://waka-wow.vercel.app' },
-  { slug: 'pedacito-de-cielo', title: 'Pedacito de Cielo', kind: 'client', sector: 'brand', services: ['websites'],
-    line: { es: 'Web de autor.', en: 'Signature website.' }, url: 'https://pedacito-de-cielo.vercel.app' },
 
   // ── Piezas de vídeo y 3D con IA (encargos de clientes)
   { slug: 'real-empire-estate', title: 'Real Empire Estate', kind: 'client', sector: 'real-estate', services: ['ai-video', 'editing'],
@@ -81,6 +83,9 @@ export const cases: Case[] = [
   { slug: 'neo-app', title: 'NEO App', kind: 'own', sector: 'own', services: ['ai-3d', 'websites'],
     line: { es: 'App de entrenamiento con robot 3D interactivo.', en: 'Training app with an interactive 3D robot.' } },
 ]
+
+/** Web de cliente en producción (con URL real). Su `media`, si lo tiene, es una grabación de pantalla, no una pieza de IA. */
+export const isWeb = (c: Case) => c.services.includes('websites') && Boolean(c.url)
 
 export const caseBySlug = (slug: string) => cases.find((c) => c.slug === slug)
 export const casesFor = (service: ServiceId) => cases.filter((c) => c.services.includes(service))

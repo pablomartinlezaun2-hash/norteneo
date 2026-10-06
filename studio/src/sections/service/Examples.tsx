@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useLang } from '@/i18n'
 import { to } from '@/i18n/paths'
-import { sectors, type Case } from '@/content/cases'
+import { isWeb, sectors, type Case } from '@/content/cases'
 import { frameUrl, getMedia } from '@/lib/media'
 import { DiscoverLink } from '@/components/Cta'
 import { Meta } from '@/components/Meta'
@@ -23,7 +23,7 @@ export function Examples({ items }: { items: Case[] }) {
               {allClient ? t.examplesTitle : t.examplesTitleMixed}
             </h2>
             <p className="type-lead mt-4 text-mute">{allClient ? t.examplesText : t.examplesTextMixed}</p>
-            {items.some((c) => c.media) && (
+            {items.some((c) => c.media && !isWeb(c)) && (
               <p className="mt-3">
                 <Meta>{t.ai}</Meta>
               </p>

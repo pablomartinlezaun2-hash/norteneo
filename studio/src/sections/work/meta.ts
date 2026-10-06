@@ -1,5 +1,5 @@
 import type { L, Lang } from '@/i18n'
-import { cases, sectors, type Case, type SectorId } from '@/content/cases'
+import { cases, isWeb, sectors, type Case, type SectorId } from '@/content/cases'
 import { serviceById, services, type ServiceId } from '@/content/services'
 import { getMedia, type MediaId } from '@/lib/media'
 
@@ -27,6 +27,7 @@ export const SEP = '\u00a0· '
 
 /** Formato real de la pieza: 16:9, 9:16, Web o App. */
 export function formatLabel(c: Case, lang: Lang): string {
+  if (isWeb(c)) return lang === 'es' ? 'Web' : 'Website'
   const shape = caseShape(c)
   if (shape === 'land') return '16:9'
   if (shape === 'port') return '9:16'
@@ -59,8 +60,8 @@ export function domainOf(url?: string): string {
   }
 }
 
-/** Pieza generada con IA (lleva la etiqueta de transparencia). */
-export const isGenerated = (c: Case) => Boolean(c.media) && c.kind !== 'own'
+/** Pieza generada con IA (lleva la etiqueta de transparencia). Las webs llevan grabación de pantalla, no IA. */
+export const isGenerated = (c: Case) => Boolean(c.media) && c.kind !== 'own' && !isWeb(c)
 
 export const labels = {
   ai: { es: 'Generado con IA, dirigido por NEO', en: 'AI-generated, directed by NEO' },
@@ -81,9 +82,9 @@ export function pieceAlt(c: Case, lang: Lang): string {
   return `${c.title}. ${c.line[lang]}`
 }
 
-/** Encargos de clientes: webs (sin medio, variante tipográfica) y piezas de vídeo y 3D. */
-export const clientWebs = cases.filter((c) => c.kind === 'client' && !c.media)
-export const clientFilms = cases.filter((c) => c.kind === 'client' && Boolean(c.media))
+/** Encargos de clientes: webs (con o sin grabación de pantalla) y piezas de vídeo y 3D. */
+export const clientWebs = cases.filter((c) => c.kind === 'client' && isWeb(c))
+export const clientFilms = cases.filter((c) => c.kind === 'client' && Boolean(c.media) && !isWeb(c))
 /** Piezas de concepto (no oficiales) y estudios propios sin encargo. */
 export const conceptCases = cases.filter((c) => c.kind === 'concept' || c.kind === 'study')
 export const ownCases = cases.filter((c) => c.kind === 'own')

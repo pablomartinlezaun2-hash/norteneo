@@ -33,17 +33,17 @@ const copy = {
 /**
  * Orden editorial: se sale de la comida desde la primera pieza.
  * `place` coloca cada pieza en la rejilla de 12 columnas de escritorio (asimétrica).
- * En móvil, una columna: Trono a ancho completo y el resto de verticales alternando lado.
+ * En móvil, una columna: running a ancho completo y el resto de verticales alternando lado.
  */
 const ORDER: { slug: string; place: string; mobile?: string }[] = [
-  // Pliego 1: dos verticales escalonadas y un 16:9
-  { slug: 'trono', place: 'lg:col-span-3 lg:col-start-1 lg:row-start-2' },
+  // Pliego 1: dos verticales escalonadas y un 16:9. Abre el spot de running, con sonido.
+  { slug: 'running', place: 'lg:col-span-3 lg:col-start-1 lg:row-start-2' },
   { slug: 'real-empire-estate', place: 'lg:col-span-3 lg:col-start-4 lg:row-start-2 lg:mt-32', mobile: 'ml-auto' },
   { slug: 'fuego', place: 'lg:col-span-6 lg:col-start-7 lg:row-start-2 lg:self-center lg:pl-6' },
   // Pliego 2, en espejo: dos 16:9 apilados y dos verticales escalonadas
   { slug: 'reserva', place: 'lg:col-span-6 lg:col-start-1 lg:row-start-3 lg:mt-32 lg:pr-6' },
   { slug: 'llave', place: 'lg:col-span-6 lg:col-start-1 lg:row-start-4 lg:mt-20 lg:pr-6' },
-  { slug: 'running', place: 'lg:col-span-3 lg:col-start-7 lg:row-span-2 lg:row-start-3 lg:mt-32', mobile: 'mr-auto' },
+  { slug: 'trono', place: 'lg:col-span-3 lg:col-start-7 lg:row-span-2 lg:row-start-3 lg:mt-32', mobile: 'mr-auto' },
   { slug: 'mudanza', place: 'lg:col-span-3 lg:col-start-10 lg:row-span-2 lg:row-start-3 lg:mt-64', mobile: 'ml-auto' },
 ]
 
@@ -112,7 +112,7 @@ function Piece({ item, lang, first }: { item: Item; lang: Lang; first: boolean }
     />
   )
 
-  // Ancho de las verticales: Trono la más grande en móvil; el resto más estrecho y alternando lado.
+  // Ancho de las verticales: la primera (running) la más grande en móvil; el resto más estrecho y alternando lado.
   // Por debajo de lg, el ancho se limita también por la altura del viewport (pantalla 9:16 del PhoneFrame, ≈ 0,5625) para que
   // la pieza y su pie (título, línea y etiquetas, unos 12rem con la nav) quepan en una pantalla.
   // Clases escritas completas para que Tailwind las detecte.

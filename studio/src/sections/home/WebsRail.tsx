@@ -15,7 +15,7 @@ import { pauseIn, playIn } from '@/sections/closing/hoverVideo'
 const copy = {
   es: {
     title: 'Webs que se visitan dos veces.',
-    sub: 'Inmobiliarias y marcas, en producción. Esta también es nuestra.',
+    sub: 'Inmobiliarias y restaurantes, en producción. Esta también es nuestra.',
     kind: 'Web de autor',
     visit: 'Visitar web',
     visitLabel: (name: string) => `Visitar la web de ${name} (se abre en una pestaña nueva)`,
@@ -30,7 +30,7 @@ const copy = {
   },
   en: {
     title: 'Websites people visit twice.',
-    sub: 'Real estate firms and brands, all live. This site is ours too.',
+    sub: 'Real estate firms and restaurants, all live. This site is ours too.',
     kind: 'Signature website',
     visit: 'Visit site',
     visitLabel: (name: string) => `Visit the ${name} website (opens in a new tab)`,
@@ -63,7 +63,7 @@ const DRAG_THRESHOLD = 6
  * Webs de autor (Clientes) · prueba real.
  * Carril horizontal con overflow-x nativo y scroll-snap, sin pin ni secuestro.
  * Arrastrable con ratón en escritorio; el táctil usa el swipe nativo.
- * Mientras no haya grabaciones de pantalla, cada pieza es una tarjeta tipográfica.
+ * Las webs con grabación de pantalla la muestran; el resto es una tarjeta tipográfica.
  */
 export function WebsRail() {
   const lang = useLang()
