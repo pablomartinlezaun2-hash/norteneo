@@ -6,11 +6,11 @@ type Variant = 'primary' | 'ghost' | 'text' | 'dark'
 
 const styles: Record<Variant, string> = {
   primary:
-    'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white',
-  dark: 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-light-ink px-6 text-[0.9375rem] font-[520] text-light transition-colors hover:bg-black',
+    'inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-paper px-6 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white',
+  dark: 'inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-light-ink px-6 text-[0.9375rem] font-[520] text-light transition-colors hover:bg-black',
   ghost:
-    'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line-strong px-6 text-[0.9375rem] font-[480] text-paper transition-colors hover:border-paper',
-  text: 'inline-flex min-h-11 items-center gap-2 text-[0.9375rem] font-[480] text-paper underline-offset-4 hover:underline',
+    'inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-line-strong px-6 text-[0.9375rem] font-[480] text-paper transition-colors hover:border-paper',
+  text: 'inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap text-[0.9375rem] font-[480] text-paper underline-offset-4 hover:underline',
 }
 
 type Props = {

@@ -44,6 +44,7 @@ export function ImageSequence({ media, label, className = '', eager = false, fit
     drawn: -1,
     raf: 0,
     focus: focusX,
+    start: null as null | (() => void),
   })
 
   const draw = () => {
@@ -87,6 +88,8 @@ export function ImageSequence({ media, label, className = '', eager = false, fit
       const t = Math.round(Math.max(0, Math.min(1, progress)) * (s.seq.count - 1))
       if (t === s.target && s.drawn === t) return
       s.target = t
+      // Red de seguridad: si el padre ya pide frames, empezamos a cargar aunque el observer no haya disparado
+      if (t > 0) s.start?.()
       schedule()
     },
     count: () => state.current.seq?.count ?? 0,
@@ -162,25 +165,28 @@ export function ImageSequence({ media, label, className = '', eager = false, fit
       for (let k = 0; k < 6; k++) void worker()
     }
 
+    s.start = start
     let io: IntersectionObserver | undefined
     if (eager) start()
     else {
       io = new IntersectionObserver(
-        ([e]) => {
-          if (e.isIntersecting) {
+        (entries) => {
+          // Procesar todas las entradas: la primera puede ser un estado obsoleto
+          if (entries.some((e) => e.isIntersecting)) {
             const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback
-            if (ric) ric(start)
+            if (ric) ric(start, { timeout: 400 } as never)
             else setTimeout(start, 50)
             io?.disconnect()
           }
         },
-        { rootMargin: '150% 0px' },
+        { rootMargin: '60% 0px' },
       )
       io.observe(wrap)
     }
 
     return () => {
       cancelled = true
+      s.start = null
       ro.disconnect()
       io?.disconnect()
       cancelAnimationFrame(s.raf)
@@ -191,11 +197,14 @@ export function ImageSequence({ media, label, className = '', eager = false, fit
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [media])
 
-  const first = entry?.seq ? frameUrl(entry.seq.desktop, 0) : entry?.poster.jpg
+  const first = entry?.seq ? frameUrl(variant === 'mobile' ? entry.seq.mobile : entry.seq.desktop, 0) : entry?.poster.jpg
+  const firstMobile = entry?.seq && variant === 'auto' ? frameUrl(entry.seq.mobile, 0) : undefined
   return (
     <div ref={wrapRef} className={`relative overflow-hidden bg-ink ${className}`} role="img" aria-label={label}>
       {first && (
-        <img
+        <picture>
+          {firstMobile && <source media="(max-width: 767px)" srcSet={firstMobile} />}
+          <img
           src={first}
           alt=""
           className={`absolute inset-0 h-full w-full ${fit === 'cover' ? 'object-cover' : 'object-contain'}`}
@@ -205,7 +214,8 @@ export function ImageSequence({ media, label, className = '', eager = false, fit
             // Si falla el frame, el póster del clip evita el icono de imagen rota
             if (entry && e.currentTarget.src !== new URL(entry.poster.jpg, location.href).href) e.currentTarget.src = entry.poster.jpg
           }}
-        />
+          />
+        </picture>
       )}
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
     </div>

@@ -37,6 +37,8 @@ export function useSplitReveal<T extends HTMLElement>(ref: RefObject<T | null>, 
             mask: 'lines',
             autoSplit: true,
             linesClass: 'split-line',
+            // Sin aria-label artificial: el lector de pantalla lee el texto real (sin palabras pegadas ni asteriscos)
+            aria: 'none',
             onSplit(self) {
               gsap.set(el, { autoAlpha: 1 })
               // El retardo cuenta desde el montaje y solo se aplica en la primera división

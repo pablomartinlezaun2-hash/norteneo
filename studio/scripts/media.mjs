@@ -47,8 +47,8 @@ const CLIPS = [
   { id: 'empire-film', src: 'empire-film.mov', orient: 'port', poster: 4.2, cuts: [[0, 8.1], [8.83, 10.05], [10.93, 12.95]] },
   { id: 'fashion', src: 'fashion.mp4', orient: 'port', poster: 3.5 },
   { id: 'ugc-move', src: 'ugc-move.mov', orient: 'port', poster: 13.5 },
-  { id: 'running', src: 'running.mov', orient: 'port', poster: 8.3 },
-  { id: 'logo', src: 'logo.mp4', orient: 'land', poster: 2.5, light: true },
+  { id: 'running', src: 'running.mov', orient: 'port', poster: 10.5 },
+  { id: 'logo', src: 'logo.mp4', orient: 'land', poster: 2.5, hq: true },
 ]
 
 /** Reels del hero: [clip, inicio, fin, crop?] */
@@ -120,13 +120,13 @@ function encodeVideo(id, mezz, orient, outDir, extra = {}) {
   for (const t of targets) {
     const f = join(outDir, `${id}-${t.tag}.mp4`)
     run(['-i', mezz, '-vf', `${coverFilter(t)}${t.tag === '1080' ? sharpen : ''}`, '-c:v', 'libx264', '-profile:v', 'high',
-      '-crf', String(t.crf), '-maxrate', t.max, '-bufsize', String(parseInt(t.max) * 2) + (t.max.endsWith('M') ? 'M' : 'k'),
+      '-crf', String(extra.hq ? 17 : t.crf), '-maxrate', t.max, '-bufsize', String(parseInt(t.max) * 2) + (t.max.endsWith('M') ? 'M' : 'k'),
       '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', f], `${id}: H.264 ${t.tag}`)
     sources.push({ src: rel(f), type: 'video/mp4', codec: 'h264', w: t.w, h: t.h, bytes: size(f) })
   }
   const big = targets[0]
   const av1 = join(outDir, `${id}-${big.tag}.av1.mp4`)
-  run(['-i', mezz, '-vf', `${coverFilter(big)}${big.tag === '1080' ? sharpen : ''}`, '-c:v', 'libsvtav1', '-crf', orient === 'land' ? '36' : '35',
+  run(['-i', mezz, '-vf', `${coverFilter(big)}${big.tag === '1080' ? sharpen : ''}`, '-c:v', 'libsvtav1', '-crf', extra.hq ? '22' : orient === 'land' ? '36' : '35',
     '-preset', '6', '-g', '60', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', av1], `${id}: AV1 ${big.tag}`)
   sources.unshift({ src: rel(av1), type: 'video/mp4; codecs="av01.0.08M.08"', codec: 'av1', w: big.w, h: big.h, bytes: size(av1) })
   return sources

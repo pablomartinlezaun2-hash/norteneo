@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '@/i18n'
 import { alternatePath, to } from '@/i18n/paths'
@@ -9,7 +9,7 @@ import { gsap, MQ, useGSAP } from '@/lib/motion'
 import { navCopy } from './Nav'
 
 /** Menú móvil a pantalla completa con revelado clip-path (inspirado en codrops/EaseReverseClipMenu, sin vídeo). */
-export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function MobileMenu({ open, onClose, returnFocusRef }: { open: boolean; onClose: () => void; returnFocusRef?: RefObject<HTMLElement | null> }) {
   const lang = useLang()
   const t = navCopy[lang]
   const { pathname, search } = useLocation()
@@ -56,11 +56,14 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
       }
     }
     document.addEventListener('keydown', onKey)
+    const returnTo = returnFocusRef?.current
     return () => {
       document.body.style.overflow = prev
       document.removeEventListener('keydown', onKey)
+      // Al cerrar, el foco vuelve al botón "Menú" (si seguimos en la misma página)
+      if (returnTo && document.contains(returnTo)) returnTo.focus({ preventScroll: true })
     }
-  }, [open, onClose])
+  }, [open, onClose, returnFocusRef])
 
   return (
     <div
@@ -73,7 +76,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
       style={{ clipPath: 'inset(0 0 100% 0)' }}
     >
       <div className="container-x flex h-[var(--nav-h)] items-center justify-end">
-        <button ref={closeRef} type="button" onClick={onClose} className="min-h-11 text-[0.875rem] font-[480]">
+        <button ref={closeRef} type="button" onClick={onClose} className="inline-flex min-h-11 min-w-11 items-center justify-center text-[0.875rem] font-[480]">
           {t.close}
         </button>
       </div>
@@ -110,7 +113,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
               WhatsApp
             </a>
           )}
-          <Link to={alternatePath(pathname, other) + search} hrefLang={other} onClick={onClose} className="type-meta min-h-11 content-center text-mute">
+          <Link to={alternatePath(pathname, other) + search} hrefLang={other} onClick={onClose} className="type-meta inline-flex min-h-11 min-w-11 items-center justify-center text-mute">
             {other.toUpperCase()}
           </Link>
         </div>

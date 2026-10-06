@@ -10,7 +10,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 36758
+        "bytes": 90274
       },
       {
         "src": "/media/logo/logo-1080.mp4",
@@ -18,7 +18,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 112976
+        "bytes": 273240
       },
       {
         "src": "/media/logo/logo-720.mp4",
@@ -26,7 +26,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 47320
+        "bytes": 140355
       }
     ],
     "poster": {
@@ -592,8 +592,8 @@
       "jpg": "/media/running/running-poster.jpg",
       "w": 720,
       "h": 1280,
-      "bytesAvif": 5292,
-      "bytesJpg": 28472
+      "bytesAvif": 5295,
+      "bytesJpg": 25588
     }
   }
 }

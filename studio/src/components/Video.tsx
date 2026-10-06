@@ -69,11 +69,14 @@ export function Video({
   const [visible, setVisible] = useState(false)
   const [userPaused, setUserPaused] = useState(false)
   const [active, setActive] = useState<MediaEntry | undefined>(() => getMedia(media))
+  // Hasta montar (y resolver la variante vertical) no se precarga nada: evita bajar dos vídeos en móvil
+  const [mounted, setMounted] = useState(false)
   const land = getMedia(media)
   const port = portrait ? getMedia(portrait) : undefined
 
   // Art direction en cliente: vertical si la pantalla es alta
   useEffect(() => {
+    setMounted(true)
     if (!port) return
     const mql = window.matchMedia('(max-aspect-ratio: 4/5)')
     const pick = () => setActive(mql.matches ? port : land)
@@ -85,7 +88,10 @@ export function Video({
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
-    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting && e.intersectionRatio > 0.25), {
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1]
+      setVisible(e.isIntersecting && e.intersectionRatio > 0.25)
+    }, {
       threshold: [0, 0.25, 0.5],
     })
     io.observe(el)
@@ -153,7 +159,7 @@ export function Video({
         muted
         playsInline
         loop={loop}
-        preload={priority ? 'auto' : 'none'}
+        preload={priority && mounted && !reduce ? 'auto' : 'none'}
         aria-label={label}
         disablePictureInPicture
         onPlaying={() => {
@@ -174,7 +180,7 @@ export function Video({
         <button
           type="button"
           onClick={toggle}
-          aria-label={paused ? ui[lang].play : ui[lang].pause}
+          aria-label={`${paused ? ui[lang].play : ui[lang].pause}: ${label}`}
           className={`absolute ${pos} z-10 grid size-11 place-items-center rounded-full border border-line-strong bg-black/40 text-paper backdrop-blur-sm transition-colors hover:bg-black/70`}
         >
           {!paused ? (
