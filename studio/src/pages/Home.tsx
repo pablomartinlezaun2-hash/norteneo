@@ -1,5 +1,6 @@
 import { Seo } from '@/components/Seo'
 import { Hero } from '@/sections/home/Hero'
+import { Spot } from '@/sections/home/Spot'
 import { Manifesto } from '@/sections/home/Manifesto'
 import { Signature } from '@/sections/home/Signature'
 import { WebsRail } from '@/sections/home/WebsRail'
@@ -12,7 +13,7 @@ import { site } from '@/content/site'
 
 /**
  * Home: el embudo completo.
- * Captación (Hero) → silencio (Manifiesto) → pico (La Mesa) → prueba real (Webs) → amplitud (Colección)
+ * Captación (Hero) → golpe (Spot de running, con sonido) → silencio (Manifiesto) → pico (La Mesa) → prueba real (Webs) → amplitud (Colección)
  * → orientación (La Casa) → calma (Atelier) → venta (Cliente privado) → cierre memorable (Closing).
  */
 export function Component() {
@@ -28,6 +29,7 @@ export function Component() {
         }}
       />
       <Hero />
+      <Spot />
       <Manifesto />
       <Signature />
       <WebsRail />
