@@ -7,7 +7,7 @@
 //   - reels del hero (16:9 y 9:16) montados a partir de varios clips
 // y escribe src/content/media.json con rutas, tamaños y pesos.
 //
-// Uso: node scripts/media.mjs [id ...]   (sin ids procesa todo)
+// Uso: node scripts/media.mjs [id ...]   (sin ids procesa todo; NO_SEQ=1 conserva las secuencias ya hechas)
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -31,22 +31,22 @@ const PORT = { w: 720, h: 1280 }
  * seq: secuencias de frames para scroll-scrub
  */
 const CLIPS = [
-  { id: 'gastro', src: 'gastro.mp4', orient: 'land', poster: 4.3,
+  { id: 'gastro', src: 'gastro.mp4', orient: 'land', poster: 4.3, audio: true,
     seq: { desktop: { w: 1280, h: 720, frames: 150, fit: 'contain' }, mobile: { w: 960, h: 540, frames: 75, fit: 'contain' } } },
-  { id: 'wine', src: 'wine.mp4', orient: 'land', poster: 2.4, upscale: true },
-  { id: 'fpv-kitchen', src: 'fpv-kitchen.mov', orient: 'land', poster: 7.4 },
-  { id: 'tacos-spot', src: 'tacos-spot.mov', orient: 'land', poster: 7.6 },
-  { id: 'tacos-drop', src: 'tacos-drop.mp4', orient: 'land', poster: 2.0,
+  { id: 'wine', src: 'wine.mp4', orient: 'land', poster: 2.4, audio: true, upscale: true },
+  { id: 'fpv-kitchen', src: 'fpv-kitchen.mov', orient: 'land', poster: 7.4, audio: true },
+  { id: 'tacos-spot', src: 'tacos-spot.mov', orient: 'land', poster: 7.6, audio: true },
+  { id: 'tacos-drop', src: 'tacos-drop.mp4', orient: 'land', poster: 2.0, audio: true,
     seq: { desktop: { w: 1280, h: 720, frames: 120, fit: 'cover', q: 50 }, mobile: { w: 640, h: 800, frames: 80, fit: 'cover', q: 50 } } },
-  { id: 'flambe', src: 'flambe.mov', orient: 'land', poster: 6.5 },
-  { id: 'golden-key', src: 'golden-key.mov', orient: 'land', poster: 5.6,
+  { id: 'flambe', src: 'flambe.mov', orient: 'land', poster: 6.5, audio: true },
+  { id: 'golden-key', src: 'golden-key.mov', orient: 'land', poster: 5.6, audio: true,
     seq: { desktop: { w: 1280, h: 720, frames: 150, fit: 'cover' }, mobile: { w: 640, h: 800, frames: 75, fit: 'cover' } } },
-  { id: 'empire-teaser', src: 'empire-teaser.mov', orient: 'port', poster: 3.6 },
+  { id: 'empire-teaser', src: 'empire-teaser.mov', orient: 'port', poster: 3.6, audio: true },
   // Montaje limpio: se saltan los textos generados con faltas
   // ("CONSTRUCIÓN DE A MIPEDIA" 8.1 s, "SIMULADOR DE HIPOTEA" 10.1 s y el claim final 13 s).
-  { id: 'empire-film', src: 'empire-film.mov', orient: 'port', poster: 4.2, cuts: [[0, 8.1], [8.83, 10.05], [10.93, 12.95]] },
-  { id: 'fashion', src: 'fashion.mp4', orient: 'port', poster: 3.5 },
-  { id: 'ugc-move', src: 'ugc-move.mov', orient: 'port', poster: 13.5 },
+  { id: 'empire-film', src: 'empire-film.mov', orient: 'port', poster: 4.2, cuts: [[0, 8.1], [8.83, 10.05], [10.93, 12.95]], audio: true },
+  { id: 'fashion', src: 'fashion.mp4', orient: 'port', poster: 3.5, audio: true },
+  { id: 'ugc-move', src: 'ugc-move.mov', orient: 'port', poster: 13.5, audio: true },
   { id: 'running', src: 'running.mov', orient: 'port', poster: 10.5, audio: true },
   { id: 'logo', src: 'logo.mp4', orient: 'land', poster: 2.5, hq: true },
   // Grabaciones de pantalla de las webs de clientes (ya recortadas, sin la barra del navegador)
@@ -105,13 +105,20 @@ function intermediate(clip) {
   const src = join(SRC, clip.src)
   const out = join(TMP, `${clip.id}.mezz.mp4`)
   const fps = clip.orient === 'land' ? 30 : (probe(src).fps > 30 ? 30 : 24)
+  // Sonido: volumen igualado entre clips (EBU R128, -16 LUFS) para que ninguno suene más que otro
+  const loud = 'loudnorm=I=-16:TP=-1.5:LRA=11'
   if (clip.cuts) {
-    const parts = clip.cuts.map(([a, b], i) => `[0:v]trim=${a}:${b},setpts=PTS-STARTPTS[v${i}]`).join(';')
-    const cat = clip.cuts.map((_, i) => `[v${i}]`).join('') + `concat=n=${clip.cuts.length}:v=1:a=0[c]`
-    run(['-i', src, '-filter_complex', `${parts};${cat};[c]fps=${fps},format=yuv420p[o]`, '-map', '[o]',
-      '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast', '-an', out], `${clip.id}: montaje limpio`)
+    const n = clip.cuts.length
+    const v = clip.cuts.map(([a, b], i) => `[0:v]trim=${a}:${b},setpts=PTS-STARTPTS[v${i}]`)
+    // Microfundidos en cada corte para que el audio no "chasquee"
+    const a = clip.audio ? clip.cuts.map(([s0, e], i) => `[0:a]atrim=${s0}:${e},asetpts=PTS-STARTPTS,afade=t=in:d=0.03,afade=t=out:st=${(e - s0 - 0.03).toFixed(2)}:d=0.03[a${i}]`) : []
+    const ins = clip.cuts.map((_, i) => (clip.audio ? `[v${i}][a${i}]` : `[v${i}]`)).join('')
+    const cat = `${ins}concat=n=${n}:v=1:a=${clip.audio ? 1 : 0}${clip.audio ? '[c][ca]' : '[c]'}`
+    const graph = [...v, ...a, cat, `[c]fps=${fps},format=yuv420p[o]`, ...(clip.audio ? [`[ca]${loud}[oa]`] : [])].join(';')
+    run(['-i', src, '-filter_complex', graph, '-map', '[o]', ...(clip.audio ? ['-map', '[oa]', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000'] : ['-an']),
+      '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast', out], `${clip.id}: montaje limpio`)
   } else {
-    const audio = clip.audio ? ['-c:a', 'aac', '-b:a', '256k'] : ['-an']
+    const audio = clip.audio ? ['-af', loud, '-c:a', 'aac', '-b:a', '256k', '-ar', '48000'] : ['-an']
     run(['-i', src, '-vf', `fps=${fps},format=yuv420p`, '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast', ...audio, out], `${clip.id}: intermedio`)
   }
   return out
@@ -209,7 +216,10 @@ for (const clip of CLIPS) {
     sources: encodeVideo(clip.id, mezz, clip.orient, outDir, clip),
     poster: posters(clip.id, mezz, clip.orient, clip.poster, outDir),
   }
-  if (clip.seq) {
+  if (clip.seq && process.env.NO_SEQ && manifest[clip.id]?.seq) {
+    // Reutiliza las secuencias ya generadas (solo cambia el vídeo o el audio)
+    entry.seq = manifest[clip.id].seq
+  } else if (clip.seq) {
     entry.seq = {}
     for (const [variant, spec] of Object.entries(clip.seq)) entry.seq[variant] = sequence(clip.id, mezz, variant, spec, outDir)
   }

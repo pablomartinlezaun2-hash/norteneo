@@ -39,9 +39,21 @@ function claim(v: HTMLVideoElement) {
   current = v
 }
 
+/** Solo suena un vídeo a la vez: el que toma el sonido silencia al anterior (el sonido sigue al usuario). */
+let speaking: HTMLVideoElement | null = null
+function takeSound(v: HTMLVideoElement) {
+  if (speaking && speaking !== v && !speaking.muted) speaking.muted = true
+  speaking = v
+}
+
+/** ¿Ha tocado ya el usuario la página? Con ese gesto el navegador deja activar el sonido. */
+const hasGesture = () => (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive ?? false
+
 /**
- * Vídeo de marca: póster AVIF/JPG (LCP) + fuentes AV1/H.264, autoplay silencioso en vista,
+ * Vídeo de marca: póster AVIF/JPG (LCP) + fuentes AV1/H.264, autoplay en vista,
  * pausa fuera de pantalla, botón de pausa accesible y respeto a prefers-reduced-motion.
+ * Los clips con sonido suenan por defecto (si el navegador lo permite) y solo uno a la vez:
+ * el que el usuario tiene delante. Botón para silenciar y activar el sonido.
  */
 export function Video({
   media,
@@ -67,6 +79,7 @@ export function Video({
   const [shown, setShown] = useState(false)
   const [paused, setPaused] = useState(true)
   const [visible, setVisible] = useState(false)
+  const visibleRef = useRef(false)
   const [userPaused, setUserPaused] = useState(false)
   // Los clips con sonido intentan sonar por defecto. Si el navegador bloquea el autoplay con sonido,
   // arrancan silenciados y el sonido se activa con el primer toque o tecla del usuario en la página.
@@ -97,7 +110,8 @@ export function Video({
     if (!el) return
     const io = new IntersectionObserver((entries) => {
       const e = entries[entries.length - 1]
-      setVisible(e.isIntersecting && e.intersectionRatio > 0.25)
+      visibleRef.current = e.isIntersecting && e.intersectionRatio > 0.25
+      setVisible(visibleRef.current)
     }, {
       threshold: [0, 0.25, 0.5],
     })
@@ -116,8 +130,14 @@ export function Video({
       if (withSound && !userMuted.current) {
         v.muted = false
         v.play()
-          .then(() => setMuted(false))
-          .catch(() => {
+          .then(() => {
+            takeSound(v)
+            setMuted(false)
+          })
+          .catch((err: unknown) => {
+            // Solo si el navegador bloquea el sonido (NotAllowedError). Un AbortError significa que otro
+            // vídeo ha tomado el relevo y lo ha pausado: entonces no hay que volver a reproducirlo.
+            if ((err as DOMException | undefined)?.name !== 'NotAllowedError') return
             // Autoplay con sonido bloqueado: sigue en silencio hasta el primer gesto
             v.muted = true
             setMuted(true)
@@ -136,10 +156,11 @@ export function Video({
     if (!withSound) return
     const unlock = (e: Event) => {
       const v = videoRef.current
-      if (!v || userMuted.current) return
+      if (!v || userMuted.current || !visibleRef.current) return
       if (wrapRef.current?.contains(e.target as Node)) return
       if (!v.paused && v.muted) {
         v.muted = false
+        takeSound(v)
         setMuted(false)
       }
     }
@@ -182,6 +203,7 @@ export function Video({
     setMuted(next)
     userMuted.current = next
     if (!next) {
+      takeSound(v)
       setUserPaused(false)
       if (exclusive) claim(v)
       if (v.paused) v.play().catch(() => undefined)
@@ -220,11 +242,16 @@ export function Video({
         aria-label={label}
         disablePictureInPicture
         onPlaying={(e) => {
+          const v = e.currentTarget
+          // Reproducido al pasar el ratón o con el botón: suena si el usuario ya ha tocado la página
+          if (withSound && !userMuted.current && v.muted && hasGesture()) v.muted = false
+          if (!v.muted) takeSound(v)
           setShown(true)
           setPaused(false)
-          setMuted(e.currentTarget.muted)
+          setMuted(v.muted)
           onPlayingChange?.(true)
         }}
+        onVolumeChange={(e) => setMuted(e.currentTarget.muted)}
         onPause={() => {
           setPaused(true)
           onPlayingChange?.(false)

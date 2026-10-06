@@ -111,7 +111,8 @@
   "gastro": {
     "id": "gastro",
     "orient": "land",
-    "duration": 5,
+    "duration": 5.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/gastro/gastro-1080.av1.mp4",
@@ -119,7 +120,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 1297535
+        "bytes": 1383670
       },
       {
         "src": "/media/gastro/gastro-1080.mp4",
@@ -127,7 +128,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 2792372
+        "bytes": 2878479
       },
       {
         "src": "/media/gastro/gastro-720.mp4",
@@ -135,7 +136,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 1368306
+        "bytes": 1454429
       }
     ],
     "poster": {
@@ -170,7 +171,8 @@
   "wine": {
     "id": "wine",
     "orient": "land",
-    "duration": 6,
+    "duration": 6.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/wine/wine-1080.av1.mp4",
@@ -178,7 +180,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 1085960
+        "bytes": 1188060
       },
       {
         "src": "/media/wine/wine-1080.mp4",
@@ -186,7 +188,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 2541397
+        "bytes": 2643457
       },
       {
         "src": "/media/wine/wine-720.mp4",
@@ -194,7 +196,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 1163270
+        "bytes": 1265346
       }
     ],
     "poster": {
@@ -209,7 +211,8 @@
   "fpv-kitchen": {
     "id": "fpv-kitchen",
     "orient": "land",
-    "duration": 8.03,
+    "duration": 8.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/fpv-kitchen/fpv-kitchen-1080.av1.mp4",
@@ -217,7 +220,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 2285389
+        "bytes": 2421309
       },
       {
         "src": "/media/fpv-kitchen/fpv-kitchen-1080.mp4",
@@ -225,7 +228,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 5391490
+        "bytes": 5526113
       },
       {
         "src": "/media/fpv-kitchen/fpv-kitchen-720.mp4",
@@ -233,7 +236,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 2360318
+        "bytes": 2495728
       }
     ],
     "poster": {
@@ -248,7 +251,8 @@
   "tacos-spot": {
     "id": "tacos-spot",
     "orient": "land",
-    "duration": 8.03,
+    "duration": 8.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/tacos-spot/tacos-spot-1080.av1.mp4",
@@ -256,7 +260,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 2489321
+        "bytes": 2625216
       },
       {
         "src": "/media/tacos-spot/tacos-spot-1080.mp4",
@@ -264,7 +268,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 5235331
+        "bytes": 5375824
       },
       {
         "src": "/media/tacos-spot/tacos-spot-720.mp4",
@@ -272,7 +276,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 2302792
+        "bytes": 2435878
       }
     ],
     "poster": {
@@ -287,7 +291,8 @@
   "tacos-drop": {
     "id": "tacos-drop",
     "orient": "land",
-    "duration": 8.03,
+    "duration": 8.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/tacos-drop/tacos-drop-1080.av1.mp4",
@@ -295,7 +300,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 2961069
+        "bytes": 3107372
       },
       {
         "src": "/media/tacos-drop/tacos-drop-1080.mp4",
@@ -303,7 +308,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 4534309
+        "bytes": 4699152
       },
       {
         "src": "/media/tacos-drop/tacos-drop-720.mp4",
@@ -311,7 +316,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 2089170
+        "bytes": 2227647
       }
     ],
     "poster": {
@@ -346,7 +351,8 @@
   "flambe": {
     "id": "flambe",
     "orient": "land",
-    "duration": 8.03,
+    "duration": 8.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/flambe/flambe-1080.av1.mp4",
@@ -354,7 +360,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 1720119
+        "bytes": 1856706
       },
       {
         "src": "/media/flambe/flambe-1080.mp4",
@@ -362,7 +368,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 4711262
+        "bytes": 4847777
       },
       {
         "src": "/media/flambe/flambe-720.mp4",
@@ -370,7 +376,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 2125643
+        "bytes": 2260727
       }
     ],
     "poster": {
@@ -385,7 +391,8 @@
   "golden-key": {
     "id": "golden-key",
     "orient": "land",
-    "duration": 6,
+    "duration": 6.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/golden-key/golden-key-1080.av1.mp4",
@@ -393,7 +400,7 @@
         "codec": "av1",
         "w": 1920,
         "h": 1080,
-        "bytes": 2276764
+        "bytes": 2379025
       },
       {
         "src": "/media/golden-key/golden-key-1080.mp4",
@@ -401,7 +408,7 @@
         "codec": "h264",
         "w": 1920,
         "h": 1080,
-        "bytes": 4048457
+        "bytes": 4155182
       },
       {
         "src": "/media/golden-key/golden-key-720.mp4",
@@ -409,7 +416,7 @@
         "codec": "h264",
         "w": 1280,
         "h": 720,
-        "bytes": 1771174
+        "bytes": 1869547
       }
     ],
     "poster": {
@@ -444,7 +451,8 @@
   "empire-teaser": {
     "id": "empire-teaser",
     "orient": "port",
-    "duration": 7.03,
+    "duration": 7.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/empire-teaser/empire-teaser-720.av1.mp4",
@@ -452,7 +460,7 @@
         "codec": "av1",
         "w": 720,
         "h": 1280,
-        "bytes": 1377679
+        "bytes": 1497090
       },
       {
         "src": "/media/empire-teaser/empire-teaser-720.mp4",
@@ -460,7 +468,7 @@
         "codec": "h264",
         "w": 720,
         "h": 1280,
-        "bytes": 2432291
+        "bytes": 2554477
       }
     ],
     "poster": {
@@ -475,7 +483,8 @@
   "empire-film": {
     "id": "empire-film",
     "orient": "port",
-    "duration": 11.33,
+    "duration": 11.4,
+    "audio": true,
     "sources": [
       {
         "src": "/media/empire-film/empire-film-720.av1.mp4",
@@ -483,7 +492,7 @@
         "codec": "av1",
         "w": 720,
         "h": 1280,
-        "bytes": 2673498
+        "bytes": 2865900
       },
       {
         "src": "/media/empire-film/empire-film-720.mp4",
@@ -491,7 +500,7 @@
         "codec": "h264",
         "w": 720,
         "h": 1280,
-        "bytes": 3841510
+        "bytes": 4028094
       }
     ],
     "poster": {
@@ -506,7 +515,8 @@
   "fashion": {
     "id": "fashion",
     "orient": "port",
-    "duration": 14.04,
+    "duration": 14.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/fashion/fashion-720.av1.mp4",
@@ -514,7 +524,7 @@
         "codec": "av1",
         "w": 720,
         "h": 1280,
-        "bytes": 1190141
+        "bytes": 1423219
       },
       {
         "src": "/media/fashion/fashion-720.mp4",
@@ -522,7 +532,7 @@
         "codec": "h264",
         "w": 720,
         "h": 1280,
-        "bytes": 2333311
+        "bytes": 2566373
       }
     ],
     "poster": {
@@ -537,7 +547,8 @@
   "ugc-move": {
     "id": "ugc-move",
     "orient": "port",
-    "duration": 15,
+    "duration": 15.1,
+    "audio": true,
     "sources": [
       {
         "src": "/media/ugc-move/ugc-move-720.av1.mp4",
@@ -545,7 +556,7 @@
         "codec": "av1",
         "w": 720,
         "h": 1280,
-        "bytes": 1811410
+        "bytes": 2065486
       },
       {
         "src": "/media/ugc-move/ugc-move-720.mp4",
@@ -553,7 +564,7 @@
         "codec": "h264",
         "w": 720,
         "h": 1280,
-        "bytes": 2977782
+        "bytes": 3231818
       }
     ],
     "poster": {
@@ -577,7 +588,7 @@
         "codec": "av1",
         "w": 720,
         "h": 1280,
-        "bytes": 1669747
+        "bytes": 1668001
       },
       {
         "src": "/media/running/running-720.mp4",
@@ -585,7 +596,7 @@
         "codec": "h264",
         "w": 720,
         "h": 1280,
-        "bytes": 4217866
+        "bytes": 4216108
       }
     ],
     "poster": {
