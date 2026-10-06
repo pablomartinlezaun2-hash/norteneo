@@ -13,7 +13,7 @@ import { site } from '@/content/site'
 
 /**
  * Home: el embudo completo.
- * Captación (Hero) → golpe (Spot de running, con sonido) → silencio (Manifiesto) → pico (La Mesa) → prueba real (Webs) → amplitud (Colección)
+ * Captación (Hero) → golpe (spots de running y Trono, con sonido) → silencio (Manifiesto) → pico (La Mesa) → prueba real (Webs) → amplitud (Colección)
  * → orientación (La Casa) → calma (Atelier) → venta (Cliente privado) → cierre memorable (Closing).
  */
 export function Component() {
@@ -29,7 +29,8 @@ export function Component() {
         }}
       />
       <Hero />
-      <Spot />
+      <Spot slug="running" />
+      <Spot slug="trono" mirror />
       <Manifesto />
       <Signature />
       <WebsRail />
