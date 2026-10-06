@@ -10,12 +10,15 @@ export type MediaEntry = {
   sources: VideoSource[]
   poster: Poster
   seq?: { desktop: Sequence; mobile: Sequence }
+  /** El clip conserva su sonido (se reproduce silenciado hasta que el usuario lo activa) */
+  audio?: boolean
 }
 
 /**
  * IDs disponibles (ver scripts/media.mjs):
  * reel-land, reel-port, gastro, wine, fpv-kitchen, tacos-spot, tacos-drop, flambe, golden-key,
- * empire-teaser, empire-film, fashion, ugc-move, running, logo
+ * empire-teaser, empire-film, fashion, ugc-move, running (con sonido), logo,
+ * web-navarro, web-nexodea, web-waka-wow, web-pedacito (grabaciones de pantalla)
  */
 export type MediaId = keyof typeof manifest | (string & {})
 
