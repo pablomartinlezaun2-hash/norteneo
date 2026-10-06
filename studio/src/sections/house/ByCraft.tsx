@@ -119,7 +119,8 @@ export function ByCraft({ lang }: { lang: Lang }) {
                         </figcaption>
                       </figure>
                     ) : (
-                      <div className="relative aspect-[4/3] border border-line">
+                      // Webs apila meta, la lista de webs y el nombre: en móvil necesita una caja más alta para no cortar el nombre.
+                      <div className={`relative border border-line ${s.id === 'websites' ? 'aspect-square sm:aspect-[4/3]' : 'aspect-[4/3]'}`}>
                         <TypeComposition service={s} lang={lang} />
                       </div>
                     ))}

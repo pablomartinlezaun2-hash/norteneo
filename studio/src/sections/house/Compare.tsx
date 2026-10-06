@@ -100,8 +100,12 @@ export function Compare({ lang }: { lang: Lang }) {
                 <select
                   value={pair[i]}
                   onChange={(e) => {
+                    const value = e.target.value as ServiceId
                     const next = [...pair] as [ServiceId, ServiceId]
-                    next[i] = e.target.value as ServiceId
+                    // Nunca dos columnas iguales: si llega el oficio de la otra columna (la opción va
+                    // deshabilitada, pero algún lector o automatización puede forzarla), se intercambian.
+                    if (value === other) next[1 - i] = pair[i]
+                    next[i] = value
                     setPair(next)
                   }}
                   className="absolute inset-0 size-full cursor-pointer appearance-none bg-ink text-paper opacity-0"

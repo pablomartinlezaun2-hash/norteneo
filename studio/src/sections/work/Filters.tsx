@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { useLang } from '@/i18n'
 import { sectors, type SectorId } from '@/content/cases'
 import { serviceById, type ServiceId } from '@/content/services'
@@ -17,7 +17,9 @@ function Chip({ pressed, onClick, children }: { pressed: boolean; onClick: () =>
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className={`inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-[0.875rem] font-[460] transition-colors duration-300 ${
+      // En el carril móvil, el chip enfocado con teclado entra entero en la vista (Chrome no lo hace si asoma un trozo)
+      onFocus={(e) => e.currentTarget.scrollIntoView({ inline: 'nearest', block: 'nearest' })}
+      className={`inline-flex min-h-11 shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full border px-4 text-[0.875rem] font-[460] transition-colors duration-300 ${
         pressed ? 'border-line-strong text-paper' : 'border-transparent text-mute hover:text-paper'
       }`}
     >
@@ -27,14 +29,40 @@ function Chip({ pressed, onClick, children }: { pressed: boolean; onClick: () =>
   )
 }
 
-/** Grupo de filtros: en móvil, fila desplazable en horizontal; en escritorio, una línea. */
+/**
+ * Grupo de filtros. En móvil, carril horizontal con snap y un fundido en el borde derecho
+ * mientras quede algo por ver (pista de que hay más opciones); en escritorio, una línea que envuelve.
+ * py-1 / -my-1: el anillo de foco no se recorta arriba ni abajo por el overflow.
+ */
 function Group({ labelId, label, children }: { labelId: string; label: string; children: ReactNode }) {
+  const rail = useRef<HTMLDivElement>(null)
+  const [more, setMore] = useState(false)
+
+  useEffect(() => {
+    const el = rail.current
+    if (!el) return
+    const update = () => setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', update)
+      ro.disconnect()
+    }
+  }, [])
+
   return (
     <div role="group" aria-labelledby={labelId} className="md:flex md:items-center">
       <span id={labelId} className="type-meta block w-20 shrink-0 text-dim">
         {label}
       </span>
-      <div className="-mx-[var(--gutter)] flex flex-nowrap gap-1 overflow-x-auto px-[var(--gutter)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+      <div
+        ref={rail}
+        className={`-mx-[var(--gutter)] -my-1 flex snap-x scroll-pr-[4.5rem] scroll-pl-[var(--gutter)] flex-nowrap gap-1 overflow-x-auto px-[var(--gutter)] py-1 [scrollbar-width:none] md:mx-0 md:snap-none md:flex-wrap md:overflow-visible md:px-0 ${
+          more ? 'max-md:[mask-image:linear-gradient(to_right,#000_calc(100%-4.5rem),transparent)]' : ''
+        }`}
+      >
         {children}
       </div>
     </div>

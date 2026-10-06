@@ -40,16 +40,16 @@ export const aiVideo: ServiceDetail = {
         en: 'Macro of a drop of salsa falling onto tacos. Scrolling controls the shot frame by frame.',
       },
       marks: [
-        { at: 0, label: { es: 'Start-frame', en: 'Start-frame' } },
+        { at: 0, label: { es: 'Fotograma inicial', en: 'Start frame' } },
         { at: 0.012, label: { es: '', en: '' } },
-        { at: 0.988, label: { es: 'End-frame', en: 'End-frame' } },
+        { at: 0.988, label: { es: 'Fotograma final', en: 'End frame' } },
       ],
       stills: [0, 0.5, 1],
     },
     {
       kind: 'start-end',
       media: 'tacos-drop',
-      claim: { es: 'Dos fotogramas mandan.', en: 'Two frames lead.' },
+      claim: { es: 'Dos fotogramas mandan.', en: 'Two frames set the shot.' },
       text: {
         es: 'Así dirigimos un plano: fijamos cómo empieza y cómo acaba, y el modelo genera el movimiento entre ambos. Tú apruebas dos imágenes antes de que exista el vídeo.',
         en: 'This is how we direct a shot: we set how it starts and how it ends, and the model generates the movement in between. You approve two images before the video exists.',

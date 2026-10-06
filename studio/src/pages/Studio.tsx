@@ -89,7 +89,7 @@ const copy: Record<'es' | 'en', {
     houseTitle: 'A house of imagery, not an agency.',
     house: [
       'NEO Studio creates imagery for brands that care about every detail: AI-generated film and 3D, signature websites, post-production and social content.',
-      'AI opens up what used to demand a set, a film crew and weeks of production. What does not change is the eye that decides what deserves to stay on screen.',
+      'AI makes possible what once took a set, a film crew and weeks of production. What doesn’t change is the eye that decides what deserves to stay on screen.',
     ],
     methodTitle: 'The method.',
     methodLead: 'AI proposes. We choose, correct and finish.',
@@ -97,10 +97,10 @@ const copy: Record<'es' | 'en', {
       { term: 'Direction', text: 'Before generating anything, we define the piece: references, palette, light, framing and the format for each channel.' },
       { term: 'Generation', text: 'AI generates variations from start and end frames that we set. Most of them are discarded.' },
       { term: 'Craft', text: 'Rhythm is decided on the timeline, colour in DaVinci Resolve and finishing in After Effects. By hand.' },
-      { term: 'Delivery', text: 'Every piece ships in the formats its destination needs, 16:9, 9:16 or web, labelled when it is generated.' },
+      { term: 'Delivery', text: 'Every piece ships in the format its destination needs (16:9, 9:16 or web) and is labelled when it’s AI-generated.' },
     ],
     craftTitle: 'What AI doesn’t do.',
-    craftLead: 'The human craft is not hidden: it is the part that signs the piece.',
+    craftLead: 'We don’t hide the human craft: it’s what signs the piece.',
     craft: [
       { term: 'Art direction', text: 'Palette, light, materials and framing. What goes into the shot and what stays out.' },
       { term: 'Editing', text: 'Rhythm, cuts and running time for each channel. One shot too many spoils a piece.' },
@@ -110,13 +110,13 @@ const copy: Record<'es' | 'en', {
     quote: 'The tool changes. The judgement doesn’t.',
     waysTitle: 'How we work.',
     ways: [
-      { term: 'Tailored proposals', text: 'No catalogue prices. Every commission starts with a brief and ends with a proposal designed for your brand.' },
-      { term: 'Open about AI', text: 'Every generated piece carries the label “AI-generated, directed by NEO”. What is AI, we say.' },
-      { term: 'You talk to the director', text: 'No go-betweens between your brand and whoever decides each shot.' },
+      { term: 'Tailored proposals', text: 'No price list. Every commission starts with a brief and ends with a proposal designed for your brand.' },
+      { term: 'Open about AI', text: 'Every generated piece carries the label “AI-generated, directed by NEO”. If it’s AI, we say so.' },
+      { term: 'You talk to the director', text: 'No intermediaries between your brand and the person directing each shot.' },
       { term: 'One version per screen', text: 'A piece is never simply cropped: it is composed for the screen it will be seen on.' },
     ],
     closeTitle: 'Shall we talk about your brand?',
-    closeLine: 'Tell us what you need. We reply with a tailored proposal.',
+    closeLine: 'Tell us what you need, and we’ll reply with a tailored proposal.',
     cta: 'Request a proposal',
     work: 'See the work',
   },
@@ -173,7 +173,16 @@ export function Component() {
       {/* Pieza de apertura: la animación original del logo */}
       <figure className="container-x mt-16 md:mt-24">
         <div className="overflow-hidden rounded-2xl">
-          <Video media="logo" label={t.logoLabel} controls exclusive loop className="aspect-video" />
+          {/* El tercio inferior del vídeo funde a negro: oculta las bandas de compresión bajo el reflejo
+              (en OLED se veían como una mancha escalonada). El botón de pausa queda fuera de la máscara. */}
+          <Video
+            media="logo"
+            label={t.logoLabel}
+            controls
+            exclusive
+            loop
+            className="aspect-video [&_img]:[mask-image:linear-gradient(to_bottom,#000_72%,transparent_88%)] [&_video]:[mask-image:linear-gradient(to_bottom,#000_72%,transparent_88%)]"
+          />
         </div>
         <figcaption className="mt-4">
           <Meta>{[t.logoMeta, '16:9', durationLabel('logo')].filter(Boolean).join(' · ')}</Meta>

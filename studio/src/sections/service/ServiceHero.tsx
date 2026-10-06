@@ -21,7 +21,8 @@ export function ServiceHero({ service, detail }: { service: Service; detail: Ser
   const h1 = useRef<HTMLHeadingElement>(null)
   useSplitReveal(h1, { on: 'load', delay: heroDelay() })
   const hero = detail.hero
-  const name = service.name[lang]
+  // Regla de puntuación: el titular hero cierra con punto (un solo nodo de texto para SplitText)
+  const name = `${service.name[lang]}.`
   const sub = detail.sub[lang]
 
   if (!hero) {
@@ -61,7 +62,8 @@ export function ServiceHero({ service, detail }: { service: Service; detail: Ser
     return (
       <header className="container-x grid items-end gap-8 pt-10 md:grid-cols-12 md:gap-10 md:pt-16 md:pb-6">
         <div className="md:col-span-8 md:pb-4">
-          <h1 ref={h1} data-hero-reveal className="type-hero">
+          {/* Tamaño propio: una palabra larga ("Postproducción") cabe a 320 px y, en escritorio, queda a ≥64 px de la pieza */}
+          <h1 ref={h1} data-hero-reveal className="type-hero [font-size:clamp(2rem,10.5vw,2.6rem)] md:[font-size:min(6.8vw,6.25rem)]">
             {name}
           </h1>
           <p className="type-lead mt-6 max-w-[34ch] text-mute">{sub}</p>

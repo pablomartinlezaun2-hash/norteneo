@@ -73,7 +73,7 @@ export const content: ServiceDetail = {
       items: [
         { term: { es: 'Instagram', en: 'Instagram' }, text: { es: 'Reels 9:16 y publicaciones 4:5 para el feed.', en: '9:16 Reels and 4:5 posts for the feed.' } },
         { term: { es: 'TikTok', en: 'TikTok' }, text: { es: '9:16, con el gancho en el primer segundo y subtítulos.', en: '9:16, with the hook in the first second and subtitles.' } },
-        { term: { es: 'YouTube Shorts', en: 'YouTube Shorts' }, text: { es: '9:16, con título y miniatura pensados para buscar.', en: '9:16, with a title and thumbnail made to be found.' } },
+        { term: { es: 'YouTube Shorts', en: 'YouTube Shorts' }, text: { es: '9:16, con título y miniatura pensados para que te encuentren.', en: '9:16, with a title and thumbnail made to be found.' } },
         { term: { es: 'LinkedIn', en: 'LinkedIn' }, text: { es: '1:1 o 4:5, con un tono más sobrio.', en: '1:1 or 4:5, in a more restrained tone.' } },
       ],
     },
@@ -132,7 +132,7 @@ export const content: ServiceDetail = {
     {
       q: { es: '¿Las personas de los vídeos UGC son reales?', en: 'Are the people in the UGC videos real?' },
       a: {
-        es: 'En las piezas generadas con IA, no: son personas sintéticas y se etiquetan como tal. Nunca reproducimos a personas reales sin su autorización.',
+        es: 'En las piezas generadas con IA, no: son personas sintéticas y se etiquetan como tales. Nunca reproducimos a personas reales sin su autorización.',
         en: 'In AI-generated pieces, no: they are synthetic people and are labelled as such. We never reproduce real people without their permission.',
       },
     },

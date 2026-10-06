@@ -49,8 +49,11 @@ type Testimonial = { client: string; sector: L; service: ServiceId; quote: L }
  */
 const testimonials: Testimonial[] = []
 
-/** Hairline discontinua sobre fondo claro (la utilidad global usa el blanco del tema oscuro). */
-const dashedLight = 'h-px bg-[linear-gradient(to_right,rgb(10_10_10/0.28)_50%,transparent_0)] bg-[length:6px_1px] bg-repeat-x'
+/**
+ * Hairline discontinua sobre fondo claro (la utilidad global usa el blanco del tema oscuro), dibujada como
+ * fondo para no meter <div> sueltos en el <dl>: cada par lleva la suya arriba y el <dl> cierra abajo.
+ */
+const dashedLight = 'bg-[linear-gradient(to_right,rgb(10_10_10/0.28)_50%,transparent_0)] bg-[length:6px_1px] bg-repeat-x'
 
 /**
  * Cliente privado (venta). Única sección clara de la web: la sala privada se ilumina.
@@ -99,17 +102,13 @@ export function PrivateClient() {
 
           <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
             <h3 className="type-small mb-4 text-light-ink/70">{t.factsLabel}</h3>
-            <dl>
+            <dl className={`${dashedLight} bg-bottom`}>
               {t.facts.map((f) => (
-                <div key={f.term}>
-                  <div aria-hidden="true" className={dashedLight} />
-                  <div className="py-5">
-                    <dt className="type-body font-[540]">{f.term}</dt>
-                    <dd className="type-body mt-1 text-light-ink/70">{f.desc}</dd>
-                  </div>
+                <div key={f.term} className={`${dashedLight} bg-top py-5`}>
+                  <dt className="type-body font-[540]">{f.term}</dt>
+                  <dd className="type-body mt-1 text-light-ink/70">{f.desc}</dd>
                 </div>
               ))}
-              <div aria-hidden="true" className={dashedLight} />
             </dl>
           </div>
         </div>

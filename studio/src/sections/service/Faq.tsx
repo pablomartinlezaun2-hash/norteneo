@@ -1,21 +1,21 @@
 import { useLang } from '@/i18n'
 import type { Faq as FaqItem } from '@/content/services/types'
-import { anchorOffset, dashedTop, ui } from './copy'
+import { dashedTop, displaySide, ui } from './copy'
 
 /** Preguntas con <details>/<summary> nativos (funcionan sin JS; solo la apertura nativa, sin animación). */
 export function Faq({ faqs }: { faqs: FaqItem[] }) {
   const lang = useLang()
   const t = ui[lang]
   return (
-    <section id="preguntas" tabIndex={-1} aria-labelledby="preguntas-title" className={`border-t border-line outline-none ${anchorOffset}`}>
+    <section id="preguntas" tabIndex={-1} aria-labelledby="preguntas-title" className="border-t border-line outline-none">
       <div className="container-x grid gap-12 py-24 md:py-36 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-5">
           <p className="type-meta text-mute">{t.faq}</p>
-          <h2 id="preguntas-title" className="type-display mt-4">
+          <h2 id="preguntas-title" className={`${displaySide} mt-4`}>
             {t.faqTitle}
           </h2>
         </div>
-        <div className="lg:col-span-7 lg:col-start-6">
+        <div className="lg:col-span-6 lg:col-start-7">
           {faqs.map((f, i) => (
             <details key={i} style={dashedTop} className="group">
               <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-6 py-5 [&::-webkit-details-marker]:hidden">

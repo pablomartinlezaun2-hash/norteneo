@@ -1,5 +1,26 @@
 import type { CSSProperties } from 'react'
 import type { CaseKind } from '@/content/cases'
+import type { ServiceId } from '@/content/services'
+
+/** Nombre del servicio tal como se lee dentro de una frase (minúscula salvo siglas). */
+const waService: Record<'es' | 'en', Record<ServiceId, string>> = {
+  es: {
+    'ai-video': 'vídeo con IA',
+    'ai-3d': '3D con IA',
+    websites: 'webs de autor',
+    editing: 'postproducción',
+    content: 'contenido para redes',
+    'mobile-cinema': 'cine con el móvil',
+  },
+  en: {
+    'ai-video': 'AI video',
+    'ai-3d': 'AI 3D',
+    websites: 'signature website',
+    editing: 'post-production',
+    content: 'social content',
+    'mobile-cinema': 'mobile cinema',
+  },
+}
 
 /** Textos de interfaz de la plantilla de servicio. */
 export const ui = {
@@ -22,14 +43,14 @@ export const ui = {
     examplesTextMixed: 'Encargos de clientes y piezas propias, cada una con su etiqueta.',
     seeWork: 'Ver trabajo',
     seeCase: 'Ver caso',
-    specs: 'Ficha técnica',
+    specs: 'Ficha técnica.',
     faqTitle: 'Lo que suelen preguntarnos.',
     pairs: 'Combina con',
     discover: 'Descubrir',
     kind: { client: 'Encargo de cliente', study: 'Estudio propio', concept: 'Concepto · no oficial', own: 'Producto propio' } satisfies Record<CaseKind, string>,
     frame: 'Fotograma',
-    startFrame: 'Start-frame',
-    endFrame: 'End-frame',
+    startFrame: 'Fotograma inicial',
+    endFrame: 'Fotograma final',
     compare: 'Comparar el primer fotograma con el último',
     log: 'Log',
     graded: 'Etalonado',
@@ -49,7 +70,8 @@ export const ui = {
     setting: 'Ajuste',
     value: 'Valor',
     whatsapp: 'WhatsApp',
-    whatsappMsg: (service: string) => `Hola, me interesa ${service}.`,
+    /** Mensaje prellenado de WhatsApp: el servicio en minúscula dentro de la frase (con sus siglas) */
+    whatsappMsg: (id: ServiceId) => `Hola, me interesa vuestro servicio de ${waService.es[id]}.`,
     notFoundTitle: 'Este servicio no existe.',
     notFoundText: 'Puede que el enlace haya cambiado. Estos son los seis oficios de la casa.',
     allServices: 'Ver servicios',
@@ -73,14 +95,14 @@ export const ui = {
     examplesTextMixed: 'Client commissions and our own pieces, each one labelled.',
     seeWork: 'See work',
     seeCase: 'See case',
-    specs: 'Specifications',
+    specs: 'Specifications.',
     faqTitle: 'What people usually ask.',
     pairs: 'Pairs well with',
     discover: 'Discover',
     kind: { client: 'Client commission', study: 'Studio piece', concept: 'Concept · unofficial', own: 'Own product' } satisfies Record<CaseKind, string>,
     frame: 'Frame',
-    startFrame: 'Start-frame',
-    endFrame: 'End-frame',
+    startFrame: 'Start frame',
+    endFrame: 'End frame',
     compare: 'Compare the first frame with the last',
     log: 'Log',
     graded: 'Graded',
@@ -100,7 +122,7 @@ export const ui = {
     setting: 'Setting',
     value: 'Value',
     whatsapp: 'WhatsApp',
-    whatsappMsg: (service: string) => `Hi, I'm interested in ${service}.`,
+    whatsappMsg: (id: ServiceId) => `Hi, I’m interested in your ${waService.en[id]} service.`,
     notFoundTitle: 'This service doesn’t exist.',
     notFoundText: 'The link may have changed. These are the six crafts of the house.',
     allServices: 'See services',
@@ -115,5 +137,8 @@ export const dashedTop: CSSProperties = {
   backgroundPosition: 'left top',
 }
 
-/** Margen de anclaje: html ya reserva la nav global (scroll-padding); esto suma la local. */
-export const anchorOffset = 'scroll-mt-14'
+/**
+ * Titular display en columna lateral (4–6 de 12): un escalón por debajo de type-display en escritorio
+ * para que los titulares cortos no caigan una palabra por línea.
+ */
+export const displaySide = 'type-display lg:[font-size:clamp(2.5rem,3.8vw,3.5rem)]'

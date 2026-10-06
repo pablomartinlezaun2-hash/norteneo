@@ -10,7 +10,7 @@ import { ui } from './copy'
 export function FinalCta({ service, detail }: { service: Service; detail: ServiceDetail }) {
   const lang = useLang()
   const t = ui[lang]
-  const wa = whatsappHref(t.whatsappMsg(service.name[lang]))
+  const wa = whatsappHref(t.whatsappMsg(service.id))
   return (
     <section aria-labelledby="cta-title" className="border-t border-line">
       <div className="container-x flex flex-col items-center py-28 text-center md:py-44">

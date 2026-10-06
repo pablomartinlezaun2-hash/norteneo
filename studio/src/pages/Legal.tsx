@@ -3,15 +3,28 @@ import { Link, useParams } from 'react-router-dom'
 import { useLang, type Lang } from '@/i18n'
 import { LEGAL, to, type LegalId } from '@/i18n/paths'
 import { site } from '@/content/site'
-import { legalDocs, legalOrder, type LegalBlock } from '@/content/legal'
+import { docPending, LEGAL_PENDING, legalDocs, legalOrder, type LegalBlock } from '@/content/legal'
 import { Seo } from '@/components/Seo'
 import { Missing } from '@/sections/work/Missing'
 
 const TOKEN = /(\[(?:PENDIENTE|PENDING):[^\]]+\]|\{email\}|\{doc:[a-z]+\|[^}]+\}|\{ext:[^|]+\|[^}]+\})/g
 
-/** Marcador de dato pendiente: claramente visible, pero dentro del sistema (sin colores nuevos). */
-function Pending({ children }: { children: ReactNode }) {
-  return <mark className="rounded-[0.3rem] bg-surface-2 px-1.5 py-0.5 text-paper outline-1 outline-line-strong outline-dashed">{children}</mark>
+/**
+ * Dato del titular que falta. Discreto pero honesto: no se oculta, se lee como pendiente
+ * (texto terciario con subrayado discontinuo, sin pastilla ni color nuevo).
+ */
+function Pending({ children }: { children: string }) {
+  // "[PENDIENTE: NIF]" → "Pendiente: NIF"
+  const text = children
+    .replace(/^\[\s*/, '')
+    .replace(/\s*\]$/, '')
+    .replace(/^PENDIENTE/, 'Pendiente')
+    .replace(/^PENDING/, 'Pending')
+  return (
+    <span data-pending className="text-dim underline decoration-line-strong decoration-dashed decoration-1 underline-offset-[0.3em]">
+      {text}
+    </span>
+  )
 }
 
 /** Convierte el marcado ligero de los textos legales en nodos. */
@@ -70,7 +83,8 @@ export function Component() {
 
   return (
     <>
-      <Seo title={d.title} description={d.description} />
+      {/* Mientras falten datos del titular, las páginas legales no se indexan */}
+      <Seo title={d.title} description={d.description} noindex={LEGAL_PENDING} />
       <article className="container-x grid gap-12 pt-[calc(var(--nav-h)+clamp(3rem,9vw,7rem))] pb-24 md:pb-36 lg:grid-cols-12 lg:gap-10">
         <nav aria-label={navLabel} className="lg:order-2 lg:col-span-3 lg:col-start-10">
           <div className="lg:sticky lg:top-[calc(var(--nav-h)+2rem)]">
@@ -101,6 +115,13 @@ export function Component() {
         <div className="measure lg:order-1 lg:col-span-8">
           <h1 className="type-display">{d.title}</h1>
           <p className="type-lead mt-6 text-mute">{rich(d.intro, lang)}</p>
+          {docPending(d) && (
+            <p className="type-small mt-6 text-dim">
+              {lang === 'es'
+                ? 'Documento en revisión. Faltan algunos datos del titular, marcados como pendientes.'
+                : 'Document under review. Some of the owner’s details are still missing and are marked as pending.'}
+            </p>
+          )}
 
           <div className="mt-14 flex flex-col gap-12 md:mt-20">
             {d.sections.map((s) => (

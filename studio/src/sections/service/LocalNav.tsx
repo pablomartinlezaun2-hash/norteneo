@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useLang } from '@/i18n'
 import { to } from '@/i18n/paths'
@@ -12,6 +13,8 @@ export type Anchor = { id: string; label: string }
  * Navegación local fija bajo la global (como la de producto de Apple).
  * Escritorio: nombre · anclas · píldora. Móvil: nombre desplegable con las anclas · píldora.
  * Cuando la nav global se oculta al bajar, esta sube a ocupar su sitio (misma regla que Nav.tsx).
+ * En estas rutas la nav global no lleva píldora: la única es "Solicitar propuesta" de aquí.
+ * `data-local-nav` permite a global.css ampliar el scroll-padding (foco con teclado bajo las dos barras).
  */
 export function LocalNav({ service, anchors }: { service: Service; anchors: Anchor[] }) {
   const lang = useLang()
@@ -73,12 +76,47 @@ export function LocalNav({ service, anchors }: { service: Service; anchors: Anch
     return () => document.removeEventListener('keydown', onKey)
   }, [open])
 
+  /**
+   * Salto a una sección calculado a mano (no scrollIntoView):
+   * 1. Cierra antes el desplegable móvil (flushSync): si se cierra durante el desplazamiento suave, el contenido
+   *    sube ~200 px y el salto aterriza por debajo del destino.
+   * 2. Deja el contenido de la sección (no su padding) bajo el cromo que quedará visible: al bajar, la nav global
+   *    se oculta y solo queda esta barra; al subir, quedan las dos.
+   * 3. Si algo cambia el layout durante el salto (pins, medios), corrige al terminar.
+   */
   const go = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
     const el = document.getElementById(id)
     if (!el) return
     e.preventDefault()
-    setOpen(false)
-    el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+    flushSync(() => setOpen(false))
+    const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth'
+    const first = id === anchors[0]?.id
+    const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) * 16 || 56
+    // Alto real de la barra (con el desplegable ya cerrado y su hairline)
+    const localH = ref.current?.offsetHeight ?? 53
+    const contentTop = () => {
+      const inner = el.firstElementChild instanceof HTMLElement ? el.firstElementChild : null
+      const pad = inner ? parseFloat(getComputedStyle(inner).paddingTop) || 0 : 0
+      return el.getBoundingClientRect().top + window.scrollY + pad
+    }
+    // El sentido se decide una vez: fija qué cromo quedará visible al llegar
+    const down = contentTop() - localH - 32 > window.scrollY
+    const targetY = () => (first ? 0 : Math.max(0, Math.round(contentTop() - (down ? localH : navH + localH) - 32)))
+    const y = targetY()
+    window.scrollTo({ top: y, behavior })
+    if (behavior === 'smooth' && Math.abs(y - window.scrollY) > 8 && 'onscrollend' in window) {
+      const started = performance.now()
+      window.addEventListener(
+        'scrollend',
+        () => {
+          // Solo corrige el final de este salto, nunca un desplazamiento posterior del usuario
+          if (performance.now() - started > 3000) return
+          const fix = targetY()
+          if (Math.abs(fix - window.scrollY) > 8) window.scrollTo({ top: fix, behavior })
+        },
+        { once: true },
+      )
+    }
     window.history.replaceState(window.history.state, '', `#${id}`)
     el.focus({ preventScroll: true })
   }
@@ -87,7 +125,7 @@ export function LocalNav({ service, anchors }: { service: Service; anchors: Anch
     `inline-flex items-center font-[460] transition-colors hover:text-paper ${size} ${active === id ? 'text-paper' : 'text-mute'}`
 
   return (
-    <div ref={ref} className="sticky top-[var(--nav-h)] z-40 border-b border-line bg-black/85 backdrop-blur-md">
+    <div ref={ref} data-local-nav className="sticky top-[var(--nav-h)] z-40 border-b border-line bg-black/85 backdrop-blur-md">
       <nav aria-label={t.localNav} className="container-x flex h-13 items-center justify-between gap-4">
         <a
           href={`#${anchors[0].id}`}
@@ -119,13 +157,16 @@ export function LocalNav({ service, anchors }: { service: Service; anchors: Anch
               </li>
             ))}
           </ul>
+          {/* Área táctil de 44 px (el enlace); la píldora visible mide 32 px y lleva el anillo de foco */}
           <Link
             to={to.contact(lang, service.id)}
             viewTransition
-            className="relative inline-flex h-8 items-center rounded-full bg-paper px-4 text-[0.8125rem] font-[540] whitespace-nowrap text-ink transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 hover:bg-white"
+            className="group inline-flex min-h-11 items-center outline-none"
           >
-            <span className="sm:hidden">{t.proposeShort}</span>
-            <span className="hidden sm:inline">{t.propose}</span>
+            <span className="inline-flex h-8 items-center rounded-full bg-paper px-4 text-[0.8125rem] font-[540] whitespace-nowrap text-ink transition-colors group-hover:bg-white group-focus-visible:outline-2 group-focus-visible:outline-offset-3 group-focus-visible:outline-accent">
+              <span className="sm:hidden">{t.proposeShort}</span>
+              <span className="hidden sm:inline">{t.propose}</span>
+            </span>
           </Link>
         </div>
       </nav>

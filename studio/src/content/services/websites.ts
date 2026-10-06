@@ -97,7 +97,13 @@ export const websites: ServiceDetail = {
     specTiming,
   ],
   faqs: [
-    faqCost,
+    {
+      ...faqCost,
+      a: {
+        es: 'Depende del alcance: páginas, idiomas, funcionalidades y plazo. Tras el brief te enviamos una propuesta a medida, sin compromiso.',
+        en: 'It depends on the scope: pages, languages, features and timing. After the brief we send you a tailored proposal, with no commitment.',
+      },
+    },
     {
       q: { es: '¿Cuánto se tarda?', en: 'How long does it take?' },
       a: {

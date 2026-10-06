@@ -5,7 +5,7 @@ import { sectors, type Case } from '@/content/cases'
 import { frameUrl, getMedia } from '@/lib/media'
 import { DiscoverLink } from '@/components/Cta'
 import { Meta } from '@/components/Meta'
-import { anchorOffset, ui } from './copy'
+import { ui } from './copy'
 
 /** Ejemplos: casos del servicio con enlace a su página. Pósters fijos (sin vídeo ni zoom al pasar). */
 export function Examples({ items }: { items: Case[] }) {
@@ -14,7 +14,7 @@ export function Examples({ items }: { items: Case[] }) {
   const two = items.length <= 2
   const allClient = items.every((c) => c.kind === 'client')
   return (
-    <section id="ejemplos" tabIndex={-1} aria-labelledby="ejemplos-title" className={`border-t border-line outline-none ${anchorOffset}`}>
+    <section id="ejemplos" tabIndex={-1} aria-labelledby="ejemplos-title" className="border-t border-line outline-none">
       <div className="container-x py-24 md:py-36">
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
           <div>

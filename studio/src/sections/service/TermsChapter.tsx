@@ -13,7 +13,7 @@ export function TermsChapter({ chapter, id }: Props) {
   return (
     <ChapterShell labelledBy={head}>
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
-        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:col-span-5" />
+        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:col-span-5" compact />
         <div className="lg:col-span-6 lg:col-start-7 lg:self-end">
           <dl>
             {chapter.items.map((item, i) => (

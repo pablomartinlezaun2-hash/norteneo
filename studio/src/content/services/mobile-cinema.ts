@@ -142,7 +142,13 @@ export const mobileCinema: ServiceDetail = {
     { label: { es: 'Duración y modalidad', en: 'Length and format' }, value: { es: 'A consultar', en: 'On request' } },
   ],
   faqs: [
-    faqCost,
+    {
+      ...faqCost,
+      a: {
+        es: 'Depende de la duración y la modalidad de la sesión. Tras el brief te enviamos una propuesta a medida, sin compromiso.',
+        en: 'It depends on the length and format of the session. After the brief we send you a tailored proposal, with no commitment.',
+      },
+    },
     {
       q: { es: '¿Qué móvil necesito?', en: 'Which phone do I need?' },
       a: {

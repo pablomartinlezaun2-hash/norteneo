@@ -32,15 +32,15 @@ const copy = {
   en: {
     seo: 'Brief received',
     title: 'Received.',
-    withId: (id: string) => `Your brief ${id} is with us. Keep this number in case you want to mention it.`,
+    withId: (id: string) => `Your brief ${id} is with us. Keep this number handy in case you need to refer to it.`,
     noId: 'Your brief is with us.',
     nextTitle: 'What happens next',
     steps: [
       { term: 'We read it carefully', text: 'Your brand, your references and what you want to achieve.' },
-      { term: 'We write to you', text: 'Through the channel you chose, with questions or a first direction.' },
-      { term: 'We send you a proposal', text: 'Tailored, with no catalogue prices. If it is not a fit, we will tell you that too.' },
+      { term: 'We get in touch', text: 'Through the channel you chose, with questions or a first direction.' },
+      { term: 'We send you a proposal', text: 'Tailored to you, with no price list. If we’re not the right fit, we’ll tell you that too.' },
     ],
-    hurry: 'Rather get a head start?',
+    hurry: 'Want to speed things up?',
     whatsapp: 'Message on WhatsApp',
     waMsg: (id: string | null, name: string) =>
       id ? (name ? `Hi, I’m ${name}, brief ${id}.` : `Hi, I’m writing about brief ${id}.`) : 'Hi, I just sent you a brief from the website.',

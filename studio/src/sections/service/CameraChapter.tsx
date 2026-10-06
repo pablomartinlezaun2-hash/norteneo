@@ -13,8 +13,8 @@ export function CameraChapter({ chapter, id }: Props) {
   return (
     <ChapterShell labelledBy={head}>
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
-        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:col-span-4" />
-        <table className="w-full border-collapse text-left lg:col-span-7 lg:col-start-6">
+        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:col-span-5" compact />
+        <table className="w-full border-collapse text-left lg:col-span-6 lg:col-start-7">
           <caption className="sr-only">{chapter.proof?.[lang] ?? chapter.claim[lang]}</caption>
           <thead className="sr-only">
             <tr>

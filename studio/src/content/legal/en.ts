@@ -30,7 +30,7 @@ export const legalEn: Record<LegalId, LegalDoc> = {
       {
         h: 'Purpose',
         body: [
-          'This website presents the creative services of NEO Studio (AI film and 3D, signature websites, post-production, social content and mobile cinema) and lets you request a proposal. The information published here is not a binding offer: every commission is set out in a tailored proposal.',
+          'This website presents the creative services of NEO Studio (AI video, AI 3D, signature websites, post-production, social content and mobile cinema) and lets you request a proposal. The information published here is not a binding offer: every commission is set out in a tailored proposal.',
         ],
       },
       {
@@ -180,7 +180,7 @@ export const legalEn: Record<LegalId, LegalDoc> = {
 
   cookies: {
     title: 'Cookie policy',
-    description: 'NEO Studio uses no tracking or advertising cookies. Only strictly necessary storage and cookie-free analytics.',
+    description: 'NEO Studio uses no tracking or advertising cookies. Only strictly necessary storage.',
     intro:
       'This website uses no tracking, advertising or third-party cookies. That is why you will not see a cookie banner: we install nothing that requires your consent.',
     sections: [
@@ -198,17 +198,13 @@ export const legalEn: Record<LegalId, LegalDoc> = {
             list: [
               'neo-intro (session storage): remembers that you have already seen the logo intro so it does not play again. Deleted when you close the tab.',
               'neo-brief-draft (local storage): keeps a draft of the contact form while you fill it in. Deleted when you send the brief or press “Start over”.',
-              'neo-brief-last (session storage): keeps the number of your last brief to show it on the confirmation page. Deleted when you close the tab.',
+              'neo-brief-last (session storage): keeps the number of your last brief and your name to show them on the confirmation page. Deleted when you close the tab.',
             ],
           },
         ],
       },
-      {
-        h: 'Cookie-free analytics',
-        body: [
-          'To know, in aggregate, how many visits the website receives, we may use a cookie-free analytics tool that stores nothing on your device and cannot identify you. [PENDING: analytics provider, if enabled]',
-        ],
-      },
+      // Analytics: the site loads none today. If a cookie-free tool is enabled, add a
+      // «Cookie-free analytics» section here naming the provider (and in es.ts and the description).
       {
         h: 'Third-party content and links',
         body: [

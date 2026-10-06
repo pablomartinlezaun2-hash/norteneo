@@ -16,19 +16,17 @@ import { pauseIn, playIn } from '@/sections/closing/hoverVideo'
 const copy = {
   es: {
     title: 'La colección.',
-    sub: 'Encargos para restauración, inmobiliaria, bebidas y moda.',
+    sub: 'Encargos y un concepto propio para restauración, inmobiliaria, bebidas, moda y deporte.',
     ai: 'Generado con IA, dirigido por NEO',
     concept: 'Concepto · no oficial',
     all: 'Ver todo el trabajo',
-    caseLabel: (name: string) => `Ver el caso ${name}`,
   },
   en: {
     title: 'The collection.',
-    sub: 'Commissions in hospitality, real estate, drinks and fashion.',
+    sub: 'Commissions, and one self-initiated concept, across hospitality, real estate, drinks, fashion and sport.',
     ai: 'AI-generated, directed by NEO',
     concept: 'Concept · unofficial',
     all: 'See all work',
-    caseLabel: (name: string) => `View the ${name} case`,
   },
 } satisfies Record<Lang, unknown>
 
@@ -114,8 +112,13 @@ function Piece({ item, lang, first }: { item: Item; lang: Lang; first: boolean }
     />
   )
 
-  // Ancho de las verticales: Trono a ancho completo en móvil; el resto más estrecho y alternando lado.
-  const phoneWidth = first ? 'w-full sm:w-[62%] lg:w-full' : `w-[78%] sm:w-[52%] lg:w-full ${mobile} lg:mx-0`
+  // Ancho de las verticales: Trono la más grande en móvil; el resto más estrecho y alternando lado.
+  // Por debajo de lg, el ancho se limita también por la altura del viewport (pantalla 9:16 del PhoneFrame, ≈ 0,5625) para que
+  // la pieza y su pie (título, línea y etiquetas, unos 12rem con la nav) quepan en una pantalla.
+  // Clases escritas completas para que Tailwind las detecte.
+  const phoneWidth = first
+    ? 'w-[min(100%,calc((100svh_-_12rem)*0.5625))] sm:w-[min(62%,calc((100svh_-_12rem)*0.5625))] lg:w-full'
+    : `w-[min(78%,calc((100svh_-_12rem)*0.5625))] sm:w-[min(52%,calc((100svh_-_12rem)*0.5625))] lg:w-full ${mobile} lg:mx-0`
 
   return (
     <li
@@ -133,7 +136,6 @@ function Piece({ item, lang, first }: { item: Item; lang: Lang; first: boolean }
             <Link
               to={to.case(lang, c.slug)}
               viewTransition
-              aria-label={t.caseLabel(c.title)}
               className="outline-none after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:after:rounded-[0.75rem] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-accent underline-offset-4 decoration-1"
             >
               {c.title}

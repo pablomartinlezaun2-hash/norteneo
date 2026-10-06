@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLang } from '@/i18n'
 import { to } from '@/i18n/paths'
 import { site } from '@/content/site'
+import { prefersReducedMotion } from '@/lib/motion'
 import { services } from '@/content/services'
 import { briefCopy, type ErrKey } from './copy'
 import { BRIEF_SECTORS, DRAFT_KEY, GOALS, INVESTMENT, LAST_KEY, NOTES_MAX, PREFERENCES, TIMELINES, UNSURE, type Preference, type ServiceChoice } from './config'
@@ -104,6 +105,7 @@ export function Brief() {
   const formRef = useRef<HTMLFormElement>(null)
   const focusError = useRef(false)
   const didMount = useRef(false)
+  const alertRef = useRef<HTMLDivElement>(null)
 
   // Montaje: borrador + ?servicio= + UTM (tras hidratar, para no romper el HTML prerenderizado)
   useEffect(() => {
@@ -144,6 +146,15 @@ export function Brief() {
     }
     headings.current[step]?.focus()
   }, [step])
+
+  // Envío fallido: el aviso y sus alternativas entran en pantalla y reciben el foco
+  useEffect(() => {
+    if (status !== 'error') return
+    const el = alertRef.current
+    if (!el) return
+    el.focus({ preventScroll: true })
+    el.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+  }, [status])
 
   // Foco al primer campo con error
   useEffect(() => {
@@ -645,8 +656,9 @@ export function Brief() {
           )}
           <button
             type="submit"
-            disabled={status === 'sending'}
-            className={`inline-flex min-h-11 items-center justify-center rounded-full bg-paper px-7 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white disabled:cursor-wait disabled:opacity-60 ${
+            // aria-disabled (no disabled): el botón conserva el foco mientras se envía; onSubmit ignora el doble envío
+            aria-disabled={status === 'sending' || undefined}
+            className={`inline-flex min-h-11 items-center justify-center rounded-full bg-paper px-7 text-[0.9375rem] font-[520] text-ink transition-colors hover:bg-white aria-disabled:cursor-wait aria-disabled:opacity-60 ${
               step < TOTAL - 1 ? '[.js_&]:hidden' : ''
             }`}
           >
@@ -658,7 +670,7 @@ export function Brief() {
       {/* Estado del envío */}
       <div aria-live="polite">
         {status === 'error' && (
-          <div role="alert" className="mt-8 rounded-2xl border border-line-strong p-6">
+          <div ref={alertRef} role="alert" tabIndex={-1} className="mt-8 scroll-my-24 rounded-2xl border border-line-strong p-6 outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
             <p className="text-[1.0625rem] font-[480] text-paper">{t.failTitle}</p>
             <p className="type-small mt-2 text-mute">{t.failLine}</p>
             <div className="mt-5 flex flex-wrap gap-3">

@@ -40,7 +40,7 @@ export function GridChapter({ chapter, id }: Props) {
   return (
     <ChapterShell labelledBy={head}>
       <div className="grid gap-14 lg:grid-cols-12 lg:gap-10">
-        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:col-span-5">
+        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:col-span-5" compact>
           <button
             type="button"
             role="switch"

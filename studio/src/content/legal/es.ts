@@ -30,7 +30,7 @@ export const legalEs: Record<LegalId, LegalDoc> = {
       {
         h: 'Objeto',
         body: [
-          'Este sitio web presenta los servicios creativos de NEO Studio (vídeo y 3D con inteligencia artificial, webs de autor, postproducción, contenido para redes y cine con el móvil) y permite solicitar una propuesta. La información publicada no constituye una oferta vinculante: cada encargo se concreta en una propuesta a medida.',
+          'Este sitio web presenta los servicios creativos de NEO Studio (vídeo y 3D con inteligencia artificial, webs de autor, postproducción, contenido para redes y cine con tu móvil) y permite solicitar una propuesta. La información publicada no constituye una oferta vinculante: cada encargo se concreta en una propuesta a medida.',
         ],
       },
       {
@@ -180,7 +180,7 @@ export const legalEs: Record<LegalId, LegalDoc> = {
 
   cookies: {
     title: 'Política de cookies',
-    description: 'NEO Studio no usa cookies de seguimiento ni publicitarias. Solo almacenamiento técnico necesario y analítica sin cookies.',
+    description: 'NEO Studio no usa cookies de seguimiento ni publicitarias. Solo almacenamiento técnico necesario.',
     intro:
       'Esta web no usa cookies de seguimiento, publicitarias ni de terceros. Por eso no verás un banner de cookies: no instalamos nada que requiera tu consentimiento.',
     sections: [
@@ -198,17 +198,13 @@ export const legalEs: Record<LegalId, LegalDoc> = {
             list: [
               'neo-intro (almacenamiento de sesión): recuerda que ya has visto la animación de entrada del logo para no repetirla. Se borra al cerrar la pestaña.',
               'neo-brief-draft (almacenamiento local): guarda el borrador del formulario de contacto mientras lo rellenas. Se borra al enviar el brief o al pulsar «Empezar de cero».',
-              'neo-brief-last (almacenamiento de sesión): guarda el número de tu último brief para mostrarlo en la página de confirmación. Se borra al cerrar la pestaña.',
+              'neo-brief-last (almacenamiento de sesión): guarda el número de tu último brief y tu nombre para mostrarlos en la página de confirmación. Se borra al cerrar la pestaña.',
             ],
           },
         ],
       },
-      {
-        h: 'Analítica sin cookies',
-        body: [
-          'Para saber de forma agregada cuántas visitas recibe la web podemos usar una herramienta de analítica sin cookies, que no guarda nada en tu dispositivo ni permite identificarte. [PENDIENTE: nombre del proveedor de analítica, si se activa]',
-        ],
-      },
+      // Analítica: la web no carga ninguna hoy. Si se activa una herramienta sin cookies, añadir aquí
+      // la sección «Analítica sin cookies» con el nombre del proveedor (y en en.ts y la description).
       {
         h: 'Contenidos y enlaces de terceros',
         body: [
@@ -223,7 +219,7 @@ export const legalEs: Record<LegalId, LegalDoc> = {
       },
       {
         h: 'Cambios en esta política',
-        body: ['Si en el futuro incorporamos cookies que requieran consentimiento, te lo pediremos antes de instalarlas y actualizaremos esta política. La política de privacidad completa está en la {doc:privacy|política de privacidad}.'],
+        body: ['Si en el futuro incorporamos cookies que requieran consentimiento, te lo pediremos antes de instalarlas y actualizaremos esta política. Tienes toda la información sobre el tratamiento de tus datos en la {doc:privacy|política de privacidad}.'],
       },
     ],
   },

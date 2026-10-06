@@ -53,7 +53,7 @@ const copy = {
     gallery: 'Gallery',
     galleryAlt: (title: string, n: number) => `${title}, gallery piece ${n}`,
     askTitle: 'Something like this for your brand?',
-    askLine: 'Tell us what you need. We reply with a tailored proposal.',
+    askLine: 'Tell us what you need, and we’ll reply with a tailored proposal.',
     cta: 'Request a proposal',
     next: 'Next case',
     web: 'Live website',
@@ -85,14 +85,22 @@ function jsonLd(c: Case, lang: Lang) {
   }
   const m = c.media ? getMedia(c.media) : undefined
   if (m) {
+    // CreativeWork con el vídeo como medio asociado (MediaObject), no VideoObject de nivel superior:
+    // Google exige uploadDate en VideoObject y no tenemos la fecha real de publicación de cada pieza.
+    // Cuando cases.ts tenga esa fecha, puede volver a VideoObject con uploadDate.
     const mp4 = m.sources.find((s) => s.codec === 'h264')
     return {
-      '@type': 'VideoObject',
+      '@type': 'CreativeWork',
       ...base,
       url: page,
-      thumbnailUrl: abs(m.poster.jpg),
-      ...(mp4 ? { contentUrl: abs(mp4.src), width: mp4.w, height: mp4.h } : {}),
-      duration: `PT${Math.round(m.duration)}S`,
+      image: abs(m.poster.jpg),
+      associatedMedia: {
+        '@type': 'MediaObject',
+        encodingFormat: 'video/mp4',
+        thumbnailUrl: abs(m.poster.jpg),
+        ...(mp4 ? { contentUrl: abs(mp4.src), width: mp4.w, height: mp4.h } : {}),
+        duration: `PT${Math.round(m.duration)}S`,
+      },
     }
   }
   return { '@type': 'CreativeWork', ...base, url: c.url ?? page, mainEntityOfPage: page }
@@ -152,7 +160,9 @@ function CaseView({ c }: { c: Case }) {
               {tags}
             </div>
             <div className="md:col-span-6 md:justify-self-center lg:col-span-5 lg:col-start-8">
-              <PhoneFrame className="mx-auto w-[min(78vw,19rem)] lg:w-[20rem]">
+              {/* El ancho se limita por la altura del viewport para que el teléfono y su botón de pausa
+                  quepan enteros en pantallas bajas (1280×720): alto ≈ 16/9 del ancho + marco. */}
+              <PhoneFrame className="mx-auto w-[min(78vw,19rem)] md:w-[min(19rem,calc((100svh-var(--nav-h)-6rem)*0.54))] lg:w-[min(20rem,calc((100svh-var(--nav-h)-6rem)*0.54))]">
                 <div className="h-full w-full" style={{ viewTransitionName: pieceTransition(c.slug) }}>
                   <Video media={c.media} label={pieceAlt(c, lang)} priority exclusive controls className="h-full w-full" />
                 </div>

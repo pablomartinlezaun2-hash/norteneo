@@ -60,7 +60,7 @@ export function ScriptChapter({ chapter, id }: Props) {
         </figure>
 
         <div className="-order-1 md:order-2 md:col-span-7 md:self-end lg:col-span-6 lg:col-start-7">
-          <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} />
+          <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} compact />
         </div>
 
         <div className="md:order-3 md:col-span-7 md:self-start lg:col-span-6 lg:col-start-7">

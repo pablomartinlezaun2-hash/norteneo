@@ -16,7 +16,7 @@ const copy = {
   en: {
     seo: 'Page not found',
     title: 'This piece doesn’t exist. Yet.',
-    line: 'The link may have changed, or we may be directing it right now.',
+    line: 'The link may have changed, or perhaps we’re directing it right now.',
     work: 'See the work',
     home: 'Back to home',
     paused: 'Paused',

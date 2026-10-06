@@ -17,7 +17,7 @@ export function VideoChapter({ chapter, id }: Props) {
   return (
     <ChapterShell labelledBy={head}>
       <div className="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-10">
-        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:order-2 lg:col-span-5" />
+        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} proof={chapter.proof?.[lang]} className="lg:order-2 lg:col-span-5" compact />
         <figure className="lg:order-1 lg:col-span-7">
           <Video
             media={chapter.media}

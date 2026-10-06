@@ -48,7 +48,7 @@ export function CutsChapter({ chapter, id }: Props) {
   return (
     <ChapterShell labelledBy={head}>
       <div className="grid items-center gap-12 md:grid-cols-12 md:gap-10">
-        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} className="md:col-span-7 lg:col-span-6">
+        <ChapterHead id={head} claim={chapter.claim[lang]} text={chapter.text[lang]} className="md:col-span-7 lg:col-span-6" compact>
           <Segmented className="mt-10" label={t.cutsGroup} options={chapter.cuts.map((c) => c.name[lang])} value={current} onChange={setCurrent} />
           <div aria-live="polite" className="mt-5 min-h-[4.5em]">
             <p className="type-meta text-paper">[ {cut.meta[lang]} ]</p>

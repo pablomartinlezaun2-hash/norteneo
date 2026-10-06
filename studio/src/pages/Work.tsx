@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useLang } from '@/i18n'
 import { to } from '@/i18n/paths'
 import { site } from '@/content/site'
@@ -41,14 +42,14 @@ const copy = {
   },
   en: {
     seo: 'Work',
-    desc: 'Signature websites, AI film and 3D for real brands. Every piece in its original format.',
+    desc: 'Signature websites, AI video and AI 3D for real brands. Every piece in its original format.',
     title: 'Work.',
     sub: 'Websites, film and 3D for real brands. Every piece in its original format.',
     clients: 'Clients',
     clientsLine: 'Real commissions, signed by NEO.',
     films: 'Film and 3D',
     webs: 'Websites',
-    websLine: 'Signature websites, live in production. Open them: they are live.',
+    websLine: 'Signature websites, all live. Go ahead and open them.',
     concept: 'Concept',
     conceptLine: 'A self-initiated exercise, not commissioned by or linked to any brand.',
     own: 'Own product',
@@ -59,7 +60,7 @@ const copy = {
     empty: 'Nothing with this combination, yet.',
     clear: 'Clear filters',
     closeTitle: 'Your brand, next?',
-    closeLine: 'Tell us what you need and we will prepare a tailored proposal.',
+    closeLine: 'Tell us what you need, and we’ll prepare a tailored proposal.',
     cta: 'Request a proposal',
   },
 }
@@ -109,20 +110,19 @@ export function Component() {
     if (service || sector) setFilter({ service, sector })
   }, [])
 
+  // La query pasa por el router (no por history.replaceState) para que el resto de la app,
+  // p. ej. el selector ES/EN, conozca el filtro aplicado.
+  const [, setParams] = useSearchParams()
   const change = (next: WorkFilter) => {
     grid.current?.capture()
     setFilter(next)
-    try {
-      const url = new URL(window.location.href)
-      url.searchParams.delete('service')
-      if (next.service) url.searchParams.set('servicio', next.service as ServiceId)
-      else url.searchParams.delete('servicio')
-      if (next.sector) url.searchParams.set('sector', next.sector)
-      else url.searchParams.delete('sector')
-      window.history.replaceState(window.history.state, '', url.pathname + url.search)
-    } catch {
-      /* sin History API: el filtro sigue funcionando */
-    }
+    const q = new URLSearchParams(window.location.search)
+    q.delete('service')
+    if (next.service) q.set('servicio', next.service as ServiceId)
+    else q.delete('servicio')
+    if (next.sector) q.set('sector', next.sector)
+    else q.delete('sector')
+    setParams(q, { replace: true, preventScrollReset: true })
   }
 
   const films = clientFilms.filter((c) => matches(c, filter))
@@ -157,8 +157,9 @@ export function Component() {
       </header>
 
       <div className="container-x">
-        <div className="border-y border-line py-3">
-        <Filters value={filter} onChange={change} />
+        {/* Sin JS los chips no harían nada: los filtros solo se muestran con .js */}
+        <div className="hidden border-y border-line py-3 [.js_&]:block">
+          <Filters value={filter} onChange={change} />
         </div>
       </div>
       <p className="sr-only" aria-live="polite">

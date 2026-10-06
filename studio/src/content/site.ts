@@ -21,7 +21,7 @@ export const site = {
   instagram: (import.meta.env.VITE_INSTAGRAM as string | undefined) ?? '',
   description: {
     es: 'Estudio creativo de vídeo con IA, 3D y webs de autor para marcas de lujo. Imagen de cine, sin plató.',
-    en: 'Creative studio for AI film, 3D and bespoke websites for luxury brands. Cinematic imagery, no set.',
+    en: 'Creative studio for AI video, AI 3D and signature websites for luxury brands. Cinematic imagery, no set.',
   } satisfies L,
 } as const
 

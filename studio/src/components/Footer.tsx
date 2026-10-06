@@ -25,7 +25,7 @@ const copy = {
     waMsg: 'Hola, NEO Studio. Me gustaría hablar de un proyecto.',
   },
   en: {
-    tagline: 'AI film, 3D and signature websites, directed with a filmmaker’s craft.',
+    tagline: 'AI video, AI 3D and signature websites, directed with a filmmaker’s craft.',
     services: 'Services',
     allServices: 'All services',
     studio: 'Studio',
