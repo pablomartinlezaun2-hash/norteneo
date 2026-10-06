@@ -6,8 +6,11 @@ import type { L } from '@/i18n'
  */
 export const site = {
   name: 'NEO Studio',
-  /** Dominio final (para canonical, hreflang y Open Graph). Pendiente: cambiar al dominio real. */
-  url: (import.meta.env.VITE_SITE_URL as string | undefined) ?? 'https://neo-studio.vercel.app',
+  /**
+   * Dominio de la web (canonical, hreflang y Open Graph). En Vercel sale solo del dominio de producción
+   * del proyecto (ver vite.config.ts); VITE_SITE_URL lo fija a mano (p. ej. el dominio propio).
+   */
+  url: (import.meta.env.VITE_SITE_URL as string | undefined) ?? 'http://localhost:4173',
   /** WhatsApp en formato internacional sin "+" ni espacios. */
   whatsapp: (import.meta.env.VITE_WHATSAPP as string | undefined) ?? '34629946893',
   /** Email comercial (recibe las propuestas). */

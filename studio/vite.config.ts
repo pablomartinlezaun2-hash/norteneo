@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite'
 import type { ViteReactSSGOptions } from 'vite-react-ssg'
 import { fileURLToPath, URL } from 'node:url'
 
+// URL canónica (canonical, hreflang, Open Graph, sitemap). Si no se fija VITE_SITE_URL, en Vercel se usa
+// el dominio de producción del propio proyecto, así nunca apunta a un dominio ajeno.
+if (!process.env.VITE_SITE_URL && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+  process.env.VITE_SITE_URL = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+}
+
 const config: UserConfig & { ssgOptions: Partial<ViteReactSSGOptions> } = {
   plugins: [react(), tailwindcss()],
   resolve: {
