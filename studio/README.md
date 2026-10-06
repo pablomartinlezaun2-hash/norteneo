@@ -13,7 +13,7 @@ Web de marca de **NEO Studio**: vídeo con IA, 3D con IA, webs de autor, postpro
 
 | Variable | Para qué | Valor por defecto |
 |---|---|---|
-| `VITE_SITE_URL` | Dominio final (canonical, hreflang, sitemap) | `https://neo-studio.vercel.app` |
+| `VITE_SITE_URL` | Dominio final (canonical, hreflang, sitemap) | El dominio de producción del proyecto en Vercel |
 | `VITE_WHATSAPP` | WhatsApp en formato internacional | `34629946893` |
 | `VITE_CONTACT_EMAIL` | Email comercial | `neo.method.lab@gmail.com` |
 | `VITE_LEAD_ENDPOINT` | Dónde se envía el brief | `https://formsubmit.co/ajax/neo.method.lab@gmail.com` |

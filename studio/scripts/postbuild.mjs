@@ -10,7 +10,11 @@ import { join, resolve } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const DIST = join(ROOT, 'dist')
-const SITE = (process.env.VITE_SITE_URL ?? 'https://neo-studio.vercel.app').replace(/\/$/, '')
+// Misma regla que vite.config.ts: VITE_SITE_URL, o el dominio de producción del proyecto en Vercel
+const SITE = (
+  process.env.VITE_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:4173')
+).replace(/\/$/, '')
 
 // 404
 const nf = join(DIST, '404/index.html')
