@@ -68,8 +68,10 @@ export function Video({
   const [paused, setPaused] = useState(true)
   const [visible, setVisible] = useState(false)
   const [userPaused, setUserPaused] = useState(false)
-  // Los clips con sonido arrancan silenciados (autoplay) y solo suenan si el usuario lo pide
+  // Los clips con sonido intentan sonar por defecto. Si el navegador bloquea el autoplay con sonido,
+  // arrancan silenciados y el sonido se activa con el primer toque o tecla del usuario en la página.
   const [muted, setMuted] = useState(true)
+  const userMuted = useRef(false)
   const [active, setActive] = useState<MediaEntry | undefined>(() => getMedia(media))
   // Hasta montar (y resolver la variante vertical) no se precarga nada: evita bajar dos vídeos en móvil
   const [mounted, setMounted] = useState(false)
@@ -103,17 +105,52 @@ export function Video({
     return () => io.disconnect()
   }, [])
 
+  const withSound = Boolean(active?.audio)
+
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
     const shouldPlay = play === 'inview' && visible && !reduce && !userPaused
     if (shouldPlay) {
       if (exclusive) claim(v)
-      v.play().catch(() => setPaused(true))
+      if (withSound && !userMuted.current) {
+        v.muted = false
+        v.play()
+          .then(() => setMuted(false))
+          .catch(() => {
+            // Autoplay con sonido bloqueado: sigue en silencio hasta el primer gesto
+            v.muted = true
+            setMuted(true)
+            v.play().catch(() => setPaused(true))
+          })
+      } else {
+        v.play().catch(() => setPaused(true))
+      }
     } else if (!v.paused && play === 'inview' && (!visible || reduce)) {
       v.pause()
     }
-  }, [visible, reduce, userPaused, play, exclusive, active])
+  }, [visible, reduce, userPaused, play, exclusive, active, withSound])
+
+  // Primer gesto en la página (fuera de los controles del vídeo): activa el sonido si sigue bloqueado
+  useEffect(() => {
+    if (!withSound) return
+    const unlock = (e: Event) => {
+      const v = videoRef.current
+      if (!v || userMuted.current) return
+      if (wrapRef.current?.contains(e.target as Node)) return
+      if (!v.paused && v.muted) {
+        v.muted = false
+        setMuted(false)
+      }
+    }
+    const opts = { capture: true, passive: true } as const
+    window.addEventListener('pointerdown', unlock, opts)
+    window.addEventListener('keydown', unlock, opts)
+    return () => {
+      window.removeEventListener('pointerdown', unlock, opts)
+      window.removeEventListener('keydown', unlock, opts)
+    }
+  }, [withSound])
 
   if (!land || !active) {
     return <div className={`bg-surface ${className}`} style={style} role="img" aria-label={label} />
@@ -143,6 +180,7 @@ export function Video({
     const next = !v.muted
     v.muted = next
     setMuted(next)
+    userMuted.current = next
     if (!next) {
       setUserPaused(false)
       if (exclusive) claim(v)
@@ -150,7 +188,7 @@ export function Video({
     }
   }
 
-  const sound = Boolean(active.audio)
+  const sound = withSound
   const pos = { br: 'right-4 bottom-4 flex-row-reverse', bl: 'left-4 bottom-4', tr: 'right-4 top-4 flex-row-reverse' }[controlsPosition]
   const objectFit = fit === 'cover' ? 'object-cover' : 'object-contain'
 
@@ -181,9 +219,10 @@ export function Video({
         preload={priority && mounted && !reduce ? 'auto' : 'none'}
         aria-label={label}
         disablePictureInPicture
-        onPlaying={() => {
+        onPlaying={(e) => {
           setShown(true)
           setPaused(false)
+          setMuted(e.currentTarget.muted)
           onPlayingChange?.(true)
         }}
         onPause={() => {
