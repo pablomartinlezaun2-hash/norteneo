@@ -42,7 +42,7 @@ export function Closing() {
   const sectionRef = useRef<HTMLElement>(null)
   const slotRef = useRef<HTMLDivElement>(null)
   const revealRef = useRef<HTMLHeadingElement>(null)
-  const imagineRef = useRef<HTMLParagraphElement>(null)
+  const imagineRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
 
   useGSAP(
@@ -69,6 +69,9 @@ export function Closing() {
             mask: 'lines',
             autoSplit: true,
             linesClass: 'split-line',
+            // Sin aria-label ni aria-hidden: las líneas siguen siendo texto real, así que el titular y
+            // "Imagina tu marca." llegan íntegros al lector de pantalla (aria-label en un bloque sin rol se ignora).
+            aria: 'none',
             // Se devuelve la animación para que SplitText la rehaga (y recalcule su trigger) al re-dividir,
             // p. ej. cuando carga la fuente y cambia la altura de la página.
             onSplit(self) {
@@ -112,16 +115,17 @@ export function Closing() {
         </div>
 
         <div className="container-x flex min-h-0 flex-1 flex-col pt-[calc(var(--nav-h)+12svh)] pb-[max(2.5rem,6svh)] lg:pt-[calc(var(--nav-h)+9svh)]">
-          <h2 id="closing-title" ref={revealRef} className="type-display max-w-[24ch]">
+          <h2 id="closing-title" ref={revealRef} className="type-display max-w-[24ch] max-sm:type-title max-sm:[font-stretch:104%]">
             <span className="text-accent" aria-hidden="true">
               *
             </span>
             {t.reveal}
           </h2>
           <div className="mt-8 flex flex-col items-start gap-x-12 gap-y-8 sm:flex-row sm:flex-wrap sm:items-center lg:mt-10">
-            <p ref={imagineRef} className="type-display text-mute">
+            {/* <div>, no <p>: SplitText inserta <div> por línea */}
+            <div ref={imagineRef} className="type-display text-mute">
               {t.imagine}
-            </p>
+            </div>
             <div ref={ctaRef} className="-m-2 overflow-hidden p-2">
               <Cta to={to.contact(lang)}>{t.cta}</Cta>
             </div>

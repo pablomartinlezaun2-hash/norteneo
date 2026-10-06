@@ -18,7 +18,7 @@ const copy: L<{ title: [string, string]; lead: string; cta: string; work: string
   },
   en: {
     title: ['Luxury imagery,', 'no set'],
-    lead: 'AI video, 3D and bespoke websites, directed with a filmmaker’s craft.',
+    lead: 'AI video, AI 3D and signature websites, directed with a filmmaker’s craft.',
     cta: 'Request a proposal',
     work: 'View work',
     label: 'NEO Studio reel, AI-generated: a glass of wine, fine dining, a golden key and a luxury dining room.',
@@ -86,14 +86,15 @@ export function Hero() {
         />
       </div>
 
-      {/* Solo para legibilidad: oscurece el tercio inferior, nada más. */}
+      {/* Solo para legibilidad: oscurece la mitad inferior, donde vive el texto. Calibrado para los planos
+          más claros del reel (cerradura con luz, llave dorada): ≥3:1 en el titular y ≥4,5:1 en el subtítulo. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[72%] bg-linear-to-t from-black/90 from-0% via-black/50 via-40% to-transparent to-100%"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[85%] bg-linear-to-t from-black/90 from-0% via-black/65 via-45% to-transparent to-100% md:h-[75%]"
       />
 
       <div className="container-x relative z-[2] flex min-h-[100svh] flex-col justify-end pb-[calc(var(--hero-pb)+4rem)] md:pb-(--hero-pb)">
-        <h1 id="hero-title" ref={title} data-hero-reveal className="type-hero max-sm:[font-stretch:104%]">
+        <h1 id="hero-title" ref={title} data-hero-reveal className="type-hero [text-shadow:0_1px_14px_rgb(0_0_0/0.35)] max-sm:[font-stretch:104%]">
           {t.title[0]}
           <br />
           {t.title[1]}
@@ -101,7 +102,7 @@ export function Hero() {
             *
           </span>
         </h1>
-        <p data-hero-reveal data-hero-after className="type-lead mt-5 max-w-[34ch] text-paper/75 md:mt-6">
+        <p data-hero-reveal data-hero-after className="type-lead mt-5 max-w-[34ch] text-paper/85 [text-shadow:0_1px_12px_rgb(0_0_0/0.5)] md:mt-6">
           {t.lead}
         </p>
         <div data-hero-reveal data-hero-after className="mt-7 flex flex-wrap items-center gap-x-8 gap-y-2 md:mt-9">

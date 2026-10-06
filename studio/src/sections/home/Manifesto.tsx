@@ -29,7 +29,7 @@ export function Manifesto() {
   return (
     <section aria-labelledby="manifesto-title" className="bg-ink py-32 md:py-48">
       <div className="container-x grid grid-cols-12 gap-x-6">
-        <h2 id="manifesto-title" ref={title} className="type-display col-span-12 max-w-[19ch] text-mute lg:col-span-10">
+        <h2 id="manifesto-title" ref={title} className="type-display col-span-12 max-w-[19ch] text-mute max-sm:max-w-none max-sm:text-[1.75rem] max-sm:[font-stretch:100%] lg:col-span-10">
           {t.lead} <span className="text-paper">{t.word}</span>
           {t.tail}
         </h2>
