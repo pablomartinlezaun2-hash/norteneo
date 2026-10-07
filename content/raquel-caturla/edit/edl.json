@@ -1,0 +1,653 @@
+{
+ "fps": 30,
+ "duration": 27.4999,
+ "segments": [
+  {
+   "src_start": 0.7667,
+   "src_end": 3.7333,
+   "dst_start": 0.0
+  },
+  {
+   "src_start": 4.1333,
+   "src_end": 6.3667,
+   "dst_start": 2.9666
+  },
+  {
+   "src_start": 6.6,
+   "src_end": 8.4,
+   "dst_start": 5.2
+  },
+  {
+   "src_start": 8.5667,
+   "src_end": 9.8,
+   "dst_start": 7.0
+  },
+  {
+   "src_start": 10.1667,
+   "src_end": 11.5,
+   "dst_start": 8.2333
+  },
+  {
+   "src_start": 11.9,
+   "src_end": 13.0333,
+   "dst_start": 9.5666
+  },
+  {
+   "src_start": 13.4333,
+   "src_end": 14.8,
+   "dst_start": 10.6999
+  },
+  {
+   "src_start": 15.0333,
+   "src_end": 17.5333,
+   "dst_start": 12.0666
+  },
+  {
+   "src_start": 17.8333,
+   "src_end": 19.4333,
+   "dst_start": 14.5666
+  },
+  {
+   "src_start": 19.7,
+   "src_end": 20.7667,
+   "dst_start": 16.1666
+  },
+  {
+   "src_start": 21.0333,
+   "src_end": 23.3,
+   "dst_start": 17.2333
+  },
+  {
+   "src_start": 23.5667,
+   "src_end": 24.7333,
+   "dst_start": 19.5
+  },
+  {
+   "src_start": 25.3667,
+   "src_end": 29.3,
+   "dst_start": 20.6666
+  },
+  {
+   "src_start": 29.5667,
+   "src_end": 31.2667,
+   "dst_start": 24.5999
+  },
+  {
+   "src_start": 31.5667,
+   "src_end": 32.7667,
+   "dst_start": 26.2999
+  }
+ ],
+ "words": [
+  {
+   "text": "¿Cuántas",
+   "start": 0.0733,
+   "end": 0.3933,
+   "src": 0.84
+  },
+  {
+   "text": "veces",
+   "start": 0.4533,
+   "end": 0.7533,
+   "src": 1.22
+  },
+  {
+   "text": "tus",
+   "start": 0.8133,
+   "end": 0.9333,
+   "src": 1.58
+  },
+  {
+   "text": "pensamientos",
+   "start": 0.9533,
+   "end": 1.4133,
+   "src": 1.72
+  },
+  {
+   "text": "han",
+   "start": 1.4333,
+   "end": 1.5733,
+   "src": 2.2
+  },
+  {
+   "text": "distorsionado",
+   "start": 1.6133,
+   "end": 2.3333,
+   "src": 2.38
+  },
+  {
+   "text": "la",
+   "start": 2.3733,
+   "end": 2.4333,
+   "src": 3.14
+  },
+  {
+   "text": "realidad?",
+   "start": 2.4933,
+   "end": 2.8733,
+   "src": 3.26
+  },
+  {
+   "text": "Una",
+   "start": 3.0533,
+   "end": 3.1733,
+   "src": 4.22
+  },
+  {
+   "text": "situación",
+   "start": 3.1933,
+   "end": 3.5533,
+   "src": 4.36
+  },
+  {
+   "text": "ocurre",
+   "start": 3.6133,
+   "end": 4.0333,
+   "src": 4.78
+  },
+  {
+   "text": "y",
+   "start": 4.1333,
+   "end": 4.1733,
+   "src": 5.3
+  },
+  {
+   "text": "en",
+   "start": 4.2133,
+   "end": 4.2933,
+   "src": 5.38
+  },
+  {
+   "text": "cuestión",
+   "start": 4.3133,
+   "end": 4.6133,
+   "src": 5.48
+  },
+  {
+   "text": "de",
+   "start": 4.6533,
+   "end": 4.6933,
+   "src": 5.82
+  },
+  {
+   "text": "segundos",
+   "start": 4.7533,
+   "end": 5.0933,
+   "src": 5.92
+  },
+  {
+   "text": "tu",
+   "start": 5.28,
+   "end": 5.36,
+   "src": 6.68
+  },
+  {
+   "text": "mente",
+   "start": 5.4,
+   "end": 5.6,
+   "src": 6.8
+  },
+  {
+   "text": "ya",
+   "start": 5.66,
+   "end": 5.72,
+   "src": 7.06
+  },
+  {
+   "text": "se",
+   "start": 5.76,
+   "end": 5.84,
+   "src": 7.16
+  },
+  {
+   "text": "monta",
+   "start": 5.86,
+   "end": 6.1,
+   "src": 7.26
+  },
+  {
+   "text": "una",
+   "start": 6.32,
+   "end": 6.44,
+   "src": 7.72
+  },
+  {
+   "text": "película:",
+   "start": 6.52,
+   "end": 6.9,
+   "src": 7.92
+  },
+  {
+   "text": "«Seguro",
+   "start": 7.0933,
+   "end": 7.4333,
+   "src": 8.66
+  },
+  {
+   "text": "que",
+   "start": 7.4733,
+   "end": 7.5533,
+   "src": 9.04
+  },
+  {
+   "text": "vuelve",
+   "start": 7.5733,
+   "end": 7.7333,
+   "src": 9.14
+  },
+  {
+   "text": "a",
+   "start": 7.7533,
+   "end": 7.7733,
+   "src": 9.32
+  },
+  {
+   "text": "pasar»,",
+   "start": 7.8133,
+   "end": 8.1333,
+   "src": 9.38
+  },
+  {
+   "text": "«Ya",
+   "start": 8.3066,
+   "end": 8.4466,
+   "src": 10.24
+  },
+  {
+   "text": "estoy",
+   "start": 8.4666,
+   "end": 8.6466,
+   "src": 10.4
+  },
+  {
+   "text": "viendo",
+   "start": 8.6866,
+   "end": 8.9466,
+   "src": 10.62
+  },
+  {
+   "text": "que",
+   "start": 8.9666,
+   "end": 9.0466,
+   "src": 10.9
+  },
+  {
+   "text": "va",
+   "start": 9.0666,
+   "end": 9.1066,
+   "src": 11.0
+  },
+  {
+   "text": "a",
+   "start": 9.1266,
+   "end": 9.1466,
+   "src": 11.06
+  },
+  {
+   "text": "pasar»,",
+   "start": 9.1866,
+   "end": 9.4666,
+   "src": 11.12
+  },
+  {
+   "text": "«Es",
+   "start": 9.6466,
+   "end": 9.8066,
+   "src": 11.98
+  },
+  {
+   "text": "que",
+   "start": 9.8466,
+   "end": 9.9066,
+   "src": 12.18
+  },
+  {
+   "text": "no",
+   "start": 9.9466,
+   "end": 10.0066,
+   "src": 12.28
+  },
+  {
+   "text": "va",
+   "start": 10.0466,
+   "end": 10.0866,
+   "src": 12.38
+  },
+  {
+   "text": "a",
+   "start": 10.0866,
+   "end": 10.1266,
+   "src": 12.42
+  },
+  {
+   "text": "funcionar»,",
+   "start": 10.1866,
+   "end": 10.6066,
+   "src": 12.52
+  },
+  {
+   "text": "«Es",
+   "start": 10.7866,
+   "end": 10.8866,
+   "src": 13.52
+  },
+  {
+   "text": "que",
+   "start": 10.9066,
+   "end": 10.9666,
+   "src": 13.64
+  },
+  {
+   "text": "no",
+   "start": 11.0066,
+   "end": 11.0866,
+   "src": 13.74
+  },
+  {
+   "text": "sé",
+   "start": 11.1266,
+   "end": 11.2066,
+   "src": 13.86
+  },
+  {
+   "text": "si",
+   "start": 11.2266,
+   "end": 11.3066,
+   "src": 13.96
+  },
+  {
+   "text": "seré",
+   "start": 11.3666,
+   "end": 11.5666,
+   "src": 14.1
+  },
+  {
+   "text": "capaz».",
+   "start": 11.6066,
+   "end": 11.9666,
+   "src": 14.34
+  },
+  {
+   "text": "Bueno,",
+   "start": 12.1533,
+   "end": 12.3133,
+   "src": 15.12
+  },
+  {
+   "text": "y",
+   "start": 12.4733,
+   "end": 12.5133,
+   "src": 15.44
+  },
+  {
+   "text": "lo",
+   "start": 12.5533,
+   "end": 12.6533,
+   "src": 15.52
+  },
+  {
+   "text": "más",
+   "start": 12.6933,
+   "end": 12.8533,
+   "src": 15.66
+  },
+  {
+   "text": "curioso",
+   "start": 12.9133,
+   "end": 13.4123,
+   "src": 15.88
+  },
+  {
+   "text": "es",
+   "start": 13.4733,
+   "end": 13.5533,
+   "src": 16.44
+  },
+  {
+   "text": "que",
+   "start": 13.6133,
+   "end": 13.7533,
+   "src": 16.58
+  },
+  {
+   "text": "muchas",
+   "start": 13.8133,
+   "end": 14.1533,
+   "src": 16.78
+  },
+  {
+   "text": "veces",
+   "start": 14.1933,
+   "end": 14.4733,
+   "src": 17.16
+  },
+  {
+   "text": "no",
+   "start": 14.6533,
+   "end": 14.7933,
+   "src": 17.92
+  },
+  {
+   "text": "estamos",
+   "start": 14.8733,
+   "end": 15.3333,
+   "src": 18.14
+  },
+  {
+   "text": "reaccionando",
+   "start": 15.3933,
+   "end": 16.0733,
+   "src": 18.66
+  },
+  {
+   "text": "a",
+   "start": 16.2466,
+   "end": 16.2866,
+   "src": 19.78
+  },
+  {
+   "text": "lo",
+   "start": 16.3666,
+   "end": 16.4066,
+   "src": 19.9
+  },
+  {
+   "text": "que",
+   "start": 16.4666,
+   "end": 16.5266,
+   "src": 20.0
+  },
+  {
+   "text": "está",
+   "start": 16.5666,
+   "end": 16.7466,
+   "src": 20.1
+  },
+  {
+   "text": "pasando,",
+   "start": 16.7866,
+   "end": 17.1466,
+   "src": 20.32
+  },
+  {
+   "text": "sino",
+   "start": 17.32,
+   "end": 17.52,
+   "src": 21.12
+  },
+  {
+   "text": "a",
+   "start": 17.56,
+   "end": 17.58,
+   "src": 21.36
+  },
+  {
+   "text": "lo",
+   "start": 17.68,
+   "end": 17.78,
+   "src": 21.48
+  },
+  {
+   "text": "que",
+   "start": 17.86,
+   "end": 17.94,
+   "src": 21.66
+  },
+  {
+   "text": "estamos",
+   "start": 17.98,
+   "end": 18.48,
+   "src": 21.78
+  },
+  {
+   "text": "interpretando",
+   "start": 18.56,
+   "end": 19.4,
+   "src": 22.36
+  },
+  {
+   "text": "que",
+   "start": 19.5733,
+   "end": 19.6333,
+   "src": 23.64
+  },
+  {
+   "text": "está",
+   "start": 19.6733,
+   "end": 19.9533,
+   "src": 23.74
+  },
+  {
+   "text": "pasando.",
+   "start": 19.9933,
+   "end": 20.5733,
+   "src": 24.06
+  },
+  {
+   "text": "La",
+   "start": 20.7599,
+   "end": 20.8399,
+   "src": 25.46
+  },
+  {
+   "text": "próxima",
+   "start": 20.8799,
+   "end": 21.2799,
+   "src": 25.58
+  },
+  {
+   "text": "vez",
+   "start": 21.3199,
+   "end": 21.5599,
+   "src": 26.02
+  },
+  {
+   "text": "que",
+   "start": 21.5999,
+   "end": 21.6999,
+   "src": 26.3
+  },
+  {
+   "text": "notes",
+   "start": 21.7399,
+   "end": 22.0199,
+   "src": 26.44
+  },
+  {
+   "text": "que",
+   "start": 22.0599,
+   "end": 22.0999,
+   "src": 26.76
+  },
+  {
+   "text": "una",
+   "start": 22.1399,
+   "end": 22.2599,
+   "src": 26.84
+  },
+  {
+   "text": "situación",
+   "start": 22.2799,
+   "end": 22.7799,
+   "src": 26.98
+  },
+  {
+   "text": "te",
+   "start": 22.8399,
+   "end": 22.9199,
+   "src": 27.54
+  },
+  {
+   "text": "genera",
+   "start": 22.9799,
+   "end": 23.3599,
+   "src": 27.68
+  },
+  {
+   "text": "una",
+   "start": 23.5599,
+   "end": 23.6799,
+   "src": 28.26
+  },
+  {
+   "text": "emoción",
+   "start": 23.7199,
+   "end": 24.0599,
+   "src": 28.42
+  },
+  {
+   "text": "intensa,",
+   "start": 24.1199,
+   "end": 24.4999,
+   "src": 28.82
+  },
+  {
+   "text": "haz",
+   "start": 24.6932,
+   "end": 24.8132,
+   "src": 29.66
+  },
+  {
+   "text": "una",
+   "start": 24.8732,
+   "end": 24.9732,
+   "src": 29.84
+  },
+  {
+   "text": "pausa",
+   "start": 25.0132,
+   "end": 25.5332,
+   "src": 29.98
+  },
+  {
+   "text": "y",
+   "start": 25.5932,
+   "end": 25.6732,
+   "src": 30.56
+  },
+  {
+   "text": "pregúntate:",
+   "start": 25.7132,
+   "end": 26.2132,
+   "src": 30.68
+  },
+  {
+   "text": "¿Qué",
+   "start": 26.3932,
+   "end": 26.5132,
+   "src": 31.66
+  },
+  {
+   "text": "sé",
+   "start": 26.7532,
+   "end": 26.8922,
+   "src": 32.02
+  },
+  {
+   "text": "realmente?",
+   "start": 26.9732,
+   "end": 27.3922,
+   "src": 32.24
+  }
+ ]
+}

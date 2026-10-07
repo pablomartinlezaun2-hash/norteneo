@@ -1,0 +1,45 @@
+/*
+  Sistema visual «Rebote consciente» · @raquelcaturlaoficial
+  ----------------------------------------------------------
+  PROVISIONAL: Instagram y la carpeta de Drive no eran accesibles desde el
+  entorno de producción, así que colores y tipografías NO están extraídos del
+  perfil real. Todo el sistema cuelga de este archivo: cambia aquí la paleta o
+  las familias tipográficas y vuelve a renderizar (npm run render:all) para
+  que todos los Reels, portadas, carrusel y overlays hereden la identidad real.
+*/
+
+@import url("../motion/node_modules/@fontsource-variable/archivo/wdth.css");
+@import url("../motion/node_modules/@fontsource-variable/fraunces/full-italic.css");
+@import url("../motion/node_modules/@fontsource-variable/inter/index.css");
+
+:root {
+  /* Paleta: energía (salto) + calma (mente) */
+  --ink: #1a1423;        /* texto principal / fondos oscuros */
+  --plum: #2b1640;       /* fondo profundo, escenas «mente» */
+  --paper: #fff4e8;      /* fondo claro cálido */
+  --blush: #ffd8d0;      /* superficies suaves, tarjetas */
+  --coral: #ff4f6d;      /* acento de marca: energía, CTA */
+  --lime: #d9ff45;       /* pop: rebote, datos clave, highlight */
+  --violet: #6b4dff;     /* psicología positiva, conciencia */
+  --hairline: rgba(26, 20, 35, 0.14);
+  --hairline-inv: rgba(255, 244, 232, 0.22);
+
+  /* Tipografía */
+  --font-display: "Archivo Variable", "Archivo", system-ui, sans-serif; /* titulares cinéticos, condensada */
+  --font-accent: "Fraunces Variable", "Fraunces", Georgia, serif;        /* palabra emocional en cursiva */
+  --font-ui: "Inter Variable", "Inter", system-ui, sans-serif;           /* etiquetas, notas, handle */
+
+  --display-stretch: 68%;  /* font-stretch de titulares */
+  --display-weight: 860;
+
+  /* Lienzo Reels 9:16 y zona segura de Instagram */
+  --w: 1080px;
+  --h: 1920px;
+  --safe-top: 250px;     /* bajo la UI superior */
+  --safe-bottom: 440px;  /* sobre copy, audio y botones */
+  --safe-x: 90px;
+  --safe-right: 150px;   /* columna de botones (like, comentar, compartir) */
+
+  /* Movimiento (s): coherente en todas las piezas */
+  --beat: 0.5;           /* 120 BPM: cortes y entradas en tiempo */
+}

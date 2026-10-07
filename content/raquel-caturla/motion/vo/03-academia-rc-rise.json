@@ -1,0 +1,42 @@
+{
+  "file": "motion/vo/03-academia-rc-rise.mp3",
+  "duration": 24.607,
+  "segments": [
+    {
+      "start": 0,
+      "end": 2.723
+    },
+    {
+      "start": 3.907,
+      "end": 5.695
+    },
+    {
+      "start": 6.255,
+      "end": 7.738
+    },
+    {
+      "start": 8.45,
+      "end": 9.827
+    },
+    {
+      "start": 10.7,
+      "end": 12.665
+    },
+    {
+      "start": 13.73,
+      "end": 16.171
+    },
+    {
+      "start": 17.286,
+      "end": 19.496
+    },
+    {
+      "start": 20.419,
+      "end": 21.982
+    },
+    {
+      "start": 22.779,
+      "end": 24.607
+    }
+  ]
+}

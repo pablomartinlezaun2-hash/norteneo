@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>06 · Overlay · Rótulo de nombre (alfa)</title>
+<link rel="stylesheet" href="../../brand/tokens.css">
+<link rel="stylesheet" href="../lib/base.css">
+<style>
+  /* Overlay con canal alfa para poner encima de vídeo a cámara (9:16).
+     Queda en el tercio inferior, por encima de la zona del copy de Instagram. */
+  #lt { position: absolute; left: var(--safe-x); top: 1200px; display: flex; align-items: stretch; }
+  #bar { width: 16px; border-radius: 8px; background: var(--coral); transform-origin: 50% 100%; }
+  #card { margin-left: 18px; background: var(--paper); border-radius: 30px; padding: 30px 44px 32px 40px; box-shadow: 0 24px 50px -18px rgba(26, 20, 35, 0.45); overflow: hidden; }
+  #name { font-size: 98px; color: var(--ink); }
+  #role { margin-top: 14px; font: 600 28px var(--font-ui); color: var(--ink); display: flex; align-items: center; gap: 14px; }
+  #role .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--violet); }
+  #ball { position: absolute; left: 0; top: 0; width: 46px; height: 46px; margin: -46px 0 0 -23px; border-radius: 50%; background: var(--lime); box-shadow: inset 0 0 0 3px var(--ink); }
+</style>
+</head>
+<body>
+<div id="stage" class="alpha">
+  <div id="lt">
+    <div id="bar"></div>
+    <div id="card">
+      <div class="display" id="name">Raquel Caturla</div>
+      <div id="role"><span class="dot"></span>Trainer Oficial Kangoo Jumps® · desde 2008</div>
+    </div>
+  </div>
+  <div id="ball"></div>
+  <div id="safe"></div>
+</div>
+
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../lib/stage.js"></script>
+<script>
+S.ready(() => {
+  const tl = S.init({ duration: 5, alpha: true });
+  const $ = S.$;
+  tl.fromTo("#bar", { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "expo.out" }, 0.1);
+  S.pop(tl, "#card", 0.2, { x: -80, scaleX: 0.85 }, { ease: "expo.out", dur: 0.67, origin: "0% 50%" });
+  S.cue("whoosh", 0.1, { gain: 0.6 });
+  S.letters(tl, S.split($("#name"), { mask: true }).chars, 0.35, { stagger: 0.028 });
+  S.pop(tl, "#role", 0.7, { y: 16 }, { ease: "expo.out" });
+  // la bolita aterriza en la esquina de la tarjeta (firma «rebote»)
+  const card = $("#card"), lt = $("#lt");
+  const cx = lt.offsetLeft + card.offsetLeft + card.offsetWidth - 40, cy = lt.offsetTop + card.offsetTop;
+  tl.set("#ball", { x: cx, y: cy - 500, autoAlpha: 0 }, 0).set("#ball", { autoAlpha: 1 }, 0.6);
+  tl.to("#ball", { y: cy, duration: 0.4, ease: "power2.in" }, 0.6);
+  tl.to("#ball", { scaleX: 1.35, scaleY: 0.7, duration: 0.05, yoyo: true, repeat: 1, transformOrigin: "50% 100%" }, 1.0);
+  S.cue("bounce", 1.0, { gain: 0.6, pitch: 1.2 });
+  tl.to("#ball", { y: cy - 90, duration: 0.18, ease: "power2.out" }, 1.03);
+  tl.to("#ball", { y: cy, duration: 0.18, ease: "power2.in" }, 1.21);
+  S.cue("bounce", 1.39, { gain: 0.35, pitch: 1.5 });
+  // salida (≈ 65 % de la duración de entrada)
+  tl.to(["#card", "#ball"], { x: "-=60", opacity: 0, duration: 0.42, ease: "power3.in" }, 4.3);
+  tl.to("#bar", { scaleY: 0, duration: 0.36, ease: "power3.in" }, 4.4);
+  S.cue("swish", 4.3, { gain: 0.5 });
+  tl.set({}, {}, 5);
+});
+</script>
+</body>
+</html>

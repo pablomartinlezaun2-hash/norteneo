@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>04 · Hábitos · No te falta fuerza de voluntad</title>
+<link rel="stylesheet" href="../../brand/tokens.css">
+<link rel="stylesheet" href="../lib/base.css">
+<style>
+  #stage { background: var(--paper); }
+  .scene { position: absolute; inset: 0; }
+
+  /* A · hook */
+  #hook { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 470px; }
+  #hook .eyebrow { color: var(--violet); margin-bottom: 40px; }
+  #hook .display { font-size: 158px; perspective: 800px; white-space: nowrap; }
+  #hook .strike { position: relative; display: inline-block; }
+  #hook svg.scribble { position: absolute; left: -16px; top: 0; width: calc(100% + 32px); height: 100%; overflow: visible; }
+  #hook svg.scribble path { fill: none; stroke: var(--coral); stroke-width: 20; stroke-linecap: round; }
+  #hook .accent { font-size: 132px; color: var(--violet); margin-top: 26px; line-height: 1; white-space: nowrap; }
+
+  /* progreso 1·2·3 */
+  #prog { position: absolute; left: var(--safe-x); top: 290px; display: flex; gap: 14px; }
+  #prog .p { width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--ink); display: flex; align-items: center; justify-content: center; font: 800 34px var(--font-ui); color: var(--ink); background: var(--paper); }
+  #prog .p.on { background: var(--violet); border-color: var(--violet); color: var(--paper); }
+  #prog .lab { align-self: center; margin-left: 14px; font: 700 28px var(--font-ui); letter-spacing: 0.2em; text-transform: uppercase; color: var(--violet); }
+
+  /* claves */
+  .clave { position: absolute; inset: 0; }
+  .clave .title { position: absolute; left: var(--safe-x); width: 840px; top: 470px; }
+  .clave .title .display { font-size: 136px; }
+  .clave .title .accent { font-size: 128px; color: var(--violet); line-height: 1.02; white-space: nowrap; }
+  .ex { position: absolute; left: var(--safe-x); width: 840px; top: 1010px; }
+  .chipx { display: inline-flex; align-items: center; gap: 16px; border-radius: 28px; padding: 26px 38px; font: 700 50px var(--font-ui); }
+  .yes { background: var(--lime); color: var(--ink); }
+  .no { background: transparent; color: rgba(26, 20, 35, 0.45); border: 3px dashed rgba(26, 20, 35, 0.25); position: relative; }
+  .no::after { content: ""; position: absolute; left: 20px; right: 20px; top: 50%; height: 5px; background: var(--coral); transform-origin: 0 50%; transform: scaleX(var(--cut, 0)); }
+  .vs { font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 900; font-size: 90px; margin: 14px 0 14px 30px; color: var(--violet); line-height: 1; }
+  #c1ball { position: absolute; width: 44px; height: 44px; margin: -44px 0 0 -22px; border-radius: 50%; background: var(--coral); left: 0; top: 0; }
+  .blush { background: var(--blush); color: var(--ink); }
+  #c2line { position: absolute; left: 60px; top: 118px; width: 6px; height: 150px; background: var(--ink); transform-origin: 50% 0; border-radius: 3px; }
+  #c2dot { position: absolute; left: 49px; top: 106px; width: 28px; height: 28px; border-radius: 50%; background: var(--coral); }
+  #c2b { position: absolute; left: 0; top: 282px; }
+  #c3check { position: absolute; left: 0; top: -10px; width: 230px; height: 230px; }
+  #c3check circle { fill: var(--lime); }
+  #c3check path { fill: none; stroke: var(--ink); stroke-width: 18; stroke-linecap: round; stroke-linejoin: round; }
+  #c3rays line { stroke: var(--coral); stroke-width: 10; stroke-linecap: round; }
+  #c3txt { position: absolute; left: 270px; top: 20px; width: 570px; }
+  #c3txt .accent { font-size: 100px; color: var(--coral); line-height: 1; }
+  #c3txt .ui { font-size: 38px; line-height: 1.3; margin-top: 18px; font-weight: 600; }
+
+  /* cierre */
+  #sE { background: var(--violet); color: var(--paper); clip-path: circle(0px at 200px 400px); }
+  #close { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 500px; }
+  #close .accent { font-size: 132px; line-height: 1.02; white-space: nowrap; }
+  #close .display { font-size: 150px; margin-top: 10px; }
+  #save { position: absolute; left: var(--safe-x); top: 1140px; background: var(--lime); color: var(--ink); font-size: 42px; padding: 24px 42px; }
+  #save svg { width: 34px; height: 40px; }
+  #handle { position: absolute; left: var(--safe-x); top: 1280px; font: 700 34px var(--font-ui); color: rgba(255, 244, 232, 0.85); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="camera"><div id="punch">
+    <div class="scene" id="sA">
+      <div id="hook">
+        <div class="eyebrow">3 claves de psicología positiva</div>
+        <div class="display l1">No te falta</div>
+        <div class="display l2"><span class="strike">fuerza de<svg class="scribble"><path/></svg></span></div>
+        <div class="display l3"><span class="strike">voluntad.<svg class="scribble"><path/></svg></span></div>
+        <div class="accent l4">te falta un sistema.</div>
+      </div>
+    </div>
+
+    <div class="scene" id="sP">
+      <div id="prog"><div class="p" id="p1">1</div><div class="p" id="p2">2</div><div class="p" id="p3">3</div><div class="lab" id="plab">Claves</div></div>
+    </div>
+
+    <div class="clave" id="c1">
+      <div class="title"><div class="display">Empieza</div><div class="accent">ridículamente</div><div class="display">pequeño</div></div>
+      <div class="ex">
+        <div class="chipx yes" id="c1yes">2 min de saltos</div>
+        <div class="vs">&gt;</div>
+        <div class="chipx no" id="c1no">1 hora que nunca llega</div>
+        <div id="c1ball"></div>
+      </div>
+    </div>
+
+    <div class="clave" id="c2">
+      <div class="title"><div class="display">Engánchalo</div><div class="accent">a algo que ya</div><div class="display">haces</div></div>
+      <div class="ex">
+        <div class="chipx blush" id="c2a">Después del café</div>
+        <div id="c2line"></div><div id="c2dot"></div>
+        <div class="chipx yes" id="c2b">10 sentadillas</div>
+      </div>
+    </div>
+
+    <div class="clave" id="c3">
+      <div class="title"><div class="display">Celebra</div><div class="accent">cada vez</div></div>
+      <div class="ex">
+        <svg id="c3check" viewBox="0 0 230 230">
+          <g id="c3rays"></g>
+          <circle cx="115" cy="115" r="78"/>
+          <path d="M80 117 L105 142 L152 92"/>
+        </svg>
+        <div id="c3txt"><div class="accent">¡Hecho!</div><div class="ui">Sentirte bien al terminar ayuda a querer repetirlo.</div></div>
+      </div>
+    </div>
+
+    <div class="scene" id="sE">
+      <div id="close">
+        <div class="accent e1">Desde la conciencia,</div>
+        <div class="display e2">no desde la exigencia.</div>
+      </div>
+      <div class="pill" id="save"><svg viewBox="0 0 34 40"><path d="M3 3 H31 V37 L17 27 L3 37 Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/></svg>Guárdalo para mañana</div>
+      <div id="handle">@raquelcaturlaoficial</div>
+    </div>
+  </div></div>
+  <div id="grain"></div>
+  <div id="safe"></div>
+</div>
+
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../lib/stage.js"></script>
+<script>
+S.ready(() => {
+  const B = S.b;
+  const tl = S.init({
+    duration: 18,
+    preroll: 0.12,
+    music: { gain: 0.5, sections: [
+      { at: 0, part: "intro" }, { at: B(6), part: "groove" }, { at: B(16), part: "build" },
+      { at: B(18), part: "gap" }, { at: B(19), part: "drop" }, { at: B(31), part: "outro" } ] },
+  });
+  const $ = S.$, $$ = S.$$;
+  S.grain($("#grain"));
+  $("#grain").style.mixBlendMode = "overlay";
+  $("#grain").style.opacity = 0.1;
+  S.drift($("#camera"), { amp: 5, rot: 0.2, period: 8 });
+
+  // ---------------- A · Hook (0 – 3 s)
+  S.fit($("#hook .l4"), 840);
+  tl.from("#hook .eyebrow", { opacity: 0, x: -30, duration: 0.5 }, 0);
+  S.letters(tl, S.split($("#hook .l1")).chars, 0);
+  S.cue("whoosh", 0.03, { gain: 0.6 });
+  const strikeChars = [...S.split($("#hook .l2 .strike")).chars, ...S.split($("#hook .l3 .strike")).chars];
+  // split no debe tocar los SVG: se reinsertan al final del span
+  $$("#hook .strike").forEach((sp) => { const svg = sp.querySelector("svg"); if (svg) sp.appendChild(svg); });
+  S.letters(tl, strikeChars, 0.3, { stagger: 0.026 });
+  // trazo de rotulador en píxeles reales (sin estirar los remates redondos)
+  $$("#hook .scribble").forEach((svg, i) => {
+    const w = svg.parentElement.offsetWidth + 32, h = svg.parentElement.offsetHeight;
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    const p = svg.querySelector("path");
+    const y = [[0.6, 0.5, 0.62, 0.52], [0.56, 0.63, 0.48, 0.55]][i];
+    p.setAttribute("d", `M10 ${h * y[0]} C ${w * 0.3} ${h * y[1]}, ${w * 0.6} ${h * y[2]}, ${w - 10} ${h * y[3]}`);
+    const L = p.getTotalLength();
+    tl.fromTo(p, { strokeDasharray: `${L} ${L + 80}`, strokeDashoffset: L + 30 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, B(3) + i * 0.15);
+  });
+  tl.to(strikeChars, { opacity: 0.35, duration: 0.2, ease: "none" }, B(3) + 0.1);
+  S.cue("swish", B(3), { gain: 0.8, pitch: 0.9 });
+  S.cue("swish", B(3) + 0.15, { gain: 0.6, pitch: 1.1 });
+  S.letters(tl, S.split($("#hook .l4")).chars, B(4), { stagger: 0.03 });
+  S.cue("pop", B(4), { pitch: 1.05 });
+  S.out(tl, "#hook", B(5.6), { y: -80 });
+
+  // ---------------- progreso 1·2·3
+  tl.set("#sP", { autoAlpha: 0 }, 0).set("#sP", { autoAlpha: 1 }, B(6));
+  S.pop(tl, ["#p1", "#p2", "#p3", "#plab"], B(6), { y: -30, scale: 0.8 }, { stagger: 0.05 });
+  const prog = (n, at) => {
+    ["#p1", "#p2", "#p3"].forEach((id, i) => tl.set(id, { attr: { class: "p" + (i < n ? " on" : "") } }, at));
+    tl.fromTo(`#p${n}`, { scale: 1.35 }, { scale: 1, duration: 0.5, ease: "back.out(1.7)", immediateRender: false }, at);
+    S.cue("click", at, { pitch: 1 + n * 0.1 });
+  };
+
+  // utilidades por clave
+  const showClave = (id, tin, tout) => {
+    tl.set(id, { autoAlpha: 0 }, 0).set(id, { autoAlpha: 1 }, tin - 0.01);
+    S.punch(tl, tin);
+    const t = $(`${id} .title`);
+    const acc = t.querySelector(".accent");
+    S.fit(acc, 840);
+    const disp = t.querySelectorAll(".display");
+    S.letters(tl, S.split(disp[0]).chars, tin, { stagger: 0.03 });
+    S.pop(tl, acc, tin + B(1), { y: 40, scale: 0.92 }, { origin: "0% 50%" });
+    S.cue("pop", tin + B(1), { pitch: 0.95 });
+    if (disp[1]) S.letters(tl, S.split(disp[1]).chars, tin + B(1.5), { stagger: 0.03 });
+    if (tout) S.out(tl, [`${id} .title`, `${id} .ex`], tout - 0.3, { y: -70 });
+  };
+
+  // ---------------- Clave 1 (3 – 6 s): empieza pequeño
+  tl.set({}, {}, 0);
+  prog(1, B(6));
+  showClave("#c1", B(6), B(12));
+  S.pop(tl, "#c1yes", B(8), { x: -40, scale: 0.9 }, { origin: "0% 50%" });
+  S.cue("pop", B(8), { pitch: 1.2 });
+  S.pop(tl, "#c1 .vs", B(9), { scale: 0.4 });
+  S.pop(tl, "#c1no", B(9.5), { x: 40 }, { origin: "0% 50%" });
+  tl.fromTo("#c1no", { "--cut": 0 }, { "--cut": 1, duration: 0.35, ease: "power2.out" }, B(10.5));
+  S.cue("swish", B(10.5), { gain: 0.6 });
+  // bolita: saltitos pequeños junto a «2 min»
+  const yes = $("#c1yes");
+  const bx = yes.offsetLeft + yes.offsetWidth + 50, by = yes.offsetTop + yes.offsetHeight; // layout, sin transformaciones
+  tl.set("#c1ball", { x: bx, y: by, autoAlpha: 0 }, 0).set("#c1ball", { autoAlpha: 1 }, B(8.5));
+  for (let i = 0; i < 6; i++) {
+    const t = B(8.5) + i * 0.3;
+    tl.to("#c1ball", { y: by - 70, duration: 0.15, ease: "power2.out" }, t);
+    tl.to("#c1ball", { y: by, duration: 0.15, ease: "power2.in" }, t + 0.15);
+    if (i % 2 === 1) S.cue("bounce", t + 0.3, { gain: 0.25, pitch: 1.5 });
+  }
+
+  // ---------------- Clave 2 (6 – 9 s): engánchalo
+  prog(2, B(12));
+  showClave("#c2", B(12), B(19));
+  S.pop(tl, "#c2a", B(14), { x: -40, scale: 0.9 }, { origin: "0% 50%" });
+  S.cue("pop", B(14), { pitch: 1.0 });
+  tl.fromTo("#c2line", { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power2.inOut" }, B(15));
+  tl.fromTo("#c2dot", { y: 0, autoAlpha: 0 }, { y: 160, autoAlpha: 1, duration: 0.5, ease: "power2.inOut" }, B(15));
+  S.pop(tl, "#c2b", B(15) + 0.45, { x: -40, scale: 0.9 }, { origin: "0% 50%" });
+  S.cue("pop", B(15) + 0.45, { pitch: 1.3 });
+  tl.to("#c2dot", { y: 0, duration: 0.6, ease: "power2.inOut", yoyo: true, repeat: 1 }, B(16.5));
+
+  // ---------------- Clave 3 (9.5 – 13 s): celebra — DROP
+  prog(3, B(19));
+  showClave("#c3", B(19), B(26));
+  const svgNS = "http://www.w3.org/2000/svg";
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2, r1 = 92, r2 = 112;
+    const ln = document.createElementNS(svgNS, "line");
+    ln.setAttribute("x1", 115 + Math.cos(a) * r1); ln.setAttribute("y1", 115 + Math.sin(a) * r1);
+    ln.setAttribute("x2", 115 + Math.cos(a) * r2); ln.setAttribute("y2", 115 + Math.sin(a) * r2);
+    $("#c3rays").appendChild(ln);
+  }
+  S.pop(tl, "#c3check circle", B(20), { scale: 0 }, { origin: "50% 50%" });
+  tl.fromTo("#c3check path", { strokeDasharray: "120 200", strokeDashoffset: 140 }, { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, B(20) + 0.2);
+  tl.fromTo("#c3rays line", { scale: 0.6, opacity: 0, transformOrigin: "115px 115px" }, { scale: 1.25, opacity: 1, duration: 0.4, ease: "expo.out" }, B(20) + 0.45);
+  tl.to("#c3rays line", { opacity: 0, duration: 0.4, ease: "none" }, B(20) + 0.9);
+  S.cue("ding", B(20) + 0.45, { gain: 0.9 });
+  S.pop(tl, "#c3txt .accent", B(20) + 0.5, { scale: 0.6, rotation: -8, rotationTo: -3 }, { origin: "0% 50%" });
+  S.pop(tl, "#c3txt .ui", B(22), { y: 24 }, { ease: "expo.out" });
+
+  // ---------------- Cierre (13 – 18 s)
+  tl.set("#sP", { autoAlpha: 0 }, B(26));
+  tl.fromTo("#sE", { clipPath: "circle(0px at 200px 400px)" }, { clipPath: "circle(2400px at 200px 400px)", duration: 0.8, ease: "expo.inOut" }, B(26) - 0.4);
+  S.cue("whoosh", B(26) - 0.45, { gain: 0.7 });
+  S.fit($("#close .e1"), 840);
+  S.letters(tl, S.split($("#close .e1")).chars, B(26) + 0.1, { stagger: 0.025 });
+  S.letters(tl, S.split($("#close .e2")).chars, B(27.5), { stagger: 0.022 });
+  S.cue("pop", B(27.5), { pitch: 0.9 });
+  S.pop(tl, "#save", B(30), { scale: 0.6 }, { origin: "0% 50%" });
+  S.cue("pop", B(30), { pitch: 1.25 });
+  S.cue("click", B(30) + 0.05);
+  tl.fromTo("#save svg", { y: 0 }, { y: -6, duration: 0.4, yoyo: true, repeat: 7, ease: "sine.inOut" }, B(31));
+  tl.from("#handle", { opacity: 0, duration: 0.3, ease: "none" }, B(31));
+  tl.set("#stage", { backgroundColor: S.css("violet") }, B(26) + 0.5);
+  tl.set({}, {}, 18.2);
+  const H = S.preroll + 0.02;
+  S.voSync([
+    { t: H },                                   // No te falta fuerza de voluntad.
+    { t: B(4), from: B(4) - 0.05 },             // Te falta un sistema.
+    { t: B(6), from: B(5.5) },                  // Uno: empieza ridículamente pequeño.
+    { t: B(8), from: B(8) - 0.05 },             // Dos minutos de saltos...
+    { t: B(12), from: B(12) - 0.4 },            // Dos: engánchalo a algo que ya haces.
+    { t: B(14), from: B(14) - 0.05 },           // Después del café, diez sentadillas.
+    { t: B(19), from: B(16) },                  // Tres: celebra cada vez. (drop)
+    { t: B(22), from: B(22) - 0.05 },           // Sentirte bien al terminar...
+    { t: B(26), from: B(26) - 0.5 },            // Desde la conciencia, no desde la exigencia.
+    { t: B(30), from: B(30) - 0.05 },           // Guárdalo para mañana.
+  ]);
+});
+</script>
+</body>
+</html>

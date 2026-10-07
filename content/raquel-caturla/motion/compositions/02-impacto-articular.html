@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>02 · Infografía · Saltar sin machacarte</title>
+<link rel="stylesheet" href="../../brand/tokens.css">
+<link rel="stylesheet" href="../lib/base.css">
+<style>
+  #stage { background: var(--paper); }
+  .scene { position: absolute; inset: 0; }
+
+  /* A · hook */
+  #hook { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 470px; }
+  #hook .eyebrow { color: var(--violet); margin-bottom: 40px; }
+  #hook .display { font-size: 170px; perspective: 800px; }
+  #hook .display .hot { color: var(--coral); }
+  #hook .accent { font-size: 160px; color: var(--violet); margin-top: 16px; line-height: 1; }
+
+  /* B · figura y articulaciones */
+  #fig { position: absolute; left: 540px; top: 470px; width: 400px; height: 900px; overflow: visible; }
+  #fig .body { fill: none; stroke: var(--ink); stroke-width: 24; stroke-linecap: round; stroke-linejoin: round; }
+  #fig .joint { fill: var(--coral); }
+  #fig .ring { fill: none; stroke: var(--coral); stroke-width: 5; opacity: 0; }
+  #bTitle { position: absolute; left: var(--safe-x); top: 300px; width: 840px; }
+  #bTitle .display { font-size: 92px; }
+  .lab { position: absolute; left: var(--safe-x); display: flex; align-items: center; gap: 18px; }
+  .lab .n { width: 64px; height: 64px; border-radius: 50%; background: var(--ink); color: var(--paper); font: 800 32px var(--font-ui); display: flex; align-items: center; justify-content: center; }
+  .lab .t { font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 820; font-size: 74px; text-transform: uppercase; }
+  #leaders { position: absolute; inset: 0; overflow: visible; }
+  #leaders line { stroke: var(--ink); stroke-width: 4; stroke-dasharray: 3 12; stroke-linecap: round; }
+
+  /* C · datos */
+  #sC { background: var(--plum); color: var(--paper); clip-path: inset(100% 0 0 0); }
+  #cTitle { position: absolute; left: var(--safe-x); top: 300px; width: 840px; }
+  #cTitle .eyebrow { color: var(--lime); margin-bottom: 26px; }
+  #cTitle .display { font-size: 104px; }
+  .bar { position: absolute; bottom: 620px; width: 270px; border-radius: 28px 28px 0 0; transform-origin: 50% 100%; }
+  #bar1 { left: 150px; height: 600px; background: var(--coral); }
+  #bar2 { left: 570px; height: 120px; background: var(--lime); }
+  .bv { position: absolute; width: 270px; text-align: center; font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 860; font-size: 96px; }
+  #v1 { left: 150px; bottom: 1240px; }
+  #v2 { left: 570px; bottom: 632px; color: var(--ink); font-size: 84px; }
+  .bl { position: absolute; top: 1320px; width: 270px; text-align: center; font: 700 36px/1.2 var(--font-ui); }
+  #l1 { left: 150px; } #l2 { left: 570px; }
+  #base { position: absolute; left: 110px; right: 110px; top: 1300px; height: 4px; background: var(--hairline-inv); }
+  #minus { position: absolute; left: 500px; top: 800px; background: var(--lime); color: var(--ink); border-radius: 30px; padding: 6px 30px 0; font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 900; font-size: 168px; line-height: 1; transform-origin: 30% 100%; }
+  #minus sup { font-size: 90px; vertical-align: top; position: relative; top: 14px; }
+  #note { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 1420px; font: 500 26px/1.35 var(--font-ui); color: rgba(255,244,232,0.7); }
+  #ball2 { position: absolute; left: 0; top: 0; width: 70px; height: 70px; margin: -70px 0 0 -35px; border-radius: 50%; background: var(--paper); z-index: 5; }
+
+  /* D · payoff + CTA */
+  #sD { background: var(--coral); color: var(--paper); clip-path: circle(0px at 705px 1180px); }
+  #pay { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 380px; }
+  #pay .display { font-size: 210px; }
+  #pay .accent { font-size: 130px; color: var(--ink); line-height: 1.05; margin-top: 10px; white-space: nowrap; }
+  #ctaCard { position: absolute; left: var(--safe-x); width: 840px; top: 1010px; padding: 44px 50px; background: var(--paper); }
+  #ctaCard .k { font: 700 40px/1.25 var(--font-ui); color: var(--ink); }
+  #ctaCard .chip { display: inline-block; background: var(--lime); color: var(--ink); border-radius: 18px; padding: 4px 22px 0; margin: 10px 0 14px; font-family: var(--font-display); font-stretch: var(--display-stretch); font-weight: 900; font-size: 120px; line-height: 1; }
+  #note2 { position: absolute; left: var(--safe-x); right: var(--safe-right); top: 1440px; font: 500 24px/1.35 var(--font-ui); color: rgba(255,244,232,0.85); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="camera"><div id="punch">
+    <div class="scene" id="sA">
+      <div id="hook">
+        <div class="eyebrow">Salud articular</div>
+        <div class="display l1">¿Te duelen</div>
+        <div class="display l2">las <span class="hot">rodillas</span></div>
+        <div class="accent l3">al correr?</div>
+      </div>
+    </div>
+
+    <div class="scene" id="sB">
+      <div id="bTitle"><div class="display">Cada zancada<br>golpea en:</div></div>
+      <svg id="leaders" viewBox="0 0 1080 1920"></svg>
+      <svg id="fig" viewBox="0 0 400 900">
+        <circle class="body" cx="200" cy="80" r="52"/>
+        <path class="body" d="M200 150 L200 455"/>
+        <path class="body" d="M118 195 L282 195"/>
+        <path class="body" d="M118 195 L96 330 L110 450"/>
+        <path class="body" d="M282 195 L304 330 L290 450"/>
+        <path class="body" d="M150 462 L250 462"/>
+        <path class="body" d="M160 462 L150 640 L146 820 L112 850"/>
+        <path class="body" d="M240 462 L250 640 L254 820 L288 850"/>
+        <g id="joints"></g>
+      </svg>
+      <div class="lab" id="lab0"><span class="n">1</span><span class="t">Espalda</span></div>
+      <div class="lab" id="lab1"><span class="n">2</span><span class="t">Caderas</span></div>
+      <div class="lab" id="lab2"><span class="n">3</span><span class="t">Rodillas</span></div>
+      <div class="lab" id="lab3"><span class="n">4</span><span class="t">Tobillos</span></div>
+    </div>
+
+    <div class="scene" id="sC">
+      <div id="cTitle"><div class="eyebrow">Impacto en cada zancada</div><div class="display">Correr vs.<br>rebotar</div></div>
+      <div id="base"></div>
+      <div class="bar" id="bar1"></div>
+      <div class="bar" id="bar2"></div>
+      <div class="bv" id="v1">0</div>
+      <div class="bv" id="v2">0</div>
+      <div class="bl" id="l1">Correr<br>en asfalto</div>
+      <div class="bl" id="l2">Con Kangoo<br>Jumps</div>
+      <div id="minus">−80%<sup>*</sup></div>
+      <div id="ball2"></div>
+      <div id="note">*Hasta un 80 % menos de impacto articular, según el fabricante Kangoo Jumps®. Valores ilustrativos.</div>
+    </div>
+
+    <div class="scene" id="sD">
+      <div id="pay">
+        <div class="display p1">Salta.</div>
+        <div class="display p2">Suda.</div>
+        <div class="accent p3">sin machacarte.</div>
+      </div>
+      <div class="card" id="ctaCard">
+        <div class="k">Comenta</div>
+        <div class="chip">SALTAR</div>
+        <div class="k">y te paso dónde probarlo cerca de ti.</div>
+      </div>
+      <div id="note2">*Dato del fabricante Kangoo Jumps®.</div>
+    </div>
+  </div></div>
+  <div id="grain"></div>
+  <div id="safe"></div>
+</div>
+
+<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="../lib/stage.js"></script>
+<script>
+S.ready(() => {
+  const B = S.b;
+  const tl = S.init({
+    duration: 16,
+    preroll: 0.12,
+    music: { gain: 0.5, sections: [
+      { at: 0, part: "intro" }, { at: B(5), part: "groove" }, { at: B(14), part: "build" },
+      { at: B(16), part: "gap" }, { at: B(17), part: "drop" }, { at: B(27), part: "outro" } ] },
+  });
+  const $ = S.$;
+  S.grain($("#grain"));
+  $("#grain").style.mixBlendMode = "overlay";
+  $("#grain").style.opacity = 0.1;
+  S.drift($("#camera"), { amp: 5, rot: 0.2, period: 8 });
+
+  // ---------------- A · Hook (0 – 2.5 s)
+  tl.from("#hook .eyebrow", { opacity: 0, x: -30, duration: 0.5 }, 0);
+  S.letters(tl, S.split($("#hook .l1")).chars, 0);
+  S.cue("whoosh", 0.03, { gain: 0.6 });
+  S.letters(tl, S.split($("#hook .l2")).chars, 0.3);
+  S.pop(tl, "#hook .l3", B(2), { yPercent: 50, scale: 0.9 }, { origin: "0% 50%" });
+  S.cue("pop", B(2), { pitch: 1.0 });
+  tl.to("#hook .hot", { scale: 1.08, duration: 0.25, yoyo: true, repeat: 3, ease: "sine.inOut", transformOrigin: "50% 60%", display: "inline-block" }, B(3));
+  S.out(tl, "#hook", B(4.6), { y: -80 });
+
+  // ---------------- B · Figura + articulaciones (2.5 – 7 s)
+  S.punch(tl, B(5));
+  tl.set("#sB", { autoAlpha: 0 }, 0).set("#sB", { autoAlpha: 1 }, B(5) - 0.01);
+  S.letters(tl, S.split($("#bTitle .display")).chars, B(5), { stagger: 0.02 });
+  // dibujo del cuerpo (trazo que avanza)
+  const parts = S.$$("#fig .body");
+  parts.forEach((p, i) => {
+    const L = p.getTotalLength ? p.getTotalLength() : 600;
+    // el hueco empieza antes del inicio del trazo: sin «puntos» de remate antes de dibujar
+    tl.fromTo(p, { strokeDasharray: `${L} ${L + 60}`, strokeDashoffset: L + 30 }, { strokeDashoffset: 0, duration: 0.7, ease: "power2.inOut" }, B(5) + 0.1 + i * 0.06);
+  });
+  S.cue("swish", B(5) + 0.1, { gain: 0.7 });
+  // articulaciones: [x, y] en coordenadas de la figura, una etiqueta por grupo
+  const groups = [
+    [[200, 400]],              // espalda (lumbar)
+    [[160, 462], [240, 462]],  // caderas
+    [[150, 640], [250, 640]],  // rodillas
+    [[146, 820], [254, 820]],  // tobillos
+  ];
+  const labY = [700, 860, 1020, 1180];
+  const figBox = { x: 540, y: 470, s: 1 };
+  const svgNS = "http://www.w3.org/2000/svg";
+  groups.forEach((g, gi) => {
+    const tin = B(7) + gi * B(1.5);
+    const lab = $("#lab" + gi);
+    lab.style.top = labY[gi] - 32 + "px";
+    // línea guía desde la etiqueta a la primera articulación
+    const ln = document.createElementNS(svgNS, "line");
+    const lw = lab.getBoundingClientRect();
+    const jx = figBox.x + g[0][0], jy = figBox.y + g[0][1];
+    ln.setAttribute("x1", lw.right + 16); ln.setAttribute("y1", labY[gi]);
+    ln.setAttribute("x2", jx - 26); ln.setAttribute("y2", jy);
+    $("#leaders").appendChild(ln);
+    const len = Math.hypot(jx - 26 - lw.right - 16, jy - labY[gi]);
+    tl.fromTo(ln, { strokeDashoffset: len, strokeDasharray: `3 12` }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, tin + 0.1);
+    tl.fromTo(ln, { opacity: 0 }, { opacity: 1, duration: 0.067, ease: "none" }, tin + 0.1);
+    S.pop(tl, lab, tin, { x: -40, scale: 0.9 }, { origin: "0% 50%" });
+    S.cue("pop", tin, { pitch: 0.9 + gi * 0.1 });
+    g.forEach(([x, y]) => {
+      const ring = document.createElementNS(svgNS, "circle");
+      ring.setAttribute("class", "ring"); ring.setAttribute("cx", x); ring.setAttribute("cy", y); ring.setAttribute("r", 22);
+      const dot = document.createElementNS(svgNS, "circle");
+      dot.setAttribute("class", "joint"); dot.setAttribute("cx", x); dot.setAttribute("cy", y); dot.setAttribute("r", 20);
+      $("#joints").append(ring, dot);
+      S.pop(tl, dot, tin + 0.12, { scale: 0 }, { origin: "50% 50%", dur: 0.5 });
+      // pulso de «impacto»: 2 ondas lentas (sin destellos)
+      tl.fromTo(ring, { scale: 1, opacity: 0.9, transformOrigin: "50% 50%" }, { scale: 2.6, opacity: 0, duration: 0.9, ease: "power2.out", repeat: 1, repeatDelay: 0.1, immediateRender: false }, tin + 0.15);
+    });
+  });
+  // la figura «encaja» cada golpe
+  tl.to("#fig", { y: 10, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, B(13) - 0.4);
+
+  // ---------------- C · Datos: correr vs. rebotar (7 – 11.5 s)
+  tl.fromTo("#sC", { clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0% 0 0 0)", duration: 0.55, ease: "expo.inOut" }, B(13) - 0.3);
+  S.cue("whoosh", B(13) - 0.35, { gain: 0.7, pitch: 0.9 });
+  S.letters(tl, S.split($("#cTitle .display")).chars, B(13), { stagger: 0.025 });
+  tl.from("#cTitle .eyebrow", { opacity: 0, x: -20, duration: 0.4 }, B(13));
+  tl.fromTo("#base", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.6, ease: "expo.out" }, B(13) + 0.1);
+  tl.fromTo("#bar1", { scaleY: 0 }, { scaleY: 1, duration: 1.1, ease: "power3.out" }, B(14));
+  tl.set(["#v1", "#v2"], { autoAlpha: 0 }, 0).set("#v1", { autoAlpha: 1 }, B(14)).set("#v2", { autoAlpha: 1 }, B(15) + 0.2);
+  S.counter(tl, $("#v1"), B(14), { from: 0, to: 100, dur: 1.1, ticks: 8 });
+  tl.fromTo("#v1", { y: 600 }, { y: 0, duration: 1.1, ease: "power3.out" }, B(14));
+  S.pop(tl, "#l1", B(14), { y: 20 });
+  tl.fromTo("#bar2", { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power3.out" }, B(15) + 0.2);
+  S.counter(tl, $("#v2"), B(15) + 0.2, { from: 0, to: 20, dur: 0.5, ticks: 3 });
+  tl.fromTo("#v2", { y: 110 }, { y: 0, duration: 0.5, ease: "power3.out" }, B(15) + 0.2);
+  S.pop(tl, "#l2", B(15) + 0.2, { y: 20 });
+  // gap: la bola cae sobre la barra Kangoo -> DROP: −80 %
+  const ball = $("#ball2");
+  const topY = 1920 - 620 - 120; // tope de la barra 2
+  const bx = 570 + 135;
+  tl.set(ball, { x: bx, y: -100, autoAlpha: 0 }, 0).set(ball, { autoAlpha: 1 }, B(16));
+  tl.to(ball, { y: topY, duration: 0.5, ease: "power2.in" }, B(16)); // cae en el silencio, aterriza en el drop
+  tl.to(ball, { scaleX: 1.4, scaleY: 0.65, duration: 0.05, yoyo: true, repeat: 1, transformOrigin: "50% 100%" }, B(17));
+  tl.to("#bar2", { scaleY: 0.82, duration: 0.07, yoyo: true, repeat: 1, ease: "power2.out" }, B(17));
+  S.cue("bounce", B(17), { gain: 1.0, pitch: 0.8 });
+  [[260, 0.32], [130, 0.24], [60, 0.17]].forEach(([h, d], i) => {
+    const t = B(17) + 0.07 + [0, 0.66, 1.16][i];
+    tl.to(ball, { y: topY - h, duration: d, ease: "power2.out" }, t);
+    tl.to(ball, { y: topY, duration: d, ease: "power2.in" }, t + d);
+    if (i < 2) S.cue("bounce", t + 2 * d, { gain: 0.45 - i * 0.12, pitch: 1.1 + i * 0.15 });
+  });
+  S.pop(tl, "#minus", B(17), { scale: 1.8, rotation: -8, rotationTo: -3 }, { origin: "30% 100%" });
+  S.cue("slam", B(17), { gain: 0.5, pitch: 1.1 });
+  S.punch(tl, B(17), { scale: 1.05, sfx: null });
+  tl.fromTo("#note", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, B(18));
+  tl.to("#minus", { y: -10, duration: 1, yoyo: true, repeat: 2, ease: "sine.inOut" }, B(18));
+
+  // ---------------- D · Salta. Suda. sin machacarte. + CTA (11.5 – 16 s)
+  tl.fromTo("#sD", { clipPath: "circle(0px at 705px 1180px)" }, { clipPath: "circle(2300px at 705px 1180px)", duration: 0.8, ease: "expo.inOut" }, B(23) - 0.4);
+  S.cue("whoosh", B(23) - 0.45, { gain: 0.7 });
+  ["p1", "p2"].forEach((c, i) => {
+    S.pop(tl, `#pay .${c}`, B(23) + i * B(1), { yPercent: 80, scale: 0.85 }, { origin: "0% 100%" });
+    S.cue("slam", B(23) + i * B(1), { gain: 0.35, pitch: 1.2 + i * 0.15 });
+  });
+  S.fit($("#pay .p3"), 840);
+  S.letters(tl, S.split($("#pay .p3")).chars, B(25), { stagger: 0.03 });
+  S.cue("swish", B(25), { gain: 0.6 });
+  S.pop(tl, "#ctaCard", B(26), { y: 120, rotation: 4, rotationTo: -1.5 });
+  S.cue("pop", B(26), { pitch: 1.0 });
+  S.pop(tl, "#ctaCard .chip", B(27), { scale: 0.4 }, { origin: "0% 50%" });
+  S.cue("ding", B(27) + 0.02, { gain: 0.7 });
+  tl.to("#ctaCard .chip", { scale: 1.06, duration: 0.5, yoyo: true, repeat: 5, ease: "sine.inOut", transformOrigin: "0% 50%" }, B(28));
+  tl.fromTo("#note2", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, B(27));
+  tl.set("#stage", { backgroundColor: S.css("coral") }, B(23) + 0.5);
+  tl.set({}, {}, 16.2);
+
+  const H = S.preroll + 0.02;
+  S.voSync([
+    { t: H },                                   // ¿Te duelen las rodillas al correr?
+    { t: B(5), from: B(4.6) },                  // Cada zancada golpea en...
+    { t: B(7), from: B(7) - 0.05 },             // Espalda.
+    { t: B(8.5), from: B(8.5) - 0.05 },         // Caderas.
+    { t: B(10), from: B(10) - 0.05 },           // Rodillas.
+    { t: B(11.5), from: B(11.5) - 0.05 },       // Tobillos.
+    { t: B(13), from: B(13) - 0.45 },           // Correr... o rebotar.
+    { t: B(17), from: B(16) },                  // Con Kangoo Jumps, hasta un 80 %... (drop)
+    { t: B(23), from: B(23) - 0.5 },            // Salta.
+    { t: B(24), from: B(24) - 0.05 },           // Suda.
+    { t: B(25), from: B(25) - 0.05 },           // Sin machacarte.
+    { t: B(26), from: B(26) - 0.05 },           // Comenta SALTAR...
+  ]);
+});
+</script>
+</body>
+</html>
